@@ -231,8 +231,8 @@ function renderLb() {
         ${noteHtml}
         <div class="lb-progress-bar"><div class="lb-progress-fill" style="width:${pctFill}%"></div></div>
       </td>
-      <td class="lb-stops right hide-mobile">${r.s1 || '—'}</td>
-      <td class="lb-stops right hide-mobile">${r.s2 || '—'}</td>
+      <td class="lb-stops right hide-mobile">${r.s1 || '-'}</td>
+      <td class="lb-stops right hide-mobile">${r.s2 || '-'}</td>
       <td class="lb-pts-cell ${i === 0 ? 'leader' : ''}">${total}</td>
       <td class="lb-stops right hide-mobile">${(r.s1 > 0 ? 1 : 0) + (r.s2 > 0 ? 1 : 0)}/4</td>
       <td class="lb-status-cell"><span class="lb-badge ${badgeMap[r.status]}">${badgeLabel[r.status]}</span></td>
@@ -291,8 +291,25 @@ function renderLbSpotlight() {
 		.join('');
 }
 
+function initHeroVideo() {
+	const v = document.getElementById('hero-video') as HTMLVideoElement | null;
+	if (!v) return;
+	const reveal = () => {
+		v.style.opacity = '1';
+	};
+	if (v.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+		reveal();
+	} else {
+		v.addEventListener('canplay', reveal, { once: true });
+	}
+	void v.play().catch(() => {
+		/* autoplay may be blocked; still show first frame when data loads */
+	});
+}
+
 initNavDrawer();
 initLeaderboardPage();
+initHeroVideo();
 
 type Win = Window &
 	typeof globalThis & {

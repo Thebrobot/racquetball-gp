@@ -1,4 +1,4 @@
-# Netlify / Cloudflare Pages: same intent as vercel.json — use one stack’s mechanism in production.
+# Netlify / Cloudflare Pages: same intent as vercel.json; use one stack’s mechanism in production.
 # Tighten Content-Security-Policy when you add analytics, fonts, or third-party embeds.
 
 /*

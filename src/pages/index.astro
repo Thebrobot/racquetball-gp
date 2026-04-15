@@ -20,6 +20,7 @@ const spotlightSpots = HOME_SPOTLIGHT_TRACKS.map((t) => ({
 	spotlightLabel="Sponsor spotlight"
 	spotlightName="Presenting Partner"
 	spotlightBlurb="Supporting travel grants and on-site athlete hospitality at select Grand Prix stops this season."
+	imagePreloads={['/images/website-logo.webp', '/images/series-logo.webp']}
 >
 	<div class="hero-viewport">
 		<div class="hero">
@@ -39,7 +40,7 @@ const spotlightSpots = HOME_SPOTLIGHT_TRACKS.map((t) => ({
 						<span class="line3">Florida · 2026</span>
 					</h1>
 					<p class="hero-sub">
-						Four tour stops. One championship. The first-ever racquetball Grand Prix in Florida — earn
+						Four tour stops. One championship. The first-ever racquetball Grand Prix in Florida. Earn
 						points at every stop and battle for a spot at the season finale in Ocala.
 					</p>
 					<div class="hero-ctas">
@@ -50,10 +51,11 @@ const spotlightSpots = HOME_SPOTLIGHT_TRACKS.map((t) => ({
 				<div class="hero-series">
 					<img
 						class="hero-series-img"
-						src="/images/series-logo.png"
+						src="/images/series-logo.webp"
 						alt="Florida Racquetball Grand Prix 2026 series emblem"
 						width="1080"
 						height="1350"
+						fetchpriority="high"
 						decoding="async"
 					/>
 				</div>
@@ -77,13 +79,13 @@ const spotlightSpots = HOME_SPOTLIGHT_TRACKS.map((t) => ({
 		<div class="section-label">Explore</div>
 		<div class="section-title">The <span style="color:var(--orange)">Grand Prix</span></div>
 		<p class="section-sub">
-			Everything you need — schedule, points rules, live standings, and partners — lives on its own page.
+			Everything you need (schedule, points rules, live standings, and partners) lives on its own page.
 		</p>
 		<div class="site-explore-grid">
 			<a class="site-explore-card" href="/tournaments">
 				<span class="site-explore-card-kicker">Schedule</span>
 				<span class="site-explore-card-title">Tournaments</span>
-				<span class="site-explore-card-desc">All stops in tiles — dates, venues, and registration.</span>
+				<span class="site-explore-card-desc">All stops in tiles: dates, venues, and registration.</span>
 			</a>
 			<a class="site-explore-card" href="/points">
 				<span class="site-explore-card-kicker">Rules</span>

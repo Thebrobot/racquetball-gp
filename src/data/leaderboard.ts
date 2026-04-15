@@ -1,4 +1,4 @@
-/** Standings categories and row shape — single source for Astro pages and client script. */
+/** Standings categories and row shape: single source for Astro pages and client script. */
 
 export type LbCategory = 'singles' | 'doubles' | 'mixed';
 export type LbStatus = 'q' | 'pace' | 'chase';
@@ -88,7 +88,7 @@ export const lbData: LbData = {
 				s1: 100,
 				s2: 75,
 				status: 'q',
-				image: '/images/spotlight/leader-open-men-placeholder.png',
+				image: '/images/spotlight/leader-open-men-placeholder.webp',
 			},
 			{ name: 'Tyler Brooks', city: 'Orlando, FL', s1: 75, s2: 100, status: 'q' },
 			{ name: 'Darnell West', city: 'Tampa, FL', s1: 50, s2: 0, status: 'pace' },
@@ -105,8 +105,8 @@ export const lbData: LbData = {
 				s1: 100,
 				s2: 100,
 				status: 'q',
-				tagline: 'Undefeated through two stops — setting the pace in Open Women.',
-				image: '/images/spotlight/leader-open-women-placeholder.png',
+				tagline: 'Undefeated through two stops, setting the pace in Open Women.',
+				image: '/images/spotlight/leader-open-women-placeholder.webp',
 			},
 			{ name: 'Dana Park', city: 'Tampa, FL', s1: 75, s2: 50, status: 'q' },
 			{ name: 'Leila Johnson', city: 'Orlando, FL', s1: 25, s2: 75, status: 'pace' },
@@ -137,7 +137,7 @@ export const lbData: LbData = {
 				s2: 80,
 				status: 'q',
 				note: 'Same pair',
-				image: '/images/spotlight/leader-mixed-placeholder.png',
+				image: '/images/spotlight/leader-mixed-placeholder.webp',
 			},
 			{ name: 'Brooks / Park', city: 'Orlando & Tampa', s1: 65, s2: 40, status: 'pace' },
 			{ name: 'West / Johnson', city: 'Tampa & Orlando', s1: 32, s2: 65, status: 'pace' },

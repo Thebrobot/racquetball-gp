@@ -11,9 +11,11 @@ interface Props {
 	siteName?: string;
 	/** Full-width pages (no narrow main column); use for marketing/landing layouts */
 	fullBleed?: boolean;
+	/** Early-fetch LCP-related images (paths under /public) */
+	imagePreloads?: string[];
 }
 
-const { fullBleed = false, ...seo } = Astro.props;
+const { fullBleed = false, imagePreloads = [], ...seo } = Astro.props;
 ---
 
 <!doctype html>
@@ -25,6 +27,7 @@ const { fullBleed = false, ...seo } = Astro.props;
 		<link rel="icon" href="/favicon.ico" />
 		<meta name="generator" content={Astro.generator} />
 		<Seo {...seo} />
+		{imagePreloads.map((href) => <link rel="preload" href={href} as="image" />)}
 		{
 			fullBleed && (
 				<>

@@ -1,4 +1,4 @@
-/** Grand Prix season stops — homepage bento + tournaments page (single source). */
+/** Grand Prix season stops: homepage bento + tournaments page (single source). */
 
 export type StopKind = 'done' | 'next' | 'upcoming' | 'champ';
 
@@ -15,7 +15,7 @@ export interface SeasonStop {
 	eventName: string;
 	/** Full date line for schedule cards */
 	dateFull: string;
-	/** One line for bento tiles — why this stop matters */
+	/** One line for bento tiles: why this stop matters */
 	teaser?: string;
 }
 
@@ -30,10 +30,10 @@ export const SEASON_STOPS: SeasonStop[] = [
 		cityLine: 'Ocala, FL',
 		dateHint: 'May 2026',
 		kind: 'upcoming',
-		image: '/images/stops/stop-ocala.png',
+		image: '/images/stops/stop-ocala.webp',
 		eventName: 'Ocala Open',
 		dateFull: 'May 2026 · Ocala, FL',
-		teaser: 'The first Grand Prix stop in history — be there when the clock starts.',
+		teaser: 'The first Grand Prix stop in history. Be there when the clock starts.',
 	},
 	{
 		id: 'stop-2',
@@ -42,10 +42,10 @@ export const SEASON_STOPS: SeasonStop[] = [
 		cityLine: 'Tallahassee, FL',
 		dateHint: 'June 2026',
 		kind: 'upcoming',
-		image: '/images/stops/stop-tallahassee.png',
+		image: '/images/stops/stop-tallahassee.webp',
 		eventName: 'Capital City Grand Prix',
 		dateFull: 'June 2026 · Tallahassee, FL',
-		teaser: 'Capital-city courts under the oaks — where statewide bragging rights start to take shape.',
+		teaser: 'Capital-city courts under the oaks, where statewide bragging rights start to take shape.',
 	},
 	{
 		id: 'stop-3',
@@ -54,7 +54,7 @@ export const SEASON_STOPS: SeasonStop[] = [
 		cityLine: 'Sarasota, FL',
 		dateHint: 'July 2026',
 		kind: 'upcoming',
-		image: '/images/stops/stop-sarasota.png',
+		image: '/images/stops/stop-sarasota.webp',
 		eventName: 'Sarasota Classic',
 		dateFull: 'July 2026 · Sarasota, FL',
 		teaser: 'Gulf Coast energy, club crowds, and points that reshape the standings.',
@@ -66,7 +66,7 @@ export const SEASON_STOPS: SeasonStop[] = [
 		cityLine: 'Miami, FL',
 		dateHint: 'August 2026',
 		kind: 'next',
-		image: '/images/stops/stop-miami.png',
+		image: '/images/stops/stop-miami.webp',
 		eventName: 'Miami Invitational',
 		dateFull: 'August 2026 · Miami, FL',
 		teaser: 'Big-city lights, elite pace, and the summer swing every player circles on the calendar.',
@@ -78,9 +78,9 @@ export const SEASON_STOPS: SeasonStop[] = [
 		cityLine: 'Ocala, FL',
 		dateHint: 'October 2026',
 		kind: 'champ',
-		image: '/images/stops/stop-championship-ocala.png',
+		image: '/images/stops/stop-championship-ocala.webp',
 		eventName: 'Florida GP Championship',
 		dateFull: 'October 2026 · Ocala, FL',
-		teaser: 'Qualified athletes only — one weekend, one title, one season on the line.',
+		teaser: 'Qualified athletes only: one weekend, one title, one season on the line.',
 	},
 ];
