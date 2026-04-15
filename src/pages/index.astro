@@ -1,0 +1,105 @@
+---
+import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
+import TitleSponsorIntro from '../components/grand-prix/TitleSponsorIntro.astro';
+import PlayerSpotlight from '../components/grand-prix/PlayerSpotlight.astro';
+import SeasonStopsBar from '../components/grand-prix/SeasonStopsBar.astro';
+import SeasonStopsBento from '../components/grand-prix/SeasonStopsBento.astro';
+import { HOME_SPOTLIGHT_TRACKS, getTopN } from '../data/leaderboard';
+import heroVideo from '../partials/grand-prix-hero-video.html?raw';
+
+const spotlightSpots = HOME_SPOTLIGHT_TRACKS.map((t) => ({
+	trackLabel: t.label,
+	leader: getTopN(t.category, t.division, 1)[0],
+	standingsHref: `/leaderboard?event=${t.category}&division=${encodeURIComponent(t.division)}`,
+}));
+---
+
+<GrandPrixLayout
+	title="Florida Racquetball Grand Prix 2026"
+	description="The premier racquetball tournament series in Florida. Compete for prizes, points, and the Grand Prix title."
+	spotlightLabel="Sponsor spotlight"
+	spotlightName="Presenting Partner"
+	spotlightBlurb="Supporting travel grants and on-site athlete hospitality at select Grand Prix stops this season."
+>
+	<div class="hero-viewport">
+		<div class="hero">
+			<div set:html={heroVideo} />
+			<div
+				style="position:absolute;inset:0;z-index:1;background:linear-gradient(180deg, rgba(10,22,40,0.48) 0%, rgba(10,22,40,0.36) 40%, rgba(10,22,40,0.52) 80%, rgba(10,22,40,0.68) 100%);"
+				aria-hidden="true"
+			>
+			</div>
+			<div class="hero-grid" style="z-index:2;" aria-hidden="true"></div>
+			<div class="hero-layout" style="z-index:3;">
+				<div class="hero-copy">
+					<div class="hero-eyebrow">Season 1 · Florida Statewide Series</div>
+					<h1 class="hero-title">
+						Racquetball
+						<span class="line2">Grand Prix</span>
+						<span class="line3">Florida · 2026</span>
+					</h1>
+					<p class="hero-sub">
+						Four tour stops. One championship. The first-ever racquetball Grand Prix in Florida — earn
+						points at every stop and battle for a spot at the season finale in Ocala.
+					</p>
+					<div class="hero-ctas">
+						<a class="btn-main" href="/leaderboard">View Standings</a>
+						<a class="btn-ghost" href="/tournaments">See Schedule</a>
+					</div>
+				</div>
+				<div class="hero-series">
+					<img
+						class="hero-series-img"
+						src="/images/series-logo.png"
+						alt="Florida Racquetball Grand Prix 2026 series emblem"
+						width="1080"
+						height="1350"
+						decoding="async"
+					/>
+				</div>
+			</div>
+		</div>
+
+		<SeasonStopsBar />
+	</div>
+
+	<TitleSponsorIntro />
+
+	<div class="home-bento-shell">
+		<div class="home-bento-shell-inner">
+			<SeasonStopsBento />
+		</div>
+	</div>
+
+	<PlayerSpotlight spots={spotlightSpots} />
+
+	<section class="site-explore">
+		<div class="section-label">Explore</div>
+		<div class="section-title">The <span style="color:var(--orange)">Grand Prix</span></div>
+		<p class="section-sub">
+			Everything you need — schedule, points rules, live standings, and partners — lives on its own page.
+		</p>
+		<div class="site-explore-grid">
+			<a class="site-explore-card" href="/tournaments">
+				<span class="site-explore-card-kicker">Schedule</span>
+				<span class="site-explore-card-title">Tournaments</span>
+				<span class="site-explore-card-desc">All stops in tiles — dates, venues, and registration.</span>
+			</a>
+			<a class="site-explore-card" href="/points">
+				<span class="site-explore-card-kicker">Rules</span>
+				<span class="site-explore-card-title">How points work</span>
+				<span class="site-explore-card-desc">Singles, doubles, and partnership bonuses explained.</span>
+			</a>
+			<a class="site-explore-card" href="/leaderboard">
+				<span class="site-explore-card-kicker">Live</span>
+				<span class="site-explore-card-title">Leaderboard</span>
+				<span class="site-explore-card-desc">Season standings updated after every stop.</span>
+			</a>
+			<a class="site-explore-card" href="/sponsors">
+				<span class="site-explore-card-kicker">Partners</span>
+				<span class="site-explore-card-title">Sponsors</span>
+				<span class="site-explore-card-desc">Brands backing Florida racquetball.</span>
+			</a>
+		</div>
+	</section>
+</GrandPrixLayout>

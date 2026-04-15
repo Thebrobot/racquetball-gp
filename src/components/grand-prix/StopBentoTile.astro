@@ -1,0 +1,32 @@
+---
+import type { SeasonStop } from '../../data/season-stops';
+
+interface Props {
+	stop: SeasonStop;
+	/** Pass `stop.gridArea` for splitFeature; omit for marqueeStack / ribbon tiles. */
+	gridArea?: SeasonStop['gridArea'] | false;
+	extraClass?: string;
+}
+
+const { stop, gridArea, extraClass } = Astro.props;
+---
+
+<article
+	class:list={['stop-bento', `stop-bento--${stop.kind}`, extraClass]}
+	data-stop-id={stop.id}
+	style={{
+		'--stop-img': `url("${stop.image}")`,
+		...(gridArea !== false && gridArea !== undefined ? { gridArea } : {}),
+	}}
+>
+	<div class="stop-bento-bg" aria-hidden="true"></div>
+	<div class="stop-bento-content">
+		<span class="stop-bento-dot" aria-hidden="true"></span>
+		<div class="stop-bento-text">
+			<span class="stop-bento-label">{stop.label}</span>
+			<span class="stop-bento-city">{stop.cityLine}</span>
+			<span class="stop-bento-date">{stop.dateHint}</span>
+			{stop.teaser && <p class="stop-bento-teaser">{stop.teaser}</p>}
+		</div>
+	</div>
+</article>

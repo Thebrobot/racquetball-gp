@@ -1,0 +1,34 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import '../styles/grand-prix.css';
+import GrandPrixNav from '../components/grand-prix/GrandPrixNav.astro';
+import GrandPrixFooter from '../components/grand-prix/GrandPrixFooter.astro';
+import SponsorSpotlight from '../components/grand-prix/SponsorSpotlight.astro';
+
+interface Props {
+	title: string;
+	description: string;
+	siteName?: string;
+	spotlightName: string;
+	spotlightBlurb: string;
+	spotlightLabel?: string;
+}
+
+const {
+	title,
+	description,
+	siteName = 'Florida Racquetball Grand Prix',
+	spotlightName,
+	spotlightBlurb,
+	spotlightLabel,
+} = Astro.props;
+---
+
+<BaseLayout {title} {description} {siteName} fullBleed>
+	<div class="gp-site">
+		<GrandPrixNav />
+		<slot />
+		<SponsorSpotlight label={spotlightLabel} name={spotlightName} blurb={spotlightBlurb} />
+		<GrandPrixFooter />
+	</div>
+</BaseLayout>

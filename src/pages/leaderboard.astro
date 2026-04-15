@@ -1,0 +1,163 @@
+---
+import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
+import {
+	LB_OVERVIEW_CATEGORY_ORDER,
+	LB_CATEGORY_HEADING,
+	LB_DIVISIONS_BY_CATEGORY,
+	getDivisionLeader,
+	leaderboardTotal,
+	type LbCategory,
+} from '../data/leaderboard';
+
+const badgeLabel = { q: 'Qualified', pace: 'On Pace', chase: 'Chasing' } as const;
+function badgeClass(status: keyof typeof badgeLabel): string {
+	return status === 'q' ? 'badge-q' : status === 'pace' ? 'badge-pace' : 'badge-chase';
+}
+---
+
+<GrandPrixLayout
+	title="Leaderboard — Florida Racquetball Grand Prix 2026"
+	description="Live season standings for the Florida Racquetball Grand Prix — updated after every stop."
+	spotlightLabel="Sponsor spotlight"
+	spotlightName="Stats Partner"
+	spotlightBlurb="Powering transparent standings and division tracking for players and fans all season."
+>
+	<div class="lb-hero">
+		<img
+			class="lb-hero-series-img"
+			src="/images/series-logo.png"
+			alt="Florida Racquetball Grand Prix series emblem"
+			width="1080"
+			height="1350"
+			decoding="async"
+		/>
+		<div class="section-label">Season 2026</div>
+		<div class="lb-hero-title">Season <span>Standings</span></div>
+		<div class="lb-hero-sub">Updated after every Grand Prix stop · Season opens May 2026</div>
+		<div class="lb-stats">
+			<div class="lb-stat">
+				<span class="lb-stat-val"><em>0</em> / 4</span><span class="lb-stat-label">Tour Stops Complete</span>
+			</div>
+			<div class="lb-stat">
+				<span class="lb-stat-val">TBD</span><span class="lb-stat-label">Players Registered</span>
+			</div>
+			<div class="lb-stat">
+				<span class="lb-stat-val">Oct <em>'26</em></span><span class="lb-stat-label">Championship</span>
+			</div>
+		</div>
+	</div>
+
+	<section class="lb-overview" id="lb-overview" aria-labelledby="lb-overview-heading">
+		<h2 id="lb-overview-heading" class="lb-overview-title">Leaders by division</h2>
+		<p class="lb-overview-lede">
+			Points are separate for singles, doubles, and mixed — each card is the current #1 in that bracket. Tap to open
+			full standings.
+		</p>
+		{
+			LB_OVERVIEW_CATEGORY_ORDER.map((cat: LbCategory) => (
+				<div class="lb-overview-block">
+					<h3 class="lb-overview-cat">{LB_CATEGORY_HEADING[cat]}</h3>
+					<div class="lb-overview-grid">
+						{LB_DIVISIONS_BY_CATEGORY[cat].map((d) => {
+							const leader = getDivisionLeader(cat, d.id);
+							const label = `${LB_CATEGORY_HEADING[cat]} — ${d.label}`;
+							return (
+								<button
+									type="button"
+									class="lb-overview-card"
+									data-lb-event={cat}
+									data-lb-division={d.id}
+									aria-label={`View ${label} standings`}
+								>
+									<span class="lb-overview-div">{d.label}</span>
+									{leader ? (
+										<>
+											<span class="lb-overview-name">{leader.name}</span>
+											<span class="lb-overview-meta">
+												<span class="lb-overview-pts">
+													<strong>{leaderboardTotal(leader)}</strong> pts
+												</span>
+												<span class:list={['lb-badge', badgeClass(leader.status)]}>
+													{badgeLabel[leader.status]}
+												</span>
+											</span>
+										</>
+									) : (
+										<span class="lb-overview-empty">No results yet</span>
+									)}
+									<span class="lb-overview-hint">View standings →</span>
+								</button>
+							);
+						})}
+					</div>
+				</div>
+			))
+		}
+	</section>
+
+	<div id="lb-detail" class="lb-detail">
+		<div class="lb-standings-panel">
+			<header class="lb-panel-header">
+				<h2 class="lb-panel-title">Full standings</h2>
+				<p class="lb-panel-desc">Choose event type and division, then scroll the table for everyone with points.</p>
+			</header>
+
+			<div class="lb-detail-toolbar">
+				<div class="lb-tabs-row" role="tablist" aria-label="Standings category">
+					<button class="lb-tab active" type="button" data-lb-tab="singles" onclick="setLbTab('singles')">
+						Singles
+					</button>
+					<button class="lb-tab" type="button" data-lb-tab="doubles" onclick="setLbTab('doubles')">Doubles</button>
+					<button class="lb-tab" type="button" data-lb-tab="mixed" onclick="setLbTab('mixed')">
+						Mixed Doubles
+					</button>
+				</div>
+				<div class="lb-division-row">
+					<label class="lb-division-label" for="divSelect">Division</label>
+					<select class="lb-select" id="divSelect" onchange="onLbDivisionChange()">
+						{
+							LB_DIVISIONS_BY_CATEGORY.singles.map((d) => (
+								<option value={d.id}>{d.label}</option>
+							))
+						}
+					</select>
+				</div>
+			</div>
+
+			<p class="lb-context" id="lb-context-line" aria-live="polite">Singles · Open Men</p>
+
+			<section class="lb-spotlight" aria-label="Top three in selected division" aria-live="polite">
+				<div class="lb-spotlight-inner">
+					<p class="lb-spotlight-kicker">Top 3 in this bracket</p>
+					<div class="lb-spotlight-podium" id="lb-spotlight-cards"></div>
+				</div>
+			</section>
+
+			<div class="lb-table-wrap">
+			<table class="lb-table">
+				<thead>
+					<tr>
+						<th style="width:48px">#</th>
+						<th>Player</th>
+						<th class="right hide-mobile">Stop 1</th>
+						<th class="right hide-mobile">Stop 2</th>
+						<th class="right">Total</th>
+						<th class="right hide-mobile">Stops</th>
+						<th class="right">Status</th>
+					</tr>
+				</thead>
+				<tbody id="lb-tbody"></tbody>
+			</table>
+			<div class="lb-legend">
+				<span
+					><span class="lb-badge badge-q" style="font-size:13px;">Qualified</span> — Locked in for championship</span
+				>
+				<span
+					><span class="lb-badge badge-pace" style="font-size:13px;">On Pace</span> — Projected to qualify</span
+				>
+				<span><span class="lb-badge badge-chase" style="font-size:13px;">Chasing</span> — Points needed</span>
+			</div>
+			</div>
+		</div>
+	</div>
+</GrandPrixLayout>

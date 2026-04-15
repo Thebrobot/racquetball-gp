@@ -1,0 +1,23 @@
+---
+import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
+import SponsorsSection from '../components/grand-prix/SponsorsSection.astro';
+---
+
+<GrandPrixLayout
+	title="Sponsors — Florida Racquetball Grand Prix"
+	description="Partners and sponsors of the Florida Racquetball Grand Prix — title, presenting, and supporting brands."
+	spotlightLabel="Featured partner"
+	spotlightName="Community Sponsor"
+	spotlightBlurb="Connecting local clubs and juniors to the statewide Grand Prix pathway."
+>
+	<div class="page-hero">
+		<div class="section-label">Partners</div>
+		<h1 class="section-title">Sponsor the <span style="color:var(--orange)">series</span></h1>
+		<p class="section-sub" style="margin-bottom:0;">
+			From title placement to on-site activation, we build packages that align with your brand and support
+			players across Florida.
+		</p>
+	</div>
+
+	<SponsorsSection />
+</GrandPrixLayout>

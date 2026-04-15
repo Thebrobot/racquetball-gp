@@ -1,0 +1,5 @@
+# Replace https://example.com with your PUBLIC_SITE_URL / production domain.
+User-agent: *
+Allow: /
+
+Sitemap: https://example.com/sitemap-index.xml

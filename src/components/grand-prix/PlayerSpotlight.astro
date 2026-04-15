@@ -1,0 +1,71 @@
+---
+import type { LbRow } from '../../data/leaderboard';
+import { formatPlayerInitials, isPendingPlaceholder } from '../../data/leaderboard';
+
+interface Spot {
+	trackLabel: string;
+	leader: LbRow;
+	/** Deep-link to leaderboard detail for this track */
+	standingsHref?: string;
+}
+
+interface Props {
+	spots: Spot[];
+}
+
+const { spots } = Astro.props;
+---
+
+<section class="player-spotlight" aria-labelledby="player-spotlight-heading">
+	<div class="player-spotlight-inner">
+		<p class="section-label">Series spotlight</p>
+		<h2 id="player-spotlight-heading" class="player-spotlight-title">
+			Leaders at the <span class="player-spotlight-title-accent">top</span>
+		</h2>
+		<p class="player-spotlight-sub">
+			Headline divisions — see every division on the full standings.
+		</p>
+		<div class="player-spotlight-grid">
+			{
+				spots.map(({ trackLabel, leader, standingsHref }) => (
+					<article
+						class:list={['player-spot-card', { 'player-spot-card--pending': isPendingPlaceholder(leader) }]}
+					>
+						<div class:list={['player-spot-media', { 'player-spot-media--fallback': !leader.image }]}>
+							{leader.image ? (
+								<img
+									class="player-spot-media-img"
+									src={leader.image}
+									alt=""
+									width="400"
+									height="500"
+									loading="lazy"
+									decoding="async"
+								/>
+							) : (
+								<span class="player-spot-media-initials" aria-hidden="true">
+									{formatPlayerInitials(leader.name)}
+								</span>
+							)}
+						</div>
+						<div class="player-spot-card-body">
+							<p class="player-spot-kicker">{trackLabel}</p>
+							<h3 class="player-spot-name">{leader.name}</h3>
+							<p class="player-spot-city">{leader.city}</p>
+							{leader.tagline && <p class="player-spot-tagline">{leader.tagline}</p>}
+							<p class="player-spot-pts">
+								<strong>{leader.s1 + leader.s2}</strong> pts
+							</p>
+							{standingsHref && (
+								<a class="player-spot-standings" href={standingsHref}>
+									View this division's standings →
+								</a>
+							)}
+						</div>
+					</article>
+				))
+			}
+		</div>
+		<a class="player-spotlight-cta" href="/leaderboard">All divisions & season overview →</a>
+	</div>
+</section>

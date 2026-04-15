@@ -1,0 +1,25 @@
+---
+import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
+import TournamentStopCards from '../components/grand-prix/TournamentStopCards.astro';
+---
+
+<GrandPrixLayout
+	title="Tournaments — Florida Racquetball Grand Prix 2026"
+	description="2026 Grand Prix stops across Florida — dates, registration, and championship qualification."
+	spotlightLabel="Sponsor spotlight"
+	spotlightName="Venue Partner"
+	spotlightBlurb="Helping us secure premium courts and athlete amenities at upcoming tour stops."
+>
+	<div class="page-hero">
+		<div class="section-label">2026 Schedule</div>
+		<h1 class="section-title">Tournament <span style="color:var(--orange)">Stops</span></h1>
+		<p class="section-sub" style="margin-bottom:0;">
+			Four Grand Prix tour stops across Florida — May through August — each with full brackets in all skill
+			divisions, then the season championship in October.
+		</p>
+	</div>
+
+	<div class="tournaments-page-wrap">
+		<TournamentStopCards />
+	</div>
+</GrandPrixLayout>

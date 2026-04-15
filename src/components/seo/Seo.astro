@@ -1,0 +1,53 @@
+---
+interface Props {
+	title: string;
+	description: string;
+	/** Absolute URL, or path starting with `/` (resolved with `site`) */
+	canonical?: string;
+	/** Path starting with `/` or absolute https URL */
+	ogImage?: string;
+	noindex?: boolean;
+	siteName?: string;
+}
+
+const {
+	title,
+	description,
+	canonical,
+	ogImage,
+	noindex = false,
+	siteName = 'Racquetball GP',
+} = Astro.props;
+
+const site = Astro.site ?? new URL('https://example.com');
+
+function resolveUrl(pathOrUrl: string): string {
+	if (pathOrUrl.startsWith('http')) return pathOrUrl;
+	const path = pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`;
+	return new URL(path, site).href;
+}
+
+const canonicalURL = canonical ? resolveUrl(canonical) : new URL(Astro.url.pathname, site).href;
+const ogImageURL = ogImage ? resolveUrl(ogImage) : undefined;
+
+const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
+---
+
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonicalURL} />
+{noindex ? (
+	<meta name="robots" content="noindex, nofollow" />
+) : (
+	<meta name="robots" content="index, follow" />
+)}
+<meta property="og:type" content="website" />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonicalURL} />
+<meta property="og:site_name" content={siteName} />
+{ogImageURL && <meta property="og:image" content={ogImageURL} />}
+<meta name="twitter:card" content={ogImageURL ? 'summary_large_image' : 'summary'} />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+{ogImageURL && <meta name="twitter:image" content={ogImageURL} />}

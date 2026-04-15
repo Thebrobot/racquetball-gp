@@ -1,0 +1,99 @@
+---
+import { SEASON_STOPS, TOUR_STOP_COUNT } from '../../data/season-stops';
+
+function pill(kind: (typeof SEASON_STOPS)[number]['kind']) {
+	if (kind === 'done') return { cls: 'pill-done', label: 'Completed' };
+	if (kind === 'next') return { cls: 'pill-next', label: 'Register Now' };
+	if (kind === 'champ') return { cls: 'pill-champ', label: 'By Qualification' };
+	return { cls: 'pill-open', label: 'Registration Open' };
+}
+---
+
+<div class="tournaments-grid tournaments-grid--tiles">
+	{
+		SEASON_STOPS.map((stop, index) => {
+			const fin = stop.id === 'finale';
+			const p = pill(stop.kind);
+			if (fin) {
+				return (
+					<div
+						class="t-card t-card--finale t-card--with-stop-img"
+						data-stop-id={stop.id}
+						style={{ '--stop-img': `url("${stop.image}")` }}
+					>
+						<div class="t-card-media" aria-hidden="true">
+							<div class="t-card-media-bg" />
+						</div>
+						<div class="t-card-head t-card-head--finale">
+							<div>
+								<div class="t-stop-badge t-stop-badge--finale">Season Finale · Championship</div>
+								<div class="t-name t-name--finale">{stop.eventName}</div>
+								<div class="t-date">{stop.dateFull}</div>
+							</div>
+							<span class:list={['t-pill', p.cls]}>{p.label}</span>
+						</div>
+						<div class="t-body">
+							<div class="t-meta">
+								<div class="t-meta-item">
+									<strong>Points Leaders</strong>Qualification
+								</div>
+								<div class="t-meta-item">
+									<strong>All Divisions</strong>Championship Brackets
+								</div>
+								<div class="t-meta-item">
+									<strong>TBD</strong>Exact Dates
+								</div>
+							</div>
+							<button type="button" class="btn-register disabled">Details Coming Soon</button>
+						</div>
+					</div>
+				);
+			}
+			const n = index + 1;
+			const badge =
+				stop.kind === 'next'
+					? `Stop ${n} of ${TOUR_STOP_COUNT} · Marquee`
+					: `Stop ${n} of ${TOUR_STOP_COUNT}`;
+			const regClosed = stop.kind === 'done';
+			return (
+				<div
+					class:list={['t-card', 't-card--with-stop-img', { featured: stop.kind === 'next' }]}
+					data-stop-id={stop.id}
+					style={{ '--stop-img': `url("${stop.image}")` }}
+				>
+					<div class="t-card-media" aria-hidden="true">
+						<div class="t-card-media-bg" />
+					</div>
+					<div class="t-card-head">
+						<div>
+							<div class="t-stop-badge">{badge}</div>
+							<div class="t-name">{stop.eventName}</div>
+							<div class="t-date">{stop.dateFull}</div>
+						</div>
+						<span class:list={['t-pill', p.cls]}>{p.label}</span>
+					</div>
+					<div class="t-body">
+						<div class="t-meta">
+							<div class="t-meta-item">
+								<strong>TBD</strong>Venue
+							</div>
+							<div class="t-meta-item">
+								<strong>All Divisions</strong>Brackets
+							</div>
+							<div class="t-meta-item">
+								<strong>TBD</strong>Reg. Deadline
+							</div>
+						</div>
+						{regClosed ? (
+							<span class="btn-register disabled">Registration Closed</span>
+						) : (
+							<a href="#" class="btn-register" target="_blank" rel="noopener noreferrer">
+								Register →
+							</a>
+						)}
+					</div>
+				</div>
+			);
+		})
+	}
+</div>

@@ -1,0 +1,21 @@
+---
+interface Props {
+	/** Short label above the name, e.g. "Spotlight partner" */
+	label?: string;
+	/** Sponsor or partner name */
+	name: string;
+	/** One or two sentences */
+	blurb: string;
+}
+
+const { label = 'Sponsor spotlight', name, blurb } = Astro.props;
+---
+
+<section class="sponsor-spotlight" aria-labelledby="spotlight-heading">
+	<div class="sponsor-spotlight-inner">
+		<p class="sponsor-spotlight-label">{label}</p>
+		<h2 id="spotlight-heading" class="sponsor-spotlight-name">{name}</h2>
+		<p class="sponsor-spotlight-blurb">{blurb}</p>
+		<a class="sponsor-spotlight-link" href="/sponsors">View all sponsors →</a>
+	</div>
+</section>

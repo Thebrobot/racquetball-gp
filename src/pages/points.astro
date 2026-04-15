@@ -1,0 +1,25 @@
+---
+import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
+import HowItWorksSection from '../components/grand-prix/HowItWorksSection.astro';
+import PointsSystemSection from '../components/grand-prix/PointsSystemSection.astro';
+---
+
+<GrandPrixLayout
+	title="How Points Work — Florida Racquetball Grand Prix"
+	description="Grand Prix points for singles, doubles, and mixed doubles — finish positions, partnership bonuses, and qualification."
+	spotlightLabel="Sponsor spotlight"
+	spotlightName="Equipment Partner"
+	spotlightBlurb="Equipping athletes and programs that grow competitive racquetball statewide."
+>
+	<div class="page-hero">
+		<div class="section-label">Season format</div>
+		<h1 class="section-title">Points &amp; <span style="color:var(--orange)">qualification</span></h1>
+		<p class="section-sub" style="margin-bottom:0;">
+			How the season works from registration through the championship — and exactly how points are
+			awarded at every stop.
+		</p>
+	</div>
+
+	<HowItWorksSection />
+	<PointsSystemSection />
+</GrandPrixLayout>
