@@ -876,20 +876,21 @@ html.nav-drawer-open .nav-drawer-backdrop {
 
 /* ── MATCH CARD ── */
 .bracket-match {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0f2140;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 12px;
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 0;
   position: relative;
+  z-index: 1;
 }
 
 /* ── BYE MATCH — compact single-row ── */
 .bracket-match--bye {
-  background: rgba(255, 255, 255, 0.02);
-  border-color: rgba(255, 255, 255, 0.06);
+  background: #0c1a30;
+  border-color: rgba(255, 255, 255, 0.10);
   padding: 8px 12px;
 }
 .bracket-player--bye-advancer {
@@ -1091,41 +1092,6 @@ html.nav-drawer-open .nav-drawer-backdrop {
   color: rgba(255, 255, 255, 0.7);
 }
 
-.bracket-shell {
-  background: linear-gradient(140deg, rgba(6, 16, 30, 0.9), rgba(14, 26, 48, 0.95));
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 22px;
-  padding: 24px;
-  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.4);
-  position: relative;
-  /* overflow:hidden moved to ::before/::after so the inner bracket-grid can scroll */
-}
-
-.bracket-shell::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background:
-    radial-gradient(circle at top left, rgba(240, 90, 26, 0.12), transparent 45%),
-    radial-gradient(circle at bottom right, rgba(132, 204, 22, 0.12), transparent 45%),
-    repeating-linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.03) 0,
-      rgba(255, 255, 255, 0.03) 1px,
-      transparent 1px,
-      transparent 40px
-    );
-  opacity: 0.85;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.bracket-shell > * {
-  position: relative;
-  z-index: 1;
-}
-
 .bracket-header {
   display: flex;
   align-items: center;
@@ -1166,16 +1132,299 @@ html.nav-drawer-open .nav-drawer-backdrop {
   text-decoration: none;
   padding: 10px 18px;
   border-radius: 999px;
-  background: rgba(240, 90, 26, 0.18);
-  border: 1px solid rgba(240, 90, 26, 0.5);
-  color: #fff;
   font-weight: 600;
   font-size: 13px;
-  box-shadow: 0 12px 24px rgba(240, 90, 26, 0.2);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
 .bracket-grid--styled {
   padding: 10px 6px 16px;
+}
+
+.bracket-shell {
+  background: #e8eaee;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  padding: 22px 22px 26px;
+  box-shadow: 0 4px 28px rgba(15, 23, 42, 0.07);
+  position: relative;
+}
+
+.bracket-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.45), transparent 42%);
+  opacity: 0.5;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.bracket-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+.bracket-shell .bracket-header {
+  margin-bottom: 18px;
+}
+
+.bracket-shell .bracket-brand-badge {
+  background: rgba(240, 90, 26, 0.12);
+  border-color: rgba(240, 90, 26, 0.35);
+  color: #9a3412;
+}
+
+.bracket-shell .bracket-heading {
+  color: #0f172a;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.bracket-shell .bracket-cta {
+  background: #0f172a;
+  border: 1px solid #0f172a;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18);
+}
+.bracket-shell .bracket-cta:hover {
+  background: #1e293b;
+  border-color: #1e293b;
+}
+
+.bracket-shell .bracket-grid--styled {
+  padding: 8px 4px 12px;
+}
+
+/* Light card treatment for matches inside shell */
+.bracket-shell .bracket-round-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 12px;
+  display: block;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.bracket-shell .bracket-round:last-child .bracket-round-title {
+  color: #b45309;
+  background: transparent;
+  border: none;
+}
+
+.bracket-shell .bracket-matches {
+  gap: 12px;
+}
+
+.bracket-shell .bracket-match {
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  border-radius: 14px;
+  padding: 12px 14px 12px;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+}
+
+.bracket-shell .bracket-match--complete,
+.bracket-shell .bracket-match:has(.bracket-winner) {
+  border-color: rgba(15, 23, 42, 0.09);
+  border-left-width: 1px;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.07);
+}
+
+.bracket-shell .bracket-match-id {
+  position: static;
+  display: block;
+  margin: 0 0 8px;
+  padding: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  background: transparent;
+  border-radius: 0;
+}
+
+.bracket-shell .bracket-vs-divider {
+  display: none;
+}
+
+.bracket-shell .bracket-match > .bracket-player ~ .bracket-player {
+  border-top: 1px solid #eef1f5;
+  margin-top: 2px;
+  padding-top: 10px;
+}
+
+.bracket-shell .bracket-player {
+  color: #0a0a0a;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 6px 4px;
+}
+
+.bracket-shell .bracket-winner {
+  background: transparent;
+}
+
+.bracket-shell .bracket-winner .bracket-name,
+.bracket-shell .bracket-winner.bracket-player {
+  color: #0a0a0a;
+  font-weight: 800;
+}
+
+.bracket-shell .bracket-winner .bracket-name-link {
+  color: #0a0a0a;
+  border-bottom-color: rgba(10, 10, 10, 0.28);
+}
+
+.bracket-shell .bracket-match:has(.bracket-winner) .bracket-player:not(.bracket-winner) {
+  opacity: 1;
+}
+
+.bracket-shell .bracket-match:has(.bracket-winner) .bracket-player:not(.bracket-winner) .bracket-name,
+.bracket-shell .bracket-match:has(.bracket-winner) .bracket-player:not(.bracket-winner) {
+  color: #525252;
+  font-weight: 500;
+}
+
+.bracket-shell .bracket-match:has(.bracket-winner) .bracket-player:not(.bracket-winner) .bracket-name-link {
+  color: #525252;
+  border-bottom-color: rgba(82, 82, 82, 0.35);
+}
+
+.bracket-shell .bracket-seed {
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.bracket-shell .bracket-seed--empty {
+  border: none;
+  background: transparent;
+}
+
+.bracket-shell .bracket-seed[data-seed] {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.bracket-shell .bracket-winner .bracket-seed {
+  background: #ecfdf5;
+  color: #15803d;
+  border-color: rgba(21, 128, 61, 0.2);
+}
+
+.bracket-shell .bracket-match:has(.bracket-winner) .bracket-player:not(.bracket-winner) .bracket-seed {
+  background: #f8fafc;
+  color: #cbd5e1;
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+.bracket-shell .bracket-name--tbd {
+  color: #cbd5e1;
+}
+
+.bracket-shell .bracket-name-link {
+  color: inherit;
+  border-bottom-color: rgba(15, 23, 42, 0.18);
+}
+
+.bracket-shell .bracket-name-link:hover {
+  color: #c2410c;
+  border-bottom-color: rgba(194, 65, 12, 0.45);
+}
+
+.bracket-shell .bracket-match-score {
+  margin-top: 10px;
+  padding: 8px 0 0;
+  border-top: 1px solid #f1f5f9;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0a0a0a;
+}
+
+.bracket-shell .bracket-match:has(.bracket-winner) .bracket-match-score {
+  color: #0a0a0a;
+}
+
+.bracket-shell .bracket-match-time {
+  position: static;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0a0a0a;
+  text-align: left;
+  justify-content: flex-start;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+.bracket-shell .bracket-time-icon {
+  flex-shrink: 0;
+  opacity: 0.85;
+  color: #0a0a0a;
+  stroke: #0a0a0a;
+}
+
+.bracket-shell .bracket-match--bye {
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.06);
+}
+
+.bracket-shell .bracket-player--bye-advancer {
+  color: #0a0a0a;
+  font-size: 16px;
+}
+
+.bracket-shell .bracket-bye-badge {
+  color: #64748b;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+}
+
+.bracket-shell .bracket-champion-card {
+  background: #fff;
+  border-color: rgba(22, 163, 74, 0.35);
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+}
+
+.bracket-shell .bracket-champion-label {
+  color: #15803d;
+}
+
+.bracket-shell .bracket-champion-name {
+  color: #14532d;
+}
+
+.bracket-shell .bracket-champion-icon {
+  color: #22c55e;
+  fill: #22c55e;
+}
+
+.bracket-shell .bracket-tab-btn--champ {
+  border-color: transparent;
+  color: #0f172a;
+}
+
+.bracket-shell .bracket-tab-btn--champ.active {
+  background: #fff;
+  border-color: #15803d;
+  color: #14532d;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
 /* SVG connector overlay — injected by JS */
@@ -4270,22 +4519,23 @@ footer {
   min-height: 56px;
   padding: 8px 4px;
   text-decoration: none;
-  color: rgba(255, 255, 255, 0.38);
+  color: #fff;
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  transition: color 0.15s;
+  transition: color 0.15s, opacity 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
 .gp-bottom-nav-item.active {
-  color: var(--orange);
+  color: #fff;
+  box-shadow: inset 0 2px 0 0 var(--orange);
 }
 .gp-bottom-nav-item svg {
   width: 22px;
   height: 22px;
-  stroke: currentColor;
+  stroke: #fff;
   fill: none;
   stroke-width: 1.75;
   stroke-linecap: round;
@@ -4314,53 +4564,54 @@ footer {
   }
 }
 
-/* ───── BRACKET TAB NAV ───── */
-/* Hidden on desktop; shown on mobile above the bracket grid */
+/* ───── BRACKET TAB NAV (division shell — all viewports) ───── */
 .bracket-tab-nav {
   display: none;
 }
+.bracket-shell .bracket-tab-nav {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-bottom: 16px;
+  flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+.bracket-shell .bracket-tab-nav::-webkit-scrollbar {
+  display: none;
+}
+.bracket-shell .bracket-tab-btn {
+  flex-shrink: 0;
+  padding: 10px 18px;
+  min-height: 40px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: #dfe3e8;
+  color: #0f172a;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+.bracket-shell .bracket-tab-btn:hover {
+  background: #d2d7de;
+}
+.bracket-shell .bracket-tab-btn.active {
+  background: #fff;
+  border-color: #0f172a;
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
 @media (max-width: 640px) {
-  .bracket-tab-nav {
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    margin-bottom: 14px;
-    flex-wrap: nowrap;
-    -webkit-overflow-scrolling: touch;
-  }
-  .bracket-tab-nav::-webkit-scrollbar { display: none; }
-
-  .bracket-tab-btn {
-    flex-shrink: 0;
-    padding: 8px 16px;
-    min-height: 38px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.05);
-    color: #fff;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s, border-color 0.15s;
-    white-space: nowrap;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .bracket-tab-btn.active {
-    background: var(--orange);
-    border-color: var(--orange);
-    color: white;
-  }
-
-  /* ───── BRACKET SCROLL-SNAP CAROUSEL (mobile) ───── */
-  /* Each round = one full-width card; swipe between rounds */
   .bracket-grid {
-    grid-auto-columns: 100%;
+    grid-auto-columns: 58vw;
     overflow-x: scroll;
-    scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     gap: 0;
@@ -4370,43 +4621,101 @@ footer {
   .bracket-grid::-webkit-scrollbar { display: none; }
 
   .bracket-round {
-    scroll-snap-align: start;
-    min-width: 100%;
-    max-width: 100%;
-    width: 100%;
-    padding: 10px 6px;
+    min-width: 58vw;
+    max-width: 58vw;
+    width: 58vw;
+    padding: 6px 4px;
   }
   .bracket-match {
-    padding: 12px 14px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    overflow: visible;
   }
   .bracket-match--bye {
-    padding: 10px 14px;
+    padding: 4px 6px;
+  }
+  .bracket-match-id {
+    display: none;
+  }
+  .bracket-shell .bracket-match-id {
+    display: block;
   }
   .bracket-player {
-    font-size: 15px;
-    padding: 7px 8px;
-    grid-template-columns: 26px 1fr;
+    font-size: 12px;
+    padding: 4px 5px;
+    grid-template-columns: 18px 1fr;
+    gap: 6px;
   }
   .bracket-player--bye-advancer {
-    font-size: 15px;
+    font-size: 12px;
+    gap: 6px;
   }
   .bracket-seed {
-    width: 26px;
-    height: 26px;
-    font-size: 12px;
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+  }
+  .bracket-vs-divider {
+    display: none;
+  }
+  .bracket-player + .bracket-player {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
   }
   .bracket-match-time {
-    font-size: 13px;
+    position: relative;
+    margin: 0 -6px -4px;
+    padding: 3px 6px 0;
+    border-top: none;
+    font-size: 10px;
+    opacity: 0.7;
+    bottom: -10px;
   }
   .bracket-bye-badge {
-    font-size: 11px;
-    padding: 3px 10px;
+    font-size: 9px;
+    padding: 2px 6px;
   }
   .bracket-matches {
-    gap: 12px;
+    gap: 6px;
+  }
+  .bracket-shell .bracket-match {
+    padding: 10px 12px;
+    border-radius: 12px;
+  }
+  .bracket-shell .bracket-match--bye {
+    padding: 10px 12px;
+  }
+  .bracket-shell .bracket-match > .bracket-player ~ .bracket-player {
+    border-top-color: #eef1f5;
+  }
+  .bracket-shell .bracket-player {
+    font-size: 15px;
+    padding: 5px 4px;
+  }
+  .bracket-shell .bracket-player--bye-advancer {
+    font-size: 15px;
+  }
+  .bracket-shell .bracket-match-time {
+    position: static;
+    margin: 8px 0 0;
+    padding: 7px 9px;
+    bottom: auto;
+    opacity: 1;
+    font-size: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 7px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #0a0a0a;
+    text-align: left;
+    justify-content: flex-start;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
   }
 }
 
+@media (max-width: 640px) {
   /* ───── TOUCH TARGETS ───── */
   .event-pill {
     min-height: 44px;

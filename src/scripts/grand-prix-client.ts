@@ -408,10 +408,21 @@ async function layoutAndDrawBracket(grid: HTMLElement) {
 		.querySelectorAll<HTMLElement>('.bracket-match')
 		.forEach((m) => (m.style.marginTop = ''));
 
+	const isMobile = window.matchMedia('(max-width: 640px)').matches;
+
+	// On mobile, skip margin positioning so matches stack from the top
+	// naturally. Connector lines still draw and will angle/converge from
+	// spread-out feeders to compact later rounds (ESPN-style).
+	if (isMobile) {
+		const champ = grid.querySelector<HTMLElement>('.bracket-champion');
+		if (champ) champ.style.marginTop = '';
+		await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+		drawBracketConnectors(grid, rounds);
+		return;
+	}
+
 	// ── 2. Position each round's matches relative to their feeders ──
 	for (let rIdx = 1; rIdx < rounds.length; rIdx++) {
-		// Wait for the browser to reflow before measuring (applies to each round
-		// in turn so the next round's measurements see already-adjusted previous rounds).
 		await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
 		const prevRound = rounds[rIdx - 1]!;
@@ -425,15 +436,10 @@ async function layoutAndDrawBracket(grid: HTMLElement) {
 		);
 		if (prevMatches.length === 0 || currMatches.length === 0) continue;
 
-		// Non-standard bracket: previous round has fewer matches than current
-		// (e.g. a preliminary round leading into a round with BYE players already
-		// placed). Attempting to centre with the 2-feeder algorithm produces large
-		// negative margins that stack matches on top of each other, so skip it.
 		if (prevMatches.length <= currMatches.length) continue;
 
 		const gridTop = grid.getBoundingClientRect().top;
 
-		// Snapshot current match centres (before any adjustments for this round)
 		const prevCenters = prevMatches.map((m) => {
 			const r = m.getBoundingClientRect();
 			return r.top + r.height / 2 - gridTop;
@@ -443,10 +449,6 @@ async function layoutAndDrawBracket(grid: HTMLElement) {
 			return r.top + r.height / 2 - gridTop;
 		});
 
-		// Each currMatch[k] receives from prevMatch[2k] and prevMatch[2k+1].
-		// We need its centre to land at the midpoint of those two feeders.
-		// Because matches are in flex-column flow, adjusting match k shifts all
-		// subsequent matches by the same amount — track the cumulative shift.
 		let cumShift = 0;
 		for (let mIdx = 0; mIdx < currMatches.length; mIdx++) {
 			const c1 =
@@ -493,6 +495,10 @@ function drawBracketConnectors(grid: HTMLElement, rounds: HTMLElement[]) {
 	grid.querySelector('.bracket-svg-connectors')?.remove();
 
 	const gridRect = grid.getBoundingClientRect();
+	const lightShell = grid.closest('.bracket-shell') !== null;
+	const strokeMuted = lightShell ? 'rgba(15, 23, 42, 0.14)' : 'rgba(255,255,255,0.6)';
+	const strokeWinner = lightShell ? 'rgba(22, 163, 74, 0.45)' : 'rgba(74,222,128,0.7)';
+	const lineW = lightShell ? '1.5' : '2';
 	const svgNS = 'http://www.w3.org/2000/svg';
 
 	const svg = document.createElementNS(svgNS, 'svg') as SVGSVGElement;
@@ -543,30 +549,23 @@ function drawBracketConnectors(grid: HTMLElement, rounds: HTMLElement[]) {
 
 			const hasW1 = f1.querySelector('.bracket-winner') !== null;
 			const hasW2 = f2 ? f2.querySelector('.bracket-winner') !== null : false;
-			const col1 = hasW1
-				? 'rgba(74,222,128,0.7)'
-				: 'rgba(255,255,255,0.6)';
-			const col2 = hasW2
-				? 'rgba(74,222,128,0.7)'
-				: 'rgba(255,255,255,0.6)';
-			const colJ =
-				hasW1 || hasW2
-					? 'rgba(74,222,128,0.7)'
-					: 'rgba(255,255,255,0.6)';
+			const col1 = hasW1 ? strokeWinner : strokeMuted;
+			const col2 = hasW2 ? strokeWinner : strokeMuted;
+			const colJ = hasW1 || hasW2 ? strokeWinner : strokeMuted;
 
 			// Feeder 1: horizontal arm from match right edge to junction X
-			svgLine(svg, xRight, y1, xJunction, y1, col1);
+			svgLine(svg, xRight, y1, xJunction, y1, col1, lineW);
 
 			if (f2 && r2) {
 				// Feeder 2: horizontal arm
-				svgLine(svg, r2.right - gridRect.left, y2, xJunction, y2, col2);
+				svgLine(svg, r2.right - gridRect.left, y2, xJunction, y2, col2, lineW);
 				// Vertical bar between the two arms
-				svgLine(svg, xJunction, y1, xJunction, y2, colJ);
+				svgLine(svg, xJunction, y1, xJunction, y2, colJ, lineW);
 			}
 
 			// Outgoing horizontal from junction to next match left edge.
 			// yJunction should equal yT after the layout step above.
-			svgLine(svg, xJunction, yJunction, xLeft, yT, colJ);
+			svgLine(svg, xJunction, yJunction, xLeft, yT, colJ, lineW);
 		}
 	}
 
@@ -582,10 +581,8 @@ function drawBracketConnectors(grid: HTMLElement, rounds: HTMLElement[]) {
 			const xFRight = rF.right - gridRect.left;
 			const xCLeft = rC.left - gridRect.left;
 			const hasWinner = finalMatch.querySelector('.bracket-winner') !== null;
-			const colChamp = hasWinner
-				? 'rgba(74,222,128,0.7)'
-				: 'rgba(255,255,255,0.6)';
-			svgLine(svg, xFRight, y, xCLeft, y, colChamp);
+			const colChamp = hasWinner ? strokeWinner : strokeMuted;
+			svgLine(svg, xFRight, y, xCLeft, y, colChamp, lineW);
 		}
 	}
 
@@ -599,6 +596,7 @@ function svgLine(
 	x2: number,
 	y2: number,
 	stroke: string,
+	strokeWidth = '2',
 ) {
 	const svgNS = 'http://www.w3.org/2000/svg';
 	const line = document.createElementNS(svgNS, 'line') as SVGLineElement;
@@ -607,15 +605,12 @@ function svgLine(
 	line.setAttribute('x2', x2.toFixed(1));
 	line.setAttribute('y2', y2.toFixed(1));
 	line.setAttribute('stroke', stroke);
-	line.setAttribute('stroke-width', '2');
+	line.setAttribute('stroke-width', strokeWidth);
 	line.setAttribute('stroke-linecap', 'round');
 	svg.appendChild(line);
 }
 
 function initBracketTabs() {
-	// Only wire up on mobile; on desktop the full bracket is always visible
-	if (!window.matchMedia('(max-width: 640px)').matches) return;
-
 	document.querySelectorAll<HTMLElement>('.bracket-tab-nav').forEach((nav) => {
 		const container = nav.closest<HTMLElement>('.bracket-block, .bracket-shell');
 		if (!container) return;
@@ -623,28 +618,38 @@ function initBracketTabs() {
 		if (!grid) return;
 
 		const btns = Array.from(nav.querySelectorAll<HTMLButtonElement>('.bracket-tab-btn'));
+		const rounds = Array.from(grid.querySelectorAll<HTMLElement>(':scope > .bracket-round'));
 
 		function setActiveTab(idx: number) {
 			btns.forEach((b, i) => b.classList.toggle('active', i === idx));
-			// Scroll the pill strip so the active tab is centred
 			btns[idx]?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
 		}
 
-		// Tab pill click → snap-scroll to that round
 		btns.forEach((btn, idx) => {
 			btn.addEventListener('click', () => {
-				grid.scrollTo({ left: grid.clientWidth * idx, behavior: 'smooth' });
+				const target = rounds[idx];
+				if (target) {
+					grid.scrollTo({ left: target.offsetLeft, behavior: 'smooth' });
+				}
 				setActiveTab(idx);
 			});
 		});
 
-		// Grid scroll (fires after snap settles) → sync active tab pill
 		let scrollTimer: ReturnType<typeof setTimeout>;
 		grid.addEventListener('scroll', () => {
 			clearTimeout(scrollTimer);
 			scrollTimer = setTimeout(() => {
-				const idx = Math.round(grid.scrollLeft / Math.max(grid.clientWidth, 1));
-				setActiveTab(idx);
+				const scrollPos = grid.scrollLeft;
+				let closest = 0;
+				let minDist = Infinity;
+				for (let i = 0; i < rounds.length; i++) {
+					const dist = Math.abs(rounds[i]!.offsetLeft - scrollPos);
+					if (dist < minDist) {
+						minDist = dist;
+						closest = i;
+					}
+				}
+				setActiveTab(closest);
 			}, 80);
 		});
 	});
