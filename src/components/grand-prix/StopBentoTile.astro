@@ -3,20 +3,20 @@ import type { SeasonStop } from '../../data/season-stops';
 
 interface Props {
 	stop: SeasonStop;
-	/** Pass `stop.gridArea` for splitFeature; omit for marqueeStack / ribbon tiles. */
-	gridArea?: SeasonStop['gridArea'] | false;
 	extraClass?: string;
 }
 
-const { stop, gridArea, extraClass } = Astro.props;
+const { stop, extraClass } = Astro.props;
 ---
 
 <article
 	class:list={['stop-bento', `stop-bento--${stop.kind}`, extraClass]}
 	data-stop-id={stop.id}
+	data-bento={stop.bentoGridArea}
+	{...(stop.photoCredit ? { title: stop.photoCredit } : {})}
 	style={{
 		'--stop-img': `url("${stop.image}")`,
-		...(gridArea !== false && gridArea !== undefined ? { gridArea } : {}),
+		gridArea: stop.bentoGridArea,
 	}}
 >
 	<div class="stop-bento-bg" aria-hidden="true"></div>

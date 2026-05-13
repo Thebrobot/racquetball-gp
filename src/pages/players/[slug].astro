@@ -1,0 +1,152 @@
+---
+import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
+import { getAllPlayers, getPlayerMatchHistory, GP_SERIES_POSTS } from '../../data/players';
+import { titleSponsor } from '../../data/ocala-sponsors';
+
+export async function getStaticPaths() {
+	return getAllPlayers().map((player) => ({ params: { slug: player.slug }, props: { player } }));
+}
+
+const { player } = Astro.props;
+const bio =
+	player.bio ||
+	`Grand Prix competitor from ${player.city ?? 'Florida'}. Focused on steady finishes and building points across every stop.`;
+const matchHistory = getPlayerMatchHistory(player.name);
+---
+
+<GrandPrixLayout
+	title={`${player.name} | Florida Racquetball Grand Prix 2026`}
+	description={`Player profile for ${player.name}.`}
+	spotlightLabel="Title sponsor"
+	spotlightName={titleSponsor.name}
+	spotlightBlurb={titleSponsor.blurb}
+	spotlightLogoUrl={titleSponsor.logoUrl}
+>
+	<section class="event-hero player-hero">
+		<div class="section-label">Player profile</div>
+		<div class="player-hero-media">
+			{player.imageUrl ? (
+				<img
+					class="player-avatar"
+					src={player.imageUrl}
+					alt={`${player.name} profile photo`}
+					width="140"
+					height="140"
+					loading="lazy"
+					decoding="async"
+				/>
+			) : (
+				<div class="player-avatar player-avatar--fallback" aria-hidden="true">
+					{player.name
+						.split(' ')
+						.slice(0, 2)
+						.map((part) => part[0])
+						.join('')
+						.toUpperCase()}
+				</div>
+			)}
+		</div>
+		<h1 class="section-title">{player.name}</h1>
+		{player.city && <p class="section-sub">{player.city}</p>}
+		<p class="player-bio">{bio}</p>
+	</section>
+
+	<section class="event-section" aria-labelledby="player-divisions-title">
+		<header class="event-section-header">
+			<h2 id="player-divisions-title">Divisions</h2>
+			<p>Active divisions across the Grand Prix season.</p>
+		</header>
+		<div class="event-pill-grid">
+			{(player.divisions ?? []).map((division) => (
+				<span class="event-pill">{division}</span>
+			))}
+		</div>
+	</section>
+
+	<section class="event-section" aria-labelledby="player-events-title">
+		<header class="event-section-header">
+			<h2 id="player-events-title">Tournament schedule</h2>
+			<p>Call times and court notes for stops where this player is listed.</p>
+		</header>
+		{(player.events ?? []).length ? (
+			<div class="player-event-grid">
+				{(player.events ?? []).map((event) => (
+					<article class="player-event-card">
+						<div class="player-event-name">{event.eventName}</div>
+						<div class="player-event-division">{event.division}</div>
+						<div class="player-event-time">{event.time}</div>
+						{event.note && <div class="player-event-note">{event.note}</div>}
+					</article>
+				))}
+			</div>
+		) : (
+			<p class="player-section-empty">No published call times yet. Check the event brackets hub as the draw is released.</p>
+		)}
+	</section>
+
+	<section class="event-section" aria-labelledby="player-matches-title">
+		<header class="event-section-header">
+			<h2 id="player-matches-title">Match history</h2>
+			<p>Results pulled from posted Grand Prix draws. Follow links to reopen the bracket for that division.</p>
+		</header>
+		{matchHistory.length ? (
+			<div class="player-history-stack">
+				{matchHistory.map((row) => (
+					<article class="player-history-row">
+						<div>
+							<div class="player-history-meta">
+								<a class="player-history-event-link" href={`/events/${row.eventSlug}/divisions/${row.divisionId}`}>
+									{row.eventName}
+								</a>
+								{' · '}
+								{row.divisionLabel}
+								{' · '}
+								{row.roundLabel}
+							</div>
+							<div class="player-history-opponent">
+								vs {row.opponent}
+								{row.score && <span class="player-history-score">{row.score}</span>}
+							</div>
+						</div>
+						<div
+							class:list={[
+								'player-history-result',
+								row.result === 'win' ? 'player-history-result--win' : '',
+								row.result === 'loss' ? 'player-history-result--loss' : '',
+								row.result === 'pending' ? 'player-history-result--pending' : '',
+							]}
+						>
+							{row.result === 'win' ? 'Win' : row.result === 'loss' ? 'Loss' : 'Pending'}
+						</div>
+					</article>
+				))}
+			</div>
+		) : (
+			<p class="player-section-empty">No bracket matches on file yet for this player.</p>
+		)}
+	</section>
+
+	<section class="event-section" aria-labelledby="player-series-title">
+		<header class="event-section-header">
+			<h2 id="player-series-title">Series wire</h2>
+			<p>Current highlights and explainers from the Florida Racquetball Grand Prix.</p>
+		</header>
+		<div class="player-series-list">
+			{GP_SERIES_POSTS.map((post) => (
+				<article class="player-series-card">
+					<div class="player-series-date">{post.date}</div>
+					{post.href ? (
+						<h3 class="player-series-title">
+							<a class="player-series-link" href={post.href}>
+								{post.title}
+							</a>
+						</h3>
+					) : (
+						<h3 class="player-series-title">{post.title}</h3>
+					)}
+					<p class="player-series-excerpt">{post.excerpt}</p>
+				</article>
+			))}
+		</div>
+	</section>
+</GrandPrixLayout>

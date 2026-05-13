@@ -1,14 +1,16 @@
 ---
 import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
 import SponsorsSection from '../components/grand-prix/SponsorsSection.astro';
+import { titleSponsor } from '../data/ocala-sponsors';
 ---
 
 <GrandPrixLayout
 	title="Sponsors | Florida Racquetball Grand Prix"
 	description="Partners and sponsors of the Florida Racquetball Grand Prix: title, presenting, and supporting brands."
-	spotlightLabel="Featured partner"
-	spotlightName="Community Sponsor"
-	spotlightBlurb="Connecting local clubs and juniors to the statewide Grand Prix pathway."
+	spotlightLabel="Title sponsor"
+	spotlightName={titleSponsor.name}
+	spotlightBlurb={titleSponsor.blurb}
+	spotlightLogoUrl={titleSponsor.logoUrl}
 >
 	<div class="page-hero">
 		<div class="section-label">Partners</div>

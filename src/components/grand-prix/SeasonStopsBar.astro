@@ -4,21 +4,22 @@ import { SEASON_STOPS } from '../../data/season-stops';
 function itemClass(kind: (typeof SEASON_STOPS)[number]['kind']) {
 	if (kind === 'done') return 'stop-item done';
 	if (kind === 'next') return 'stop-item next';
-	if (kind === 'champ') return 'stop-item champ';
 	return 'stop-item';
 }
 ---
 
-<div class="season-strip">
-	{
-		SEASON_STOPS.map((stop) => (
-			<div class={itemClass(stop.kind)}>
-				<span class="stop-dot"></span>
-				<span>
-					<span class="stop-num">{stop.label}</span>
-					{stop.cityLine} · {stop.dateHint}
-				</span>
-			</div>
-		))
-	}
+<div class="season-strip" aria-label="Season schedule">
+	<div class="strip-track">
+		{
+			SEASON_STOPS.map((stop) => (
+				<div class={itemClass(stop.kind)}>
+					<span class="stop-dot"></span>
+					<span>
+						<span class="stop-num">{stop.label}</span>
+						{stop.cityLine} · {stop.dateHint}
+					</span>
+				</div>
+			))
+		}
+	</div>
 </div>

@@ -4,16 +4,27 @@ interface Props {
 	label?: string;
 	/** Sponsor or partner name */
 	name: string;
+	/** Optional logo for spotlight */
+	logoUrl?: string;
 	/** One or two sentences */
 	blurb: string;
 }
 
-const { label = 'Sponsor spotlight', name, blurb } = Astro.props;
+const { label = 'Sponsor spotlight', name, logoUrl, blurb } = Astro.props;
 ---
 
 <section class="sponsor-spotlight" aria-labelledby="spotlight-heading">
 	<div class="sponsor-spotlight-inner">
 		<p class="sponsor-spotlight-label">{label}</p>
+		{logoUrl ? (
+			<img
+				class="sponsor-spotlight-logo"
+				src={logoUrl}
+				alt={`${name} logo`}
+				loading="lazy"
+				decoding="async"
+			/>
+		) : null}
 		<h2 id="spotlight-heading" class="sponsor-spotlight-name">{name}</h2>
 		<p class="sponsor-spotlight-blurb">{blurb}</p>
 		<a class="sponsor-spotlight-link" href="/sponsors">View all sponsors →</a>

@@ -5,21 +5,21 @@ import StopBentoTile from './StopBentoTile.astro';
 
 <section class="season-bento-wrap" aria-labelledby="season-bento-heading">
 	<header class="season-bento-intro">
-		<p class="season-bento-eyebrow">Season 2026 · Four cities, one championship</p>
+		<p class="season-bento-eyebrow">Season 2026 · Four cities, one statewide title race</p>
 		<h2 id="season-bento-heading" class="season-bento-heading">
 			Where the <span class="season-bento-heading-accent">Grand Prix</span> happens
 		</h2>
 		<p class="season-bento-lead">
 			These are full tournament weekends, not side events. Every stop runs real brackets across divisions,
 			with Grand Prix points on the line and the energy of a standalone host city. Your finishes feed one
-			statewide leaderboard from the May opener through August; earn your way up, and you can qualify for the
-			October finale in Ocala, where the Florida GP title is decided.
+			statewide leaderboard from the May opener in Ocala through the December outdoor closer in Eustis—play
+			any or all four and chase the Florida Grand Prix standings all season.
 		</p>
 	</header>
 
 	<div class="season-bento-creative-shell">
 		<div class="season-bento season-bento--creative" aria-label="Grand Prix tour stops">
-			{SEASON_STOPS.map((stop) => <StopBentoTile stop={stop} gridArea={false} />)}
+			{SEASON_STOPS.map((stop) => <StopBentoTile stop={stop} />)}
 		</div>
 	</div>
 </section>

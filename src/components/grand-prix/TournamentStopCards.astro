@@ -4,51 +4,18 @@ import { SEASON_STOPS, TOUR_STOP_COUNT } from '../../data/season-stops';
 function pill(kind: (typeof SEASON_STOPS)[number]['kind']) {
 	if (kind === 'done') return { cls: 'pill-done', label: 'Completed' };
 	if (kind === 'next') return { cls: 'pill-next', label: 'Register Now' };
-	if (kind === 'champ') return { cls: 'pill-champ', label: 'By Qualification' };
 	return { cls: 'pill-open', label: 'Registration Open' };
+}
+
+function registerCtaLabel(url: string): string {
+	return url.includes('r2sports.com') ? 'Register on R2' : 'Register →';
 }
 ---
 
 <div class="tournaments-grid tournaments-grid--tiles">
 	{
 		SEASON_STOPS.map((stop, index) => {
-			const fin = stop.id === 'finale';
 			const p = pill(stop.kind);
-			if (fin) {
-				return (
-					<div
-						class="t-card t-card--finale t-card--with-stop-img"
-						data-stop-id={stop.id}
-						style={{ '--stop-img': `url("${stop.image}")` }}
-					>
-						<div class="t-card-media" aria-hidden="true">
-							<div class="t-card-media-bg" />
-						</div>
-						<div class="t-card-head t-card-head--finale">
-							<div>
-								<div class="t-stop-badge t-stop-badge--finale">Season Finale · Championship</div>
-								<div class="t-name t-name--finale">{stop.eventName}</div>
-								<div class="t-date">{stop.dateFull}</div>
-							</div>
-							<span class:list={['t-pill', p.cls]}>{p.label}</span>
-						</div>
-						<div class="t-body">
-							<div class="t-meta">
-								<div class="t-meta-item">
-									<strong>Points Leaders</strong>Qualification
-								</div>
-								<div class="t-meta-item">
-									<strong>All Divisions</strong>Championship Brackets
-								</div>
-								<div class="t-meta-item">
-									<strong>TBD</strong>Exact Dates
-								</div>
-							</div>
-							<button type="button" class="btn-register disabled">Details Coming Soon</button>
-						</div>
-					</div>
-				);
-			}
 			const n = index + 1;
 			const badge =
 				stop.kind === 'next'
@@ -75,23 +42,38 @@ function pill(kind: (typeof SEASON_STOPS)[number]['kind']) {
 					<div class="t-body">
 						<div class="t-meta">
 							<div class="t-meta-item">
-								<strong>TBD</strong>Venue
+								<strong>{stop.venue}</strong>Venue
 							</div>
 							<div class="t-meta-item">
-								<strong>All Divisions</strong>Brackets
+								<strong>All divisions</strong>Brackets
 							</div>
 							<div class="t-meta-item">
-								<strong>TBD</strong>Reg. Deadline
+								<strong>R2 Sports</strong>Registration &amp; deadlines
 							</div>
 						</div>
-						{regClosed ? (
-							<span class="btn-register disabled">Registration Closed</span>
-						) : (
-							<a href="#" class="btn-register" target="_blank" rel="noopener noreferrer">
-								Register →
-							</a>
-						)}
+						<div class="t-actions">
+							{regClosed ? (
+								<span class="btn-register disabled">Registration Closed</span>
+							) : (
+								<a
+									href={stop.registerUrl}
+									class="btn-register"
+									target={stop.registerUrl.startsWith('http') ? '_blank' : undefined}
+									rel={stop.registerUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
+								>
+									{registerCtaLabel(stop.registerUrl)}
+								</a>
+							)}
+							{stop.bracketsHref ? (
+								<a href={stop.bracketsHref} class="btn-brackets">
+									Brackets
+								</a>
+							) : (
+								<span class="btn-brackets disabled" aria-disabled="true">Brackets</span>
+							)}
+						</div>
 					</div>
+					{stop.photoCredit && <p class="t-card-photo-credit">{stop.photoCredit}</p>}
 				</div>
 			);
 		})

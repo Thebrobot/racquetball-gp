@@ -1,5 +1,5 @@
 ---
-const raphaUrl = 'https://rapha.org/';
+import { titleSponsor } from '../../data/ocala-sponsors';
 ---
 
 <section class="title-sponsor-intro" aria-labelledby="title-sponsor-heading">
@@ -19,10 +19,10 @@ const raphaUrl = 'https://rapha.org/';
 				<div class="title-sponsor-hero-row title-sponsor-hero-row--overlay">
 					<a
 						class="title-sponsor-logo-link"
-						href={raphaUrl}
+						href={titleSponsor.url}
 						target="_blank"
 						rel="noopener noreferrer"
-						aria-label="Rapha International, visit rapha.org"
+						aria-label={`${titleSponsor.name}, visit ${titleSponsor.url}`}
 					>
 						<img
 							class="title-sponsor-logo"
@@ -71,7 +71,12 @@ const raphaUrl = 'https://rapha.org/';
 			</div>
 
 			<div class="title-sponsor-actions">
-				<a class="title-sponsor-cta title-sponsor-cta-primary" href={raphaUrl} target="_blank" rel="noopener noreferrer">
+				<a
+					class="title-sponsor-cta title-sponsor-cta-primary"
+					href={titleSponsor.url}
+					target="_blank"
+					rel="noopener noreferrer"
+				>
 					Visit Rapha International →
 				</a>
 				<a class="title-sponsor-cta" href="/sponsors">Partner with the Grand Prix →</a>

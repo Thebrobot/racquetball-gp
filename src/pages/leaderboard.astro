@@ -8,6 +8,7 @@ import {
 	leaderboardTotal,
 	type LbCategory,
 } from '../data/leaderboard';
+import { titleSponsor } from '../data/ocala-sponsors';
 
 const badgeLabel = { q: 'Qualified', pace: 'On Pace', chase: 'Chasing' } as const;
 function badgeClass(status: keyof typeof badgeLabel): string {
@@ -18,9 +19,10 @@ function badgeClass(status: keyof typeof badgeLabel): string {
 <GrandPrixLayout
 	title="Leaderboard | Florida Racquetball Grand Prix 2026"
 	description="Live season standings for the Florida Racquetball Grand Prix, updated after every stop."
-	spotlightLabel="Sponsor spotlight"
-	spotlightName="Stats Partner"
-	spotlightBlurb="Powering transparent standings and division tracking for players and fans all season."
+	spotlightLabel="Title sponsor"
+	spotlightName={titleSponsor.name}
+	spotlightBlurb={titleSponsor.blurb}
+	spotlightLogoUrl={titleSponsor.logoUrl}
 >
 	<div class="lb-hero">
 		<img
@@ -42,7 +44,7 @@ function badgeClass(status: keyof typeof badgeLabel): string {
 				<span class="lb-stat-val">TBD</span><span class="lb-stat-label">Players Registered</span>
 			</div>
 			<div class="lb-stat">
-				<span class="lb-stat-val">Oct <em>'26</em></span><span class="lb-stat-label">Championship</span>
+				<span class="lb-stat-val">Dec <em>'26</em></span><span class="lb-stat-label">Season closer</span>
 			</div>
 		</div>
 	</div>
@@ -142,6 +144,8 @@ function badgeClass(status: keyof typeof badgeLabel): string {
 						<th class="right hide-mobile">Stop 1</th>
 						<th class="right hide-mobile">Stop 2</th>
 						<th class="right">Total</th>
+						<th class="right hide-mobile">Wins</th>
+						<th class="right hide-mobile">Place</th>
 						<th class="right hide-mobile">Stops</th>
 						<th class="right">Status</th>
 					</tr>
@@ -150,7 +154,7 @@ function badgeClass(status: keyof typeof badgeLabel): string {
 			</table>
 			<div class="lb-legend">
 				<span
-					><span class="lb-badge badge-q" style="font-size:13px;">Qualified</span> · Locked in for championship</span
+					><span class="lb-badge badge-q" style="font-size:13px;">Qualified</span> · Division leader / strong position</span
 				>
 				<span
 					><span class="lb-badge badge-pace" style="font-size:13px;">On Pace</span> · Projected to qualify</span

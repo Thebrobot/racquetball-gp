@@ -5,6 +5,8 @@ import PlayerSpotlight from '../components/grand-prix/PlayerSpotlight.astro';
 import SeasonStopsBar from '../components/grand-prix/SeasonStopsBar.astro';
 import SeasonStopsBento from '../components/grand-prix/SeasonStopsBento.astro';
 import { HOME_SPOTLIGHT_TRACKS, getTopN } from '../data/leaderboard';
+import { getFeaturedEvent } from '../data/events';
+import { titleSponsor } from '../data/ocala-sponsors';
 import heroVideo from '../partials/grand-prix-hero-video.html?raw';
 
 const spotlightSpots = HOME_SPOTLIGHT_TRACKS.map((t) => ({
@@ -12,15 +14,26 @@ const spotlightSpots = HOME_SPOTLIGHT_TRACKS.map((t) => ({
 	leader: getTopN(t.category, t.division, 1)[0],
 	standingsHref: `/leaderboard?event=${t.category}&division=${encodeURIComponent(t.division)}`,
 }));
+
+const featured = getFeaturedEvent();
+const featuredEvent = featured?.event;
+const featuredStatus = featured?.status ?? 'upcoming';
+const statusLabel = featuredStatus === 'live' ? 'Live now' : featuredStatus === 'recent' ? 'Most recent' : 'Upcoming';
+const eventPage = featuredEvent ? `/events/${featuredEvent.slug}` : '';
 ---
 
 <GrandPrixLayout
 	title="Florida Racquetball Grand Prix 2026"
 	description="The premier racquetball tournament series in Florida. Compete for prizes, points, and the Grand Prix title."
-	spotlightLabel="Sponsor spotlight"
-	spotlightName="Presenting Partner"
-	spotlightBlurb="Supporting travel grants and on-site athlete hospitality at select Grand Prix stops this season."
-	imagePreloads={['/images/website-logo.webp', '/images/series-logo.webp']}
+	spotlightLabel="Title sponsor"
+	spotlightName={titleSponsor.name}
+	spotlightBlurb={titleSponsor.blurb}
+	spotlightLogoUrl={titleSponsor.logoUrl}
+	imagePreloads={[
+		...(featuredEvent?.spotlightImage ? [featuredEvent.spotlightImage] : []),
+		'/images/website-logo.webp',
+		'/images/series-logo.webp',
+	]}
 >
 	<div class="hero-viewport">
 		<div class="hero">
@@ -40,8 +53,9 @@ const spotlightSpots = HOME_SPOTLIGHT_TRACKS.map((t) => ({
 						<span class="line3">Florida · 2026</span>
 					</h1>
 					<p class="hero-sub">
-						Four tour stops. One championship. The first-ever racquetball Grand Prix in Florida. Earn
-						points at every stop and battle for a spot at the season finale in Ocala.
+						Four tour stops across Florida. The first-ever racquetball Grand Prix in the state. Earn
+						points at every stop—from Ocala in May through the outdoor closer in Eustis in December—and
+						chase the statewide leaderboard all season.
 					</p>
 					<div class="hero-ctas">
 						<a class="btn-main" href="/leaderboard">View Standings</a>
@@ -66,6 +80,61 @@ const spotlightSpots = HOME_SPOTLIGHT_TRACKS.map((t) => ({
 	</div>
 
 	<TitleSponsorIntro />
+
+	{featuredEvent && (
+		<section
+			class:list={['event-spotlight', `event-spotlight--${featuredStatus}`]}
+			aria-labelledby="event-spotlight-title"
+		>
+			<div
+				class:list={[
+					'event-spotlight-inner',
+					featuredEvent.spotlightImage && 'event-spotlight-inner--media',
+				]}
+			>
+				{
+					featuredEvent.spotlightImage && (
+						<div
+							class="event-spotlight-visual"
+							style={{ '--es-img': `url("${featuredEvent.spotlightImage}")` }}
+							aria-hidden="true"
+						>
+							<div class="event-spotlight-media" />
+						</div>
+					)
+				}
+				<div class="event-spotlight-body">
+					<span class:list={['event-spotlight-pill', `event-spotlight-pill--${featuredStatus}`]}>
+						{statusLabel}
+					</span>
+					<h2 id="event-spotlight-title" class="event-spotlight-title">{featuredEvent.name}</h2>
+					<p class="event-spotlight-meta">
+						<span class="event-spotlight-meta-strong">{featuredEvent.dateRange}</span>
+						<span class="event-spotlight-meta-sep" aria-hidden="true"> · </span>
+						<span>{featuredEvent.cityLine}</span>
+					</p>
+					{featuredEvent.spotlightVenue && (
+						<p class="event-spotlight-venue">{featuredEvent.spotlightVenue}</p>
+					)}
+					<div class="event-spotlight-ctas">
+						<a class="event-spotlight-cta event-spotlight-cta--primary" href={`${eventPage}#brackets`}>
+							View brackets
+						</a>
+						{featuredEvent.spotlightWatchLiveUrl && (
+							<a
+								class="event-spotlight-cta event-spotlight-cta--watch"
+								href={featuredEvent.spotlightWatchLiveUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								Watch live
+							</a>
+						)}
+					</div>
+				</div>
+			</div>
+		</section>
+	)}
 
 	<div class="home-bento-shell">
 		<div class="home-bento-shell-inner">

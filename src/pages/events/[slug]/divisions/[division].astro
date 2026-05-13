@@ -1,0 +1,183 @@
+---
+import GrandPrixLayout from '../../../../layouts/GrandPrixLayout.astro';
+import { EVENTS } from '../../../../data/events';
+import { getPlayerSlug } from '../../../../data/players';
+import { titleSponsor } from '../../../../data/ocala-sponsors';
+
+export async function getStaticPaths() {
+	return EVENTS.flatMap((event) =>
+		(event.divisionDetails ?? []).map((division) => ({
+			params: { slug: event.slug, division: division.id },
+			props: { event, division },
+		})),
+	);
+}
+
+const { event, division } = Astro.props;
+const divisionBase = `/events/${event.slug}/divisions`;
+const players = division.roundRobinPlayers ?? [];
+const rounds = division.rounds ?? [];
+const finalMatch = rounds[rounds.length - 1]?.matches?.[0];
+const champName = finalMatch?.winner === 1 ? finalMatch.player1
+	: finalMatch?.winner === 2 ? finalMatch.player2
+	: null;
+const isLinkablePlayer = (name: string) => {
+	const trimmed = name.trim();
+	if (!trimmed) return false;
+	const upper = trimmed.toUpperCase();
+	// Skip ghost opponents and doubles team names (contain '/')
+	return upper !== 'BYE' && upper !== 'TBD' && !trimmed.includes('/');
+};
+---
+
+<GrandPrixLayout
+	title={`${division.label} | ${event.name}`}
+	description={`${division.label} division details for ${event.name}.`}
+	spotlightLabel="Title sponsor"
+	spotlightName={titleSponsor.name}
+	spotlightBlurb={titleSponsor.blurb}
+	spotlightLogoUrl={titleSponsor.logoUrl}
+>
+	<section class="event-hero">
+		<div class="section-label">{event.name}</div>
+		<h1 class="section-title">{division.label}</h1>
+		<p class="section-sub">
+			{division.format === 'single' ? 'Single elimination bracket' : 'Round robin'}
+		</p>
+		<div class="event-section-cta">
+			<a class="btn-ghost" href={`/events/${event.slug}#brackets`}>Brackets hub</a>
+		</div>
+	</section>
+
+	{division.format === 'single' ? (
+		<section class="event-section">
+			<div class="bracket-shell">
+				<header class="bracket-header">
+					<div>
+						<div class="bracket-brand-row">
+							<span class="bracket-brand-badge">Grand Prix</span>
+							<span class="bracket-brand-sub">{division.format === 'single' ? 'Single Elim' : 'Round Robin'}</span>
+						</div>
+						<p class="bracket-eyebrow">{division.label.toUpperCase()}</p>
+						<h2 class="bracket-heading">{event.name} Draw</h2>
+						<p class="bracket-sub">Single elimination · Best of 3</p>
+					</div>
+					<a class="bracket-cta" href="/leaderboard">View full standings</a>
+				</header>
+				{rounds.length > 1 && (
+					<nav class="bracket-tab-nav" aria-label="Bracket rounds">
+						{rounds.map((round, idx) => (
+							<button
+								class:list={['bracket-tab-btn', idx === 0 ? 'active' : '']}
+								type="button"
+								data-round-idx={idx}
+							>
+								{round.label}
+							</button>
+						))}
+						{champName && (
+							<button class="bracket-tab-btn bracket-tab-btn--champ" type="button" data-round-idx={rounds.length}>
+								Champion
+							</button>
+						)}
+					</nav>
+				)}
+				<div class="bracket-grid bracket-grid--styled">
+					{rounds.map((round) => {
+						const matches = round.matches ?? [];
+						const pairs: { top: typeof matches[0]; bot: typeof matches[0] | null }[] = [];
+						for (let i = 0; i < matches.length; i += 2) {
+							pairs.push({ top: matches[i], bot: matches[i + 1] ?? null });
+						}
+						return (
+						<div class="bracket-round">
+							<div class="bracket-round-title">{round.label}</div>
+							<div class="bracket-matches">
+								{pairs.map((pair) => (
+									<div class:list={['bracket-pair', pair.bot ? '' : 'bracket-pair--solo']}>
+										{[pair.top, pair.bot].filter(Boolean).map((match) => (
+											<div class="bracket-match">
+												<div class:list={['bracket-player', match!.winner === 1 ? 'bracket-winner' : '']}>
+													<span class="bracket-seed" data-seed={match!.seed1}>{match!.seed1 ?? ''}</span>
+													{isLinkablePlayer(match!.player1) ? (
+														<a class="bracket-name bracket-name-link" href={`/players/${getPlayerSlug(match!.player1)}`}>
+															{match!.player1}
+														</a>
+													) : (
+														<span class="bracket-name">{match!.player1}</span>
+													)}
+												</div>
+												<div class:list={['bracket-player', match!.winner === 2 ? 'bracket-winner' : '']}>
+													<span class="bracket-seed" data-seed={match!.seed2}>{match!.seed2 ?? ''}</span>
+													{isLinkablePlayer(match!.player2) ? (
+														<a class="bracket-name bracket-name-link" href={`/players/${getPlayerSlug(match!.player2)}`}>
+															{match!.player2}
+														</a>
+													) : (
+														<span class="bracket-name">{match!.player2}</span>
+													)}
+												</div>
+												{match!.score && <div class="bracket-match-score">{match!.score}</div>}
+											{match!.scheduledTime && (
+												<div class="bracket-match-time">
+													{match!.scheduledTime}{match!.court ? ` · ${match!.court}` : ''}
+												</div>
+											)}
+											</div>
+										))}
+									</div>
+								))}
+							</div>
+						</div>
+						);
+					})}
+					{champName && (
+						<div class="bracket-champion">
+							<div class="bracket-champion-card">
+								<svg class="bracket-champion-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+									<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+								</svg>
+								<div class="bracket-champion-label">Champion</div>
+								<div class="bracket-champion-name">{champName}</div>
+							</div>
+						</div>
+					)}
+				</div>
+			</div>
+		</section>
+	) : (
+		<section class="event-section">
+			<div class="rr-table-wrap">
+				<table class="rr-table">
+					<thead>
+						<tr>
+							<th>Player</th>
+							{players.map((p) => (
+								<th>{p}</th>
+							))}
+						</tr>
+					</thead>
+					<tbody>
+						{players.map((row) => (
+							<tr>
+								<th>
+									{isLinkablePlayer(row) ? (
+										<a class="rr-link" href={`/players/${getPlayerSlug(row)}`}>{row}</a>
+									) : (
+										row
+									)}
+								</th>
+								{players.map((col) => (
+									<td class:list={['rr-cell', row === col ? 'rr-cell--self' : '']}>
+										{row === col ? '—' : 'TBD'}
+									</td>
+								))}
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+			<p class="rr-scroll-hint" aria-hidden="true">Scroll to see full results grid →</p>
+		</section>
+	)}
+</GrandPrixLayout>

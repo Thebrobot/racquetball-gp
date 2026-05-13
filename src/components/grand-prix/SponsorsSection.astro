@@ -1,5 +1,5 @@
 ---
-
+import { ocalaSponsors, titleSponsor } from '../../data/ocala-sponsors';
 ---
 
 <div id="sponsors" class="sponsors-section-page">
@@ -16,19 +16,43 @@
 		</p>
 		<div class="sponsors-grid">
 			<a
-				class="sponsor-slot filled sponsor-slot-title"
-				href="https://rapha.org/"
+				class="sponsor-slot filled sponsor-slot-title sponsor-card sponsor-card--title"
+				href={titleSponsor.url}
 				target="_blank"
 				rel="noopener noreferrer"
 			>
 				<span class="sponsor-slot-title-kicker">Title sponsor</span>
-				<span class="sponsor-slot-title-name">Rapha International</span>
+				<img
+					class="sponsor-card-logo sponsor-card-logo--title"
+					src={titleSponsor.logoUrl}
+					alt={`${titleSponsor.name} logo`}
+					loading="lazy"
+					decoding="async"
+				/>
+				<span class="sponsor-slot-title-name">{titleSponsor.name}</span>
+				<span class="sponsor-card-blurb">{titleSponsor.blurb}</span>
 			</a>
-			<div class="sponsor-slot filled">Presenting Sponsor</div>
-			<div class="sponsor-slot filled">Gold Sponsor</div>
-			<div class="sponsor-slot">Your Brand Here</div>
-			<div class="sponsor-slot">Your Brand Here</div>
-			<div class="sponsor-slot">Your Brand Here</div>
+			{ocalaSponsors.map((sponsor) => {
+				const Tag = sponsor.url ? 'a' : 'div';
+				return (
+					<Tag
+						class="sponsor-slot filled sponsor-card"
+						{...(sponsor.url
+							? { href: sponsor.url, target: '_blank', rel: 'noopener noreferrer' }
+							: {})}
+					>
+						<img
+							class="sponsor-card-logo"
+							src={sponsor.logoUrl}
+							alt={`${sponsor.name} logo`}
+							loading="lazy"
+							decoding="async"
+						/>
+						<span class="sponsor-card-name">{sponsor.name}</span>
+						<span class="sponsor-card-blurb">{sponsor.blurb}</span>
+					</Tag>
+				);
+			})}
 		</div>
 		<p class="sponsor-cta">
 			Interested in sponsoring the Florida Grand Prix? <a href="mailto:info@floridargp.com">Contact us →</a>

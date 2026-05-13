@@ -234,7 +234,9 @@ function renderLb() {
       <td class="lb-stops right hide-mobile">${r.s1 || '-'}</td>
       <td class="lb-stops right hide-mobile">${r.s2 || '-'}</td>
       <td class="lb-pts-cell ${i === 0 ? 'leader' : ''}">${total}</td>
-      <td class="lb-stops right hide-mobile">${(r.s1 > 0 ? 1 : 0) + (r.s2 > 0 ? 1 : 0)}/4</td>
+      <td class="lb-stops right hide-mobile">${r.wins ?? 0}</td>
+      <td class="lb-stops right hide-mobile">${r.place ?? '-'}</td>
+      <td class="lb-stops right hide-mobile">${r.attendance ?? 0}/4</td>
       <td class="lb-status-cell"><span class="lb-badge ${badgeMap[r.status]}">${badgeLabel[r.status]}</span></td>
     </tr>`;
 		})
@@ -291,6 +293,353 @@ function renderLbSpotlight() {
 		.join('');
 }
 
+// ── SEASON STRIP AUTO-SCROLL ────────────────────────────────────────────────
+// Clones the stop items for seamless looping, then scrolls at a fixed
+// pixel-per-second rate using delta-time so speed is frame-rate independent.
+// Starts with the "next" event visible and pauses on hover/touch.
+
+function initSeasonStrip() {
+	const strip = document.querySelector<HTMLElement>('.season-strip');
+	if (!strip) return;
+	const track = strip.querySelector<HTMLElement>('.strip-track');
+	if (!track) return;
+
+	const origItems = Array.from(
+		track.querySelectorAll<HTMLElement>('.stop-item'),
+	);
+	if (origItems.length === 0) return;
+
+	// ── Clone items once for seamless loop ──
+	origItems.forEach((item) => {
+		const clone = item.cloneNode(true) as HTMLElement;
+		clone.setAttribute('aria-hidden', 'true');
+		track.appendChild(clone);
+	});
+
+	// Wait for layout so offsetLeft / offsetWidth are populated
+	requestAnimationFrame(() => {
+		// Width of a single copy of all stops
+		const singleWidth = origItems.reduce((sum, el) => sum + el.offsetWidth, 0);
+		if (singleWidth === 0) return;
+
+		// Find the offset of the "next" stop so we start there
+		const nextItem = origItems.find((el) => el.classList.contains('next'));
+		const startOffset = nextItem ? nextItem.offsetLeft : 0;
+
+		let currentX = -startOffset;
+		const SPEED_PX_PER_S = 60; // pixels per second — comfortable reading pace
+		let lastTime = performance.now();
+		let paused = false;
+
+		const pause = () => {
+			paused = true;
+		};
+		const resume = () => {
+			paused = false;
+			lastTime = performance.now(); // reset timer so no jump on resume
+		};
+
+		strip.addEventListener('mouseenter', pause);
+		strip.addEventListener('mouseleave', resume);
+		strip.addEventListener('touchstart', pause, { passive: true });
+		strip.addEventListener('touchend', () =>
+			setTimeout(resume, 1500),
+		);
+
+		function tick(now: number) {
+			const delta = now - lastTime;
+			lastTime = now;
+
+			if (!paused) {
+				currentX -= (SPEED_PX_PER_S * delta) / 1000;
+				// Seamless loop: once we've scrolled past the first copy, jump back
+				if (currentX <= -singleWidth) {
+					currentX += singleWidth;
+				}
+				track!.style.transform = `translateX(${currentX}px)`;
+			}
+
+			requestAnimationFrame(tick);
+		}
+
+		// Set initial position before first paint
+		track.style.transform = `translateX(${currentX}px)`;
+		requestAnimationFrame(tick);
+	});
+}
+
+// ── BRACKET LAYOUT + SVG CONNECTORS ────────────────────────────────────────
+// CSS cannot reliably align bracket columns when match heights vary, so we
+// use JavaScript to measure actual DOM positions and then:
+//   1. Apply margin-top to matches in later rounds so each is vertically
+//      centred between the two "feeder" matches from the previous round.
+//   2. Draw an SVG overlay with ⊢-shaped connectors that use the real
+//      pixel positions — guaranteed to line up no matter the content size.
+
+function initBracketLayout() {
+	document.querySelectorAll<HTMLElement>('.bracket-grid').forEach((grid) => {
+		void layoutAndDrawBracket(grid);
+	});
+
+	let resizeTimer: ReturnType<typeof setTimeout>;
+	window.addEventListener('resize', () => {
+		clearTimeout(resizeTimer);
+		resizeTimer = setTimeout(() => {
+			document.querySelectorAll<HTMLElement>('.bracket-grid').forEach((grid) => {
+				grid
+					.querySelectorAll<HTMLElement>('.bracket-match')
+					.forEach((m) => (m.style.marginTop = ''));
+				const champ = grid.querySelector<HTMLElement>('.bracket-champion');
+				if (champ) champ.style.marginTop = '';
+				void layoutAndDrawBracket(grid);
+			});
+		}, 150);
+	});
+}
+
+async function layoutAndDrawBracket(grid: HTMLElement) {
+	const rounds = Array.from(
+		grid.querySelectorAll<HTMLElement>(':scope > .bracket-round'),
+	);
+	if (rounds.length < 2) return;
+
+	// ── 1. Reset any previously applied margins ──
+	grid
+		.querySelectorAll<HTMLElement>('.bracket-match')
+		.forEach((m) => (m.style.marginTop = ''));
+
+	// ── 2. Position each round's matches relative to their feeders ──
+	for (let rIdx = 1; rIdx < rounds.length; rIdx++) {
+		// Wait for the browser to reflow before measuring (applies to each round
+		// in turn so the next round's measurements see already-adjusted previous rounds).
+		await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+		const prevRound = rounds[rIdx - 1]!;
+		const currRound = rounds[rIdx]!;
+
+		const prevMatches = Array.from(
+			prevRound.querySelectorAll<HTMLElement>('.bracket-match'),
+		);
+		const currMatches = Array.from(
+			currRound.querySelectorAll<HTMLElement>('.bracket-match'),
+		);
+		if (prevMatches.length === 0 || currMatches.length === 0) continue;
+
+		const gridTop = grid.getBoundingClientRect().top;
+
+		// Snapshot current match centres (before any adjustments for this round)
+		const prevCenters = prevMatches.map((m) => {
+			const r = m.getBoundingClientRect();
+			return r.top + r.height / 2 - gridTop;
+		});
+		const currCenters = currMatches.map((m) => {
+			const r = m.getBoundingClientRect();
+			return r.top + r.height / 2 - gridTop;
+		});
+
+		// Each currMatch[k] receives from prevMatch[2k] and prevMatch[2k+1].
+		// We need its centre to land at the midpoint of those two feeders.
+		// Because matches are in flex-column flow, adjusting match k shifts all
+		// subsequent matches by the same amount — track the cumulative shift.
+		let cumShift = 0;
+		for (let mIdx = 0; mIdx < currMatches.length; mIdx++) {
+			const c1 =
+				prevCenters[mIdx * 2] ?? prevCenters[prevCenters.length - 1] ?? 0;
+			const c2 = prevCenters[mIdx * 2 + 1] ?? c1;
+			const targetCenter = (c1 + c2) / 2;
+
+			const rawAdj = targetCenter - (currCenters[mIdx] ?? 0);
+			const adj = rawAdj - cumShift;
+
+			const existing =
+				parseFloat(currMatches[mIdx]!.style.marginTop || '0') || 0;
+			currMatches[mIdx]!.style.marginTop = `${existing + adj}px`;
+			cumShift += adj;
+		}
+	}
+
+	// ── 3. Align champion card with the Final match ──
+	await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+	const champEl = grid.querySelector<HTMLElement>('.bracket-champion');
+	const lastRound = rounds[rounds.length - 1];
+	if (champEl && lastRound) {
+		champEl.style.marginTop = '';
+		await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+		const finalMatch = lastRound.querySelector<HTMLElement>('.bracket-match');
+		if (finalMatch) {
+			const gridTop = grid.getBoundingClientRect().top;
+			const rF = finalMatch.getBoundingClientRect();
+			const rC = champEl.getBoundingClientRect();
+			const finalCenter = rF.top + rF.height / 2 - gridTop;
+			const champCenter = rC.top + rC.height / 2 - gridTop;
+			const adj = finalCenter - champCenter;
+			const existing = parseFloat(champEl.style.marginTop || '0') || 0;
+			champEl.style.marginTop = `${existing + adj}px`;
+		}
+	}
+
+	// ── 4. Draw SVG connectors once final layout has settled ──
+	await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+	drawBracketConnectors(grid, rounds);
+}
+
+function drawBracketConnectors(grid: HTMLElement, rounds: HTMLElement[]) {
+	grid.querySelector('.bracket-svg-connectors')?.remove();
+
+	const gridRect = grid.getBoundingClientRect();
+	const svgNS = 'http://www.w3.org/2000/svg';
+
+	const svg = document.createElementNS(svgNS, 'svg') as SVGSVGElement;
+	svg.classList.add('bracket-svg-connectors');
+	svg.setAttribute('aria-hidden', 'true');
+	// Size the SVG to cover the entire scrollable content area
+	svg.setAttribute('width', String(grid.scrollWidth));
+	svg.setAttribute('height', String(grid.scrollHeight));
+
+	// ── Connectors between consecutive bracket rounds ──
+	for (let rIdx = 0; rIdx < rounds.length - 1; rIdx++) {
+		const currRound = rounds[rIdx]!;
+		const nextRound = rounds[rIdx + 1]!;
+
+		const currMatches = Array.from(
+			currRound.querySelectorAll<HTMLElement>('.bracket-match'),
+		);
+		const nextMatches = Array.from(
+			nextRound.querySelectorAll<HTMLElement>('.bracket-match'),
+		);
+		if (currMatches.length === 0 || nextMatches.length === 0) continue;
+
+		for (let mIdx = 0; mIdx < nextMatches.length; mIdx++) {
+			const f1 = currMatches[mIdx * 2];
+			const f2 = currMatches[mIdx * 2 + 1];
+			const target = nextMatches[mIdx];
+			if (!f1 || !target) continue;
+
+			const r1 = f1.getBoundingClientRect();
+			const r2 = f2?.getBoundingClientRect();
+			const rT = target.getBoundingClientRect();
+
+			const y1 = r1.top + r1.height / 2 - gridRect.top;
+			const y2 = r2 ? r2.top + r2.height / 2 - gridRect.top : y1;
+			const yT = rT.top + rT.height / 2 - gridRect.top;
+			const yJunction = (y1 + y2) / 2;
+
+			// Use the round's bounding box for consistent X anchors so lines
+			// don't appear inside the match cards themselves.
+			const xRight = r1.right - gridRect.left;
+			const xLeft = rT.left - gridRect.left;
+			// Junction X is midway through the gap between the two rounds
+			const xJunction = xRight + (xLeft - xRight) / 2;
+
+			const hasW1 = f1.querySelector('.bracket-winner') !== null;
+			const hasW2 = f2 ? f2.querySelector('.bracket-winner') !== null : false;
+			const col1 = hasW1
+				? 'rgba(74,222,128,0.7)'
+				: 'rgba(255,255,255,0.22)';
+			const col2 = hasW2
+				? 'rgba(74,222,128,0.7)'
+				: 'rgba(255,255,255,0.22)';
+			const colJ =
+				hasW1 || hasW2
+					? 'rgba(74,222,128,0.7)'
+					: 'rgba(255,255,255,0.22)';
+
+			// Feeder 1: horizontal arm from match right edge to junction X
+			svgLine(svg, xRight, y1, xJunction, y1, col1);
+
+			if (f2 && r2) {
+				// Feeder 2: horizontal arm
+				svgLine(svg, r2.right - gridRect.left, y2, xJunction, y2, col2);
+				// Vertical bar between the two arms
+				svgLine(svg, xJunction, y1, xJunction, y2, colJ);
+			}
+
+			// Outgoing horizontal from junction to next match left edge.
+			// yJunction should equal yT after the layout step above.
+			svgLine(svg, xJunction, yJunction, xLeft, yT, colJ);
+		}
+	}
+
+	// ── Connector from Final match to Champion card (horizontal) ──
+	const champEl = grid.querySelector<HTMLElement>('.bracket-champion');
+	const lastRound = rounds[rounds.length - 1];
+	if (champEl && lastRound) {
+		const finalMatch = lastRound.querySelector<HTMLElement>('.bracket-match');
+		if (finalMatch) {
+			const rF = finalMatch.getBoundingClientRect();
+			const rC = champEl.getBoundingClientRect();
+			const y = rF.top + rF.height / 2 - gridRect.top;
+			const xFRight = rF.right - gridRect.left;
+			const xCLeft = rC.left - gridRect.left;
+			const hasWinner = finalMatch.querySelector('.bracket-winner') !== null;
+			const colChamp = hasWinner
+				? 'rgba(74,222,128,0.7)'
+				: 'rgba(255,255,255,0.22)';
+			svgLine(svg, xFRight, y, xCLeft, y, colChamp);
+		}
+	}
+
+	grid.insertBefore(svg, grid.firstChild);
+}
+
+function svgLine(
+	svg: SVGSVGElement,
+	x1: number,
+	y1: number,
+	x2: number,
+	y2: number,
+	stroke: string,
+) {
+	const svgNS = 'http://www.w3.org/2000/svg';
+	const line = document.createElementNS(svgNS, 'line') as SVGLineElement;
+	line.setAttribute('x1', x1.toFixed(1));
+	line.setAttribute('y1', y1.toFixed(1));
+	line.setAttribute('x2', x2.toFixed(1));
+	line.setAttribute('y2', y2.toFixed(1));
+	line.setAttribute('stroke', stroke);
+	line.setAttribute('stroke-width', '2');
+	line.setAttribute('stroke-linecap', 'round');
+	svg.appendChild(line);
+}
+
+function initBracketTabs() {
+	// Only wire up on mobile; on desktop the full bracket is always visible
+	if (!window.matchMedia('(max-width: 640px)').matches) return;
+
+	document.querySelectorAll<HTMLElement>('.bracket-tab-nav').forEach((nav) => {
+		const container = nav.closest<HTMLElement>('.bracket-block, .bracket-shell');
+		if (!container) return;
+		const grid = container.querySelector<HTMLElement>('.bracket-grid');
+		if (!grid) return;
+
+		const btns = Array.from(nav.querySelectorAll<HTMLButtonElement>('.bracket-tab-btn'));
+
+		function setActiveTab(idx: number) {
+			btns.forEach((b, i) => b.classList.toggle('active', i === idx));
+			// Scroll the pill strip so the active tab is centred
+			btns[idx]?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+		}
+
+		// Tab pill click → snap-scroll to that round
+		btns.forEach((btn, idx) => {
+			btn.addEventListener('click', () => {
+				grid.scrollTo({ left: grid.clientWidth * idx, behavior: 'smooth' });
+				setActiveTab(idx);
+			});
+		});
+
+		// Grid scroll (fires after snap settles) → sync active tab pill
+		let scrollTimer: ReturnType<typeof setTimeout>;
+		grid.addEventListener('scroll', () => {
+			clearTimeout(scrollTimer);
+			scrollTimer = setTimeout(() => {
+				const idx = Math.round(grid.scrollLeft / Math.max(grid.clientWidth, 1));
+				setActiveTab(idx);
+			}, 80);
+		});
+	});
+}
+
 function initHeroVideo() {
 	const v = document.getElementById('hero-video') as HTMLVideoElement | null;
 	if (!v) return;
@@ -310,6 +659,9 @@ function initHeroVideo() {
 initNavDrawer();
 initLeaderboardPage();
 initHeroVideo();
+initBracketTabs();
+initBracketLayout();
+initSeasonStrip();
 
 type Win = Window &
 	typeof globalThis & {

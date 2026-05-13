@@ -1,0 +1,49 @@
+---
+import GrandPrixLayout from '../../../layouts/GrandPrixLayout.astro';
+import { EVENTS } from '../../../data/events';
+import { titleSponsor } from '../../../data/ocala-sponsors';
+
+export async function getStaticPaths() {
+	return EVENTS.map((event) => ({ params: { slug: event.slug }, props: { event } }));
+}
+
+const { event } = Astro.props;
+---
+
+<GrandPrixLayout
+	title={`${event.name} Divisions | Florida Racquetball Grand Prix 2026`}
+	description={`Division list for ${event.name}. Choose a bracket to view the draw or round robin.`}
+	spotlightLabel="Title sponsor"
+	spotlightName={titleSponsor.name}
+	spotlightBlurb={titleSponsor.blurb}
+	spotlightLogoUrl={titleSponsor.logoUrl}
+>
+	<section class="event-hero">
+		<div class="section-label">Divisions</div>
+		<h1 class="section-title">{event.name}</h1>
+		<p class="section-sub">{event.dateRange} · {event.cityLine}</p>
+		<div class="event-section-cta">
+			<a class="btn-ghost" href={`/events/${event.slug}#brackets`}>Event page</a>
+		</div>
+	</section>
+
+	<section class="event-section" aria-labelledby="division-list-title">
+		<header class="event-section-header">
+			<h2 id="division-list-title">Division list</h2>
+			<p>Select a division to view its single-elimination draw or round-robin grid.</p>
+		</header>
+		<div class="division-list">
+			{(event.divisionDetails ?? []).map((division) => (
+				<a class="division-card" href={`/events/${event.slug}/divisions/${division.id}`}>
+					<div>
+						<div class="division-name">{division.label}</div>
+						<div class="division-meta">{division.format === 'single' ? 'Single elimination' : 'Round robin'}</div>
+					</div>
+					<span class:list={['division-badge', division.format === 'single' ? 'badge-single' : 'badge-rr']}>
+						{division.format === 'single' ? 'Bracket' : 'Round robin'}
+					</span>
+				</a>
+			))}
+		</div>
+	</section>
+</GrandPrixLayout>

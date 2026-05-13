@@ -12,6 +12,7 @@ interface Props {
 	spotlightName: string;
 	spotlightBlurb: string;
 	spotlightLabel?: string;
+	spotlightLogoUrl?: string;
 	imagePreloads?: string[];
 }
 
@@ -22,6 +23,7 @@ const {
 	spotlightName,
 	spotlightBlurb,
 	spotlightLabel,
+	spotlightLogoUrl,
 	imagePreloads,
 } = Astro.props;
 ---
@@ -30,7 +32,12 @@ const {
 	<div class="gp-site">
 		<GrandPrixNav />
 		<slot />
-		<SponsorSpotlight label={spotlightLabel} name={spotlightName} blurb={spotlightBlurb} />
+		<SponsorSpotlight
+			label={spotlightLabel}
+			name={spotlightName}
+			blurb={spotlightBlurb}
+			logoUrl={spotlightLogoUrl}
+		/>
 		<GrandPrixFooter />
 	</div>
 </BaseLayout>

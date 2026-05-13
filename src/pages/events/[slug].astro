@@ -1,0 +1,57 @@
+---
+import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
+import { EVENTS } from '../../data/events';
+import { titleSponsor } from '../../data/ocala-sponsors';
+
+export async function getStaticPaths() {
+	return EVENTS.map((event) => ({ params: { slug: event.slug }, props: { event } }));
+}
+
+const { event } = Astro.props;
+const divisionBase = `/events/${event.slug}/divisions`;
+---
+
+<GrandPrixLayout
+	title={`${event.name} | Florida Racquetball Grand Prix 2026`}
+	description={`Brackets hub for the ${event.name}. Open a division to view the full draw.`}
+	spotlightLabel="Title sponsor"
+	spotlightName={titleSponsor.name}
+	spotlightBlurb={titleSponsor.blurb}
+	spotlightLogoUrl={titleSponsor.logoUrl}
+>
+	<section class="event-hero">
+		<div class="section-label">Event</div>
+		<h1 class="section-title">{event.name}</h1>
+		<p class="section-sub">{event.dateRange} · {event.cityLine}</p>
+	</section>
+
+	<section class="event-section" id="brackets" aria-labelledby="event-brackets-title">
+		<header class="event-section-header">
+			<h2 id="event-brackets-title">Brackets</h2>
+			<p>
+				Choose a division to open the full draw. Tap any name on the bracket to see that player's profile, match log, and
+				series updates.
+			</p>
+		</header>
+		{event.spotlightWatchLiveUrl && (
+			<p class="event-brackets-live">
+				<a class="btn-ghost event-brackets-live-btn" href={event.spotlightWatchLiveUrl} rel="noopener noreferrer" target="_blank">
+					Live scores & registration (R2)
+				</a>
+			</p>
+		)}
+		<div class="division-list">
+			{(event.divisionDetails ?? []).map((division) => (
+				<a class="division-card" href={`${divisionBase}/${division.id}`}>
+					<div>
+						<div class="division-name">{division.label}</div>
+						<div class="division-meta">{division.format === 'single' ? 'Single elimination' : 'Round robin'}</div>
+					</div>
+					<span class:list={['division-badge', division.format === 'single' ? 'badge-single' : 'badge-rr']}>
+						{division.format === 'single' ? 'Bracket' : 'Round robin'}
+					</span>
+				</a>
+			))}
+		</div>
+	</section>
+</GrandPrixLayout>

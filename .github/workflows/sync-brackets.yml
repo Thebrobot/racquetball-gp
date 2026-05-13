@@ -1,0 +1,71 @@
+name: Sync R2 Brackets
+
+# Runs every 10 minutes during the tournament weekend.
+# When bracket results change, commits the updated JSON and pushes — which
+# triggers Vercel to rebuild and redeploy the site automatically.
+#
+# You can also trigger a manual sync any time via the GitHub Actions UI
+# ("Run workflow" button on the Actions tab).
+
+on:
+  schedule:
+    # Every 10 minutes, Thu–Mon covering May 14–18 2026 (tournament: May 15–17)
+    - cron: '*/10 * 14,15,16,17,18 5 *'
+  workflow_dispatch: # manual trigger
+
+permissions:
+  contents: write # needed to commit + push the results JSON
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Playwright Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install chromium --with-deps
+
+      - name: Install Playwright system deps (cached run)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - name: Run bracket sync
+        run: node scripts/sync-r2-brackets.mjs
+
+      - name: Check for changes
+        id: diff
+        run: |
+          git diff --exit-code src/data/ocala-results.json \
+            && echo "changed=false" >> "$GITHUB_OUTPUT" \
+            || echo "changed=true"  >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push updated results
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/data/ocala-results.json
+          git commit -m "chore: sync R2 bracket results [skip ci]"
+          git push
