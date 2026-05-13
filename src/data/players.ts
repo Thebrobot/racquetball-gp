@@ -1,5 +1,6 @@
 import { LB_CATEGORY_HEADING, LB_DIVISIONS_BY_CATEGORY, lbData } from './leaderboard';
 import { EVENTS } from './events';
+import { PLAYER_IMAGES } from './player-images';
 
 export interface PlayerEventCall {
 	eventName: string;
@@ -161,15 +162,15 @@ export function getAllPlayers(): PlayerProfile[] {
 			rows.forEach((row) => {
 				if (!isIndividual(row.name)) return;
 				const slug = getPlayerSlug(row.name);
-				const existing = map.get(slug) ?? {
-					name: row.name,
-					slug,
-					city: row.city,
-					imageUrl: row.image,
-					bio: row.tagline,
-					divisions: [],
-					events: [],
-				};
+			const existing = map.get(slug) ?? {
+				name: row.name,
+				slug,
+				city: row.city,
+				imageUrl: PLAYER_IMAGES[row.name] ?? row.image,
+				bio: row.tagline,
+				divisions: [],
+				events: [],
+			};
 				if (!existing.bio && row.tagline) {
 					existing.bio = row.tagline;
 				}
@@ -191,9 +192,14 @@ export function getAllPlayers(): PlayerProfile[] {
 			const existing = map.get(slug) ?? {
 				name: profile.name,
 				slug,
+				imageUrl: PLAYER_IMAGES[profile.name],
 				divisions: [],
 				events: [],
 			};
+			// Apply image from lookup if not already set
+			if (!existing.imageUrl && PLAYER_IMAGES[profile.name]) {
+				existing.imageUrl = PLAYER_IMAGES[profile.name];
+			}
 			const eventEntry: PlayerEventCall = {
 				eventName: event.name,
 				division: profile.division,
