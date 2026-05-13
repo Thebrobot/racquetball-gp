@@ -648,6 +648,17 @@ html.nav-drawer-open .nav-drawer-backdrop {
   background: rgba(132, 204, 22, 0.2);
   transform: translateY(-2px);
 }
+.event-spotlight-cta--participants {
+  background: #ffffff;
+  color: var(--orange);
+  border: none;
+  box-shadow: 0 10px 28px rgba(255, 255, 255, 0.1);
+}
+.event-spotlight-cta--participants:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgba(255, 255, 255, 0.15);
+}
 .home-bento-shell::before {
   content: '';
   position: absolute;
@@ -700,7 +711,24 @@ html.nav-drawer-open .nav-drawer-backdrop {
 }
 
 .event-hero {
-  padding: 54px 22px 10px;
+  padding: max(110px, calc(env(safe-area-inset-top) + 94px)) 22px 32px;
+  text-align: center;
+}
+.event-hero .section-label {
+  font-size: 15px;
+  margin-bottom: 14px;
+}
+.event-hero .section-title {
+  font-size: clamp(36px, 5.5vw, 58px);
+  margin-bottom: 18px;
+}
+.event-hero .section-sub {
+  font-size: clamp(20px, 2vw, 24px);
+  color: #ffffff;
+  font-weight: 600;
+  margin-bottom: 0;
+  margin-left: auto;
+  margin-right: auto;
   text-align: center;
 }
 
@@ -1278,6 +1306,10 @@ html.nav-drawer-open .nav-drawer-backdrop {
 
 .event-section-cta {
   margin-top: 18px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .division-list {
@@ -1465,6 +1497,66 @@ html.nav-drawer-open .nav-drawer-backdrop {
 
 .event-brackets-live {
   margin: 0 0 20px;
+}
+
+/* ── Event page tab bar ── */
+.event-tab-bar {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+.event-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 10px 28px;
+  border-radius: 50px;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+.event-tab:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.event-tab--active {
+  border-color: var(--orange);
+  background: rgba(240, 90, 26, 0.15);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(240, 90, 26, 0.25);
+}
+.event-tab--active:hover {
+  background: rgba(240, 90, 26, 0.22);
+  transform: translateY(-1px);
+}
+.event-tab-count {
+  background: rgba(240, 90, 26, 0.3);
+  color: var(--orange);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 20px;
+  letter-spacing: 0;
+}
+.event-tab--active .event-tab-count {
+  background: rgba(240, 90, 26, 0.4);
+}
+.event-brackets-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 24px;
 }
 
 .player-section-empty {
@@ -2265,6 +2357,11 @@ html.nav-drawer-open .nav-drawer-backdrop {
   }
   .event-spotlight-body {
     padding: 22px 22px 26px;
+    align-items: center;
+    text-align: center;
+  }
+  .event-spotlight-ctas {
+    justify-content: center;
   }
   .season-bento-intro {
     margin-bottom: 32px;
@@ -3079,8 +3176,14 @@ footer {
   .hero-ctas {
     justify-content: center;
   }
+  .hero-series {
+    order: -1;
+  }
   .hero-series-img {
     width: min(100%, clamp(200px, 52vw, 300px));
+  }
+  .hero-eyebrow {
+    display: none;
   }
   .stop-item {
     min-width: 160px;
