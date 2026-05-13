@@ -1,7 +1,7 @@
 ---
 import GrandPrixLayout from '../../../../layouts/GrandPrixLayout.astro';
 import { EVENTS } from '../../../../data/events';
-import { getPlayerSlug } from '../../../../data/players';
+import { getAllPlayers, getPlayerSlug } from '../../../../data/players';
 import { titleSponsor } from '../../../../data/ocala-sponsors';
 
 export async function getStaticPaths() {
@@ -30,6 +30,36 @@ const isLinkablePlayer = (name: string) => {
 	const upper = trimmed.toUpperCase();
 	return upper !== 'BYE' && upper !== 'TBD' && !trimmed.includes('/');
 };
+
+// Resolve "LastA / LastB" or "M. Huyke / O. Huyke" to full names + profile slugs.
+const allPlayers = getAllPlayers();
+function resolveTeamMembers(teamStr: string): { name: string; slug?: string }[] {
+	return teamStr.split(/\s*\/\s*/).map((part) => {
+		part = part.trim();
+		const partLower = part.toLowerCase();
+		const initMatch = part.match(/^([A-Za-z])\.\s+(.+)$/);
+		if (initMatch) {
+			const [, init, lastName] = initMatch;
+			const lnLower = lastName.toLowerCase();
+			const found = allPlayers.find(
+				(p) =>
+					p.name.toLowerCase().endsWith(lnLower) &&
+					p.name[0].toLowerCase() === init.toLowerCase(),
+			);
+			if (found) return { name: found.name, slug: found.slug };
+		}
+		const found = allPlayers.find(
+			(p) => p.name.toLowerCase().endsWith(partLower),
+		);
+		if (found) return { name: found.name, slug: found.slug };
+		return { name: part };
+	});
+}
+/** Full display string for a doubles team (used where a plain string is needed). */
+function resolveTeamDisplay(name: string): string {
+	if (!name.includes('/')) return name;
+	return resolveTeamMembers(name).map((m) => m.name).join(' / ');
+}
 
 // ── Round-robin standings (computed from match results) ───────────────────────
 type StandingRow = { name: string; w: number; l: number; played: number };
@@ -77,14 +107,9 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 		<section class="event-section">
 			<div class="bracket-shell">
 				<header class="bracket-header">
-					<div>
-						<div class="bracket-brand-row">
-							<span class="bracket-brand-badge">Grand Prix</span>
-							<span class="bracket-brand-sub">{division.format === 'single' ? 'Single Elim' : 'Round Robin'}</span>
-						</div>
-						<p class="bracket-eyebrow">{division.label.toUpperCase()}</p>
-						<h2 class="bracket-heading">{event.name} Draw</h2>
-						<p class="bracket-sub">Single elimination · Best of 3</p>
+					<div class="bracket-header-title-row">
+						<span class="bracket-brand-badge">Grand Prix</span>
+						<h2 class="bracket-heading">{division.label}</h2>
 					</div>
 					<a class="bracket-cta" href="/leaderboard">View full standings</a>
 				</header>
@@ -109,48 +134,101 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 				<div class="bracket-grid bracket-grid--styled">
 					{rounds.map((round) => {
 						const matches = round.matches ?? [];
-						const pairs: { top: typeof matches[0]; bot: typeof matches[0] | null }[] = [];
-						for (let i = 0; i < matches.length; i += 2) {
-							pairs.push({ top: matches[i], bot: matches[i + 1] ?? null });
-						}
 						return (
 						<div class="bracket-round">
 							<div class="bracket-round-title">{round.label}</div>
 							<div class="bracket-matches">
-								{pairs.map((pair) => (
-									<div class:list={['bracket-pair', pair.bot ? '' : 'bracket-pair--solo']}>
-										{[pair.top, pair.bot].filter(Boolean).map((match) => (
-											<div class="bracket-match">
-												<div class:list={['bracket-player', match!.winner === 1 ? 'bracket-winner' : '']}>
-													<span class="bracket-seed" data-seed={match!.seed1}>{match!.seed1 ?? ''}</span>
-													{isLinkablePlayer(match!.player1) ? (
-														<a class="bracket-name bracket-name-link" href={`/players/${getPlayerSlug(match!.player1)}`}>
-															{match!.player1}
+								{matches.map((match) => {
+									const isBye = match.player1.toUpperCase() === 'BYE' || match.player2.toUpperCase() === 'BYE';
+									const advancer = isBye
+										? (match.player1.toUpperCase() !== 'BYE' ? match.player1 : match.player2)
+										: null;
+									const advancerSeed = isBye
+										? (match.player1.toUpperCase() !== 'BYE' ? match.seed1 : match.seed2)
+										: null;
+
+									if (isBye) {
+										return (
+											<div class="bracket-match bracket-match--bye">
+												<div class="bracket-player bracket-player--bye-advancer">
+													{advancerSeed && <span class="bracket-seed" data-seed={advancerSeed}>{advancerSeed}</span>}
+													{advancer!.includes('/') ? (
+														<span class="bracket-name">
+															{resolveTeamMembers(advancer!).map((mem, j, arr) => (
+																<>
+																	{mem.slug ? <a class="bracket-name-link" href={`/players/${mem.slug}`}>{mem.name}</a> : mem.name}
+																	{j < arr.length - 1 && ' / '}
+																</>
+															))}
+														</span>
+													) : isLinkablePlayer(advancer!) ? (
+														<a class="bracket-name bracket-name-link" href={`/players/${getPlayerSlug(advancer!)}`}>
+															{advancer}
 														</a>
 													) : (
-														<span class="bracket-name">{match!.player1}</span>
+														<span class="bracket-name">{advancer}</span>
 													)}
+													<span class="bracket-bye-badge">BYE</span>
 												</div>
-												<div class:list={['bracket-player', match!.winner === 2 ? 'bracket-winner' : '']}>
-													<span class="bracket-seed" data-seed={match!.seed2}>{match!.seed2 ?? ''}</span>
-													{isLinkablePlayer(match!.player2) ? (
-														<a class="bracket-name bracket-name-link" href={`/players/${getPlayerSlug(match!.player2)}`}>
-															{match!.player2}
-														</a>
-													) : (
-														<span class="bracket-name">{match!.player2}</span>
-													)}
-												</div>
-												{match!.score && <div class="bracket-match-score">{match!.score}</div>}
-											{match!.scheduledTime && (
+											</div>
+										);
+									}
+
+									const hasWinner = !!match.winner;
+									return (
+										<div class:list={['bracket-match', hasWinner && 'bracket-match--complete']}>
+											{match.matchId && <div class="bracket-match-id">{match.matchId}</div>}
+											<div class:list={['bracket-player', match.winner === 1 ? 'bracket-winner' : '']}>
+												{match.seed1 ? <span class="bracket-seed" data-seed={match.seed1}>{match.seed1}</span> : <span class="bracket-seed bracket-seed--empty"></span>}
+												{match.player1.includes('/') ? (
+													<span class="bracket-name">
+														{resolveTeamMembers(match.player1).map((mem, j, arr) => (
+															<>
+																{mem.slug ? <a class="bracket-name-link" href={`/players/${mem.slug}`}>{mem.name}</a> : mem.name}
+																{j < arr.length - 1 && ' / '}
+															</>
+														))}
+													</span>
+												) : isLinkablePlayer(match.player1) ? (
+													<a class="bracket-name bracket-name-link" href={`/players/${getPlayerSlug(match.player1)}`}>
+														{match.player1}
+													</a>
+												) : (
+													<span class:list={['bracket-name', match.player1 === 'TBD' && 'bracket-name--tbd']}>{match.player1}</span>
+												)}
+											</div>
+											<div class="bracket-vs-divider"><span>vs</span></div>
+											<div class:list={['bracket-player', match.winner === 2 ? 'bracket-winner' : '']}>
+												{match.seed2 ? <span class="bracket-seed" data-seed={match.seed2}>{match.seed2}</span> : <span class="bracket-seed bracket-seed--empty"></span>}
+												{match.player2.includes('/') ? (
+													<span class="bracket-name">
+														{resolveTeamMembers(match.player2).map((mem, j, arr) => (
+															<>
+																{mem.slug ? <a class="bracket-name-link" href={`/players/${mem.slug}`}>{mem.name}</a> : mem.name}
+																{j < arr.length - 1 && ' / '}
+															</>
+														))}
+													</span>
+												) : isLinkablePlayer(match.player2) ? (
+													<a class="bracket-name bracket-name-link" href={`/players/${getPlayerSlug(match.player2)}`}>
+														{match.player2}
+													</a>
+												) : (
+													<span class:list={['bracket-name', match.player2 === 'TBD' && 'bracket-name--tbd']}>{match.player2}</span>
+												)}
+											</div>
+											{match.score && <div class="bracket-match-score">{match.score}</div>}
+											{match.scheduledTime && (
 												<div class="bracket-match-time">
-													{match!.scheduledTime}{match!.court ? ` · ${match!.court}` : ''}
+													<svg class="bracket-time-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+														<circle cx="8" cy="8" r="6.25"/><path d="M8 4.5V8l2.5 1.5"/>
+													</svg>
+													{match.scheduledTime}{match.court ? ` · ${match.court}` : ''}
 												</div>
 											)}
-											</div>
-										))}
-									</div>
-								))}
+										</div>
+									);
+								})}
 							</div>
 						</div>
 						);
@@ -162,7 +240,7 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 									<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
 								</svg>
 								<div class="bracket-champion-label">Champion</div>
-								<div class="bracket-champion-name">{champName}</div>
+								<div class="bracket-champion-name">{champName ? resolveTeamDisplay(champName) : ''}</div>
 							</div>
 						</div>
 					)}
@@ -179,11 +257,20 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 						<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
 					</svg>
 					<span class="rr-champion-label">Pool Champion</span>
-					{isLinkablePlayer(poolWinner) ? (
-						<a class="rr-champion-name" href={`/players/${getPlayerSlug(poolWinner)}`}>{poolWinner}</a>
-					) : (
-						<span class="rr-champion-name">{poolWinner}</span>
-					)}
+				{poolWinner.includes('/') ? (
+					<span class="rr-champion-name">
+						{resolveTeamMembers(poolWinner).map((m, j, arr) => (
+							<>
+								{m.slug ? <a class="rr-champion-name-link" href={`/players/${m.slug}`}>{m.name}</a> : m.name}
+								{j < arr.length - 1 && ' / '}
+							</>
+						))}
+					</span>
+				) : isLinkablePlayer(poolWinner) ? (
+					<a class="rr-champion-name" href={`/players/${getPlayerSlug(poolWinner)}`}>{poolWinner}</a>
+				) : (
+					<span class="rr-champion-name">{poolWinner}</span>
+				)}
 				</div>
 			)}
 
@@ -200,16 +287,23 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 					{standings.map((s, i) => (
 						<div class:list={['rr-standings-row', i === 0 && allMatchesComplete && 'rr-standings-row--winner']}>
 							<span class="rr-standings-rank">{i + 1}</span>
-							<span class="rr-standings-name">
-								{isLinkablePlayer(s.name) ? (
-									<a href={`/players/${getPlayerSlug(s.name)}`}>{s.name}</a>
-								) : s.name}
-								{i === 0 && allMatchesComplete && (
-									<svg class="rr-standings-trophy" viewBox="0 0 16 16" fill="currentColor" aria-label="Champion">
-										<path d="M8 1l2.06 4.17 4.6.67-3.33 3.24.79 4.58L8 11.5l-4.12 2.16.79-4.58L1.34 5.84l4.6-.67L8 1z"/>
-									</svg>
-								)}
-							</span>
+						<span class="rr-standings-name">
+							{s.name.includes('/') ? (
+								resolveTeamMembers(s.name).map((m, j, arr) => (
+									<>
+										{m.slug ? <a href={`/players/${m.slug}`}>{m.name}</a> : <span>{m.name}</span>}
+										{j < arr.length - 1 && ' / '}
+									</>
+								))
+							) : isLinkablePlayer(s.name) ? (
+								<a href={`/players/${getPlayerSlug(s.name)}`}>{s.name}</a>
+							) : s.name}
+							{i === 0 && allMatchesComplete && (
+								<svg class="rr-standings-trophy" viewBox="0 0 16 16" fill="currentColor" aria-label="Champion">
+									<path d="M8 1l2.06 4.17 4.6.67-3.33 3.24.79 4.58L8 11.5l-4.12 2.16.79-4.58L1.34 5.84l4.6-.67L8 1z"/>
+								</svg>
+							)}
+						</span>
 							<span class="rr-standings-stat rr-standings-w">{s.w}</span>
 							<span class="rr-standings-stat rr-standings-l">{s.l}</span>
 							<span class="rr-standings-stat rr-standings-played">{s.played}</span>
@@ -234,16 +328,25 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 								</span>
 							</div>
 							<div class="rr-card-matchup">
-								<div class:list={['rr-card-player', t1Wins && 'rr-card-player--winner']}>
-									{isLinkablePlayer(m.team1) ? (
-										<a class="rr-card-name" href={`/players/${getPlayerSlug(m.team1)}`}>{m.team1}</a>
-									) : (
-										<span class="rr-card-name">{m.team1}</span>
-									)}
-									{t1Wins && (
-										<span class="rr-card-w-badge">W</span>
-									)}
-								</div>
+							<div class:list={['rr-card-player', t1Wins && 'rr-card-player--winner']}>
+								{m.team1.includes('/') ? (
+									<span class="rr-card-name">
+										{resolveTeamMembers(m.team1).map((mem, j, arr) => (
+											<>
+												{mem.slug ? <a href={`/players/${mem.slug}`}>{mem.name}</a> : mem.name}
+												{j < arr.length - 1 && ' / '}
+											</>
+										))}
+									</span>
+								) : isLinkablePlayer(m.team1) ? (
+									<a class="rr-card-name" href={`/players/${getPlayerSlug(m.team1)}`}>{m.team1}</a>
+								) : (
+									<span class="rr-card-name">{m.team1}</span>
+								)}
+								{t1Wins && (
+									<span class="rr-card-w-badge">W</span>
+								)}
+							</div>
 								<div class="rr-card-center">
 									{m.score ? (
 										<span class="rr-card-score">{m.score}</span>
@@ -251,16 +354,25 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 										<span class="rr-card-vs">vs</span>
 									)}
 								</div>
-								<div class:list={['rr-card-player rr-card-player--right', t2Wins && 'rr-card-player--winner']}>
-									{t2Wins && (
-										<span class="rr-card-w-badge">W</span>
-									)}
-									{isLinkablePlayer(m.team2) ? (
-										<a class="rr-card-name" href={`/players/${getPlayerSlug(m.team2)}`}>{m.team2}</a>
-									) : (
-										<span class="rr-card-name">{m.team2}</span>
-									)}
-								</div>
+							<div class:list={['rr-card-player rr-card-player--right', t2Wins && 'rr-card-player--winner']}>
+								{t2Wins && (
+									<span class="rr-card-w-badge">W</span>
+								)}
+								{m.team2.includes('/') ? (
+									<span class="rr-card-name">
+										{resolveTeamMembers(m.team2).map((mem, j, arr) => (
+											<>
+												{mem.slug ? <a href={`/players/${mem.slug}`}>{mem.name}</a> : mem.name}
+												{j < arr.length - 1 && ' / '}
+											</>
+										))}
+									</span>
+								) : isLinkablePlayer(m.team2) ? (
+									<a class="rr-card-name" href={`/players/${getPlayerSlug(m.team2)}`}>{m.team2}</a>
+								) : (
+									<span class="rr-card-name">{m.team2}</span>
+								)}
+							</div>
 							</div>
 						</div>
 					);
@@ -276,15 +388,24 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 				<div class="rr-pool-roster">
 					<div class="rr-matches-label">Pool Roster</div>
 					<div class="rr-roster-list">
-						{players.map((p) => (
-							<div class="rr-roster-item">
-								{isLinkablePlayer(p) ? (
-									<a class="rr-roster-name" href={`/players/${getPlayerSlug(p)}`}>{p}</a>
-								) : (
-									<span class="rr-roster-name">{p}</span>
-								)}
-							</div>
-						))}
+				{players.map((p) => (
+						<div class="rr-roster-item">
+							{p.includes('/') ? (
+								<span class="rr-roster-name">
+									{resolveTeamMembers(p).map((m, j, arr) => (
+										<>
+											{m.slug ? <a href={`/players/${m.slug}`}>{m.name}</a> : m.name}
+											{j < arr.length - 1 && ' / '}
+										</>
+									))}
+								</span>
+							) : isLinkablePlayer(p) ? (
+								<a class="rr-roster-name" href={`/players/${getPlayerSlug(p)}`}>{p}</a>
+							) : (
+								<span class="rr-roster-name">{p}</span>
+							)}
+						</div>
+					))}
 					</div>
 				</div>
 			)}
@@ -336,6 +457,17 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 	transition: color 0.15s;
 }
 .rr-champion-name:hover { color: var(--orange); }
+.rr-champion-name-link {
+	color: #fff;
+	text-decoration: none;
+	font-family: 'Barlow Condensed', sans-serif;
+	font-size: 1.4rem;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	transition: color 0.15s;
+}
+.rr-champion-name-link:hover { color: var(--orange); }
 
 /* ── Standings table ── */
 .rr-standings {
@@ -390,6 +522,12 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 	transition: color 0.15s;
 }
 .rr-standings-name a:hover { color: var(--orange); }
+.rr-roster-name a {
+	color: inherit;
+	text-decoration: none;
+	transition: color 0.15s;
+}
+.rr-roster-name a:hover { color: var(--orange); }
 .rr-standings-trophy {
 	width: 13px;
 	height: 13px;
@@ -469,6 +607,12 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 	line-height: 1.2;
 }
 .rr-card-name:hover { color: #fff; }
+.rr-card-name a {
+	color: inherit;
+	text-decoration: none;
+	transition: color 0.15s;
+}
+.rr-card-name a:hover { color: var(--orange); }
 .rr-card-player--winner .rr-card-name {
 	color: #fff;
 	font-size: 1.05rem;

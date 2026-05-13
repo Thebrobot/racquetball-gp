@@ -40,5 +40,5 @@ export const PLAYER_IMAGES: Record<string, string> = {
 	'Paul Sotolongo':          'https://www.r2sports.com/tourney/imageGallery/gallery/player/632924_bcb6980e01_sm.jpg',
 	'Chris Steinheiser':       'https://www.r2sports.com/tourney/imageGallery/gallery/player/131153_56c067f08c_sm.jpg',
 	'Wade Stubanas':           'https://www.r2sports.com/tourney/imageGallery/gallery/player/160212_bac9bfb2af_sm.jpg',
-	'Kelly Van Zant-Russell':  'https://www.r2sports.com/tourney/imageGallery/gallery/player/79114_f004d03374_sm.jpg',
+	// Kelly Van Zant-Russell: R2 image is broken; falls back to initials avatar
 };

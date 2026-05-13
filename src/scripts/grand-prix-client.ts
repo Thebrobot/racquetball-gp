@@ -425,6 +425,12 @@ async function layoutAndDrawBracket(grid: HTMLElement) {
 		);
 		if (prevMatches.length === 0 || currMatches.length === 0) continue;
 
+		// Non-standard bracket: previous round has fewer matches than current
+		// (e.g. a preliminary round leading into a round with BYE players already
+		// placed). Attempting to centre with the 2-feeder algorithm produces large
+		// negative margins that stack matches on top of each other, so skip it.
+		if (prevMatches.length <= currMatches.length) continue;
+
 		const gridTop = grid.getBoundingClientRect().top;
 
 		// Snapshot current match centres (before any adjustments for this round)
@@ -509,6 +515,10 @@ function drawBracketConnectors(grid: HTMLElement, rounds: HTMLElement[]) {
 		);
 		if (currMatches.length === 0 || nextMatches.length === 0) continue;
 
+		// Skip connector drawing for non-standard transitions where the current
+		// round has fewer matches than the next (preliminary → seeded round).
+		if (currMatches.length <= nextMatches.length) continue;
+
 		for (let mIdx = 0; mIdx < nextMatches.length; mIdx++) {
 			const f1 = currMatches[mIdx * 2];
 			const f2 = currMatches[mIdx * 2 + 1];
@@ -535,14 +545,14 @@ function drawBracketConnectors(grid: HTMLElement, rounds: HTMLElement[]) {
 			const hasW2 = f2 ? f2.querySelector('.bracket-winner') !== null : false;
 			const col1 = hasW1
 				? 'rgba(74,222,128,0.7)'
-				: 'rgba(255,255,255,0.22)';
+				: 'rgba(255,255,255,0.6)';
 			const col2 = hasW2
 				? 'rgba(74,222,128,0.7)'
-				: 'rgba(255,255,255,0.22)';
+				: 'rgba(255,255,255,0.6)';
 			const colJ =
 				hasW1 || hasW2
 					? 'rgba(74,222,128,0.7)'
-					: 'rgba(255,255,255,0.22)';
+					: 'rgba(255,255,255,0.6)';
 
 			// Feeder 1: horizontal arm from match right edge to junction X
 			svgLine(svg, xRight, y1, xJunction, y1, col1);
@@ -574,7 +584,7 @@ function drawBracketConnectors(grid: HTMLElement, rounds: HTMLElement[]) {
 			const hasWinner = finalMatch.querySelector('.bracket-winner') !== null;
 			const colChamp = hasWinner
 				? 'rgba(74,222,128,0.7)'
-				: 'rgba(255,255,255,0.22)';
+				: 'rgba(255,255,255,0.6)';
 			svgLine(svg, xFRight, y, xCLeft, y, colChamp);
 		}
 	}

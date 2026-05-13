@@ -37,11 +37,12 @@ function playerMatchesEntry(playerName: string, entryName: string): boolean {
 	const norm = playerName.trim().toLowerCase();
 	const entryNorm = entryName.trim().toLowerCase();
 	if (entryNorm === norm) return true;
-	// Doubles teams are stored as "LastA / LastB" — match by last name
+	// Doubles teams are stored as "LastA / LastB" — match by last name.
+	// Use endsWith to handle compound last names like "Van Zant-Russell".
 	const lastName = norm.split(' ').pop() ?? '';
 	if (lastName.length > 1) {
 		const parts = entryNorm.split(/\s*\/\s*/);
-		if (parts.some((p) => p.trim() === lastName)) return true;
+		if (parts.some((p) => p.trim() === lastName || p.trim().endsWith(lastName))) return true;
 	}
 	return false;
 }

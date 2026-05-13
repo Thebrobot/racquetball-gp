@@ -5,6 +5,9 @@
  * src/data/ocala-results.json.  Called automatically by the GitHub Actions
  * cron workflow every 10 minutes during the tournament weekend.
  *
+ * Results are keyed by match ID (e.g. "MO9") for precise merging with the
+ * static bracket data in src/data/events.ts.
+ *
  * Usage:
  *   node scripts/sync-r2-brackets.mjs
  *
@@ -61,8 +64,6 @@ const CODE_ID_MAP = {
 	MXOA: 'mixed-doubles',
 };
 
-const ROUND_LABELS = ['Round 1', 'Quarterfinals', 'Semifinals', 'Final'];
-
 /**
  * Extract all bracket links from the R2 Sports divisions list page.
  * Returns array of { href, divisionId } objects.
@@ -70,7 +71,6 @@ const ROUND_LABELS = ['Round 1', 'Quarterfinals', 'Semifinals', 'Final'];
 async function getBracketLinks(page) {
 	await page.goto(DIVS_URL, { waitUntil: 'networkidle', timeout: 30000 });
 
-	// Collect all <a> hrefs that look like bracket/draw links
 	const links = await page.evaluate(() => {
 		return Array.from(document.querySelectorAll('a[href]'))
 			.map((a) => a.href)
@@ -81,7 +81,6 @@ async function getBracketLinks(page) {
 
 	const result = [];
 	for (const href of links) {
-		// Try to extract division code from URL query string, e.g. DivisionCode=MO or DivCode=MO
 		const codeMatch = href.match(/(?:DivisionCode|DivCode|divCode|divisionCode)=([^&]+)/i);
 		if (codeMatch) {
 			const code = decodeURIComponent(codeMatch[1]);
@@ -90,7 +89,6 @@ async function getBracketLinks(page) {
 				result.push({ href, divId, code });
 			}
 		} else {
-			// Try to match by TID in the URL and treat as generic bracket link
 			result.push({ href, divId: null, code: null });
 		}
 	}
@@ -99,24 +97,29 @@ async function getBracketLinks(page) {
 }
 
 /**
- * Extract match results from a bracket page.
- * Returns { rounds: [ { label, matches: [{player1, player2, score, winner}] } ] }
+ * Extract match results from a bracket page, keyed by match ID.
+ *
+ * Returns a flat object: { [matchId]: { player1, player2, score, winner } }
+ *
+ * Match IDs are extracted from each match box text (R2 renders them as short
+ * alphanumeric codes like "MO9", "ME11", "MAD3"). If no ID is found for a
+ * match, a fallback key is generated from the division code + index.
+ *
+ * @param {import('playwright').Page} page
+ * @param {string} divCode - Division short code (e.g. "MO") for fallback IDs
  */
-async function extractBracketData(page) {
-	return page.evaluate((ROUND_LABELS) => {
-		const rounds = [];
+async function extractBracketData(page, divCode) {
+	return page.evaluate((divCode) => {
+		const results = {};
 
-		// ── Strategy 1: Look for explicit round headers ─────────────────────────
-		// R2 Sports often renders bracket columns with header labels
 		const allText = document.body.innerText;
-		const hasResults = /\d+\s*[-–]\s*\d+/.test(allText); // any "11-5" style score
+		const hasResults = /\d+\s*[-–]\s*\d+/.test(allText);
 
 		if (!hasResults) {
-			// No scores yet — tournament hasn't started or no results posted
-			return rounds;
+			return results;
 		}
 
-		// ── Strategy 2: Find match box elements ────────────────────────────────
+		// ── Find match box elements ──────────────────────────────────────────────
 		const BOX_SELECTORS = [
 			'.bracketMatchBox',
 			'.matchBox',
@@ -135,7 +138,6 @@ async function extractBracketData(page) {
 			}
 		}
 
-		// ── Strategy 3: Fallback — any <td> with 2+ player-looking lines ───────
 		if (!matchBoxes.length) {
 			matchBoxes = Array.from(document.querySelectorAll('td')).filter((td) => {
 				const lines = (td.innerText ?? '')
@@ -146,77 +148,105 @@ async function extractBracketData(page) {
 			});
 		}
 
-		if (!matchBoxes.length) return rounds;
+		if (!matchBoxes.length) return results;
 
-		// Group boxes into columns (rounds) by x-position
-		const colMap = new Map();
+		const scoreRe = /^\d+(\s*[-,]\s*\d+)+$/;
+		// Match ID pattern: 1-4 uppercase letters (optionally with digits/+) followed by 1-3 digits
+		const matchIdRe = /^[A-Z][A-Z0-9+]{0,4}\d{1,3}$/;
+
+		let fallbackIdx = 0;
+
 		for (const box of matchBoxes) {
 			const rect = box.getBoundingClientRect();
-			if (rect.width < 10 || rect.height < 5) continue; // skip invisible
-			const col = Math.round(rect.left / 20) * 20;
-			if (!colMap.has(col)) colMap.set(col, []);
-			colMap.get(col).push(box);
-		}
+			if (rect.width < 10 || rect.height < 5) continue;
 
-		const sortedCols = [...colMap.entries()].sort((a, b) => a[0] - b[0]);
-		const scoreRe = /^\d+(\s*[-,]\s*\d+)+$/;
+			const lines = (box.innerText ?? '')
+				.split('\n')
+				.map((l) => l.trim())
+				.filter(Boolean);
 
-		let roundIdx = 0;
-		for (const [, boxes] of sortedCols) {
-			const matches = [];
+			if (lines.length < 2) continue;
 
-			for (const box of boxes) {
-				const lines = (box.innerText ?? '')
-					.split('\n')
-					.map((l) => l.trim())
-					.filter(Boolean);
+			const scoreLines = lines.filter((l) => scoreRe.test(l));
+			const nameLines = lines.filter((l) => !scoreRe.test(l) && l.length > 1);
 
-				if (lines.length < 2) continue;
+			if (nameLines.length < 2) continue;
 
-				const scoreLines = lines.filter((l) => scoreRe.test(l));
-				const nameLines = lines.filter((l) => !scoreRe.test(l) && l.length > 1);
+			const player1 = nameLines[0];
+			const player2 = nameLines[1];
+			let score = null;
+			let winner = null;
 
-				if (nameLines.length < 2) continue;
-
-				const player1 = nameLines[0];
-				const player2 = nameLines[1];
-				let score = null;
-				let winner = null;
-
-				if (scoreLines.length === 2) {
-					score = `${scoreLines[0]}, ${scoreLines[1]}`;
-				} else if (scoreLines.length === 1) {
-					score = scoreLines[0];
-				}
-
-				// Detect winner by bold/highlight
-				const winnerEl = box.querySelector('.winner, [class*="winner"], strong, b');
-				if (winnerEl) {
-					const wn = winnerEl.textContent?.trim();
-					if (wn && wn.includes(player1.split(' ')[0])) winner = 1;
-					else if (wn && wn.includes(player2.split(' ')[0])) winner = 2;
-				}
-
-				matches.push({ player1, player2, score, winner });
+			if (scoreLines.length === 2) {
+				score = `${scoreLines[0]}, ${scoreLines[1]}`;
+			} else if (scoreLines.length === 1) {
+				score = scoreLines[0];
 			}
 
-			if (matches.length) {
-				rounds.push({
-					label: ROUND_LABELS[roundIdx] ?? `Round ${roundIdx + 1}`,
-					matches,
-				});
-				roundIdx++;
+			// Detect winner by bold/highlight styling
+			const winnerEl = box.querySelector('.winner, [class*="winner"], strong, b');
+			if (winnerEl) {
+				const wn = winnerEl.textContent?.trim();
+				if (wn && wn.includes(player1.split(' ')[0])) winner = 1;
+				else if (wn && wn.includes(player2.split(' ')[0])) winner = 2;
 			}
+
+			// ── Extract match ID ─────────────────────────────────────────────────
+			let matchId = null;
+
+			// Strategy 1: Look for match ID in the box text lines
+			for (const line of lines) {
+				if (matchIdRe.test(line)) {
+					matchId = line;
+					break;
+				}
+			}
+
+			// Strategy 2: Check adjacent/parent elements for match ID labels
+			if (!matchId) {
+				const parent = box.parentElement;
+				if (parent) {
+					const siblings = parent.querySelectorAll('span, div, td, font, small');
+					for (const el of siblings) {
+						const t = (el.textContent ?? '').trim();
+						if (matchIdRe.test(t)) {
+							matchId = t;
+							break;
+						}
+					}
+				}
+			}
+
+			// Strategy 3: Check data attributes
+			if (!matchId) {
+				const dataId = box.getAttribute('data-match-id') ||
+					box.getAttribute('data-matchid') ||
+					box.getAttribute('id');
+				if (dataId && matchIdRe.test(dataId.toUpperCase())) {
+					matchId = dataId.toUpperCase();
+				}
+			}
+
+			// Fallback: generate a synthetic key from division code + index
+			if (!matchId) {
+				matchId = `${divCode}_idx${fallbackIdx}`;
+			}
+			fallbackIdx++;
+
+			const entry = { player1, player2 };
+			if (score != null) entry.score = score;
+			if (winner != null) entry.winner = winner;
+
+			results[matchId] = entry;
 		}
 
-		return rounds;
-	}, ROUND_LABELS);
+		return results;
+	}, divCode);
 }
 
 async function main() {
 	console.log('🎾  Syncing R2 Sports bracket results…');
 
-	// Load existing data to avoid clobbering on partial failure
 	let existing = { lastUpdated: null, divisions: {} };
 	if (existsSync(RESULTS_PATH)) {
 		try {
@@ -242,18 +272,15 @@ async function main() {
 		const page = await context.newPage();
 		page.setDefaultTimeout(20000);
 
-		// Visit home page first to establish session/cookies
 		console.log('  Visiting tournament home page…');
 		await page.goto(HOME_URL, { waitUntil: 'domcontentloaded', timeout: 20000 });
 
-		// Collect bracket links from the divisions page
 		console.log('  Loading divisions list…');
 		const bracketLinks = await getBracketLinks(page);
 
 		if (!bracketLinks.length) {
 			console.log('  ⚠  No bracket links found — trying direct URL construction…');
 
-			// Fallback: construct URLs for each division code directly
 			for (const [code, divId] of Object.entries(CODE_ID_MAP)) {
 				const url = `https://www.r2sports.com/tourney/t-bracket.asp?TID=${TID}&DivisionCode=${encodeURIComponent(code)}`;
 				try {
@@ -261,11 +288,12 @@ async function main() {
 					const status = page.url();
 					if (status.includes('404') || status.includes('error')) continue;
 
-					const data = await extractBracketData(page);
-					if (data?.rounds?.length) {
+					const data = await extractBracketData(page, code);
+					const matchCount = Object.keys(data).length;
+					if (matchCount > 0) {
 						divisions[divId] = data;
 						scraped++;
-						console.log(`  ✓ ${code}: ${data.rounds.length} round(s)`);
+						console.log(`  ✓ ${code}: ${matchCount} match(es)`);
 					} else {
 						console.log(`  – ${code}: no results yet`);
 					}
@@ -274,17 +302,18 @@ async function main() {
 				}
 			}
 		} else {
-			// Use the links found on the page
 			for (const { href, divId, code } of bracketLinks) {
 				const label = code ?? href;
+				const resolvedCode = code ?? 'UNK';
 				try {
 					await page.goto(href, { waitUntil: 'networkidle', timeout: 15000 });
-					const data = await extractBracketData(page);
+					const data = await extractBracketData(page, resolvedCode);
 					const resolvedId = divId ?? 'unknown';
-					if (data?.rounds?.length) {
+					const matchCount = Object.keys(data).length;
+					if (matchCount > 0) {
 						divisions[resolvedId] = data;
 						scraped++;
-						console.log(`  ✓ ${label}: ${data.rounds.length} round(s)`);
+						console.log(`  ✓ ${label}: ${matchCount} match(es)`);
 					} else {
 						console.log(`  – ${label}: no results yet`);
 					}
@@ -299,12 +328,18 @@ async function main() {
 		await browser.close();
 	}
 
-	const merged = {
+	// Merge: preserve existing match results, overlay newly scraped data
+	const mergedDivisions = { ...existing.divisions };
+	for (const [divId, matches] of Object.entries(divisions)) {
+		mergedDivisions[divId] = { ...(mergedDivisions[divId] ?? {}), ...matches };
+	}
+
+	const output = {
 		lastUpdated: new Date().toISOString(),
-		divisions: { ...existing.divisions, ...divisions },
+		divisions: mergedDivisions,
 	};
 
-	writeFileSync(RESULTS_PATH, JSON.stringify(merged, null, 2) + '\n');
+	writeFileSync(RESULTS_PATH, JSON.stringify(output, null, 2) + '\n');
 
 	console.log(`\n✅  Done. Scraped ${scraped} division(s) with results.`);
 	console.log(`   Updated: ${RESULTS_PATH}`);
@@ -312,7 +347,5 @@ async function main() {
 
 main().catch((err) => {
 	console.error('Fatal error in sync-r2-brackets:', err);
-	// Exit 0 so the workflow doesn't fail — scraping is best-effort.
-	// The commit step will only run if ocala-results.json actually changed.
 	process.exit(0);
 });

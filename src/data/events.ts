@@ -28,6 +28,8 @@ export interface EventBracketMatch {
 	scheduledTime?: string;
 	/** Court assignment for this match, e.g. "Court 3" */
 	court?: string;
+	/** R2 Sports match identifier, e.g. "MO9" */
+	matchId?: string;
 }
 
 export interface EventBracketRound {
@@ -113,71 +115,174 @@ const EVENTS_RAW: EventData[] = [
 		],
 		divisionDetails: [
 			// ── Singles ────────────────────────────────────────────────────────────
-			{
-				id: 'mens-singles-open',
-				label: "Men's Singles: Open",
-				format: 'single',
-				rounds: [
-					{
-						label: 'Quarterfinals',
-						matches: [
-							{ player1: 'Scott Haacke',     player2: 'Mario Andres Huyke', scheduledTime: 'Saturday · 9:00 AM',  court: 'Court 3' },
-							{ player1: 'Amir Baig',        player2: 'Orlando Josu Huyke', scheduledTime: 'Saturday · 11:00 AM', court: 'Court 2' },
-							{ player1: 'Jordan Deeney',    player2: 'Chris Steinheiser',  scheduledTime: 'Saturday · 12:00 PM', court: 'Court 1' },
-							{ player1: 'Andres Ramirez',   player2: 'Samuel Schulze',     scheduledTime: 'Saturday · 2:00 PM',  court: 'Court 4' },
-						],
-					},
-				],
-			},
-			{
-				id: 'mens-singles-elite',
-				label: "Men's Singles: Elite",
-				format: 'single',
-				rounds: [
-					{
-						label: 'Round 1',
-						matches: [
-							{ player1: 'Trace Gunsch',    player2: 'Jorge Moreno',        scheduledTime: 'Saturday · 8:00 AM',  court: 'Court 3' },
-							{ player1: 'Jiovanni Garcia', player2: 'Orlando Josu Huyke',  scheduledTime: 'Saturday · 9:00 AM',  court: 'Court 2' },
-							{ player1: 'Scott Haacke',    player2: 'Mario Andres Huyke',  scheduledTime: 'Saturday · 11:00 AM' },
-							{ player1: 'Samuel Schulze',  player2: 'Darron Toston',       scheduledTime: 'Saturday · 4:00 PM',  court: 'Court 2' },
-						],
-					},
-				],
-			},
-			{
-				id: 'mens-singles-a',
-				label: "Men's Singles: A",
-				format: 'single',
-				rounds: [
-					{
-						label: 'Round 1',
-						matches: [
-							{ player1: 'Wade Stubanas',  player2: 'Robert Yanchis', scheduledTime: 'Friday · 4:30 PM',   court: 'Court 1' },
-							{ player1: 'Kyle Artman',    player2: "Russell O'Neal", scheduledTime: 'Friday · 4:30 PM',   court: 'Court 4' },
-							{ player1: 'Ron Jennings',   player2: 'Jorge Moreno',   scheduledTime: 'Saturday · 11:00 AM', court: 'Court 1' },
-							{ player1: 'Brian Grantham', player2: 'Gordon Henry',    scheduledTime: 'Saturday · 9:00 AM',  court: 'Court 4' },
-						],
-					},
-				],
-			},
-			{
-				id: 'mens-singles-b',
-				label: "Men's Singles: B",
-				format: 'single',
-				rounds: [
-					{
-						label: 'Round 1',
-						matches: [
-							{ player1: 'Matthew Brice',    player2: 'Jonathan Estepan', scheduledTime: 'Friday · 5:30 PM', court: 'Court 1' },
-							{ player1: 'Mark Manzano',     player2: 'Ashley Medlock',   scheduledTime: 'Friday · 5:30 PM', court: 'Court 2' },
-							{ player1: 'Ryan Appleby',     player2: 'Mike Caldwell',    scheduledTime: 'Friday · 5:30 PM',    court: 'Court 3' },
-							{ player1: 'Havan Artman',     player2: 'Daniel Bray',      scheduledTime: 'Friday · 7:30 PM',    court: 'Court 4' },
-							{ player1: 'Edgar Martinez',   player2: 'Matt Kern',         scheduledTime: 'Saturday · 8:00 AM',  court: 'Court 1' },
-						],
-					},
-				],
-			},
+		{
+			id: 'mens-singles-open',
+			label: "Men's Singles: Open",
+			format: 'single',
+			rounds: [
+				{
+					label: 'Round of 16',
+					matches: [
+						{ player1: 'Alejandro Herrera',  player2: 'BYE',              seed1: 1,              winner: 1, matchId: 'MO16' },
+						{ player1: 'Mario Andres Huyke', player2: 'Scott Haacke',     seed1: 9, seed2: 8,   scheduledTime: 'Saturday · 9:00 AM',  court: 'Court 3', matchId: 'MO9' },
+						{ player1: 'Chris Steinheiser',  player2: 'BYE',              seed1: 5,              winner: 1, matchId: 'MO12' },
+						{ player1: 'BYE',                player2: 'Jordan Deeney',              seed2: 4,   winner: 2, matchId: 'MO13' },
+						{ player1: 'Andres Ramirez',     player2: 'BYE',              seed1: 3,              winner: 1, matchId: 'MO14' },
+						{ player1: 'BYE',                player2: 'Samuel Schulze',              seed2: 6,   winner: 2, matchId: 'MO11' },
+						{ player1: 'Orlando Josu Huyke', player2: 'Amir Baig',        seed1: 7, seed2: 10,  scheduledTime: 'Saturday · 11:00 AM', court: 'Court 2', matchId: 'MO10' },
+						{ player1: 'BYE',                player2: 'Dylan Pruitt',                seed2: 2,   winner: 2, matchId: 'MO15' },
+					],
+				},
+				{
+					label: 'Quarterfinals',
+					matches: [
+						{ player1: 'Alejandro Herrera',  player2: 'TBD',              seed1: 1,              scheduledTime: 'Saturday · 1:00 PM',  court: 'Court 3', matchId: 'MO8' },
+						{ player1: 'Chris Steinheiser',  player2: 'Jordan Deeney',    seed1: 5, seed2: 4,   scheduledTime: 'Saturday · 12:00 PM', court: 'Court 1', matchId: 'MO5' },
+						{ player1: 'Andres Ramirez',     player2: 'Samuel Schulze',   seed1: 3, seed2: 6,   scheduledTime: 'Saturday · 2:00 PM',  court: 'Court 4', matchId: 'MO6' },
+						{ player1: 'TBD',                player2: 'Dylan Pruitt',                seed2: 2,   scheduledTime: 'Saturday · 3:00 PM',  court: 'Court 2', matchId: 'MO7' },
+					],
+				},
+				{
+					label: 'Semifinals',
+					matches: [
+						{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Saturday · 6:00 PM', court: 'Court 1', matchId: 'MO4' },
+						{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Saturday · 7:00 PM', court: 'Court 1', matchId: 'MO3' },
+					],
+				},
+				{
+					label: 'Finals',
+					matches: [
+						{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Sunday · 2:00 PM', court: 'Court 1', matchId: 'MO1' },
+					],
+				},
+			],
+		},
+		{
+			id: 'mens-singles-elite',
+			label: "Men's Singles: Elite",
+			format: 'single',
+			rounds: [
+				{
+					label: 'Round of 16',
+					matches: [
+						{ player1: 'Jordan Deeney',          player2: 'BYE',                 seed1: 1,              winner: 1, matchId: 'ME16' },
+						{ player1: 'Mario Andres Huyke',     player2: 'Scott Haacke',        seed1: 9, seed2: 8,   scheduledTime: 'Saturday · 11:00 AM', matchId: 'ME9' },
+						{ player1: 'Isaac Taylor',           player2: 'BYE',                 seed1: 5,              winner: 1, matchId: 'ME12' },
+						{ player1: 'BYE',                    player2: 'Samuel Schulze',                seed2: 4,   winner: 2, matchId: 'ME13' },
+						{ player1: 'Darron Toston',          player2: 'BYE',                 seed1: 3,              winner: 1, matchId: 'ME14' },
+						{ player1: 'Jiovanni Garcia',        player2: 'Orlando Josu Huyke',  seed1: 11, seed2: 6,  scheduledTime: 'Saturday · 9:00 AM',  court: 'Court 2', matchId: 'ME11' },
+						{ player1: 'Trace Gunsch',           player2: 'Jorge Moreno',        seed1: 7, seed2: 10,  scheduledTime: 'Saturday · 8:00 AM',  court: 'Court 3', matchId: 'ME10' },
+						{ player1: 'BYE',                    player2: 'Timothy Schnellenberger',        seed2: 2,  winner: 2, matchId: 'ME15' },
+					],
+				},
+				{
+					label: 'Quarterfinals',
+					matches: [
+						{ player1: 'Jordan Deeney',          player2: 'TBD',                 seed1: 1,              scheduledTime: 'Saturday · 3:00 PM',  court: 'Court 4', matchId: 'ME8' },
+						{ player1: 'Isaac Taylor',           player2: 'Samuel Schulze',      seed1: 5, seed2: 4,   scheduledTime: 'Saturday · 4:00 PM',  court: 'Court 2', matchId: 'ME5' },
+						{ player1: 'Darron Toston',          player2: 'TBD',                 seed1: 3,              scheduledTime: 'Saturday · 6:00 PM',  matchId: 'ME6' },
+						{ player1: 'TBD',                    player2: 'Timothy Schnellenberger',        seed2: 2,  scheduledTime: 'Saturday · 3:00 PM',  court: 'Court 3', matchId: 'ME7' },
+					],
+				},
+				{
+					label: 'Semifinals',
+					matches: [
+						{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Sunday · 9:00 AM',  court: 'Court 4', matchId: 'ME4' },
+						{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Sunday · 10:00 AM', court: 'Court 3', matchId: 'ME3' },
+					],
+				},
+				{
+					label: 'Finals',
+					matches: [
+						{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Sunday · 2:00 PM', court: 'Court 2', matchId: 'ME1' },
+					],
+				},
+			],
+		},
+		{
+			id: 'mens-singles-a',
+			label: "Men's Singles: A",
+			format: 'single',
+			rounds: [
+				{
+					label: 'Round of 16',
+					matches: [
+						{ player1: 'Brendan Anthony',  player2: 'BYE',              seed1: 1,              winner: 1, matchId: 'MA16' },
+						{ player1: "Russell O'Neal",   player2: 'Kyle Artman',      seed1: 9, seed2: 8,   scheduledTime: 'Friday · 4:30 PM',    court: 'Court 4', matchId: 'MA9' },
+						{ player1: 'Mauricio Muriel',  player2: 'BYE',              seed1: 5,              winner: 1, matchId: 'MA12' },
+						{ player1: 'BYE',              player2: 'Brian Grantham',              seed2: 4,   winner: 2, matchId: 'MA13' },
+						{ player1: 'Gordon Henry',     player2: 'BYE',              seed1: 3,              winner: 1, matchId: 'MA14' },
+						{ player1: 'Robert Yanchis',   player2: 'Wade Stubanas',    seed1: 11, seed2: 6,  scheduledTime: 'Friday · 4:30 PM',    court: 'Court 1', matchId: 'MA11' },
+						{ player1: 'Jorge Moreno',     player2: 'Ron Jennings',     seed1: 7, seed2: 10,  scheduledTime: 'Saturday · 11:00 AM', court: 'Court 1', matchId: 'MA10' },
+						{ player1: 'BYE',              player2: 'Kleber Oliveira',             seed2: 2,   winner: 2, matchId: 'MA15' },
+					],
+				},
+				{
+					label: 'Quarterfinals',
+					matches: [
+						{ player1: 'Brendan Anthony',  player2: 'TBD',              seed1: 1,              scheduledTime: 'Saturday · 1:00 PM',  court: 'Court 2', matchId: 'MA8' },
+						{ player1: 'Mauricio Muriel',  player2: 'Brian Grantham',   seed1: 5, seed2: 4,   scheduledTime: 'Saturday · 6:00 PM',  court: 'Court 4', matchId: 'MA5' },
+						{ player1: 'Gordon Henry',     player2: 'TBD',              seed1: 3,              scheduledTime: 'Saturday · 9:00 AM',  court: 'Court 4', matchId: 'MA6' },
+						{ player1: 'TBD',              player2: 'Kleber Oliveira',             seed2: 2,   scheduledTime: 'Saturday · 8:00 PM',  court: 'Court 2', matchId: 'MA7' },
+					],
+				},
+				{
+					label: 'Semifinals',
+					matches: [
+						{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Sunday · 11:00 AM', court: 'Court 4', matchId: 'MA4' },
+						{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Sunday · 10:00 AM', court: 'Court 2', matchId: 'MA3' },
+					],
+				},
+				{
+					label: 'Finals',
+					matches: [
+						{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Sunday · 1:00 PM', court: 'Court 3', matchId: 'MA1' },
+					],
+				},
+			],
+		},
+		{
+			id: 'mens-singles-b',
+			label: "Men's Singles: B",
+			format: 'single',
+			rounds: [
+				{
+					label: 'Round of 16',
+					matches: [
+						{ player1: 'Scott Gill',       player2: 'BYE',              seed1: 1,               winner: 1, matchId: 'MB16' },
+						{ player1: 'Matthew Brice',    player2: 'Jonathan Estepan', seed1: 9,  seed2: 8,   scheduledTime: 'Friday · 5:30 PM',   court: 'Court 1', matchId: 'MB9' },
+						{ player1: 'Daniel Bray',      player2: 'Havan Artman',     seed1: 5,  seed2: 12,  scheduledTime: 'Friday · 7:30 PM',   court: 'Court 4', matchId: 'MB12' },
+						{ player1: 'BYE',              player2: 'Edgar Martinez',               seed2: 4,  winner: 2, matchId: 'MB13' },
+						{ player1: 'Matt Kern',        player2: 'BYE',              seed1: 3,               winner: 1, matchId: 'MB14' },
+						{ player1: 'Ashley Medlock',   player2: 'Mark Manzano',     seed1: 11, seed2: 6,   scheduledTime: 'Friday · 5:30 PM',   court: 'Court 2', matchId: 'MB11' },
+						{ player1: 'Ryan Appleby',     player2: 'Mike Caldwell',    seed1: 7,  seed2: 10,  scheduledTime: 'Friday · 5:30 PM',   court: 'Court 3', matchId: 'MB10' },
+						{ player1: 'BYE',              player2: 'Kyle Artman',                  seed2: 2,  winner: 2, matchId: 'MB15' },
+					],
+				},
+				{
+					label: 'Quarterfinals',
+					matches: [
+						{ player1: 'Scott Gill',       player2: 'TBD',              seed1: 1,               scheduledTime: 'Saturday · 11:00 AM', court: 'Court 3', matchId: 'MB8' },
+						{ player1: 'Edgar Martinez',   player2: 'TBD',              seed1: 4,               scheduledTime: 'Saturday · 8:00 AM',  court: 'Court 1', matchId: 'MB5' },
+						{ player1: 'Matt Kern',        player2: 'TBD',              seed1: 3,               scheduledTime: 'Saturday · 11:00 AM', court: 'Court 4', matchId: 'MB6' },
+						{ player1: 'TBD',              player2: 'Kyle Artman',                  seed2: 2,  scheduledTime: 'Saturday · 8:00 AM',  court: 'Court 4', matchId: 'MB7' },
+					],
+				},
+				{
+					label: 'Semifinals',
+					matches: [
+						{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Saturday · 7:00 PM', court: 'Court 3', matchId: 'MB4' },
+						{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Saturday · 6:00 PM', court: 'Court 3', matchId: 'MB3' },
+					],
+				},
+				{
+					label: 'Finals',
+					matches: [
+						{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Sunday · 1:00 PM', court: 'Court 2', matchId: 'MB1' },
+					],
+				},
+			],
+		},
 			{
 				id: 'mens-singles-c',
 				label: "Men's Singles: C",
@@ -190,49 +295,93 @@ const EVENTS_RAW: EventData[] = [
 				],
 			},
 			// ── Age Singles ────────────────────────────────────────────────────────
-			{
-				id: 'mens-age-50',
-				label: "Men's Age Singles: 50+",
-				format: 'single',
-				rounds: [
-					{
-						label: 'Round 1',
-						matches: [
-							{ player1: 'Trace Gunsch',          player2: 'Chris Steinheiser',     scheduledTime: 'Friday · 6:30 PM', court: 'Court 1' },
-							{ player1: 'Charles Cole',          player2: 'John Johnston',         scheduledTime: 'Friday · 7:30 PM', court: 'Court 1' },
-							{ player1: 'Kleber Oliveira',       player2: 'Timothy Schnellenberger', scheduledTime: 'Friday · 7:30 PM', court: 'Court 3' },
-						],
-					},
-				],
-			},
-			{
-				id: 'mens-age-60',
-				label: "Men's Age Singles: 60+",
-				format: 'single',
-				rounds: [
-					{
-						label: 'Round 1',
-						matches: [
-							{ player1: 'Laura Brandt',  player2: 'Eric Foley',      scheduledTime: 'Saturday · 10:00 AM', court: 'Court 2' },
-							{ player1: 'Michael Ammen', player2: "Russell O'Neal",  scheduledTime: 'Saturday · 3:00 PM',  court: 'Court 1' },
-						],
-					},
-				],
-			},
-			{
-				id: 'mens-age-70',
-				label: "Men's Age Singles: 70+",
-				format: 'single',
-				rounds: [
-					{
-						label: 'Round 1',
-						matches: [
-							{ player1: 'Michael Ammen',  player2: 'Gordon Kelly', scheduledTime: 'Friday · 6:30 PM',   court: 'Court 3' },
-							{ player1: 'Philip Gaerlan', player2: 'Scott Gill',   scheduledTime: 'Saturday · 1:00 PM', court: 'Court 1' },
-						],
-					},
-				],
-			},
+		{
+			id: 'mens-age-50',
+			label: "Men's Age Singles: 50+",
+			format: 'single',
+			rounds: [
+				{
+					label: 'Quarterfinals',
+					matches: [
+						{ player1: 'Chad Beacher',    player2: 'BYE',                      seed1: 1,             winner: 1 },
+						{ player1: 'Trace Gunsch',    player2: 'Chris Steinheiser',         seed1: 4, seed2: 5,  scheduledTime: 'Friday · 6:30 PM', court: 'Court 1' },
+						{ player1: 'Charles Cole',    player2: 'John Johnston',             seed1: 3, seed2: 6,  scheduledTime: 'Friday · 7:30 PM', court: 'Court 1' },
+						{ player1: 'Kleber Oliveira', player2: 'Timothy Schnellenberger',   seed1: 7, seed2: 2,  scheduledTime: 'Friday · 7:30 PM', court: 'Court 3' },
+					],
+				},
+				{
+					label: 'Semifinals',
+					matches: [
+						{ player1: 'Chad Beacher', player2: 'TBD', seed1: 1, scheduledTime: 'Sunday · 8:00 AM', court: 'Court 2' },
+						{ player1: 'TBD',          player2: 'TBD' },
+					],
+				},
+				{
+					label: 'Finals',
+					matches: [
+						{ player1: 'TBD', player2: 'TBD' },
+					],
+				},
+			],
+		},
+		{
+			id: 'mens-age-60',
+			label: "Men's Age Singles: 60+",
+			format: 'single',
+			rounds: [
+				{
+					label: 'Quarterfinals',
+					matches: [
+						{ player1: 'Gordon Henry',  player2: 'BYE',            seed1: 1,             winner: 1 },
+						{ player1: 'Laura Brandt',  player2: 'Eric Foley',     seed1: 4, seed2: 5,  scheduledTime: 'Saturday · 10:00 AM', court: 'Court 2' },
+						{ player1: 'Michael Ammen', player2: "Russell O'Neal", seed1: 3, seed2: 6,  scheduledTime: 'Saturday · 3:00 PM',  court: 'Court 1' },
+						{ player1: 'BYE',           player2: 'Charles Cole',              seed2: 2, winner: 2 },
+					],
+				},
+				{
+					label: 'Semifinals',
+					matches: [
+						{ player1: 'Gordon Henry',  player2: 'TBD', seed1: 1, scheduledTime: 'Sunday · 8:00 AM', court: 'Court 3' },
+						{ player1: 'TBD',           player2: 'Charles Cole',   seed2: 2, scheduledTime: 'Sunday · 9:00 AM', court: 'Court 1' },
+					],
+				},
+				{
+					label: 'Finals',
+					matches: [
+						{ player1: 'TBD', player2: 'TBD' },
+					],
+				},
+			],
+		},
+		{
+			id: 'mens-age-70',
+			label: "Men's Age Singles: 70+",
+			format: 'single',
+			rounds: [
+				{
+					label: 'Quarterfinals',
+					matches: [
+						{ player1: 'Gene Fry',       player2: 'BYE',          seed1: 1,             winner: 1 },
+						{ player1: 'Michael Ammen',  player2: 'Gordon Kelly', seed1: 4, seed2: 5,  scheduledTime: 'Friday · 6:30 PM',   court: 'Court 3' },
+						{ player1: 'Philip Gaerlan', player2: 'Scott Gill',   seed1: 3, seed2: 6,  scheduledTime: 'Saturday · 1:00 PM', court: 'Court 1' },
+						{ player1: 'BYE',            player2: 'TBD',                    seed2: 2,  winner: 2 },
+					],
+				},
+				{
+					label: 'Semifinals',
+					matches: [
+						{ player1: 'Gene Fry', player2: 'TBD', seed1: 1, scheduledTime: 'Saturday · 2:00 PM', court: 'Court 2' },
+						{ player1: 'TBD',      player2: 'TBD' },
+					],
+				},
+				{
+					label: 'Finals',
+					matches: [
+						{ player1: 'TBD', player2: 'TBD' },
+					],
+				},
+			],
+		},
 			// ── Doubles ────────────────────────────────────────────────────────────
 			{
 				id: 'mens-doubles-open',
@@ -254,65 +403,122 @@ const EVENTS_RAW: EventData[] = [
 					{ round: 'Round 3', team1: 'Garcia / Nolan',      team2: 'M. Huyke / O. Huyke',  scheduledTime: 'Sunday · 12:00 PM' },
 				],
 			},
-			{
-				id: 'mens-doubles-elite',
-				label: "Men's Doubles: Elite",
-				format: 'single',
-				rounds: [
-					{
-						label: 'Round 1',
-						matches: [
-							{ player1: 'Deeney / Saunders',      player2: 'B. Haacke / S. Haacke', scheduledTime: 'Friday · 6:30 PM',    court: 'Court 4' },
-							{ player1: 'Garcia / Nolan',         player2: 'Fajardo / Russell',     scheduledTime: 'Friday · 7:30 PM',    court: 'Court 2' },
-							{ player1: 'Johnston / Lopez',       player2: 'Oliveira / TBD',        scheduledTime: 'Saturday · 10:00 AM', court: 'Court 3' },
-							{ player1: 'Anthony / Schulze',      player2: 'Beacher / Toston',      scheduledTime: 'Saturday · 12:00 PM', court: 'Court 3' },
-						],
-					},
-				],
-			},
-			{
-				id: 'mens-doubles-a',
-				label: "Men's Doubles: A",
-				format: 'single',
-				rounds: [
-					{
-						label: 'Round 1',
-						matches: [
-							{ player1: 'Artman / Jennings',       player2: 'Hernandez / Moreno',    scheduledTime: 'Friday · 5:30 PM',    court: 'Court 4' },
-							{ player1: 'Russell / Van Zant-Russell', player2: 'Sotolongo / Urzua', scheduledTime: 'Saturday · 12:00 PM', court: 'Court 2' },
-							{ player1: 'Grantham / Stubanas',     player2: 'Medlock / Yanchis',     scheduledTime: 'Saturday · 1:00 PM',  court: 'Court 4' },
-						],
-					},
-				],
-			},
-			{
-				id: 'mens-doubles-b',
-				label: "Men's Doubles: B",
-				format: 'single',
-				rounds: [
-					{
-						label: 'Round 1',
-						matches: [
-							{ player1: 'Appleby / Kern',      player2: 'Estepan / Strickland', scheduledTime: 'Saturday · 5:00 PM', court: 'Court 1' },
-							{ player1: 'Brice / Martinez',    player2: 'Manzano / Sotolongo',  scheduledTime: 'Sunday · 9:00 AM',   court: 'Court 3' },
-						],
-					},
-				],
-			},
-			{
-				id: 'mens-doubles-centurion',
-				label: "Men's Doubles: Centurion+ Open",
-				format: 'single',
-				rounds: [
-					{
-						label: 'Round 1',
-						matches: [
-							{ player1: 'Foley / Nolan',       player2: 'Haacke / Urzua',        scheduledTime: 'Saturday · 9:00 AM',  court: 'Court 1' },
-							{ player1: 'Baig / Rivero',       player2: 'Gutierrez / Ramirez',   scheduledTime: 'Saturday · 10:00 AM', court: 'Court 1' },
-						],
-					},
-				],
-			},
+		{
+			id: 'mens-doubles-elite',
+			label: "Men's Doubles: Elite",
+			format: 'single',
+			rounds: [
+				{
+					label: 'Quarterfinals',
+					matches: [
+						{ player1: 'Deeney / Saunders',  player2: 'B. Haacke / S. Haacke', scheduledTime: 'Friday · 6:30 PM',    court: 'Court 4' },
+						{ player1: 'Garcia / Nolan',     player2: 'Fajardo / Russell',     scheduledTime: 'Friday · 7:30 PM',    court: 'Court 2' },
+						{ player1: 'Johnston / Lopez',   player2: 'Oliveira / TBD',        scheduledTime: 'Saturday · 10:00 AM', court: 'Court 3' },
+						{ player1: 'Anthony / Schulze',  player2: 'Beacher / Toston',      scheduledTime: 'Saturday · 12:00 PM', court: 'Court 3' },
+					],
+				},
+				{
+					label: 'Semifinals',
+					matches: [
+						{ player1: 'TBD', player2: 'TBD' },
+						{ player1: 'TBD', player2: 'TBD' },
+					],
+				},
+				{
+					label: 'Finals',
+					matches: [
+						{ player1: 'TBD', player2: 'TBD' },
+					],
+				},
+			],
+		},
+		{
+			id: 'mens-doubles-a',
+			label: "Men's Doubles: A",
+			format: 'single',
+			rounds: [
+				{
+					label: 'Quarterfinals',
+					matches: [
+						{ player1: 'Haacke / Muriel',            player2: 'BYE',                seed1: 1,             winner: 1 },
+						{ player1: 'Artman / Jennings',          player2: 'Hernandez / Moreno', seed1: 4, seed2: 5,  scheduledTime: 'Friday · 5:30 PM',    court: 'Court 4' },
+						{ player1: 'Russell / Van Zant-Russell', player2: 'Sotolongo / Urzua',  seed1: 3, seed2: 6,  scheduledTime: 'Saturday · 12:00 PM', court: 'Court 2' },
+						{ player1: 'Grantham / Stubanas',        player2: 'Medlock / Yanchis',  seed1: 7, seed2: 2,  scheduledTime: 'Saturday · 1:00 PM',  court: 'Court 4' },
+					],
+				},
+				{
+					label: 'Semifinals',
+					matches: [
+						{ player1: 'Haacke / Muriel', player2: 'TBD', seed1: 1, scheduledTime: 'Sunday · 9:00 AM', court: 'Court 2' },
+						{ player1: 'TBD',             player2: 'TBD' },
+					],
+				},
+				{
+					label: 'Finals',
+					matches: [
+						{ player1: 'TBD', player2: 'TBD' },
+					],
+				},
+			],
+		},
+		{
+			id: 'mens-doubles-b',
+			label: "Men's Doubles: B",
+			format: 'single',
+			rounds: [
+				{
+					label: 'Quarterfinals',
+					matches: [
+						{ player1: 'Hernandez / Swartz', player2: 'BYE',                seed1: 1,             winner: 1 },
+						{ player1: 'Appleby / Kern',     player2: 'Estepan / Strickland', seed1: 4, seed2: 5, scheduledTime: 'Saturday · 5:00 PM', court: 'Court 1' },
+						{ player1: 'Brice / Martinez',   player2: 'Manzano / Sotolongo', seed1: 3, seed2: 6, scheduledTime: 'Sunday · 9:00 AM',   court: 'Court 3' },
+						{ player1: 'BYE',                player2: 'TBD',                            seed2: 2, winner: 2 },
+					],
+				},
+				{
+					label: 'Semifinals',
+					matches: [
+						{ player1: 'Hernandez / Swartz', player2: 'TBD', seed1: 1, scheduledTime: 'Sunday · 8:00 AM', court: 'Court 4' },
+						{ player1: 'TBD',                player2: 'TBD' },
+					],
+				},
+				{
+					label: 'Finals',
+					matches: [
+						{ player1: 'TBD', player2: 'TBD' },
+					],
+				},
+			],
+		},
+		{
+			id: 'mens-doubles-centurion',
+			label: "Men's Doubles: Centurion+ Open",
+			format: 'single',
+			rounds: [
+				{
+					label: 'Quarterfinals',
+					matches: [
+						{ player1: 'Hernandez / Herrera', player2: 'BYE',                seed1: 1,             winner: 1 },
+						{ player1: 'Foley / Nolan',       player2: 'Haacke / Urzua',     seed1: 4, seed2: 5,  scheduledTime: 'Saturday · 9:00 AM',  court: 'Court 1' },
+						{ player1: 'Baig / Rivero',       player2: 'Gutierrez / Ramirez', seed1: 3, seed2: 6, scheduledTime: 'Saturday · 10:00 AM', court: 'Court 1' },
+						{ player1: 'BYE',                 player2: 'Johnston / Lopez',               seed2: 2, winner: 2 },
+					],
+				},
+				{
+					label: 'Semifinals',
+					matches: [
+						{ player1: 'Hernandez / Herrera', player2: 'TBD', seed1: 1, scheduledTime: 'Saturday · 4:00 PM', court: 'Court 1' },
+						{ player1: 'TBD',                 player2: 'Johnston / Lopez', seed2: 2, scheduledTime: 'Saturday · 5:00 PM', court: 'Court 4' },
+					],
+				},
+				{
+					label: 'Finals',
+					matches: [
+						{ player1: 'TBD', player2: 'TBD' },
+					],
+				},
+			],
+		},
 			{
 				id: 'mens-doubles-super-centurion',
 				label: "Men's Doubles: Super Centurion (120+)",
@@ -558,25 +764,17 @@ const EVENTS_RAW: EventData[] = [
 
 // ── Live-results merge ─────────────────────────────────────────────────────
 // ocala-results.json is written by scripts/sync-r2-brackets.mjs (GitHub Actions
-// cron).  It carries live match scores/winners and any new rounds added as the
-// tournament progresses.  We merge it here at build-time so the static site
-// always reflects the latest committed snapshot.
+// cron).  It carries live match scores/winners keyed by match ID (e.g. "MO9").
+// We merge at build-time so the static site always reflects the latest snapshot.
 
 interface MatchResult {
 	score?: string | null;
 	winner?: 1 | 2 | null;
 	player1?: string;
 	player2?: string;
-	scheduledTime?: string;
-	court?: string;
 }
-interface RoundResult {
-	label: string;
-	matches: MatchResult[];
-}
-interface DivisionResult {
-	rounds?: RoundResult[];
-}
+
+type DivisionResult = Record<string, MatchResult>;
 
 function applyResults(events: EventData[]): EventData[] {
 	const divResults = (resultsData as { divisions?: Record<string, DivisionResult> }).divisions ?? {};
@@ -585,45 +783,43 @@ function applyResults(events: EventData[]): EventData[] {
 	return events.map((event) => ({
 		...event,
 		divisionDetails: event.divisionDetails.map((div) => {
-			const divResult = divResults[div.id];
-			if (!divResult?.rounds || !div.rounds) return div;
+			const matchMap = divResults[div.id];
+			if (!matchMap || !div.rounds) return div;
 
-			const existingLabels = new Set(div.rounds.map((r) => r.label));
+			const updatedRounds = div.rounds.map((round) => ({
+				...round,
+				matches: round.matches.map((match) => {
+					let res: MatchResult | undefined;
 
-			// Update scores/winners on existing rounds
-			const updatedRounds = div.rounds.map((round) => {
-				const resultRound = divResult.rounds!.find((r) => r.label === round.label);
-				if (!resultRound) return round;
-				return {
-					...round,
-					matches: round.matches.map((match, idx) => {
-						const res = resultRound.matches?.[idx];
-						if (!res) return match;
-						return {
-							...match,
-							...(res.score != null ? { score: res.score } : {}),
-							...(res.winner != null ? { winner: res.winner } : {}),
-						};
-					}),
-				};
-			});
+					// Primary: lookup by matchId
+					if (match.matchId) {
+						res = matchMap[match.matchId];
+					}
 
-			// Append new rounds (semifinals, finals, etc.) added by the scraper
-			const newRounds: EventBracketRound[] = divResult.rounds
-				.filter((r) => !existingLabels.has(r.label))
-				.map((r) => ({
-					label: r.label,
-					matches: (r.matches ?? []).map((m) => ({
-						player1: m.player1 ?? 'TBD',
-						player2: m.player2 ?? 'TBD',
-						...(m.score != null ? { score: m.score } : {}),
-						...(m.winner != null ? { winner: m.winner } : {}),
-						...(m.scheduledTime ? { scheduledTime: m.scheduledTime } : {}),
-						...(m.court ? { court: m.court } : {}),
-					})),
-				}));
+					// Fallback: match by player names (case-insensitive)
+					if (!res) {
+						const p1 = match.player1.toLowerCase();
+						const p2 = match.player2.toLowerCase();
+						res = Object.values(matchMap).find((r) => {
+							const rp1 = (r.player1 ?? '').toLowerCase();
+							const rp2 = (r.player2 ?? '').toLowerCase();
+							return (rp1 === p1 && rp2 === p2) || (rp1 === p2 && rp2 === p1);
+						});
+					}
 
-			return { ...div, rounds: [...updatedRounds, ...newRounds] };
+					if (!res) return match;
+
+					return {
+						...match,
+						...(res.score != null ? { score: res.score } : {}),
+						...(res.winner != null ? { winner: res.winner } : {}),
+						...(match.player1 === 'TBD' && res.player1 ? { player1: res.player1 } : {}),
+						...(match.player2 === 'TBD' && res.player2 ? { player2: res.player2 } : {}),
+					};
+				}),
+			}));
+
+			return { ...div, rounds: updatedRounds };
 		}),
 	}));
 }
