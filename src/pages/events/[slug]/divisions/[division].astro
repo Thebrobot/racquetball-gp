@@ -111,7 +111,9 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 						<span class="bracket-brand-badge">Grand Prix</span>
 						<h2 class="bracket-heading">{division.label}</h2>
 					</div>
-					<a class="bracket-cta" href="/leaderboard">View full standings</a>
+					<div class="bracket-header-actions">
+						<a class="bracket-cta" href="/leaderboard">View full standings</a>
+					</div>
 				</header>
 				{rounds.length > 1 && (
 					<nav class="bracket-tab-nav" aria-label="Bracket rounds">

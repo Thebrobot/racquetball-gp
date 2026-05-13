@@ -398,9 +398,11 @@ function initBracketLayout() {
 }
 
 async function layoutAndDrawBracket(grid: HTMLElement) {
-	const rounds = Array.from(
-		grid.querySelectorAll<HTMLElement>(':scope > .bracket-round'),
-	);
+	// Handle both wrapped (mobile) and unwrapped (desktop) structures
+	const track = grid.querySelector<HTMLElement>('.bracket-track');
+	const rounds = track
+		? Array.from(track.querySelectorAll<HTMLElement>('.bracket-round'))
+		: Array.from(grid.querySelectorAll<HTMLElement>(':scope > .bracket-round'));
 	if (rounds.length < 2) return;
 
 	// ── 1. Reset any previously applied margins ──
@@ -490,6 +492,13 @@ function drawBracketConnectors(grid: HTMLElement, rounds: HTMLElement[]) {
 	grid.querySelector('.bracket-svg-connectors')?.remove();
 
 	const gridRect = grid.getBoundingClientRect();
+	const scrollLeft = grid.scrollLeft;
+	const scrollTop = grid.scrollTop;
+	const { clientLeft, clientTop } = grid;
+	/** Viewport position -> coordinates in the grid scrollable content box (matches absolute SVG 0,0). */
+	const cx = (viewportX: number) => viewportX - gridRect.left + scrollLeft - clientLeft;
+	const cy = (viewportY: number) => viewportY - gridRect.top + scrollTop - clientTop;
+
 	const lightShell = grid.closest('.bracket-shell') !== null;
 	const strokeMuted = lightShell ? 'rgba(15, 23, 42, 0.14)' : 'rgba(255,255,255,0.6)';
 	const strokeWinner = lightShell ? 'rgba(22, 163, 74, 0.45)' : 'rgba(74,222,128,0.7)';
@@ -530,15 +539,15 @@ function drawBracketConnectors(grid: HTMLElement, rounds: HTMLElement[]) {
 			const r2 = f2?.getBoundingClientRect();
 			const rT = target.getBoundingClientRect();
 
-			const y1 = r1.top + r1.height / 2 - gridRect.top;
-			const y2 = r2 ? r2.top + r2.height / 2 - gridRect.top : y1;
-			const yT = rT.top + rT.height / 2 - gridRect.top;
+			const y1 = cy(r1.top + r1.height / 2);
+			const y2 = r2 ? cy(r2.top + r2.height / 2) : y1;
+			const yT = cy(rT.top + rT.height / 2);
 			const yJunction = (y1 + y2) / 2;
 
 			// Use the round's bounding box for consistent X anchors so lines
 			// don't appear inside the match cards themselves.
-			const xRight = r1.right - gridRect.left;
-			const xLeft = rT.left - gridRect.left;
+			const xRight = cx(r1.right);
+			const xLeft = cx(rT.left);
 			// Junction X is midway through the gap between the two rounds
 			const xJunction = xRight + (xLeft - xRight) / 2;
 
@@ -553,7 +562,7 @@ function drawBracketConnectors(grid: HTMLElement, rounds: HTMLElement[]) {
 
 			if (f2 && r2) {
 				// Feeder 2: horizontal arm
-				svgLine(svg, r2.right - gridRect.left, y2, xJunction, y2, col2, lineW);
+				svgLine(svg, cx(r2.right), y2, xJunction, y2, col2, lineW);
 				// Vertical bar between the two arms
 				svgLine(svg, xJunction, y1, xJunction, y2, colJ, lineW);
 			}
@@ -572,9 +581,9 @@ function drawBracketConnectors(grid: HTMLElement, rounds: HTMLElement[]) {
 		if (finalMatch) {
 			const rF = finalMatch.getBoundingClientRect();
 			const rC = champEl.getBoundingClientRect();
-			const y = rF.top + rF.height / 2 - gridRect.top;
-			const xFRight = rF.right - gridRect.left;
-			const xCLeft = rC.left - gridRect.left;
+			const y = cy(rF.top + rF.height / 2);
+			const xFRight = cx(rF.right);
+			const xCLeft = cx(rC.left);
 			const hasWinner = finalMatch.querySelector('.bracket-winner') !== null;
 			const colChamp = hasWinner ? strokeWinner : strokeMuted;
 			svgLine(svg, xFRight, y, xCLeft, y, colChamp, lineW);
@@ -615,7 +624,11 @@ function initBracketTabs() {
 		if (!grid) return;
 
 		const btns = Array.from(nav.querySelectorAll<HTMLButtonElement>('.bracket-tab-btn'));
-		const rounds = Array.from(grid.querySelectorAll<HTMLElement>(':scope > .bracket-round'));
+		// Handle both wrapped (mobile) and unwrapped (desktop) structures
+		const track = grid.querySelector<HTMLElement>('.bracket-track');
+		const rounds = track
+			? Array.from(track.querySelectorAll<HTMLElement>('.bracket-round'))
+			: Array.from(grid.querySelectorAll<HTMLElement>(':scope > .bracket-round'));
 		let activeRound = 0;
 
 		function setActiveTab(idx: number) {
@@ -638,7 +651,9 @@ function initBracketTabs() {
 			function slideTo(idx: number) {
 				const col = columns[idx];
 				if (!col) return;
-				const newLeft = 12 - col.offsetLeft;
+				// Slide formula: -(column.offsetLeft - 12) for 12px left inset
+				// so active column doesn't flush against edge, creating peek effect
+				const newLeft = -(col.offsetLeft - 12);
 				track.style.left = `${newLeft}px`;
 				activeRound = idx;
 				setActiveTab(idx);
@@ -669,7 +684,15 @@ function initBracketTabs() {
 			return;
 		}
 
-		// ── Desktop: simple scroll-sync with tabs ──
+		// ── Desktop: unwrap track if exists (from mobile resize), then normal scroll ──
+		if (track) {
+			// Unwrap: move rounds and champion back to grid, remove track
+			const champ = track.querySelector<HTMLElement>('.bracket-champion');
+			rounds.forEach((r) => grid.appendChild(r));
+			if (champ) grid.appendChild(champ);
+			track.remove();
+		}
+
 		btns.forEach((btn, idx) => {
 			btn.addEventListener('click', () => {
 				const target = rounds[idx];

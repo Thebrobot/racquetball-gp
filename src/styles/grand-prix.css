@@ -1100,6 +1100,13 @@ html.nav-drawer-open .nav-drawer-backdrop {
   margin-bottom: 20px;
 }
 
+.bracket-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
 .bracket-header-title-row {
   display: flex;
   flex-wrap: wrap;
@@ -1142,28 +1149,17 @@ html.nav-drawer-open .nav-drawer-backdrop {
 }
 
 .bracket-shell {
+  position: relative;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
   background: #e8eaee;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 20px;
-  padding: 22px 22px 26px;
-  box-shadow: 0 4px 28px rgba(15, 23, 42, 0.07);
-  position: relative;
+  padding: 32px 48px 40px;
 }
 
-.bracket-shell::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.45), transparent 42%);
-  opacity: 0.5;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.bracket-shell > * {
-  position: relative;
-  z-index: 1;
+@media (max-width: 640px) {
+  .bracket-shell {
+    padding: 24px 16px 32px;
+  }
 }
 
 .bracket-shell .bracket-header {
@@ -1194,7 +1190,7 @@ html.nav-drawer-open .nav-drawer-backdrop {
 }
 
 .bracket-shell .bracket-grid--styled {
-  padding: 8px 4px 12px;
+  padding: 8px 0 12px;
 }
 
 /* Light card treatment for matches inside shell */
@@ -1427,13 +1423,15 @@ html.nav-drawer-open .nav-drawer-backdrop {
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
-/* SVG connector overlay — injected by JS */
+/* SVG connector overlay — injected by JS
+   Must sit above .bracket-round (z-index: 1): each round’s box spans the full
+   grid cell, so lines in the gutter beside centered cards were fully hidden. */
 .bracket-svg-connectors {
   position: absolute;
   top: 0;
   left: 0;
   pointer-events: none;
-  z-index: 0;
+  z-index: 2;
   overflow: visible;
 }
 
@@ -4632,9 +4630,36 @@ footer {
     min-width: 280px;
     max-width: 280px;
     width: 280px;
-    flex-shrink: 0;
+    flex: 0 0 280px;
     padding: 6px 0;
+    position: relative;
   }
+
+  /* ── Fixed card heights per round for expanding illusion ──
+     Heights double each round so columns fill ~880px total:
+     Round 1: 96px × 8 = 768px (with gaps ~880px)
+     Round 2: 204px × 4 = 816px (with gaps ~880px)
+     Round 3: 424px × 2 = 848px (with gaps ~880px)
+     Round 4: 880px × 1 = 880px
+  */
+  .bracket-round[data-round="1"] .bracket-match,
+  .bracket-round:first-child .bracket-match {
+    min-height: 96px;
+  }
+  .bracket-round[data-round="2"] .bracket-match {
+    min-height: 204px;
+  }
+  .bracket-round[data-round="3"] .bracket-match {
+    min-height: 424px;
+  }
+  .bracket-round[data-round="4"] .bracket-match,
+  .bracket-round:last-child .bracket-match {
+    min-height: 880px;
+  }
+
+  /* ── Bracket tree lines via CSS pseudo-elements ──
+     Horizontal line from card right edge to column gap,
+     Vertical line connecting paired matchups to next round */
   .bracket-match {
     padding: 4px 6px;
     border-radius: 6px;
@@ -4642,6 +4667,38 @@ footer {
     background: #0f2140;
     border: 1px solid rgba(255, 255, 255, 0.15);
     z-index: 1;
+    position: relative;
+  }
+  .bracket-match::after {
+    /* Horizontal line to the right edge of the column */
+    content: '';
+    position: absolute;
+    right: -16px;
+    top: 50%;
+    width: 16px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.25);
+    pointer-events: none;
+  }
+  .bracket-round:last-child .bracket-match::after {
+    display: none;
+  }
+
+  /* ── Vertical bracket tree lines connecting paired matchups ──
+     Each even-numbered match draws a vertical line up to connect with the previous match,
+     creating the classic bracket fork shape when combined with the horizontal lines */
+  .bracket-match:nth-child(even)::before {
+    content: '';
+    position: absolute;
+    right: -16px;
+    top: -6px; /* Account for gap between matches */
+    height: calc(50% + 6px);
+    width: 1px;
+    background: rgba(255, 255, 255, 0.25);
+    pointer-events: none;
+  }
+  .bracket-round:last-child .bracket-match:nth-child(even)::before {
+    display: none;
   }
   .bracket-match--bye {
     padding: 4px 6px;
@@ -4736,6 +4793,14 @@ footer {
     white-space: normal;
     overflow: visible;
     text-overflow: unset;
+  }
+
+  /* ── Light shell bracket tree line colors ── */
+  .bracket-shell .bracket-match::after {
+    background: rgba(15, 23, 42, 0.14);
+  }
+  .bracket-shell .bracket-match:nth-child(even)::before {
+    background: rgba(15, 23, 42, 0.14);
   }
 }
 
