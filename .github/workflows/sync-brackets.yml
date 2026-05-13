@@ -53,16 +53,18 @@ jobs:
 
       - name: Run bracket sync
         run: node scripts/sync-r2-brackets.mjs
+        continue-on-error: true
 
       - name: Check for changes
         id: diff
+        if: always()
         run: |
           git diff --exit-code src/data/ocala-results.json \
             && echo "changed=false" >> "$GITHUB_OUTPUT" \
             || echo "changed=true"  >> "$GITHUB_OUTPUT"
 
       - name: Commit and push updated results
-        if: steps.diff.outputs.changed == 'true'
+        if: always() && steps.diff.outputs.changed == 'true'
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
