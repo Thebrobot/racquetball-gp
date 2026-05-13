@@ -48,6 +48,10 @@ export interface RoundRobinMatch {
 	scheduledTime: string;
 	/** Court assignment, e.g. "Court 3" */
 	court?: string;
+	/** Final score string, e.g. "15-8, 15-6" */
+	score?: string;
+	/** Which team won: 1 = team1, 2 = team2 */
+	winner?: 1 | 2;
 }
 
 export interface EventDivisionDetail {
@@ -180,9 +184,9 @@ const EVENTS_RAW: EventData[] = [
 				format: 'roundrobin',
 				roundRobinPlayers: ['Michael Ammen', 'Ben Mordkovich', 'Gordon Kelly'],
 				roundRobinMatches: [
-					{ round: 'Round 1', team1: 'Michael Ammen',  team2: 'Ben Mordkovich', scheduledTime: 'Saturday · 8:00 AM',   court: 'Court 2' },
-					{ round: 'Round 2', team1: 'Michael Ammen',  team2: 'Gordon Kelly',   scheduledTime: 'Saturday · 10:00 AM',  court: 'Court 2' },
-					{ round: 'Round 3', team1: 'Ben Mordkovich', team2: 'Gordon Kelly',   scheduledTime: 'Saturday · 12:00 PM',  court: 'Court 4' },
+					{ round: 'Round 1', team1: 'Michael Ammen', team2: 'Ben Mordkovich', scheduledTime: 'Saturday · 8:00 AM',  court: 'Court 2' },
+					{ round: 'Round 2', team1: 'Michael Ammen', team2: 'Gordon Kelly',   scheduledTime: 'Saturday · 10:00 AM', court: 'Court 2' },
+					{ round: 'Round 3', team1: 'Gordon Kelly',  team2: 'Ben Mordkovich', scheduledTime: 'Saturday · 12:00 PM', court: 'Court 2' },
 				],
 			},
 			// ── Age Singles ────────────────────────────────────────────────────────

@@ -1,0 +1,263 @@
+---
+import GrandPrixLayout from '../../../layouts/GrandPrixLayout.astro';
+import { EVENTS } from '../../../data/events';
+import { getPlayerSlug, PLAYER_IMAGES } from '../../../data/players';
+import { formatPlayerInitials } from '../../../data/leaderboard';
+import { titleSponsor } from '../../../data/ocala-sponsors';
+
+export async function getStaticPaths() {
+	return EVENTS.map((event) => ({ params: { slug: event.slug }, props: { event } }));
+}
+
+const { event } = Astro.props;
+
+// Build a map: division label → sorted list of unique participants
+const divisionOrder = event.divisions; // preserves intended display order
+const byDivision = new Map<string, { name: string; time: string; court: string | null }[]>();
+
+for (const div of divisionOrder) {
+	byDivision.set(div, []);
+}
+
+for (const profile of event.profiles ?? []) {
+	const list = byDivision.get(profile.division);
+	if (!list) continue;
+	// Extract court from note (e.g. "Court 2")
+	let court: string | null = null;
+	let restNote = profile.note ?? '';
+	const courtMatch = restNote.match(/court\s*#?\s*(\w+)/i);
+	if (courtMatch) {
+		court = courtMatch[1];
+		restNote = restNote.replace(courtMatch[0], '').replace(/^[,;\s]+|[,;\s]+$/g, '').trim();
+	}
+	list.push({ name: profile.name, time: profile.time, court });
+}
+
+// Sort each division alphabetically by last name
+for (const [, list] of byDivision) {
+	list.sort((a, b) => {
+		const lastA = a.name.trim().split(' ').pop()!.toLowerCase();
+		const lastB = b.name.trim().split(' ').pop()!.toLowerCase();
+		return lastA.localeCompare(lastB);
+	});
+}
+
+// Unique player count
+const uniqueNames = new Set((event.profiles ?? []).map((p) => p.name));
+const totalParticipants = uniqueNames.size;
+
+const bracketsHref = `/events/${event.slug}#brackets`;
+---
+
+<GrandPrixLayout
+	title={`${event.name} Participants | Florida Racquetball Grand Prix 2026`}
+	description={`Full participant list for the ${event.name}. See who is competing, which divisions they entered, and their first call times.`}
+	spotlightLabel="Title sponsor"
+	spotlightName={titleSponsor.name}
+	spotlightBlurb={titleSponsor.blurb}
+	spotlightLogoUrl={titleSponsor.logoUrl}
+>
+	<!-- ── HERO ── -->
+	<section class="event-hero">
+		<div class="section-label">Event · {event.name}</div>
+		<h1 class="section-title">Participants</h1>
+		<p class="section-sub">
+			{event.dateRange} · {event.cityLine}
+			{event.spotlightVenue && <> · {event.spotlightVenue}</>}
+		</p>
+		<div class="participants-hero-stats">
+			<span class="participants-stat">
+				<span class="participants-stat-num">{totalParticipants}</span>
+				<span class="participants-stat-label">Players</span>
+			</span>
+			<span class="participants-stat">
+				<span class="participants-stat-num">{divisionOrder.length}</span>
+				<span class="participants-stat-label">Divisions</span>
+			</span>
+		</div>
+		<div class="participants-hero-ctas">
+			<a class="btn-ghost" href={bracketsHref}>View brackets</a>
+		</div>
+	</section>
+
+	<!-- ── DIVISION TABLES ── -->
+	{divisionOrder.map((divLabel) => {
+		const players = byDivision.get(divLabel) ?? [];
+		if (!players.length) return null;
+		return (
+			<section class="event-section participants-division-section" aria-labelledby={`div-${divLabel.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`}>
+				<header class="event-section-header">
+					<h2 id={`div-${divLabel.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`}>{divLabel}</h2>
+					<p>{players.length} player{players.length !== 1 ? 's' : ''}</p>
+				</header>
+				<div class="participants-table">
+					<div class="participants-table-head">
+						<span>Name</span>
+						<span>First call</span>
+						<span>Court</span>
+					</div>
+					{players.map((p) => {
+						const imgUrl = PLAYER_IMAGES[p.name];
+						const initials = formatPlayerInitials(p.name);
+						return (
+							<a class="participants-row" href={`/players/${getPlayerSlug(p.name)}`}>
+								<span class="participants-row-identity">
+									{imgUrl ? (
+										<img
+											class="participants-avatar"
+											src={imgUrl}
+											alt={p.name}
+											width="40"
+											height="40"
+											loading="lazy"
+											decoding="async"
+										/>
+									) : (
+										<span class="participants-avatar participants-avatar--fallback" aria-hidden="true">
+											{initials}
+										</span>
+									)}
+									<span class="participants-row-name">{p.name}</span>
+								</span>
+								<span class="participants-row-time">{p.time}</span>
+								<span class="participants-row-court">{p.court ? `Court ${p.court}` : '—'}</span>
+							</a>
+						);
+					})}
+				</div>
+			</section>
+		);
+	})}
+</GrandPrixLayout>
+
+<style>
+/* ── Hero stats ── */
+.participants-hero-stats {
+	display: flex;
+	gap: 32px;
+	margin-top: 20px;
+	justify-content: center;
+}
+.participants-stat {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+}
+.participants-stat-num {
+	font-size: 2rem;
+	font-weight: 700;
+	color: var(--orange);
+	line-height: 1;
+}
+.participants-stat-label {
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--text-muted, rgba(255,255,255,0.5));
+}
+.participants-hero-ctas {
+	margin-top: 24px;
+	display: flex;
+	gap: 12px;
+	justify-content: center;
+	flex-wrap: wrap;
+}
+
+/* ── Division table ── */
+.participants-division-section {
+	margin-bottom: 8px;
+}
+.participants-table {
+	border: 1px solid rgba(255,255,255,0.08);
+	border-radius: 12px;
+	overflow: hidden;
+}
+.participants-table-head {
+	display: grid;
+	grid-template-columns: 1fr 180px 90px;
+	padding: 10px 20px;
+	background: rgba(255,255,255,0.04);
+	font-size: 0.7rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: rgba(255,255,255,0.4);
+	font-weight: 600;
+	border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.participants-row {
+	display: grid;
+	grid-template-columns: 1fr 180px 90px;
+	padding: 10px 20px;
+	border-bottom: 1px solid rgba(255,255,255,0.05);
+	text-decoration: none;
+	color: inherit;
+	transition: background 0.15s ease;
+	align-items: center;
+	gap: 0;
+}
+.participants-row:last-child {
+	border-bottom: none;
+}
+.participants-row:hover {
+	background: rgba(240, 90, 26, 0.07);
+}
+.participants-row:hover .participants-row-name {
+	color: var(--orange);
+}
+.participants-row-identity {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	min-width: 0;
+}
+.participants-avatar {
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	object-fit: cover;
+	flex-shrink: 0;
+	border: 1px solid rgba(255,255,255,0.12);
+}
+.participants-avatar--fallback {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(240, 90, 26, 0.18);
+	color: var(--orange);
+	font-size: 0.7rem;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+}
+.participants-row-name {
+	font-weight: 500;
+	font-size: 0.95rem;
+	transition: color 0.15s ease;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.participants-row-time {
+	font-size: 0.85rem;
+	color: rgba(255,255,255,0.65);
+}
+.participants-row-court {
+	font-size: 0.85rem;
+	color: rgba(255,255,255,0.5);
+}
+
+@media (max-width: 600px) {
+	.participants-table-head {
+		grid-template-columns: 1fr 1fr;
+	}
+	.participants-table-head span:last-child {
+		display: none;
+	}
+	.participants-row {
+		grid-template-columns: 1fr 1fr;
+	}
+	.participants-row-court {
+		display: none;
+	}
+}
+</style>

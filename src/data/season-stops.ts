@@ -42,6 +42,7 @@ export const SEASON_STOPS: SeasonStop[] = [
 		registerUrl: 'https://www.r2sports.com/tourney/home.asp?TID=53697',
 		bentoGridArea: 'marq',
 		bracketsHref: '/events/ocala-open#brackets',
+		participantsHref: '/events/ocala-open#participants',
 	},
 	{
 		id: 'stop-2',

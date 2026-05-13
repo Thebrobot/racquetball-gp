@@ -1,6 +1,6 @@
 ---
 import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
-import { getAllPlayers, getPlayerMatchHistory, getPlayerScheduleEntries, GP_SERIES_POSTS } from '../../data/players';
+import { getAllPlayers, getPlayerMatchHistory, getPlayerScheduleEntries, GP_SERIES_POSTS, PLAYER_IMAGES } from '../../data/players';
 import { titleSponsor } from '../../data/ocala-sponsors';
 
 export async function getStaticPaths() {
@@ -42,17 +42,17 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 	<section class="event-hero player-hero">
 		<div class="section-label">Player profile</div>
 		<div class="player-hero-media">
-			{player.imageUrl ? (
-				<img
-					class="player-avatar"
-					src={player.imageUrl}
-					alt={`${player.name} profile photo`}
-					width="140"
-					height="140"
-					loading="lazy"
-					decoding="async"
-				/>
-			) : (
+	{(PLAYER_IMAGES[player.name] || player.imageUrl) ? (
+			<img
+				class="player-avatar"
+				src={PLAYER_IMAGES[player.name] ?? player.imageUrl}
+				alt={`${player.name} profile photo`}
+				width="140"
+				height="140"
+				loading="lazy"
+				decoding="async"
+			/>
+		) : (
 				<div class="player-avatar player-avatar--fallback" aria-hidden="true">
 					{player.name
 						.split(' ')

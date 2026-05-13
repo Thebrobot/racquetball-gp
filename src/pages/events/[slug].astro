@@ -1,6 +1,8 @@
 ---
 import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
 import { EVENTS } from '../../data/events';
+import { getPlayerSlug, PLAYER_IMAGES } from '../../data/players';
+import { formatPlayerInitials } from '../../data/leaderboard';
 import { titleSponsor } from '../../data/ocala-sponsors';
 
 export async function getStaticPaths() {
@@ -9,49 +11,506 @@ export async function getStaticPaths() {
 
 const { event } = Astro.props;
 const divisionBase = `/events/${event.slug}/divisions`;
+
+// ── Participants data (build-time) ────────────────────────────────────────────
+const divisionOrder = event.divisions;
+const uniqueNames = new Set((event.profiles ?? []).map((p) => p.name));
+const totalParticipants = uniqueNames.size;
+
+// One row per unique player, with all their division entries grouped
+type DivEntry = { division: string; time: string; court: string | null };
+type PlayerRow = { name: string; slug: string; entries: DivEntry[] };
+const playerMap = new Map<string, PlayerRow>();
+for (const profile of event.profiles ?? []) {
+	let court: string | null = null;
+	const courtMatch = (profile.note ?? '').match(/court\s*#?\s*(\w+)/i);
+	if (courtMatch) court = courtMatch[1];
+	if (!playerMap.has(profile.name)) {
+		playerMap.set(profile.name, { name: profile.name, slug: getPlayerSlug(profile.name), entries: [] });
+	}
+	playerMap.get(profile.name)!.entries.push({ division: profile.division, time: profile.time, court });
+}
+const allParticipants = Array.from(playerMap.values()).sort((a, b) => {
+	const lastA = a.name.trim().split(' ').pop()!.toLowerCase();
+	const lastB = b.name.trim().split(' ').pop()!.toLowerCase();
+	return lastA.localeCompare(lastB);
+});
+
+// ── Division label → ID map (for bracket deep-links) ─────────────────────────
+const divisionLabelToId = new Map<string, string>();
+for (const d of event.divisionDetails ?? []) {
+	divisionLabelToId.set(d.label, d.id);
+}
 ---
 
 <GrandPrixLayout
 	title={`${event.name} | Florida Racquetball Grand Prix 2026`}
-	description={`Brackets hub for the ${event.name}. Open a division to view the full draw.`}
+	description={`Brackets and participants for the ${event.name}.`}
 	spotlightLabel="Title sponsor"
 	spotlightName={titleSponsor.name}
 	spotlightBlurb={titleSponsor.blurb}
 	spotlightLogoUrl={titleSponsor.logoUrl}
 >
+	<!-- ── HERO + TAB BAR ── -->
 	<section class="event-hero">
 		<div class="section-label">Event</div>
 		<h1 class="section-title">{event.name}</h1>
 		<p class="section-sub">{event.dateRange} · {event.cityLine}</p>
-	</section>
-
-	<section class="event-section" id="brackets" aria-labelledby="event-brackets-title">
-		<header class="event-section-header">
-			<h2 id="event-brackets-title">Brackets</h2>
-			<p>
-				Choose a division to open the full draw. Tap any name on the bracket to see that player's profile, match log, and
-				series updates.
-			</p>
-		</header>
-		{event.spotlightWatchLiveUrl && (
-			<p class="event-brackets-live">
-				<a class="btn-ghost event-brackets-live-btn" href={event.spotlightWatchLiveUrl} rel="noopener noreferrer" target="_blank">
-					Live scores & registration (R2)
-				</a>
-			</p>
-		)}
-		<div class="division-list">
-			{(event.divisionDetails ?? []).map((division) => (
-				<a class="division-card" href={`${divisionBase}/${division.id}`}>
-					<div>
-						<div class="division-name">{division.label}</div>
-						<div class="division-meta">{division.format === 'single' ? 'Single elimination' : 'Round robin'}</div>
-					</div>
-					<span class:list={['division-badge', division.format === 'single' ? 'badge-single' : 'badge-rr']}>
-						{division.format === 'single' ? 'Bracket' : 'Round robin'}
-					</span>
-				</a>
-			))}
+		<div class="event-tab-bar" role="tablist" aria-label="Event views">
+			<button
+				class="event-tab event-tab--active"
+				role="tab"
+				aria-selected="true"
+				aria-controls="panel-brackets"
+				data-panel="brackets"
+			>
+				Brackets
+			</button>
+			{totalParticipants > 0 && (
+				<button
+					class="event-tab"
+					role="tab"
+					aria-selected="false"
+					aria-controls="panel-participants"
+					data-panel="participants"
+				>
+					Participants
+					<span class="event-tab-count">{totalParticipants}</span>
+				</button>
+			)}
 		</div>
 	</section>
+
+	<!-- ── BRACKETS PANEL ── -->
+	<div id="panel-brackets" class="event-panel" role="tabpanel" aria-labelledby="tab-brackets">
+		<section class="event-section" aria-label="Brackets">
+			<div class="division-list">
+				{(event.divisionDetails ?? []).map((division) => (
+					<a class="division-card" href={`${divisionBase}/${division.id}`}>
+						<div>
+							<div class="division-name">{division.label}</div>
+							<div class="division-meta">
+								{division.format === 'single' ? 'Single elimination' : 'Round robin'}
+							</div>
+						</div>
+						<span class:list={['division-badge', division.format === 'single' ? 'badge-single' : 'badge-rr']}>
+							{division.format === 'single' ? 'Bracket' : 'Round robin'}
+						</span>
+					</a>
+				))}
+			</div>
+		</section>
+	</div>
+
+	<!-- ── PARTICIPANTS PANEL ── -->
+	<div id="panel-participants" class="event-panel" role="tabpanel" aria-labelledby="tab-participants" hidden>
+
+		<!-- Player search -->
+		<div class="participants-search-wrap">
+			<div class="player-search-field">
+				<svg class="player-search-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+					<circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.75"/>
+					<path d="M13 13l3.5 3.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+				</svg>
+				<input
+					id="player-search"
+					class="player-search-input"
+					type="search"
+					placeholder="Search players…"
+					autocomplete="off"
+					spellcheck="false"
+					aria-label="Search players"
+				/>
+				<button id="player-search-clear" class="player-search-clear" type="button" aria-label="Clear search" hidden>
+					<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+						<path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+					</svg>
+				</button>
+			</div>
+		</div>
+
+		<div class="participants-panel-stats">
+			<span class="participants-stat">
+				<span class="participants-stat-num">{totalParticipants}</span>
+				<span class="participants-stat-label">Players</span>
+			</span>
+			<span class="participants-stat">
+				<span class="participants-stat-num">{divisionOrder.length}</span>
+				<span class="participants-stat-label">Divisions</span>
+			</span>
+		</div>
+
+		<section class="event-section participants-flat-section">
+			<div class="participants-table">
+				<div class="participants-thead">
+					<span>Division</span>
+					<span>First Call</span>
+					<span>Court</span>
+				</div>
+				{allParticipants.map((p) => {
+					const imgUrl = PLAYER_IMAGES[p.name];
+					const initials = formatPlayerInitials(p.name);
+					return (
+						<div class="participants-player-group">
+							<a class="participants-name-row" href={`/players/${p.slug}`}>
+								{imgUrl ? (
+									<img class="participants-avatar" src={imgUrl} alt={p.name} width="34" height="34" loading="lazy" decoding="async" />
+								) : (
+									<span class="participants-avatar participants-avatar--fallback" aria-hidden="true">{initials}</span>
+								)}
+								<span class="participants-name">{p.name}</span>
+								<svg class="participants-name-arrow" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+									<path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+								</svg>
+							</a>
+							{p.entries.map((e) => {
+								const divId = divisionLabelToId.get(e.division);
+								const href = divId ? `${divisionBase}/${divId}` : `/players/${p.slug}`;
+								return (
+									<a class="participants-div-row" href={href}>
+										<span class="participants-td--division">{e.division}</span>
+										<span class="participants-td--time">{e.time || '—'}</span>
+										<span class="participants-td--court">{e.court ? `Court ${e.court}` : '—'}</span>
+									</a>
+								);
+							})}
+						</div>
+					);
+				})}
+			</div>
+			<p id="player-search-empty" class="player-search-empty" hidden>No players found.</p>
+		</section>
+	</div>
 </GrandPrixLayout>
+
+<!-- ── TAB TOGGLE SCRIPT ── -->
+<script>
+(function () {
+	// ── Participants search (live row filter) ────────────────────────────────
+	const input = document.getElementById('player-search') as HTMLInputElement | null;
+	const clear = document.getElementById('player-search-clear') as HTMLButtonElement | null;
+	const empty = document.getElementById('player-search-empty') as HTMLElement | null;
+
+	if (input) {
+		const groups = Array.from(document.querySelectorAll<HTMLElement>('.participants-player-group'));
+		const stats  = document.querySelector<HTMLElement>('.participants-panel-stats');
+
+		function filterRows(q: string) {
+			const query = q.trim().toLowerCase();
+			let anyVisible = false;
+
+			groups.forEach((group) => {
+				const name = group.querySelector('.participants-name')?.textContent?.toLowerCase() ?? '';
+				const visible = !query || name.includes(query);
+				group.style.display = visible ? '' : 'none';
+				if (visible) anyVisible = true;
+			});
+
+			if (stats) stats.style.display = query ? 'none' : '';
+			if (empty) empty.hidden = !query || anyVisible;
+			if (clear) clear.hidden = !query;
+		}
+
+		input.addEventListener('input', () => filterRows(input.value));
+
+		if (clear) {
+			clear.addEventListener('click', () => {
+				input.value = '';
+				filterRows('');
+				input.focus();
+			});
+		}
+
+		input.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape') { input.value = ''; filterRows(''); input.blur(); }
+		});
+	}
+
+	// ── Tab toggle ───────────────────────────────────────────────────────────
+	const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('.event-tab'));
+	const panels = Array.from(document.querySelectorAll<HTMLElement>('.event-panel'));
+
+	function activate(panelId: string) {
+		tabs.forEach((t) => {
+			const active = t.dataset.panel === panelId;
+			t.classList.toggle('event-tab--active', active);
+			t.setAttribute('aria-selected', String(active));
+		});
+		panels.forEach((p) => {
+			p.hidden = p.id !== `panel-${panelId}`;
+		});
+	}
+
+	// Respect incoming hash on page load
+	const hash = location.hash.replace('#', '');
+	if (hash === 'participants' || hash === 'brackets') {
+		activate(hash);
+	}
+
+	tabs.forEach((btn) => {
+		btn.addEventListener('click', () => {
+			const panel = btn.dataset.panel!;
+			activate(panel);
+			history.replaceState(null, '', `#${panel}`);
+		});
+	});
+})();
+</script>
+
+<style>
+/* ── Player search ── */
+.participants-search-wrap {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 24px 22px 0;
+}
+.participants-search-wrap .player-search-field {
+	max-width: 400px;
+	margin-left: auto;
+	margin-right: auto;
+}
+.player-search-field {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	background: rgba(255, 255, 255, 0.05);
+	border: 1px solid rgba(255, 255, 255, 0.14);
+	border-radius: 12px;
+	padding: 0 14px;
+	transition: border-color 0.2s, background 0.2s;
+}
+.player-search-field:focus-within {
+	border-color: rgba(240, 90, 26, 0.6);
+	background: rgba(255, 255, 255, 0.07);
+}
+.player-search-icon {
+	width: 18px;
+	height: 18px;
+	color: rgba(255, 255, 255, 0.4);
+	flex-shrink: 0;
+}
+.player-search-input {
+	flex: 1;
+	background: none;
+	border: none;
+	outline: none;
+	color: #fff;
+	font-family: 'Barlow', sans-serif;
+	font-size: 15px;
+	padding: 13px 0;
+	min-width: 0;
+}
+.player-search-input::placeholder {
+	color: rgba(255, 255, 255, 0.35);
+}
+.player-search-input::-webkit-search-cancel-button { display: none; }
+.player-search-clear {
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: rgba(255, 255, 255, 0.4);
+	padding: 4px;
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+	transition: color 0.15s;
+}
+.player-search-clear:hover { color: #fff; }
+.player-search-clear svg { width: 14px; height: 14px; }
+.player-search-empty {
+	margin-top: 12px;
+	font-size: 15px;
+	color: rgba(255, 255, 255, 0.45);
+}
+@media (max-width: 600px) {
+	.participants-search-wrap {
+		padding: 16px 16px 0;
+	}
+}
+
+/* ── Participants panel stats strip ── */
+.participants-panel-stats {
+	display: flex;
+	gap: 32px;
+	padding: 24px 0 8px;
+	justify-content: center;
+}
+.participants-stat {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+}
+.participants-stat-num {
+	font-size: 2rem;
+	font-weight: 700;
+	color: var(--orange);
+	line-height: 1;
+}
+.participants-stat-label {
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: #fff;
+}
+
+/* ── Participants table ── */
+.participants-flat-section {
+	padding-top: 12px;
+}
+.participants-table {
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	border-radius: 12px;
+	overflow: hidden;
+}
+.participants-thead {
+	display: grid;
+	grid-template-columns: 1fr 160px 90px;
+	padding: 8px 20px;
+	background: rgba(255, 255, 255, 0.04);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+	font-size: 0.7rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	color: rgba(255, 255, 255, 0.65);
+}
+
+/* Player group: name header + division entry rows */
+.participants-player-group {
+	border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+.participants-player-group:first-of-type {
+	border-top: none;
+}
+
+/* Name header row → player profile */
+.participants-name-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px 20px 6px;
+	text-decoration: none;
+	color: inherit;
+	transition: background 0.15s ease;
+}
+.participants-name-row:hover {
+	background: rgba(255, 255, 255, 0.04);
+}
+.participants-name-row:hover .participants-name {
+	color: var(--orange);
+}
+.participants-name-arrow {
+	width: 14px;
+	height: 14px;
+	color: rgba(255, 255, 255, 0.3);
+	flex-shrink: 0;
+	margin-left: auto;
+	transition: color 0.15s ease, transform 0.15s ease;
+}
+.participants-name-row:hover .participants-name-arrow {
+	color: var(--orange);
+	transform: translateX(2px);
+}
+
+/* Avatar */
+.participants-avatar {
+	width: 34px;
+	height: 34px;
+	border-radius: 50%;
+	object-fit: cover;
+	flex-shrink: 0;
+	border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.participants-avatar--fallback {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(240, 90, 26, 0.18);
+	color: var(--orange);
+	font-size: 0.68rem;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+}
+.participants-name {
+	font-weight: 700;
+	font-size: 1rem;
+	color: #fff;
+	transition: color 0.15s ease;
+}
+
+/* Division entry row → bracket page */
+.participants-div-row {
+	display: grid;
+	grid-template-columns: 1fr 160px 90px;
+	align-items: center;
+	padding: 7px 20px 7px 64px; /* 64px = left-aligns with name text past avatar+gap */
+	text-decoration: none;
+	color: inherit;
+	border-top: 1px solid rgba(255, 255, 255, 0.04);
+	transition: background 0.15s ease;
+}
+.participants-player-group .participants-div-row:last-child {
+	padding-bottom: 12px;
+}
+.participants-div-row:hover {
+	background: rgba(240, 90, 26, 0.08);
+}
+.participants-div-row:hover .participants-td--division {
+	color: var(--orange);
+}
+.participants-td--division {
+	font-size: 0.875rem;
+	color: #fff;
+	transition: color 0.15s ease;
+}
+.participants-td--time {
+	font-size: 0.875rem;
+	color: #fff;
+}
+.participants-td--court {
+	font-size: 0.875rem;
+	color: #fff;
+}
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+	.participants-thead { display: none; }
+
+	.participants-name-row {
+		padding: 14px 16px 8px;
+		gap: 12px;
+	}
+	.participants-name {
+		font-size: 1.05rem;
+		white-space: normal;
+		line-height: 1.25;
+	}
+
+	/* Division entry: [division | time] 2-col, no left indent */
+	.participants-div-row {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		padding: 5px 16px 5px 16px;
+		border-left: 2px solid rgba(240, 90, 26, 0.4);
+		margin: 1px 16px;
+		border-radius: 0 6px 6px 0;
+		border-top: none;
+	}
+	.participants-player-group .participants-div-row:last-child {
+		padding-bottom: 5px;
+		margin-bottom: 8px;
+	}
+	.participants-td--division {
+		font-size: 0.9rem;
+		line-height: 1.3;
+	}
+	.participants-td--time {
+		font-size: 0.85rem;
+		text-align: right;
+		white-space: nowrap;
+		padding-left: 12px;
+	}
+	.participants-td--court { display: none; }
+}
+</style>
