@@ -8,6 +8,51 @@ export interface PlayerEventCall {
 	note?: string;
 }
 
+export interface PlayerScheduleEntry extends PlayerEventCall {
+	/** First-round opponent name (null if BYE/TBD or round-robin) */
+	opponent?: string;
+	/** URL-slug for the opponent's player profile */
+	opponentSlug?: string;
+	/** Slug of the event (for bracket deep-link) */
+	eventSlug?: string;
+	/** Division detail ID (for bracket deep-link) */
+	divisionId?: string;
+}
+
+/** Enriches a player's event list with opponent and bracket-link data from live bracket. */
+export function getPlayerScheduleEntries(
+	playerName: string,
+	profileEvents: PlayerEventCall[],
+): PlayerScheduleEntry[] {
+	const normalized = playerName.trim().toLowerCase();
+	return profileEvents.map((entry) => {
+		const result: PlayerScheduleEntry = { ...entry };
+		const event = EVENTS.find((e) => e.name === entry.eventName);
+		if (!event) return result;
+		result.eventSlug = event.slug;
+		const div = event.divisionDetails.find((d) => d.label === entry.division);
+		if (!div) return result;
+		result.divisionId = div.id;
+		if (div.format !== 'single' || !div.rounds) return result;
+		outer: for (const round of div.rounds) {
+			for (const match of round.matches) {
+				const p1 = (match.player1 ?? '').trim().toLowerCase();
+				const p2 = (match.player2 ?? '').trim().toLowerCase();
+				if (p1 !== normalized && p2 !== normalized) continue;
+				if (match.scheduledTime && match.scheduledTime !== entry.time) continue;
+				const rawOpp = (p1 === normalized ? match.player2 : match.player1)?.trim() ?? '';
+				const upper = rawOpp.toUpperCase();
+				if (rawOpp && upper !== 'BYE' && upper !== 'TBD' && upper !== '') {
+					result.opponent = rawOpp;
+					result.opponentSlug = getPlayerSlug(rawOpp);
+				}
+				break outer;
+			}
+		}
+		return result;
+	});
+}
+
 export interface PlayerProfile {
 	name: string;
 	slug: string;

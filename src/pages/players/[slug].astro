@@ -1,6 +1,6 @@
 ---
 import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
-import { getAllPlayers, getPlayerMatchHistory, GP_SERIES_POSTS } from '../../data/players';
+import { getAllPlayers, getPlayerMatchHistory, getPlayerScheduleEntries, GP_SERIES_POSTS } from '../../data/players';
 import { titleSponsor } from '../../data/ocala-sponsors';
 
 export async function getStaticPaths() {
@@ -12,6 +12,22 @@ const bio =
 	player.bio ||
 	`Grand Prix competitor from ${player.city ?? 'Florida'}. Focused on steady finishes and building points across every stop.`;
 const matchHistory = getPlayerMatchHistory(player.name);
+const scheduleEntries = getPlayerScheduleEntries(player.name, player.events ?? []);
+
+const wins = matchHistory.filter((m) => m.result === 'win').length;
+const losses = matchHistory.filter((m) => m.result === 'loss').length;
+const pending = matchHistory.filter((m) => m.result === 'pending').length;
+
+function parseCourtFromNote(note?: string): { court: string | null; rest: string } {
+	if (!note) return { court: null, rest: '' };
+	const m = note.match(/\bcourt\s*#?\s*(\w+)/i);
+	if (m) {
+		const court = m[1];
+		const rest = note.replace(m[0], '').replace(/^[,;\s]+|[,;\s]+$/g, '').trim();
+		return { court, rest };
+	}
+	return { court: null, rest: note };
+}
 ---
 
 <GrandPrixLayout
@@ -22,6 +38,7 @@ const matchHistory = getPlayerMatchHistory(player.name);
 	spotlightBlurb={titleSponsor.blurb}
 	spotlightLogoUrl={titleSponsor.logoUrl}
 >
+	<!-- ── HERO ── -->
 	<section class="event-hero player-hero">
 		<div class="section-label">Player profile</div>
 		<div class="player-hero-media">
@@ -47,89 +64,176 @@ const matchHistory = getPlayerMatchHistory(player.name);
 			)}
 		</div>
 		<h1 class="section-title">{player.name}</h1>
-		{player.city && <p class="section-sub">{player.city}</p>}
-		<p class="player-bio">{bio}</p>
+		{player.city && <p class="section-sub player-city">{player.city}</p>}
+
+		{matchHistory.length > 0 && (
+			<div class="player-record-row" aria-label="Season record">
+				<span class="player-record-chip player-record-chip--win">
+					<span class="player-record-num">{wins}</span>
+					<span class="player-record-label">Win{wins !== 1 ? 's' : ''}</span>
+				</span>
+				<span class="player-record-sep">·</span>
+				<span class="player-record-chip player-record-chip--loss">
+					<span class="player-record-num">{losses}</span>
+					<span class="player-record-label">Loss{losses !== 1 ? 'es' : ''}</span>
+				</span>
+				{pending > 0 && (
+					<>
+						<span class="player-record-sep">·</span>
+						<span class="player-record-chip player-record-chip--pending">
+							<span class="player-record-num">{pending}</span>
+							<span class="player-record-label">Pending</span>
+						</span>
+					</>
+				)}
+			</div>
+		)}
+
 	</section>
 
-	<section class="event-section" aria-labelledby="player-divisions-title">
+	<!-- ── DIVISIONS ── -->
+	<section class="event-section player-divisions-section" aria-labelledby="player-divisions-title">
 		<header class="event-section-header">
 			<h2 id="player-divisions-title">Divisions</h2>
 			<p>Active divisions across the Grand Prix season.</p>
 		</header>
-		<div class="event-pill-grid">
+		<div class="event-pill-grid event-pill-grid--centered">
 			{(player.divisions ?? []).map((division) => (
 				<span class="event-pill">{division}</span>
 			))}
 		</div>
 	</section>
 
-	<section class="event-section" aria-labelledby="player-events-title">
+	<!-- ── SCHEDULE ── -->
+	<section class="event-section player-schedule-section" aria-labelledby="player-events-title">
 		<header class="event-section-header">
-			<h2 id="player-events-title">Tournament schedule</h2>
-			<p>Call times and court notes for stops where this player is listed.</p>
+			<h2 id="player-events-title">My schedule</h2>
+			<p>Call times and court assignments for stops where you're listed. Save this page for quick reference on game day.</p>
 		</header>
-		{(player.events ?? []).length ? (
-			<div class="player-event-grid">
-				{(player.events ?? []).map((event) => (
-					<article class="player-event-card">
-						<div class="player-event-name">{event.eventName}</div>
-						<div class="player-event-division">{event.division}</div>
-						<div class="player-event-time">{event.time}</div>
-						{event.note && <div class="player-event-note">{event.note}</div>}
-					</article>
-				))}
+		{scheduleEntries.length ? (
+			<div class="player-ticket-grid">
+				{scheduleEntries.map((entry) => {
+					const { court, rest } = parseCourtFromNote(entry.note);
+					const bracketHref = entry.eventSlug && entry.divisionId
+						? `/events/${entry.eventSlug}/divisions/${entry.divisionId}`
+						: null;
+					return (
+						<article class="player-ticket">
+							<div class="player-ticket-top">
+								<div class="player-ticket-time-block">
+									<svg class="player-ticket-clock" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+										<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.75"/>
+										<path d="M12 7v5l3 3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+									</svg>
+									<span class="player-ticket-time">{entry.time}</span>
+								</div>
+								{court && (
+									<span class="player-ticket-court">Court {court}</span>
+								)}
+							</div>
+							<div class="player-ticket-body">
+								<div class="player-ticket-division">{entry.division}</div>
+								<div class="player-ticket-event">{entry.eventName}</div>
+							</div>
+							{entry.opponent && (
+								<div class="player-ticket-opponent">
+									<span class="player-ticket-vs">vs</span>
+									<a
+										class="player-ticket-opponent-link"
+										href={`/players/${entry.opponentSlug}`}
+									>
+										{entry.opponent}
+									</a>
+								</div>
+							)}
+							{rest && (
+								<div class="player-ticket-note">
+									<svg viewBox="0 0 16 16" fill="none" aria-hidden="true" class="player-ticket-note-icon">
+										<circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/>
+										<path d="M8 7v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+										<circle cx="8" cy="5.5" r=".75" fill="currentColor"/>
+									</svg>
+									{rest}
+								</div>
+							)}
+							{bracketHref && (
+								<a class="player-ticket-bracket-link" href={bracketHref} aria-label={`View bracket for ${entry.division}`}>
+									View bracket
+									<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+										<path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+									</svg>
+								</a>
+							)}
+						</article>
+					);
+				})}
 			</div>
 		) : (
 			<p class="player-section-empty">No published call times yet. Check the event brackets hub as the draw is released.</p>
 		)}
 	</section>
 
-	<section class="event-section" aria-labelledby="player-matches-title">
+	<!-- ── MATCH HISTORY ── -->
+	<section class="event-section player-matches-section" aria-labelledby="player-matches-title">
 		<header class="event-section-header">
 			<h2 id="player-matches-title">Match history</h2>
 			<p>Results pulled from posted Grand Prix draws. Follow links to reopen the bracket for that division.</p>
 		</header>
 		{matchHistory.length ? (
-			<div class="player-history-stack">
-				{matchHistory.map((row) => (
-					<article class="player-history-row">
-						<div>
-							<div class="player-history-meta">
-								<a class="player-history-event-link" href={`/events/${row.eventSlug}/divisions/${row.divisionId}`}>
-									{row.eventName}
-								</a>
-								{' · '}
-								{row.divisionLabel}
-								{' · '}
-								{row.roundLabel}
+			<>
+				<div class="player-record-summary">
+					<span class="player-record-summary-label">Season record</span>
+					<span class="player-record-summary-value">
+						<strong class="player-record-summary-w">{wins}W</strong>
+						{' – '}
+						<strong class="player-record-summary-l">{losses}L</strong>
+						{pending > 0 && (
+							<span class="player-record-summary-p"> · {pending} pending</span>
+						)}
+					</span>
+				</div>
+				<div class="player-history-stack">
+					{matchHistory.map((row) => (
+						<article class="player-history-row">
+							<div class="player-history-content">
+								<div class="player-history-meta">
+									<a class="player-history-event-link" href={`/events/${row.eventSlug}/divisions/${row.divisionId}`}>
+										{row.eventName}
+									</a>
+									<span class="player-history-meta-sep">·</span>
+									<span>{row.divisionLabel}</span>
+									<span class="player-history-meta-sep">·</span>
+									<span>{row.roundLabel}</span>
+								</div>
+								<div class="player-history-opponent">
+									vs <strong>{row.opponent}</strong>
+									{row.score && <span class="player-history-score">{row.score}</span>}
+								</div>
 							</div>
-							<div class="player-history-opponent">
-								vs {row.opponent}
-								{row.score && <span class="player-history-score">{row.score}</span>}
+							<div
+								class:list={[
+									'player-history-badge',
+									row.result === 'win' ? 'player-history-badge--win' : '',
+									row.result === 'loss' ? 'player-history-badge--loss' : '',
+									row.result === 'pending' ? 'player-history-badge--pending' : '',
+								]}
+							>
+								{row.result === 'win' ? 'W' : row.result === 'loss' ? 'L' : '—'}
 							</div>
-						</div>
-						<div
-							class:list={[
-								'player-history-result',
-								row.result === 'win' ? 'player-history-result--win' : '',
-								row.result === 'loss' ? 'player-history-result--loss' : '',
-								row.result === 'pending' ? 'player-history-result--pending' : '',
-							]}
-						>
-							{row.result === 'win' ? 'Win' : row.result === 'loss' ? 'Loss' : 'Pending'}
-						</div>
-					</article>
-				))}
-			</div>
+						</article>
+					))}
+				</div>
+			</>
 		) : (
 			<p class="player-section-empty">No bracket matches on file yet for this player.</p>
 		)}
 	</section>
 
-	<section class="event-section" aria-labelledby="player-series-title">
+	<!-- ── SERIES WIRE ── -->
+	<section class="event-section player-news-section" aria-labelledby="player-series-title">
 		<header class="event-section-header">
-			<h2 id="player-series-title">Series wire</h2>
-			<p>Current highlights and explainers from the Florida Racquetball Grand Prix.</p>
+			<h2 id="player-series-title">Series news</h2>
+			<p>Highlights and explainers from the Florida Racquetball Grand Prix.</p>
 		</header>
 		<div class="player-series-list">
 			{GP_SERIES_POSTS.map((post) => (
