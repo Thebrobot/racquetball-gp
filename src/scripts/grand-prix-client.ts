@@ -410,14 +410,9 @@ async function layoutAndDrawBracket(grid: HTMLElement) {
 
 	const isMobile = window.matchMedia('(max-width: 640px)').matches;
 
-	// On mobile, skip margin positioning so matches stack from the top
-	// naturally. Connector lines still draw and will angle/converge from
-	// spread-out feeders to compact later rounds (ESPN-style).
+	// On mobile, the ESPN-style slider handles layout — skip margin
+	// positioning and connectors entirely (only 1 round visible at a time).
 	if (isMobile) {
-		const champ = grid.querySelector<HTMLElement>('.bracket-champion');
-		if (champ) champ.style.marginTop = '';
-		await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-		drawBracketConnectors(grid, rounds);
 		return;
 	}
 
@@ -611,6 +606,8 @@ function svgLine(
 }
 
 function initBracketTabs() {
+	const isMobile = window.matchMedia('(max-width: 640px)').matches;
+
 	document.querySelectorAll<HTMLElement>('.bracket-tab-nav').forEach((nav) => {
 		const container = nav.closest<HTMLElement>('.bracket-block, .bracket-shell');
 		if (!container) return;
@@ -619,12 +616,60 @@ function initBracketTabs() {
 
 		const btns = Array.from(nav.querySelectorAll<HTMLButtonElement>('.bracket-tab-btn'));
 		const rounds = Array.from(grid.querySelectorAll<HTMLElement>(':scope > .bracket-round'));
+		let activeRound = 0;
 
 		function setActiveTab(idx: number) {
 			btns.forEach((b, i) => b.classList.toggle('active', i === idx));
 			btns[idx]?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
 		}
 
+		if (isMobile && rounds.length > 0) {
+			// ── ESPN-style slider: wrap rounds + champion in a track div ──
+			const track = document.createElement('div');
+			track.className = 'bracket-track';
+			rounds.forEach((r) => track.appendChild(r));
+			const champ = grid.querySelector<HTMLElement>('.bracket-champion');
+			if (champ) track.appendChild(champ);
+			grid.appendChild(track);
+
+			const columns = champ ? [...rounds, champ] : [...rounds];
+			const maxIdx = columns.length - 1;
+
+			function slideTo(idx: number) {
+				const col = columns[idx];
+				if (!col) return;
+				const newLeft = 12 - col.offsetLeft;
+				track.style.left = `${newLeft}px`;
+				activeRound = idx;
+				setActiveTab(idx);
+			}
+
+			btns.forEach((btn, idx) => {
+				btn.addEventListener('click', () => slideTo(idx));
+			});
+
+			// ── Touch swipe support ──
+			let touchStartX = 0;
+			grid.addEventListener('touchstart', (e) => {
+				touchStartX = e.touches[0]!.clientX;
+			}, { passive: true });
+
+			grid.addEventListener('touchend', (e) => {
+				const dx = touchStartX - e.changedTouches[0]!.clientX;
+				if (Math.abs(dx) > 50) {
+					const next = dx > 0
+						? Math.min(activeRound + 1, maxIdx)
+						: Math.max(activeRound - 1, 0);
+					slideTo(next);
+				}
+			}, { passive: true });
+
+			// Set initial position
+			slideTo(0);
+			return;
+		}
+
+		// ── Desktop: simple scroll-sync with tabs ──
 		btns.forEach((btn, idx) => {
 			btn.addEventListener('click', () => {
 				const target = rounds[idx];
@@ -649,8 +694,11 @@ function initBracketTabs() {
 						closest = i;
 					}
 				}
-				setActiveTab(closest);
-			}, 80);
+				if (closest !== activeRound) {
+					activeRound = closest;
+					setActiveTab(closest);
+				}
+			}, 120);
 		});
 	});
 }
