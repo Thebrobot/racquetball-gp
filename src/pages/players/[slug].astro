@@ -89,26 +89,22 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 			</div>
 		)}
 
-	</section>
-
-	<!-- ── DIVISIONS ── -->
-	<section class="event-section player-divisions-section" aria-labelledby="player-divisions-title">
-		<header class="event-section-header">
-			<h2 id="player-divisions-title">Divisions</h2>
-			<p>Active divisions across the Grand Prix season.</p>
-		</header>
-		<div class="event-pill-grid event-pill-grid--centered">
-			{(player.divisions ?? []).map((division) => (
-				<span class="event-pill">{division}</span>
+		<!-- ── DIVISIONS ── -->
+		<div class="player-divisions-inline">
+			{(player.divisions ?? []).map((division, i, arr) => (
+				<>
+					<span class="player-div-tag">{division}</span>
+					{i < arr.length - 1 && <span class="player-div-sep" aria-hidden="true">·</span>}
+				</>
 			))}
 		</div>
+
 	</section>
 
 	<!-- ── SCHEDULE ── -->
 	<section class="event-section player-schedule-section" aria-labelledby="player-events-title">
 		<header class="event-section-header">
 			<h2 id="player-events-title">My schedule</h2>
-			<p>Call times and court assignments for stops where you're listed. Save this page for quick reference on game day.</p>
 		</header>
 		{scheduleEntries.length ? (
 			<div class="player-ticket-grid">
@@ -179,14 +175,6 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 									{rest}
 								</div>
 							)}
-							{bracketHref && (
-								<a class="player-ticket-bracket-link" href={bracketHref} aria-label={`View bracket for ${entry.division}`}>
-									View bracket
-									<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-										<path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-									</svg>
-								</a>
-							)}
 						</article>
 					);
 				})}
@@ -200,7 +188,6 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 	<section class="event-section player-matches-section" aria-labelledby="player-matches-title">
 		<header class="event-section-header">
 			<h2 id="player-matches-title">Match history</h2>
-			<p>Results pulled from posted Grand Prix draws. Follow links to reopen the bracket for that division.</p>
 		</header>
 		{matchHistory.length ? (
 			<>
@@ -256,7 +243,6 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 	<section class="event-section player-news-section" aria-labelledby="player-series-title">
 		<header class="event-section-header">
 			<h2 id="player-series-title">Series news</h2>
-			<p>Highlights and explainers from the Florida Racquetball Grand Prix.</p>
 		</header>
 		<div class="player-series-list">
 			{GP_SERIES_POSTS.map((post) => (

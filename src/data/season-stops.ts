@@ -23,6 +23,8 @@ export interface SeasonStop {
 	photoCredit?: string;
 	/** On-site brackets hub (e.g. `/events/ocala-open#brackets`); omit when not published yet */
 	bracketsHref?: string;
+	/** On-site participants list (e.g. `/events/ocala-open/participants`); omit when not published yet */
+	participantsHref?: string;
 }
 
 export const TOUR_STOP_COUNT = 4;

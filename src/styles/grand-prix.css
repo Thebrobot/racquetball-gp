@@ -749,6 +749,7 @@ html.nav-drawer-open .nav-drawer-backdrop {
 
 .player-hero {
   padding-top: 128px;
+  padding-bottom: 20px;
 }
 
 .player-hero .section-sub {
@@ -1739,6 +1740,7 @@ html.nav-drawer-open .nav-drawer-backdrop {
 .player-schedule-section {
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   background: linear-gradient(180deg, rgba(240, 90, 26, 0.04) 0%, transparent 100%);
+  padding-top: 20px;
 }
 
 .player-ticket-grid {
@@ -2091,10 +2093,34 @@ html.nav-drawer-open .nav-drawer-backdrop {
   font-size: 18px;
 }
 
-/* ───── DIVISIONS SECTION CENTERED ───── */
-.player-divisions-section .event-section-header {
+/* ───── DIVISIONS INLINE (inside hero) ───── */
+.player-divisions-inline {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  text-align: center;
+  justify-content: center;
+  gap: 6px 8px;
+  margin-top: 1rem;
+}
+
+.player-div-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 2px solid var(--orange);
+  border-radius: 3px;
+  padding: 4px 10px 4px 8px;
+  white-space: nowrap;
+}
+
+.player-div-sep {
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 0.75rem;
+  line-height: 1;
 }
 
 /* ───── SCHEDULE SECTION CENTERED ───── */
@@ -2106,6 +2132,12 @@ html.nav-drawer-open .nav-drawer-backdrop {
 
 /* ───── MATCH HISTORY SECTION CENTERED ───── */
 .player-matches-section .event-section-header {
+  align-items: center;
+  text-align: center;
+}
+
+/* ───── SERIES NEWS SECTION CENTERED ───── */
+.player-news-section .event-section-header {
   align-items: center;
   text-align: center;
 }
@@ -2595,6 +2627,7 @@ section { padding: 80px 24px; max-width: 1100px; margin: 0 auto; }
 .pill-done { background: rgba(132,204,22,0.12); color: var(--green); border: 1px solid rgba(132,204,22,0.25); }
 .pill-next { background: var(--orange); color: white; }
 .pill-open { background: rgba(132,204,22,0.1); color: var(--green); border: 1px solid rgba(132,204,22,0.2); }
+.pill-pending { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.14); }
 .pill-upcoming { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--card-border); }
 .pill-champ { background: rgba(240,90,26,0.15); color: var(--orange2); border: 1px solid rgba(240,90,26,0.3); }
 .t-body { padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
@@ -2628,6 +2661,29 @@ section { padding: 80px 24px; max-width: 1100px; margin: 0 auto; }
   white-space: nowrap;
 }
 .btn-register:hover { background: var(--orange2); transform: translateY(-1px); }
+.btn-register-pending {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px 22px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.55);
+  text-decoration: none;
+  display: inline-block;
+  transition: border-color 0.2s, background 0.2s, color 0.2s, transform 0.15s;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.btn-register-pending:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.09);
+  color: rgba(255, 255, 255, 0.8);
+  transform: translateY(-1px);
+}
 .btn-register.disabled {
   background: rgba(255,255,255,0.08);
   color: var(--muted); cursor: default;
@@ -2656,6 +2712,36 @@ a.btn-brackets:hover {
   transform: translateY(-1px);
 }
 .btn-brackets.disabled {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.35);
+  cursor: not-allowed;
+  pointer-events: none;
+  user-select: none;
+}
+.btn-participants {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px 22px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.06);
+  color: white;
+  text-decoration: none;
+  display: inline-block;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+  white-space: nowrap;
+  cursor: pointer;
+}
+a.btn-participants:hover {
+  border-color: rgba(240, 90, 26, 0.55);
+  background: rgba(240, 90, 26, 0.12);
+  transform: translateY(-1px);
+}
+.btn-participants.disabled {
   border-color: rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.03);
   color: rgba(255, 255, 255, 0.35);

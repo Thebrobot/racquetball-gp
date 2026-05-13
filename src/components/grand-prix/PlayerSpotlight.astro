@@ -22,9 +22,6 @@ const { spots } = Astro.props;
 		<h2 id="player-spotlight-heading" class="player-spotlight-title">
 			Leaders at the <span class="player-spotlight-title-accent">top</span>
 		</h2>
-		<p class="player-spotlight-sub">
-			Headline divisions; see every division on the full standings.
-		</p>
 		<div class="player-spotlight-grid">
 			{
 				spots.map(({ trackLabel, leader, standingsHref }) => (
