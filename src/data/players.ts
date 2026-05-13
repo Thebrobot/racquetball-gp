@@ -9,48 +9,121 @@ export interface PlayerEventCall {
 }
 
 export interface PlayerScheduleEntry extends PlayerEventCall {
-	/** First-round opponent name (null if BYE/TBD or round-robin) */
+	/** Singles elim: the opponent name (team string for doubles, individual name for singles) */
 	opponent?: string;
-	/** URL-slug for the opponent's player profile */
+	/** Singles elim individual: profile slug. Undefined for team opponents (name contains "/"). */
 	opponentSlug?: string;
+	/** Round robin: all other pool members */
+	opponents?: string[];
+	/** Round robin: profile slug per pool member (empty string if a team entry) */
+	opponentSlugs?: string[];
+	/** True when this is a round-robin pool display (no per-match data) */
+	isRoundRobin?: boolean;
+	/** Round label for per-match RR entries, e.g. "Round 2" */
+	round?: string;
 	/** Slug of the event (for bracket deep-link) */
 	eventSlug?: string;
 	/** Division detail ID (for bracket deep-link) */
 	divisionId?: string;
 }
 
-/** Enriches a player's event list with opponent and bracket-link data from live bracket. */
+/**
+ * Returns true if playerName matches entryName.
+ * Handles exact-name singles ("Trace Gunsch") and last-name doubles teams ("Gunsch / Smith").
+ */
+function playerMatchesEntry(playerName: string, entryName: string): boolean {
+	const norm = playerName.trim().toLowerCase();
+	const entryNorm = entryName.trim().toLowerCase();
+	if (entryNorm === norm) return true;
+	// Doubles teams are stored as "LastA / LastB" — match by last name
+	const lastName = norm.split(' ').pop() ?? '';
+	if (lastName.length > 1) {
+		const parts = entryNorm.split(/\s*\/\s*/);
+		if (parts.some((p) => p.trim() === lastName)) return true;
+	}
+	return false;
+}
+
+function isGhostName(name: string): boolean {
+	const u = name.trim().toUpperCase();
+	return u === 'BYE' || u === 'TBD' || u === '';
+}
+
+/** Enriches a player's event list with opponent and bracket-link data from live bracket.
+ *  Round-robin divisions with per-match data expand into one entry per match.
+ */
 export function getPlayerScheduleEntries(
 	playerName: string,
 	profileEvents: PlayerEventCall[],
 ): PlayerScheduleEntry[] {
-	const normalized = playerName.trim().toLowerCase();
-	return profileEvents.map((entry) => {
-		const result: PlayerScheduleEntry = { ...entry };
+	const out: PlayerScheduleEntry[] = [];
+
+	for (const entry of profileEvents) {
 		const event = EVENTS.find((e) => e.name === entry.eventName);
-		if (!event) return result;
-		result.eventSlug = event.slug;
+		if (!event) { out.push(entry); continue; }
+
 		const div = event.divisionDetails.find((d) => d.label === entry.division);
-		if (!div) return result;
-		result.divisionId = div.id;
-		if (div.format !== 'single' || !div.rounds) return result;
-		outer: for (const round of div.rounds) {
-			for (const match of round.matches) {
-				const p1 = (match.player1 ?? '').trim().toLowerCase();
-				const p2 = (match.player2 ?? '').trim().toLowerCase();
-				if (p1 !== normalized && p2 !== normalized) continue;
-				if (match.scheduledTime && match.scheduledTime !== entry.time) continue;
-				const rawOpp = (p1 === normalized ? match.player2 : match.player1)?.trim() ?? '';
-				const upper = rawOpp.toUpperCase();
-				if (rawOpp && upper !== 'BYE' && upper !== 'TBD' && upper !== '') {
-					result.opponent = rawOpp;
-					result.opponentSlug = getPlayerSlug(rawOpp);
+		const base: PlayerScheduleEntry = {
+			...entry,
+			eventSlug: event.slug,
+			divisionId: div?.id,
+		};
+
+		// ── Round robin WITH per-match schedule → one ticket per match ──────────
+		if (div?.format === 'roundrobin' && div.roundRobinMatches?.length) {
+			const myMatches = div.roundRobinMatches.filter(
+				(m) => playerMatchesEntry(playerName, m.team1) || playerMatchesEntry(playerName, m.team2),
+			);
+			for (const m of myMatches) {
+				const oppTeam = playerMatchesEntry(playerName, m.team1) ? m.team2 : m.team1;
+				out.push({
+					...base,
+					time: m.scheduledTime,
+					note: m.court,
+					round: m.round,
+					opponent: oppTeam,
+					opponentSlug: oppTeam.includes('/') ? undefined : getPlayerSlug(oppTeam),
+				});
+			}
+			continue;
+		}
+
+		// ── Round robin WITHOUT match schedule → pool display (fallback) ────────
+		if (div?.format === 'roundrobin') {
+			const others = (div.roundRobinPlayers ?? []).filter(
+				(p) => !playerMatchesEntry(playerName, p),
+			);
+			out.push({
+				...base,
+				isRoundRobin: true,
+				opponents: others,
+				opponentSlugs: others.map((p) => (p.includes('/') ? '' : getPlayerSlug(p))),
+			});
+			continue;
+		}
+
+		// ── Single elimination: find the match containing this player ────────────
+		if (div?.rounds) {
+			outer: for (const round of div.rounds) {
+				for (const match of round.matches) {
+					const p1 = (match.player1 ?? '').trim();
+					const p2 = (match.player2 ?? '').trim();
+					const side = playerMatchesEntry(playerName, p1) ? 1 : playerMatchesEntry(playerName, p2) ? 2 : null;
+					if (side === null) continue;
+					if (match.scheduledTime && match.scheduledTime !== entry.time) continue;
+					const rawOpp = (side === 1 ? p2 : p1).trim();
+					if (!isGhostName(rawOpp)) {
+						base.opponent = rawOpp;
+						if (!rawOpp.includes('/')) base.opponentSlug = getPlayerSlug(rawOpp);
+					}
+					break outer;
 				}
-				break outer;
 			}
 		}
-		return result;
-	});
+		out.push(base);
+	}
+
+	return out;
 }
 
 export interface PlayerProfile {

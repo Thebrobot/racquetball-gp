@@ -1732,6 +1732,23 @@ html.nav-drawer-open .nav-drawer-backdrop {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.48);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.player-ticket-round {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--green);
+  background: rgba(132, 204, 22, 0.1);
+  border: 1px solid rgba(132, 204, 22, 0.25);
+  padding: 2px 8px;
+  border-radius: 999px;
 }
 
 .player-ticket-opponent {
@@ -1750,6 +1767,40 @@ html.nav-drawer-open .nav-drawer-backdrop {
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.35);
   flex-shrink: 0;
+}
+
+/* Team opponent (doubles — no profile link) */
+.player-ticket-team {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* Round-robin pool */
+.player-ticket-pool {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 22px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.player-ticket-pool-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.player-ticket-pool-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .player-ticket-opponent-link {

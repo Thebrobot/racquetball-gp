@@ -37,12 +37,27 @@ export interface EventBracketRound {
 
 export type DivisionFormat = 'single' | 'roundrobin';
 
+export interface RoundRobinMatch {
+	/** Round label, e.g. "Round 1" */
+	round: string;
+	/** First team or player (last-name form for doubles, full name for singles) */
+	team1: string;
+	/** Second team or player */
+	team2: string;
+	/** Scheduled time in same format as profile entries, e.g. "Saturday · 2:00 PM" */
+	scheduledTime: string;
+	/** Court assignment, e.g. "Court 3" */
+	court?: string;
+}
+
 export interface EventDivisionDetail {
 	id: string;
 	label: string;
 	format: DivisionFormat;
 	rounds?: EventBracketRound[];
 	roundRobinPlayers?: string[];
+	/** Per-match schedule for round-robin divisions (generates individual ticket per match) */
+	roundRobinMatches?: RoundRobinMatch[];
 }
 
 export interface EventData {
@@ -164,6 +179,11 @@ const EVENTS_RAW: EventData[] = [
 				label: "Men's Singles: C",
 				format: 'roundrobin',
 				roundRobinPlayers: ['Michael Ammen', 'Ben Mordkovich', 'Gordon Kelly'],
+				roundRobinMatches: [
+					{ round: 'Round 1', team1: 'Michael Ammen',  team2: 'Ben Mordkovich', scheduledTime: 'Saturday · 8:00 AM',   court: 'Court 2' },
+					{ round: 'Round 2', team1: 'Michael Ammen',  team2: 'Gordon Kelly',   scheduledTime: 'Saturday · 10:00 AM',  court: 'Court 2' },
+					{ round: 'Round 3', team1: 'Ben Mordkovich', team2: 'Gordon Kelly',   scheduledTime: 'Saturday · 12:00 PM',  court: 'Court 4' },
+				],
 			},
 			// ── Age Singles ────────────────────────────────────────────────────────
 			{
@@ -219,6 +239,15 @@ const EVENTS_RAW: EventData[] = [
 					'Garcia / Nolan',
 					'M. Huyke / O. Huyke',
 					'Rivero / Steinheiser',
+				],
+				// Full schedule from R2 Sports
+				roundRobinMatches: [
+					{ round: 'Round 1', team1: 'Garcia / Nolan',      team2: 'Beacher / Toston',      scheduledTime: 'Saturday · 2:00 PM' },
+					{ round: 'Round 1', team1: 'M. Huyke / O. Huyke', team2: 'Rivero / Steinheiser',  scheduledTime: 'Saturday · 4:00 PM', court: 'Court 3' },
+					{ round: 'Round 2', team1: 'Garcia / Nolan',      team2: 'Rivero / Steinheiser',  scheduledTime: 'Saturday · 5:00 PM', court: 'Court 2' },
+					{ round: 'Round 2', team1: 'M. Huyke / O. Huyke', team2: 'Beacher / Toston',      scheduledTime: 'Saturday · 7:00 PM', court: 'Court 4' },
+					{ round: 'Round 3', team1: 'Rivero / Steinheiser', team2: 'Beacher / Toston',     scheduledTime: 'Sunday · 12:00 PM',  court: 'Court 3' },
+					{ round: 'Round 3', team1: 'Garcia / Nolan',      team2: 'M. Huyke / O. Huyke',  scheduledTime: 'Sunday · 12:00 PM' },
 				],
 			},
 			{
@@ -289,6 +318,11 @@ const EVENTS_RAW: EventData[] = [
 					'Gaerlan / Lewis',
 					'Hernandez / Martinez',
 				],
+				roundRobinMatches: [
+					{ round: 'Round 1', team1: 'Gaerlan / Lewis',    team2: 'Hernandez / Martinez', scheduledTime: 'Saturday · 10:00 AM', court: 'Court 4' },
+					{ round: 'Round 2', team1: 'Fry / Gutierrez',    team2: 'Hernandez / Martinez', scheduledTime: 'Saturday · 4:00 PM' },
+					{ round: 'Round 3', team1: 'Fry / Gutierrez',    team2: 'Gaerlan / Lewis',      scheduledTime: 'Sunday · 9:00 AM' },
+				],
 			},
 			{
 				id: 'mixed-doubles',
@@ -299,6 +333,14 @@ const EVENTS_RAW: EventData[] = [
 					'Brandt / Henry',
 					'Jennings / Jennings',
 					'Russell / Van Zant-Russell',
+				],
+				roundRobinMatches: [
+					{ round: 'Round 1', team1: 'Brandt / Henry',           team2: 'Jennings / Jennings',       scheduledTime: 'Friday · 6:30 PM',    court: 'Court 2' },
+					{ round: 'Round 2', team1: 'Russell / Van Zant-Russell', team2: 'Jennings / Jennings',     scheduledTime: 'Saturday · 2:00 PM',  court: 'Court 3' },
+					{ round: 'Round 2', team1: 'Anthony / Artman',         team2: 'Brandt / Henry',            scheduledTime: 'Saturday · 4:00 PM',  court: 'Court 4' },
+					{ round: 'Round 3', team1: 'Anthony / Artman',         team2: 'Russell / Van Zant-Russell', scheduledTime: 'Saturday · 6:00 PM', court: 'Court 4' },
+					{ round: 'Round 3', team1: 'Brandt / Henry',           team2: 'Russell / Van Zant-Russell', scheduledTime: 'Sunday · 9:00 AM',   court: 'Court 2' },
+					{ round: 'Round 1', team1: 'Anthony / Artman',         team2: 'Jennings / Jennings',       scheduledTime: 'Saturday · 10:00 AM', court: 'Court 1' },
 				],
 			},
 		],

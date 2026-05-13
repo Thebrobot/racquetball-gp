@@ -133,17 +133,40 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 							</div>
 							<div class="player-ticket-body">
 								<div class="player-ticket-division">{entry.division}</div>
-								<div class="player-ticket-event">{entry.eventName}</div>
+								<div class="player-ticket-event">
+									{entry.eventName}
+									{entry.round && <span class="player-ticket-round">{entry.round}</span>}
+								</div>
 							</div>
-							{entry.opponent && (
+							{entry.isRoundRobin && entry.opponents && entry.opponents.length > 0 && (
+								<div class="player-ticket-pool">
+									<span class="player-ticket-pool-label">Pool</span>
+									<ul class="player-ticket-pool-list">
+										{entry.opponents.map((opp, i) => {
+											const slug = entry.opponentSlugs?.[i];
+											return (
+												<li>
+													{slug ? (
+														<a class="player-ticket-opponent-link" href={`/players/${slug}`}>{opp}</a>
+													) : (
+														<span class="player-ticket-team">{opp}</span>
+													)}
+												</li>
+											);
+										})}
+									</ul>
+								</div>
+							)}
+							{!entry.isRoundRobin && entry.opponent && (
 								<div class="player-ticket-opponent">
 									<span class="player-ticket-vs">vs</span>
-									<a
-										class="player-ticket-opponent-link"
-										href={`/players/${entry.opponentSlug}`}
-									>
-										{entry.opponent}
-									</a>
+									{entry.opponentSlug ? (
+										<a class="player-ticket-opponent-link" href={`/players/${entry.opponentSlug}`}>
+											{entry.opponent}
+										</a>
+									) : (
+										<span class="player-ticket-team">{entry.opponent}</span>
+									)}
 								</div>
 							)}
 							{rest && (
