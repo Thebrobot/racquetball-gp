@@ -1,6 +1,7 @@
 import { LB_CATEGORY_HEADING, LB_DIVISIONS_BY_CATEGORY, lbData } from './leaderboard';
 import { EVENTS } from './events';
 import { PLAYER_IMAGES } from './player-images';
+export { PLAYER_IMAGES };
 
 export interface PlayerEventCall {
 	eventName: string;
