@@ -1,5 +1,7 @@
 ---
 import GrandPrixLayout from '../../../../layouts/GrandPrixLayout.astro';
+import SingleEliminationBracket from '../../../../components/grand-prix/SingleEliminationBracket.astro';
+import SponsorLogoMarquee from '../../../../components/grand-prix/SponsorLogoMarquee.astro';
 import { EVENTS } from '../../../../data/events';
 import { getAllPlayers, getPlayerSlug } from '../../../../data/players';
 import { titleSponsor } from '../../../../data/ocala-sponsors';
@@ -14,15 +16,8 @@ export async function getStaticPaths() {
 }
 
 const { event, division } = Astro.props;
-const divisionBase = `/events/${event.slug}/divisions`;
 const players = division.roundRobinPlayers ?? [];
-const rounds = division.rounds ?? [];
 const rrMatches = division.roundRobinMatches ?? [];
-
-const finalMatch = rounds[rounds.length - 1]?.matches?.[0];
-const champName = finalMatch?.winner === 1 ? finalMatch.player1
-	: finalMatch?.winner === 2 ? finalMatch.player2
-	: null;
 
 const isLinkablePlayer = (name: string) => {
 	const trimmed = name.trim();
@@ -55,12 +50,6 @@ function resolveTeamMembers(teamStr: string): { name: string; slug?: string }[] 
 		return { name: part };
 	});
 }
-/** Full display string for a doubles team (used where a plain string is needed). */
-function resolveTeamDisplay(name: string): string {
-	if (!name.includes('/')) return name;
-	return resolveTeamMembers(name).map((m) => m.name).join(' / ');
-}
-
 // ── Round-robin standings (computed from match results) ───────────────────────
 type StandingRow = { name: string; w: number; l: number; played: number };
 const standingsMap = new Map<string, StandingRow>();
@@ -105,149 +94,8 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 
 	{division.format === 'single' ? (
 		<section class="event-section">
-			<div class="bracket-shell">
-				<header class="bracket-header">
-					<div class="bracket-header-title-row">
-						<span class="bracket-brand-badge">Grand Prix</span>
-						<h2 class="bracket-heading">{division.label}</h2>
-					</div>
-					<div class="bracket-header-actions">
-						<a class="bracket-cta" href="/leaderboard">View full standings</a>
-					</div>
-				</header>
-				{rounds.length > 1 && (
-					<nav class="bracket-tab-nav" aria-label="Bracket rounds">
-						{rounds.map((round, idx) => (
-							<button
-								class:list={['bracket-tab-btn', idx === 0 ? 'active' : '']}
-								type="button"
-								data-round-idx={idx}
-							>
-								{round.label}
-							</button>
-						))}
-						{champName && (
-							<button class="bracket-tab-btn bracket-tab-btn--champ" type="button" data-round-idx={rounds.length}>
-								Champion
-							</button>
-						)}
-					</nav>
-				)}
-				<div class="bracket-grid bracket-grid--styled">
-					{rounds.map((round) => {
-						const matches = round.matches ?? [];
-						return (
-						<div class="bracket-round">
-							<div class="bracket-round-title">{round.label}</div>
-							<div class="bracket-matches">
-								{matches.map((match) => {
-									const isBye = match.player1.toUpperCase() === 'BYE' || match.player2.toUpperCase() === 'BYE';
-									const advancer = isBye
-										? (match.player1.toUpperCase() !== 'BYE' ? match.player1 : match.player2)
-										: null;
-									const advancerSeed = isBye
-										? (match.player1.toUpperCase() !== 'BYE' ? match.seed1 : match.seed2)
-										: null;
-
-									if (isBye) {
-										return (
-											<div class="bracket-match bracket-match--bye">
-												<div class="bracket-player bracket-player--bye-advancer">
-													{advancerSeed && <span class="bracket-seed" data-seed={advancerSeed}>{advancerSeed}</span>}
-													{advancer!.includes('/') ? (
-														<span class="bracket-name">
-															{resolveTeamMembers(advancer!).map((mem, j, arr) => (
-																<>
-																	{mem.slug ? <a class="bracket-name-link" href={`/players/${mem.slug}`}>{mem.name}</a> : mem.name}
-																	{j < arr.length - 1 && ' / '}
-																</>
-															))}
-														</span>
-													) : isLinkablePlayer(advancer!) ? (
-														<a class="bracket-name bracket-name-link" href={`/players/${getPlayerSlug(advancer!)}`}>
-															{advancer}
-														</a>
-													) : (
-														<span class="bracket-name">{advancer}</span>
-													)}
-													<span class="bracket-bye-badge">BYE</span>
-												</div>
-											</div>
-										);
-									}
-
-									const hasWinner = !!match.winner;
-									return (
-										<div class:list={['bracket-match', hasWinner && 'bracket-match--complete']}>
-											{match.matchId && <div class="bracket-match-id">{match.matchId}</div>}
-											<div class:list={['bracket-player', match.winner === 1 ? 'bracket-winner' : '']}>
-												{match.seed1 ? <span class="bracket-seed" data-seed={match.seed1}>{match.seed1}</span> : <span class="bracket-seed bracket-seed--empty"></span>}
-												{match.player1.includes('/') ? (
-													<span class="bracket-name">
-														{resolveTeamMembers(match.player1).map((mem, j, arr) => (
-															<>
-																{mem.slug ? <a class="bracket-name-link" href={`/players/${mem.slug}`}>{mem.name}</a> : mem.name}
-																{j < arr.length - 1 && ' / '}
-															</>
-														))}
-													</span>
-												) : isLinkablePlayer(match.player1) ? (
-													<a class="bracket-name bracket-name-link" href={`/players/${getPlayerSlug(match.player1)}`}>
-														{match.player1}
-													</a>
-												) : (
-													<span class:list={['bracket-name', match.player1 === 'TBD' && 'bracket-name--tbd']}>{match.player1}</span>
-												)}
-											</div>
-											<div class="bracket-vs-divider"><span>vs</span></div>
-											<div class:list={['bracket-player', match.winner === 2 ? 'bracket-winner' : '']}>
-												{match.seed2 ? <span class="bracket-seed" data-seed={match.seed2}>{match.seed2}</span> : <span class="bracket-seed bracket-seed--empty"></span>}
-												{match.player2.includes('/') ? (
-													<span class="bracket-name">
-														{resolveTeamMembers(match.player2).map((mem, j, arr) => (
-															<>
-																{mem.slug ? <a class="bracket-name-link" href={`/players/${mem.slug}`}>{mem.name}</a> : mem.name}
-																{j < arr.length - 1 && ' / '}
-															</>
-														))}
-													</span>
-												) : isLinkablePlayer(match.player2) ? (
-													<a class="bracket-name bracket-name-link" href={`/players/${getPlayerSlug(match.player2)}`}>
-														{match.player2}
-													</a>
-												) : (
-													<span class:list={['bracket-name', match.player2 === 'TBD' && 'bracket-name--tbd']}>{match.player2}</span>
-												)}
-											</div>
-											{match.score && <div class="bracket-match-score">{match.score}</div>}
-											{match.scheduledTime && (
-												<div class="bracket-match-time">
-													<svg class="bracket-time-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-														<circle cx="8" cy="8" r="6.25"/><path d="M8 4.5V8l2.5 1.5"/>
-													</svg>
-													{match.scheduledTime}{match.court ? ` · ${match.court}` : ''}
-												</div>
-											)}
-										</div>
-									);
-								})}
-							</div>
-						</div>
-						);
-					})}
-					{champName && (
-						<div class="bracket-champion">
-							<div class="bracket-champion-card">
-								<svg class="bracket-champion-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-									<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-								</svg>
-								<div class="bracket-champion-label">Champion</div>
-								<div class="bracket-champion-name">{champName ? resolveTeamDisplay(champName) : ''}</div>
-							</div>
-						</div>
-					)}
-				</div>
-			</div>
+			<SingleEliminationBracket division={division} />
+			<SponsorLogoMarquee />
 		</section>
 	) : (
 		<section class="event-section rr-section">

@@ -1,0 +1,771 @@
+---
+import type { EventBracketMatch, EventBracketRound, EventDivisionDetail } from '../../data/events';
+import { getAllPlayers, getPlayerSlug } from '../../data/players';
+
+interface Props {
+	division: EventDivisionDetail;
+}
+
+const { division } = Astro.props;
+const rounds = division.rounds ?? [];
+const allPlayers = getAllPlayers();
+const playerIndex = new Map(allPlayers.map((player) => [player.name.toLowerCase(), player]));
+
+type Layout = {
+	cardWidth: number;
+	cardHeight: number;
+	columnGap: number;
+	roundTop: number;
+	boardPaddingRight: number;
+	cardTops: number[][];
+	columnLefts?: number[];
+};
+
+type BoardView = {
+	variant: 'desktop' | 'mobile';
+	compact: boolean;
+	layout: Layout;
+	width: number;
+	height: number;
+	championLeft: number;
+	championTop: number;
+	paths: string[];
+	finalPath: string;
+};
+
+type NameSegment = {
+	text: string;
+	href?: string;
+};
+
+type BracketSide = {
+	seed?: number;
+	rawName: string;
+	displayName: string;
+	location: string;
+	winner: boolean;
+	bye: boolean;
+	segments: NameSegment[];
+};
+
+const desktopLayout = createLayout(rounds, {
+	cardWidth: 220,
+	cardHeight: 110,
+	columnGap: 42,
+	roundTop: 58,
+	boardPaddingRight: 132,
+	firstRoundGap: 34,
+});
+
+const mobileLayout = createLayout(rounds, {
+	cardWidth: 232,
+	cardHeight: 100,
+	columnGap: 18,
+	roundTop: 46,
+	boardPaddingRight: 120,
+	firstRoundGap: 22,
+	columnLefts: [0, 250, 472, 666],
+});
+
+const boardViews: BoardView[] = [
+	createBoardView('desktop', desktopLayout, false),
+	createBoardView('mobile', mobileLayout, true),
+];
+
+function createLayout(
+	bracketRounds: EventBracketRound[],
+	options: Omit<Layout, 'cardTops'> & { firstRoundGap: number },
+): Layout {
+	const firstRoundStep = options.cardHeight + options.firstRoundGap;
+	const cardTops: number[][] = [];
+	cardTops[0] = (bracketRounds[0]?.matches ?? []).map((_, index) => index * firstRoundStep);
+
+	for (let roundIndex = 1; roundIndex < bracketRounds.length; roundIndex++) {
+		const previousTops = cardTops[roundIndex - 1] ?? [];
+		const matchCount = bracketRounds[roundIndex]?.matches.length ?? 0;
+		cardTops[roundIndex] = Array.from({ length: matchCount }, (_, gameIndex) => {
+			const firstTop = previousTops[gameIndex * 2] ?? previousTops[previousTops.length - 1] ?? 0;
+			const secondTop = previousTops[gameIndex * 2 + 1] ?? firstTop;
+			const firstCenter = firstTop + options.cardHeight / 2;
+			const secondCenter = secondTop + options.cardHeight / 2;
+			return (firstCenter + secondCenter) / 2 - options.cardHeight / 2;
+		});
+	}
+
+	return {
+		cardWidth: options.cardWidth,
+		cardHeight: options.cardHeight,
+		columnGap: options.columnGap,
+		roundTop: options.roundTop,
+		boardPaddingRight: options.boardPaddingRight,
+		columnLefts: options.columnLefts,
+		cardTops,
+	};
+}
+
+function createBoardView(variant: BoardView['variant'], layout: Layout, compact: boolean): BoardView {
+	const lastRoundIndex = Math.max(rounds.length - 1, 0);
+	const firstRoundTops = layout.cardTops[0] ?? [];
+	const lastFirstRoundTop = firstRoundTops[firstRoundTops.length - 1] ?? 0;
+	const width = getX(layout, lastRoundIndex) + layout.cardWidth + layout.boardPaddingRight;
+	const height = layout.roundTop + lastFirstRoundTop + layout.cardHeight + 44;
+	const championLeft = getX(layout, lastRoundIndex) + layout.cardWidth + 54;
+	const championTop = getCenterY(layout, lastRoundIndex, 0) - (compact ? 11 : 14);
+
+	return {
+		variant,
+		compact,
+		layout,
+		width,
+		height,
+		championLeft,
+		championTop,
+		paths: connectorPaths(layout),
+		finalPath: finalConnectorPath(layout, compact),
+	};
+}
+
+function getX(layout: Layout, roundIndex: number) {
+	if (layout.columnLefts?.[roundIndex] !== undefined) return layout.columnLefts[roundIndex]!;
+	return roundIndex * (layout.cardWidth + layout.columnGap);
+}
+
+function getY(layout: Layout, roundIndex: number, gameIndex: number) {
+	return layout.roundTop + (layout.cardTops[roundIndex]?.[gameIndex] ?? 0);
+}
+
+function getCenterY(layout: Layout, roundIndex: number, gameIndex: number) {
+	return getY(layout, roundIndex, gameIndex) + layout.cardHeight / 2;
+}
+
+function connectorPaths(layout: Layout) {
+	const paths: string[] = [];
+
+	for (let fromRound = 0; fromRound < rounds.length - 1; fromRound++) {
+		const nextRound = rounds[fromRound + 1];
+		if (!nextRound) continue;
+
+		for (let pairIndex = 0; pairIndex < nextRound.matches.length; pairIndex++) {
+			const firstGame = pairIndex * 2;
+			const secondGame = firstGame + 1;
+			if (layout.cardTops[fromRound]?.[firstGame] === undefined) continue;
+
+			const x1 = getX(layout, fromRound) + layout.cardWidth;
+			const x2 = getX(layout, fromRound + 1);
+			const midX = x1 + (x2 - x1) / 2;
+			const y1 = getCenterY(layout, fromRound, firstGame);
+			const y2 = layout.cardTops[fromRound]?.[secondGame] === undefined
+				? y1
+				: getCenterY(layout, fromRound, secondGame);
+			const y3 = getCenterY(layout, fromRound + 1, pairIndex);
+
+			if (y1 === y2) {
+				paths.push(`M ${x1} ${y1} H ${x2}`);
+			} else {
+				paths.push(`M ${x1} ${y1} H ${midX} V ${y2} H ${x1} M ${midX} ${y3} H ${x2}`);
+			}
+		}
+	}
+
+	return paths;
+}
+
+function finalConnectorPath(layout: Layout, compact: boolean) {
+	const lastRoundIndex = Math.max(rounds.length - 1, 0);
+	const finalX = getX(layout, lastRoundIndex) + layout.cardWidth;
+	const finalY = getCenterY(layout, lastRoundIndex, 0);
+	return `M ${finalX} ${finalY} H ${finalX + (compact ? 46 : 54)}`;
+}
+
+function roundLabel(round: EventBracketRound, roundIndex: number) {
+	if (roundIndex === 0 && round.matches.length === 8) return 'First Round';
+	if (roundIndex === rounds.length - 1) return 'Final';
+	return round.label.replace(/^Finals$/i, 'Final');
+}
+
+function isGhostName(name: string) {
+	const upper = name.trim().toUpperCase();
+	return upper === '' || upper === 'BYE' || upper === 'TBD';
+}
+
+function isLinkablePlayer(name: string) {
+	const trimmed = name.trim();
+	return !isGhostName(trimmed) && !trimmed.includes('/') && !trimmed.startsWith('Winner ');
+}
+
+function abbreviateName(name: string) {
+	if (name.includes('/')) {
+		return name.split(/\s*\/\s*/).map(abbreviateNamePart).join(' / ');
+	}
+	return abbreviateNamePart(name);
+}
+
+function abbreviateNamePart(name: string) {
+	const parts = name.trim().replace(/\./g, '').split(/\s+/).filter(Boolean);
+	if (parts.length < 2) return name;
+	return `${parts[0]![0]} ${parts[parts.length - 1]}`;
+}
+
+function feederLabel(roundIndex: number, gameIndex: number, side: 1 | 2) {
+	if (roundIndex === 0) return '';
+	const feederIndex = gameIndex * 2 + (side === 1 ? 0 : 1);
+	const feeder = rounds[roundIndex - 1]?.matches[feederIndex];
+	return feeder?.matchId ? `Winner ${feeder.matchId}` : '';
+}
+
+function displayNameFor(match: EventBracketMatch, roundIndex: number, gameIndex: number, side: 1 | 2) {
+	const rawName = side === 1 ? match.player1 : match.player2;
+	if (rawName.trim().toUpperCase() === 'TBD' || rawName.trim() === '') {
+		return feederLabel(roundIndex, gameIndex, side) || rawName;
+	}
+	if (roundIndex > 0 && !isGhostName(rawName)) return abbreviateName(rawName);
+	return rawName;
+}
+
+function playerLocation(rawName: string, roundIndex: number) {
+	if (roundIndex > 0 || !isLinkablePlayer(rawName)) return '';
+	return playerIndex.get(rawName.toLowerCase())?.city ?? '';
+}
+
+function resolveTeamMembers(teamStr: string): { name: string; slug?: string }[] {
+	return teamStr.split(/\s*\/\s*/).map((part) => {
+		const trimmed = part.trim();
+		const partLower = trimmed.toLowerCase();
+		const initMatch = trimmed.match(/^([A-Za-z])\.\s+(.+)$/);
+
+		if (initMatch) {
+			const [, init, lastName] = initMatch;
+			const lnLower = lastName.toLowerCase();
+			const found = allPlayers.find(
+				(player) =>
+					player.name.toLowerCase().endsWith(lnLower) &&
+					player.name[0]?.toLowerCase() === init.toLowerCase(),
+			);
+			if (found) return { name: found.name, slug: found.slug };
+		}
+
+		const found = allPlayers.find((player) => player.name.toLowerCase().endsWith(partLower));
+		if (found) return { name: found.name, slug: found.slug };
+		return { name: trimmed };
+	});
+}
+
+function nameSegments(rawName: string, displayName: string): NameSegment[] {
+	if (isLinkablePlayer(rawName)) {
+		return [{ text: displayName, href: `/players/${getPlayerSlug(rawName)}` }];
+	}
+
+	if (rawName.includes('/') && !displayName.startsWith('Winner ')) {
+		const rawMembers = resolveTeamMembers(rawName);
+		const displayParts = displayName.split(/\s*\/\s*/);
+		return rawMembers.map((member, index) => ({
+			text: displayParts[index] ?? member.name,
+			href: member.slug ? `/players/${member.slug}` : undefined,
+		}));
+	}
+
+	return [{ text: displayName }];
+}
+
+function buildSide(match: EventBracketMatch, roundIndex: number, gameIndex: number, side: 1 | 2): BracketSide {
+	const rawName = side === 1 ? match.player1 : match.player2;
+	const displayName = displayNameFor(match, roundIndex, gameIndex, side);
+	const seed = side === 1 ? match.seed1 : match.seed2;
+	const winner = match.winner === side;
+
+	return {
+		seed,
+		rawName,
+		displayName,
+		location: playerLocation(rawName, roundIndex),
+		winner,
+		bye: rawName.trim().toUpperCase() === 'BYE',
+		segments: nameSegments(rawName, displayName),
+	};
+}
+
+function matchStatus(match: EventBracketMatch) {
+	if (match.player1.toUpperCase() === 'BYE' || match.player2.toUpperCase() === 'BYE') return 'Bye';
+	if (match.score) return match.score;
+	if (!match.scheduledTime) return 'TBD';
+
+	const [rawDay, rawTime] = match.scheduledTime.split('·').map((part) => part.trim());
+	const dayMap: Record<string, string> = {
+		Friday: 'Fr',
+		Saturday: 'Sa',
+		Sunday: 'Su',
+		Monday: 'Mo',
+		Tuesday: 'Tu',
+		Wednesday: 'We',
+		Thursday: 'Th',
+	};
+	const day = dayMap[rawDay ?? ''] ?? rawDay ?? '';
+	const timeMatch = (rawTime ?? '').match(/^(\d{1,2}):(\d{2})\s*([AP])M$/i);
+	const time = timeMatch ? `${timeMatch[1]}:${timeMatch[2]} ${timeMatch[3]!.toUpperCase()}` : rawTime ?? '';
+	const courtMatch = match.court?.match(/Court\s*#?\s*(\w+)/i);
+	const court = courtMatch ? ` #${courtMatch[1]}` : '';
+
+	return `${day} ${time}${court}`.trim();
+}
+---
+
+{rounds.length > 0 && (
+	<div class="gp-single-bracket-shell">
+		{boardViews.map((view) => (
+			<div class:list={['gp-draw-scroll', `gp-draw-scroll--${view.variant}`]}>
+				<div
+					class="gp-draw-board"
+					style={`width: ${view.width}px; height: ${view.height}px;`}
+					aria-label={`${division.label} bracket`}
+				>
+					<svg
+						class="gp-draw-connectors"
+						width={view.width}
+						height={view.height}
+						viewBox={`0 0 ${view.width} ${view.height}`}
+						aria-hidden="true"
+					>
+						{view.paths.map((path) => (
+							<path d={path} fill="none" stroke="#94a3b8" stroke-width="2" stroke-linejoin="round" />
+						))}
+						<path d={view.finalPath} fill="none" stroke="#1d4ed8" stroke-width="3" />
+					</svg>
+
+					{rounds.map((round, roundIndex) => (
+						<div
+							class:list={['gp-draw-round-label', view.compact && 'gp-draw-round-label--compact']}
+							style={`left: ${getX(view.layout, roundIndex)}px; top: 0; width: ${view.layout.cardWidth}px;`}
+						>
+							{roundLabel(round, roundIndex)}
+						</div>
+					))}
+
+					<div
+						class:list={['gp-draw-champion-label', view.compact && 'gp-draw-champion-label--compact']}
+						style={`left: ${view.championLeft}px; top: ${view.championTop}px;`}
+					>
+						Champion
+					</div>
+
+					{rounds.map((round, roundIndex) =>
+						round.matches.map((match, gameIndex) => {
+							const sideA = buildSide(match, roundIndex, gameIndex, 1);
+							const sideB = buildSide(match, roundIndex, gameIndex, 2);
+							const status = matchStatus(match);
+
+							return (
+								<div
+									class="gp-draw-card-slot"
+									style={`left: ${getX(view.layout, roundIndex)}px; top: ${getY(view.layout, roundIndex, gameIndex)}px; width: ${view.layout.cardWidth}px; height: ${view.layout.cardHeight}px;`}
+								>
+									<div class:list={['gp-draw-card', view.compact && 'gp-draw-card--compact']}>
+										<div class:list={['gp-draw-card-head', view.compact && 'gp-draw-card-head--compact']}>
+											<div>
+												<div class:list={['gp-draw-kicker', view.compact && 'gp-draw-kicker--compact']}>Match</div>
+												<div class:list={['gp-draw-id', view.compact && 'gp-draw-id--compact']}>
+													{match.matchId ?? `${roundIndex + 1}-${gameIndex + 1}`}
+												</div>
+											</div>
+											<div class:list={['gp-draw-status', view.compact && 'gp-draw-status--compact']}>{status}</div>
+										</div>
+
+										<div class="gp-draw-card-body">
+											{[sideA, sideB].map((side, sideIndex) => (
+												<>
+													<div
+														class:list={[
+															'gp-draw-player-row',
+															view.compact && 'gp-draw-player-row--compact',
+															side.winner && 'is-winner',
+															side.bye && 'is-bye',
+														]}
+													>
+														<span
+															class:list={[
+																'gp-draw-seed',
+																view.compact && 'gp-draw-seed--compact',
+																side.winner && 'is-winner',
+															]}
+														>
+															{side.seed ?? '-'}
+														</span>
+														<span class="gp-draw-player-copy">
+															<span
+																class:list={[
+																	'gp-draw-player-name',
+																	view.compact && 'gp-draw-player-name--compact',
+																	side.winner && 'is-winner',
+																	side.bye && 'is-bye',
+																]}
+															>
+																{side.segments.map((segment, segmentIndex) => (
+																	<>
+																		{segment.href ? <a href={segment.href}>{segment.text}</a> : segment.text}
+																		{segmentIndex < side.segments.length - 1 && ' / '}
+																	</>
+																))}
+															</span>
+															{side.location && (
+																<span class:list={['gp-draw-player-location', view.compact && 'gp-draw-player-location--compact']}>
+																	{side.location}
+																</span>
+															)}
+														</span>
+														{side.winner ? (
+															<span class:list={['gp-draw-winner-arrow', view.compact && 'gp-draw-winner-arrow--compact']}>&rsaquo;</span>
+														) : (
+															<span class:list={['gp-draw-arrow-spacer', view.compact && 'gp-draw-arrow-spacer--compact']}></span>
+														)}
+													</div>
+													{sideIndex === 0 && <div class="gp-draw-row-divider"></div>}
+												</>
+											))}
+										</div>
+									</div>
+								</div>
+							);
+						})
+					)}
+				</div>
+			</div>
+		))}
+	</div>
+)}
+
+<style>
+.gp-single-bracket-shell {
+	position: relative;
+	left: 50%;
+	width: min(1440px, calc(100vw - 44px));
+	margin: 0;
+	padding: 32px 28px 40px;
+	transform: translateX(-50%);
+	overflow: hidden;
+	border: 1px solid rgba(255, 255, 255, 0.72);
+	border-radius: 22px;
+	background: #e8eaee;
+	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.75);
+	color: #0f172a;
+}
+
+.gp-draw-scroll {
+	overflow-x: auto;
+	padding-bottom: 32px;
+	-webkit-overflow-scrolling: touch;
+	scrollbar-width: thin;
+	scrollbar-color: #94a3b8 transparent;
+}
+
+.gp-draw-scroll--desktop {
+	overflow-x: clip;
+}
+
+.gp-draw-scroll--mobile {
+	display: none;
+}
+
+.gp-draw-board {
+	position: relative;
+	margin: 0 auto;
+}
+
+.gp-draw-connectors {
+	position: absolute;
+	left: 0;
+	top: 0;
+	z-index: 0;
+	overflow: visible;
+	pointer-events: none;
+}
+
+.gp-draw-round-label,
+.gp-draw-champion-label,
+.gp-draw-card-slot {
+	position: absolute;
+}
+
+.gp-draw-round-label {
+	z-index: 2;
+	border-radius: 8px;
+	background: #cbd5e1;
+	padding: 8px 12px;
+	font-size: 12px;
+	font-weight: 900;
+	letter-spacing: 0.06em;
+	line-height: 1.1;
+	text-align: left;
+	text-transform: uppercase;
+	color: #334155;
+}
+
+.gp-draw-round-label--compact {
+	padding: 6px 10px;
+	font-size: 10px;
+}
+
+.gp-draw-champion-label {
+	z-index: 2;
+	font-family: 'Barlow Condensed', sans-serif;
+	font-size: 18px;
+	font-weight: 900;
+	line-height: 1;
+	text-transform: uppercase;
+	color: #1d4ed8;
+	white-space: nowrap;
+}
+
+.gp-draw-champion-label--compact {
+	font-size: 16px;
+}
+
+.gp-draw-card-slot {
+	z-index: 3;
+}
+
+.gp-draw-card {
+	height: 100%;
+	overflow: hidden;
+	border: 1px solid rgba(15, 23, 42, 0.1);
+	border-radius: 12px;
+	background: #fff;
+	box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.gp-draw-card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
+
+.gp-draw-card--compact {
+	border-radius: 8px;
+	box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.gp-draw-card-head {
+	display: flex;
+	min-height: 31px;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	border-bottom: 1px solid #f1f5f9;
+	background: #f8fafc;
+	padding: 4px 10px;
+}
+
+.gp-draw-card-head--compact {
+	min-height: 28px;
+	padding: 3px 8px;
+}
+
+.gp-draw-kicker {
+	font-size: 9px;
+	font-weight: 900;
+	letter-spacing: 0.16em;
+	line-height: 1;
+	text-transform: uppercase;
+	color: #94a3b8;
+}
+
+.gp-draw-kicker--compact {
+	font-size: 8px;
+	letter-spacing: 0.14em;
+}
+
+.gp-draw-id {
+	margin-top: 2px;
+	font-size: 10px;
+	font-weight: 900;
+	line-height: 1;
+	color: #2563eb;
+}
+
+.gp-draw-id--compact {
+	font-size: 9px;
+}
+
+.gp-draw-status {
+	min-width: 0;
+	max-width: 142px;
+	overflow: hidden;
+	text-align: right;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 10px;
+	font-weight: 800;
+	line-height: 1.2;
+	color: #047857;
+}
+
+.gp-draw-status--compact {
+	max-width: 126px;
+	font-size: 8px;
+}
+
+.gp-draw-card-body {
+	padding: 4px;
+}
+
+.gp-draw-player-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 27px;
+	padding: 4px 6px;
+	color: #475569;
+}
+
+.gp-draw-player-row--compact {
+	gap: 6px;
+	min-height: 25px;
+	padding: 3px 5px;
+}
+
+.gp-draw-player-row.is-winner {
+	color: #020617;
+}
+
+.gp-draw-player-row.is-bye {
+	color: #94a3b8;
+}
+
+.gp-draw-seed {
+	display: inline-flex;
+	width: 24px;
+	height: 24px;
+	flex: 0 0 24px;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid #e2e8f0;
+	border-radius: 999px;
+	background: #fff;
+	color: #64748b;
+	font-size: 10px;
+	font-weight: 900;
+	line-height: 1;
+}
+
+.gp-draw-seed--compact {
+	width: 20px;
+	height: 20px;
+	flex-basis: 20px;
+	font-size: 9px;
+}
+
+.gp-draw-seed.is-winner {
+	border-color: #10b981;
+	background: #ecfdf5;
+	color: #047857;
+}
+
+.gp-draw-player-copy {
+	display: block;
+	min-width: 0;
+	flex: 1 1 auto;
+}
+
+.gp-draw-player-name,
+.gp-draw-player-location {
+	display: block;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.gp-draw-player-name {
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 1.15;
+}
+
+.gp-draw-player-name--compact {
+	font-size: 11px;
+}
+
+.gp-draw-player-name.is-winner {
+	font-weight: 900;
+}
+
+.gp-draw-player-name.is-bye {
+	font-weight: 900;
+	text-transform: uppercase;
+}
+
+.gp-draw-player-name a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.gp-draw-player-name a:hover {
+	color: #1d4ed8;
+}
+
+.gp-draw-player-location {
+	margin-top: 1px;
+	font-size: 10px;
+	font-style: italic;
+	line-height: 1.1;
+	color: #64748b;
+}
+
+.gp-draw-player-location--compact {
+	font-size: 9px;
+}
+
+.gp-draw-row-divider {
+	margin: 0 8px;
+	border-top: 1px solid #f1f5f9;
+}
+
+.gp-draw-winner-arrow,
+.gp-draw-arrow-spacer {
+	display: inline-flex;
+	width: 16px;
+	flex: 0 0 16px;
+	justify-content: center;
+}
+
+.gp-draw-winner-arrow {
+	align-items: center;
+	color: #0f172a;
+	font-size: 22px;
+	font-weight: 900;
+	line-height: 1;
+}
+
+.gp-draw-winner-arrow--compact,
+.gp-draw-arrow-spacer--compact {
+	width: 12px;
+	flex-basis: 12px;
+}
+
+.gp-draw-winner-arrow--compact {
+	font-size: 18px;
+}
+
+@media (max-width: 1279px) {
+	.gp-draw-scroll--desktop {
+		display: none;
+	}
+
+	.gp-draw-scroll--mobile {
+		display: block;
+	}
+}
+
+@media (max-width: 767px) {
+	.gp-single-bracket-shell {
+		width: calc(100vw - 24px);
+		padding: 24px 16px 32px;
+		border-radius: 16px;
+	}
+
+	.gp-draw-scroll--mobile {
+		margin-left: -16px;
+		margin-right: -16px;
+		padding-left: 16px;
+		padding-right: 16px;
+	}
+}
+</style>
