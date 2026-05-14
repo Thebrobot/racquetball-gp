@@ -4277,10 +4277,17 @@ footer {
 .sponsors-section-page {
   background: var(--navy2);
   border-top: 1px solid var(--card-border);
+  /* First block on /sponsors — clear fixed nav pill + notch (same idea as .page-hero) */
+  padding-top: max(148px, calc(env(safe-area-inset-top) + 118px));
+}
+@media (max-width: 640px) {
+  .sponsors-section-page {
+    padding-top: max(102px, calc(env(safe-area-inset-top) + 72px));
+  }
 }
 .sponsors-section-inner {
   text-align: center;
-  padding: 80px 24px;
+  padding: 40px 24px 80px;
   max-width: 1100px;
   margin: 0 auto;
 }
