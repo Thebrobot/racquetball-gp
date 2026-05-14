@@ -67,12 +67,125 @@ function syncUrl() {
 	window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
 }
 
+type LiveWeekendEntry = {
+	slug: string;
+	name: string;
+	dateRange: string;
+	cityLine: string;
+	startDate: string;
+	endDate: string;
+	watchLiveUrl: string | null;
+};
+
+function parseRangeInstant(dateStr: string, isEnd = false): number {
+	return new Date(`${dateStr}T${isEnd ? '23:59:59' : '00:00:00'}`).getTime();
+}
+
+function findLiveWeekendEvent(entries: LiveWeekendEntry[], now = Date.now()): LiveWeekendEntry | null {
+	const live = entries
+		.map((e) => ({
+			e,
+			start: parseRangeInstant(e.startDate, false),
+			end: parseRangeInstant(e.endDate, true),
+		}))
+		.filter(({ start, end }) => now >= start && now <= end)
+		.sort((a, b) => b.start - a.start);
+	return live[0]?.e ?? null;
+}
+
+function livePromoDismissKey(event: LiveWeekendEntry): string {
+	return `gp:livePromoDismissed:${event.slug}:${event.endDate}`;
+}
+
+function initLiveWeekendPromo() {
+	const dataEl = document.getElementById('gp-live-weekend-data');
+	const root = document.getElementById('gp-live-weekend-promo');
+	const titleEl = document.getElementById('gp-live-weekend-title');
+	const subEl = document.getElementById('gp-live-weekend-sub');
+	const actionsEl = document.getElementById('gp-live-weekend-actions');
+	const closeBtn = document.getElementById('gp-live-weekend-close');
+	if (!dataEl || !root || !titleEl || !subEl || !actionsEl || !closeBtn) return;
+
+	const panel = root;
+	const close = closeBtn;
+
+	let entries: LiveWeekendEntry[];
+	try {
+		entries = JSON.parse(dataEl.textContent || '[]') as LiveWeekendEntry[];
+	} catch {
+		return;
+	}
+	if (!Array.isArray(entries) || !entries.length) return;
+
+	const liveEvent = findLiveWeekendEvent(entries);
+	if (!liveEvent) return;
+
+	const dismissStorageKey = livePromoDismissKey(liveEvent);
+	try {
+		if (localStorage.getItem(dismissStorageKey) === '1') return;
+	} catch {
+		/* ignore */
+	}
+
+	titleEl.textContent = liveEvent.name;
+	subEl.textContent = `${liveEvent.dateRange} · ${liveEvent.cityLine}`;
+
+	const parts: string[] = [];
+	if (liveEvent.watchLiveUrl) {
+		parts.push(
+			`<a class="gp-live-weekend-promo__btn gp-live-weekend-promo__btn--primary" href="${escAttr(liveEvent.watchLiveUrl)}" rel="noopener noreferrer" target="_blank">Watch live &amp; scores</a>`,
+		);
+	}
+	const bracketsHref = `/events/${liveEvent.slug}#brackets`;
+	const participantsHref = `/events/${liveEvent.slug}/participants`;
+	parts.push(
+		`<a class="gp-live-weekend-promo__btn gp-live-weekend-promo__btn--ghost" href="${escAttr(bracketsHref)}">Brackets &amp; schedule</a>`,
+	);
+	parts.push(
+		`<a class="gp-live-weekend-promo__btn gp-live-weekend-promo__btn--ghost" href="${escAttr(participantsHref)}">Participants</a>`,
+	);
+	actionsEl.innerHTML = parts.join('');
+
+	function dismiss() {
+		try {
+			localStorage.setItem(dismissStorageKey, '1');
+		} catch {
+			/* ignore */
+		}
+		panel.classList.remove('gp-live-weekend-promo--visible');
+		panel.setAttribute('aria-hidden', 'true');
+		panel.setAttribute('hidden', '');
+		document.removeEventListener('keydown', onDocKey);
+	}
+
+	function onDocKey(e: KeyboardEvent) {
+		if (e.key === 'Escape') dismiss();
+	}
+
+	close.addEventListener('click', dismiss);
+
+	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const delayMs = reducedMotion ? 0 : 800;
+
+	window.setTimeout(() => {
+		panel.removeAttribute('hidden');
+		panel.setAttribute('aria-hidden', 'false');
+		void panel.offsetWidth;
+		panel.classList.add('gp-live-weekend-promo--visible');
+		document.addEventListener('keydown', onDocKey);
+	}, delayMs);
+}
+
 function initNavDrawer() {
 	const btn = document.getElementById('gp-nav-menu-btn') as HTMLButtonElement | null;
 	const backdrop = document.querySelector<HTMLElement>('.nav-drawer-backdrop');
 	const navPanel = document.getElementById('gp-primary-nav');
 	const register = document.querySelector<HTMLAnchorElement>('.nav-pill .nav-register');
 	if (!btn || !backdrop || !navPanel) return;
+
+	const menuBtn = btn;
+	const navBackdrop = backdrop;
+	const primaryNav = navPanel;
 
 	const mq = window.matchMedia('(max-width: 640px)');
 
@@ -82,24 +195,24 @@ function initNavDrawer() {
 
 	function applyPanelState() {
 		const mobile = isMobile();
-		btn.setAttribute('aria-hidden', mobile ? 'false' : 'true');
-		btn.tabIndex = mobile ? 0 : -1;
+		menuBtn.setAttribute('aria-hidden', mobile ? 'false' : 'true');
+		menuBtn.tabIndex = mobile ? 0 : -1;
 		if (!mobile) {
 			document.documentElement.classList.remove('nav-drawer-open');
-			btn.setAttribute('aria-expanded', 'false');
-			navPanel.removeAttribute('inert');
-			navPanel.removeAttribute('aria-hidden');
-			backdrop.setAttribute('aria-hidden', 'true');
-			const label = btn.querySelector('.visually-hidden');
+			menuBtn.setAttribute('aria-expanded', 'false');
+			primaryNav.removeAttribute('inert');
+			primaryNav.removeAttribute('aria-hidden');
+			navBackdrop.setAttribute('aria-hidden', 'true');
+			const label = menuBtn.querySelector('.visually-hidden');
 			if (label) label.textContent = 'Open menu';
 			return;
 		}
 		const open = document.documentElement.classList.contains('nav-drawer-open');
-		navPanel.toggleAttribute('inert', !open);
-		navPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
-		backdrop.setAttribute('aria-hidden', open ? 'false' : 'true');
-		btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-		const label = btn.querySelector('.visually-hidden');
+		primaryNav.toggleAttribute('inert', !open);
+		primaryNav.setAttribute('aria-hidden', open ? 'false' : 'true');
+		navBackdrop.setAttribute('aria-hidden', open ? 'false' : 'true');
+		menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+		const label = menuBtn.querySelector('.visually-hidden');
 		if (label) label.textContent = open ? 'Close menu' : 'Open menu';
 	}
 
@@ -109,12 +222,12 @@ function initNavDrawer() {
 		applyPanelState();
 	}
 
-	btn.addEventListener('click', () => {
+	menuBtn.addEventListener('click', () => {
 		if (!isMobile()) return;
 		setOpen(!document.documentElement.classList.contains('nav-drawer-open'));
 	});
-	backdrop.addEventListener('click', () => setOpen(false));
-	navPanel.querySelectorAll<HTMLAnchorElement>('a[href]').forEach((a) =>
+	navBackdrop.addEventListener('click', () => setOpen(false));
+	primaryNav.querySelectorAll<HTMLAnchorElement>('a[href]').forEach((a) =>
 		a.addEventListener('click', () => setOpen(false)),
 	);
 	register?.addEventListener('click', () => setOpen(false));
@@ -743,6 +856,7 @@ function initHeroVideo() {
 }
 
 initNavDrawer();
+initLiveWeekendPromo();
 initLeaderboardPage();
 initHeroVideo();
 initBracketTabs();

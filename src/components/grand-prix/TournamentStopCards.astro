@@ -1,9 +1,10 @@
 ---
-import { SEASON_STOPS, TOUR_STOP_COUNT } from '../../data/season-stops';
+import { GRAND_PRIX_FULL_SCHEDULE, TOUR_STOP_COUNT, type SeasonStop } from '../../data/season-stops';
 
-function pill(kind: (typeof SEASON_STOPS)[number]['kind']) {
+function pill(kind: SeasonStop['kind']) {
 	if (kind === 'done') return { cls: 'pill-done', label: 'Completed' };
 	if (kind === 'next') return { cls: 'pill-next', label: 'Register Now' };
+	if (kind === 'champ') return { cls: 'pill-pending', label: 'Details TBD' };
 	return { cls: 'pill-pending', label: 'Registration Pending' };
 }
 
@@ -14,18 +15,23 @@ function registerCtaLabel(url: string): string {
 
 <div class="tournaments-grid tournaments-grid--tiles">
 	{
-		SEASON_STOPS.map((stop, index) => {
+		GRAND_PRIX_FULL_SCHEDULE.map((stop, index) => {
 			const p = pill(stop.kind);
-			const n = index + 1;
-			const badge =
-				stop.kind === 'next'
-					? `Stop ${n} of ${TOUR_STOP_COUNT} · Marquee`
-					: `Stop ${n} of ${TOUR_STOP_COUNT}`;
+			const isChamp = stop.kind === 'champ';
+			const badge = isChamp
+				? 'Series championship · 2027'
+				: stop.kind === 'next'
+					? `Lap ${index + 1} of ${TOUR_STOP_COUNT} · Marquee`
+					: `Lap ${index + 1} of ${TOUR_STOP_COUNT}`;
 			const regClosed = stop.kind === 'done';
 			const regPending = stop.kind === 'upcoming';
 			return (
 				<div
-					class:list={['t-card', 't-card--with-stop-img', { featured: stop.kind === 'next' }]}
+					class:list={[
+						't-card',
+						't-card--with-stop-img',
+						{ featured: stop.kind === 'next', 't-card--champ': isChamp },
+					]}
 					data-stop-id={stop.id}
 					style={{ '--stop-img': `url("${stop.image}")` }}
 				>
@@ -41,53 +47,55 @@ function registerCtaLabel(url: string): string {
 						<span class:list={['t-pill', p.cls]}>{p.label}</span>
 					</div>
 					<div class="t-body">
-					<div class="t-meta">
-						<div class="t-meta-item">
-							<strong>{stop.venue}</strong>Venue
+						<div class="t-meta">
+							<div class="t-meta-item">
+								<strong>{stop.venue}</strong>Venue
+							</div>
+							<div class="t-meta-item">
+								<strong>{isChamp ? 'Season finale' : 'Grand Prix points'}</strong>
+								{isChamp ? 'Format & scoring TBD' : 'Awarded at this stop'}
+							</div>
 						</div>
-						<div class="t-meta-item">
-							<strong>Grand Prix points</strong>Awarded at this stop
-						</div>
-					</div>
 						<div class="t-actions">
-						{regClosed ? (
-							<span class="btn-register disabled">Registration Closed</span>
-						) : regPending ? (
-							<a
-								href={stop.registerUrl}
-								class="btn-register-pending"
-								target="_blank"
-								rel="noopener noreferrer"
-							>
-								View on R2
-							</a>
-						) : (
-							<a
-								href={stop.registerUrl}
-								class="btn-register"
-								target={stop.registerUrl.startsWith('http') ? '_blank' : undefined}
-								rel={stop.registerUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
-							>
-								{registerCtaLabel(stop.registerUrl)}
-							</a>
-						)}
-						{stop.bracketsHref ? (
-							<a href={stop.bracketsHref} class="btn-brackets">
-								Brackets
-							</a>
-						) : (
-							<span class="btn-brackets disabled" aria-disabled="true">Brackets</span>
-						)}
-						{stop.participantsHref ? (
-							<a href={stop.participantsHref} class="btn-participants">
-								Participants
-							</a>
-						) : (
-							<span class="btn-participants disabled" aria-disabled="true">Participants</span>
-						)}
+							{isChamp ? (
+								<span class="btn-register disabled" aria-disabled="true">Details TBD</span>
+							) : regClosed ? (
+								<span class="btn-register disabled">Registration Closed</span>
+							) : regPending ? (
+								<a
+									href={stop.registerUrl}
+									class="btn-register-pending"
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									View on R2
+								</a>
+							) : (
+								<a
+									href={stop.registerUrl}
+									class="btn-register"
+									target={stop.registerUrl.startsWith('http') ? '_blank' : undefined}
+									rel={stop.registerUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
+								>
+									{registerCtaLabel(stop.registerUrl)}
+								</a>
+							)}
+							{stop.bracketsHref ? (
+								<a href={stop.bracketsHref} class="btn-brackets">
+									Brackets
+								</a>
+							) : (
+								<span class="btn-brackets disabled" aria-disabled="true">Brackets</span>
+							)}
+							{stop.participantsHref ? (
+								<a href={stop.participantsHref} class="btn-participants">
+									Participants
+								</a>
+							) : (
+								<span class="btn-participants disabled" aria-disabled="true">Participants</span>
+							)}
 						</div>
 					</div>
-	
 				</div>
 			);
 		})

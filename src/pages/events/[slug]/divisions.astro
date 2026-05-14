@@ -1,5 +1,6 @@
 ---
 import GrandPrixLayout from '../../../layouts/GrandPrixLayout.astro';
+import OfficialBallChip from '../../../components/grand-prix/OfficialBallChip.astro';
 import { EVENTS } from '../../../data/events';
 import { titleSponsor } from '../../../data/ocala-sponsors';
 
@@ -22,6 +23,7 @@ const { event } = Astro.props;
 		<div class="section-label">Divisions</div>
 		<h1 class="section-title">{event.name}</h1>
 		<p class="section-sub">{event.dateRange} · {event.cityLine}</p>
+		<OfficialBallChip />
 		<div class="event-section-cta">
 			<a class="btn-ghost" href={`/events/${event.slug}#brackets`}>Event page</a>
 		</div>

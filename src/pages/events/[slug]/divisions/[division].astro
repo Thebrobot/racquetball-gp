@@ -2,6 +2,7 @@
 import GrandPrixLayout from '../../../../layouts/GrandPrixLayout.astro';
 import SingleEliminationBracket from '../../../../components/grand-prix/SingleEliminationBracket.astro';
 import SponsorLogoMarquee from '../../../../components/grand-prix/SponsorLogoMarquee.astro';
+import OfficialBallChip from '../../../../components/grand-prix/OfficialBallChip.astro';
 import { EVENTS } from '../../../../data/events';
 import { getAllPlayers, getPlayerSlug } from '../../../../data/players';
 import { titleSponsor } from '../../../../data/ocala-sponsors';
@@ -86,6 +87,7 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 		<p class="section-sub">
 			{division.format === 'single' ? 'Single elimination bracket' : 'Round robin'}
 		</p>
+		<OfficialBallChip />
 		<div class="event-section-cta">
 			<a class="btn-ghost" href={`/events/${event.slug}#brackets`}>Brackets</a>
 			<a class="btn-ghost" href={`/events/${event.slug}#participants`}>Participants</a>
@@ -98,6 +100,7 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 			<SponsorLogoMarquee />
 		</section>
 	) : (
+		<>
 		<section class="event-section rr-section">
 
 			{/* ── Pool winner banner ── */}
@@ -260,6 +263,10 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 				</div>
 			)}
 		</section>
+		<section class="event-section">
+			<SponsorLogoMarquee />
+		</section>
+		</>
 	)}
 </GrandPrixLayout>
 

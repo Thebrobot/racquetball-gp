@@ -1,0 +1,37 @@
+---
+import { EVENTS } from '../../data/events';
+
+const liveWeekendPayload = EVENTS.map((e) => ({
+	slug: e.slug,
+	name: e.name,
+	dateRange: e.dateRange,
+	cityLine: e.cityLine,
+	startDate: e.startDate,
+	endDate: e.endDate,
+	watchLiveUrl: e.spotlightWatchLiveUrl ?? null,
+}));
+---
+
+<script type="application/json" id="gp-live-weekend-data">{JSON.stringify(liveWeekendPayload)}</script>
+<aside
+	class="gp-live-weekend-promo"
+	id="gp-live-weekend-promo"
+	aria-labelledby="gp-live-weekend-title"
+	aria-hidden="true"
+	hidden
+>
+	<div class="gp-live-weekend-promo__inner">
+		<button
+			type="button"
+			class="gp-live-weekend-promo__close"
+			id="gp-live-weekend-close"
+			aria-label="Dismiss tournament weekend notice"
+		>
+			<span aria-hidden="true">×</span>
+		</button>
+		<p class="gp-live-weekend-promo__eyebrow">Live this weekend</p>
+		<h2 class="gp-live-weekend-promo__title" id="gp-live-weekend-title"></h2>
+		<p class="gp-live-weekend-promo__sub" id="gp-live-weekend-sub"></p>
+		<div class="gp-live-weekend-promo__actions" id="gp-live-weekend-actions"></div>
+	</div>
+</aside>

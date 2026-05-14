@@ -1,0 +1,290 @@
+---
+import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
+import { getAllPlayers, PLAYER_IMAGES } from '../../data/players';
+import { titleSponsor } from '../../data/ocala-sponsors';
+
+const players = getAllPlayers();
+const totalCount = players.length;
+
+// Collect unique division labels for filter chips
+const allDivisions = Array.from(
+	new Set(players.flatMap((p) => p.divisions ?? []))
+).sort();
+---
+
+<GrandPrixLayout
+	title="Players | Florida Racquetball Grand Prix 2026"
+	description={`Browse all ${totalCount} competitors registered in the 2026 Florida Racquetball Grand Prix. Find player profiles, match history, and season standings.`}
+	spotlightLabel="Title sponsor"
+	spotlightName={titleSponsor.name}
+	spotlightBlurb={titleSponsor.blurb}
+	spotlightLogoUrl={titleSponsor.logoUrl}
+>
+	<!-- ── HERO ── -->
+	<section class="event-hero">
+		<div class="section-label">2026 Season</div>
+		<h1 class="section-title">Player <span style="color:var(--orange)">Directory</span></h1>
+		<p class="section-sub">
+			{totalCount} competitors registered across the Florida Grand Prix series.
+		</p>
+	</section>
+
+	<!-- ── DIRECTORY ── -->
+	<section class="event-section players-dir-section" aria-labelledby="players-dir-heading">
+		<h2 id="players-dir-heading" class="visually-hidden">All players</h2>
+
+		<!-- Search + filter -->
+		<div class="players-dir-toolbar">
+			<div class="player-search-field">
+				<svg class="player-search-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+					<circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.75"/>
+					<path d="M13 13l3.5 3.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+				</svg>
+				<input
+					id="players-search"
+					class="player-search-input"
+					type="search"
+					placeholder="Search players…"
+					autocomplete="off"
+					spellcheck="false"
+					aria-label="Search players"
+				/>
+				<button id="players-search-clear" class="player-search-clear" type="button" aria-label="Clear search" hidden>
+					<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+						<path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+					</svg>
+				</button>
+			</div>
+		</div>
+
+		<!-- Stats strip -->
+		<div class="players-dir-stats">
+			<span class="players-dir-count" id="players-visible-count">{totalCount}</span>
+			<span class="players-dir-count-label"> players</span>
+		</div>
+
+		<!-- Grid -->
+		<div class="players-dir-grid" id="players-dir-grid">
+			{players.map((player) => {
+				const img = PLAYER_IMAGES[player.name] ?? player.imageUrl;
+				const initials = player.name
+					.split(' ')
+					.slice(0, 2)
+					.map((p) => p[0])
+					.join('')
+					.toUpperCase();
+				return (
+					<a
+						class="players-dir-card"
+						href={`/players/${player.slug}`}
+						data-name={player.name.toLowerCase()}
+						data-divisions={JSON.stringify(player.divisions ?? [])}
+					>
+						{img ? (
+							<img
+								class="players-dir-avatar"
+								src={img}
+								alt={`${player.name} photo`}
+								width="64"
+								height="64"
+								loading="lazy"
+								decoding="async"
+							/>
+						) : (
+							<span class="players-dir-avatar players-dir-avatar--fallback" aria-hidden="true">
+								{initials}
+							</span>
+						)}
+						<div class="players-dir-info">
+							<span class="players-dir-name">{player.name}</span>
+							{player.city && <span class="players-dir-city">{player.city}</span>}
+							{(player.divisions ?? []).length > 0 && (
+								<span class="players-dir-div">{(player.divisions ?? [])[0]}</span>
+							)}
+						</div>
+						<svg class="players-dir-arrow" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+							<path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+						</svg>
+					</a>
+				);
+			})}
+		</div>
+
+		<p id="players-empty" class="player-search-empty" hidden>No players match your search.</p>
+	</section>
+</GrandPrixLayout>
+
+<script type="application/ld+json" set:html={JSON.stringify({
+	"@context": "https://schema.org",
+	"@type": "ItemList",
+	"name": "2026 Florida Racquetball Grand Prix Players",
+	"description": `${totalCount} competitors registered in the 2026 Florida Racquetball Grand Prix season.`,
+	"numberOfItems": totalCount,
+	"itemListElement": players.map((p, i) => ({
+		"@type": "ListItem",
+		"position": i + 1,
+		"url": `https://www.racquetballgp.com/players/${p.slug}`,
+		"name": p.name
+	}))
+})} />
+
+<script>
+(function () {
+	const input = document.getElementById('players-search') as HTMLInputElement | null;
+	const clear = document.getElementById('players-search-clear') as HTMLButtonElement | null;
+	const grid = document.getElementById('players-dir-grid');
+	const empty = document.getElementById('players-empty');
+	const countEl = document.getElementById('players-visible-count');
+	if (!input || !grid) return;
+
+	const cards = Array.from(grid.querySelectorAll<HTMLElement>('.players-dir-card'));
+
+	function filter(q: string) {
+		const query = q.trim().toLowerCase();
+		let visible = 0;
+		cards.forEach((card) => {
+			const name = card.dataset.name ?? '';
+			const match = !query || name.includes(query);
+			card.style.display = match ? '' : 'none';
+			if (match) visible++;
+		});
+		if (countEl) countEl.textContent = String(visible);
+		if (empty) empty.hidden = visible > 0 || !query;
+		if (clear) clear.hidden = !query;
+	}
+
+	input.addEventListener('input', () => filter(input.value));
+	if (clear) {
+		clear.addEventListener('click', () => {
+			input.value = '';
+			filter('');
+			input.focus();
+		});
+	}
+	input.addEventListener('keydown', (e) => {
+		if (e.key === 'Escape') { input.value = ''; filter(''); input.blur(); }
+	});
+})();
+</script>
+
+<style>
+.players-dir-section {
+	padding-top: 0;
+}
+.players-dir-toolbar {
+	max-width: 480px;
+	margin: 0 auto 16px;
+	padding: 0 16px;
+}
+.players-dir-stats {
+	text-align: center;
+	font-size: 0.8rem;
+	color: rgba(255,255,255,0.45);
+	margin-bottom: 24px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+.players-dir-count {
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: var(--orange);
+}
+.players-dir-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	gap: 12px;
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 16px;
+}
+.players-dir-card {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	background: rgba(255,255,255,0.04);
+	border: 1px solid rgba(255,255,255,0.08);
+	border-radius: 14px;
+	padding: 14px 16px;
+	text-decoration: none;
+	color: inherit;
+	transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+.players-dir-card:hover {
+	background: rgba(240,90,26,0.07);
+	border-color: rgba(240,90,26,0.3);
+	transform: translateY(-1px);
+}
+.players-dir-avatar {
+	width: 48px;
+	height: 48px;
+	border-radius: 50%;
+	object-fit: cover;
+	flex-shrink: 0;
+	border: 2px solid rgba(255,255,255,0.1);
+}
+.players-dir-avatar--fallback {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(240,90,26,0.15);
+	color: var(--orange);
+	font-size: 0.75rem;
+	font-weight: 800;
+	letter-spacing: 0.04em;
+}
+.players-dir-info {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+.players-dir-name {
+	font-weight: 700;
+	font-size: 0.975rem;
+	color: #fff;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	transition: color 0.15s;
+}
+.players-dir-card:hover .players-dir-name {
+	color: var(--orange);
+}
+.players-dir-city {
+	font-size: 0.8rem;
+	color: rgba(255,255,255,0.5);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.players-dir-div {
+	font-size: 0.72rem;
+	color: rgba(255,255,255,0.35);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.players-dir-arrow {
+	width: 16px;
+	height: 16px;
+	color: rgba(255,255,255,0.25);
+	flex-shrink: 0;
+	transition: color 0.15s, transform 0.15s;
+}
+.players-dir-card:hover .players-dir-arrow {
+	color: var(--orange);
+	transform: translateX(2px);
+}
+.player-search-empty {
+	text-align: center;
+	padding: 32px 16px;
+	font-size: 15px;
+	color: rgba(255,255,255,0.45);
+}
+@media (max-width: 480px) {
+	.players-dir-grid {
+		grid-template-columns: 1fr;
+	}
+}
+</style>

@@ -217,12 +217,6 @@ export function getAllPlayers(): PlayerProfile[] {
 	});
 
 	return Array.from(map.values())
-		.map((player) => ({
-			...player,
-			bio:
-				player.bio ||
-				`Grand Prix competitor from ${player.city ?? 'Florida'}. Focused on steady finishes and building points across every stop.`,
-		}))
 		.sort((a, b) => a.name.localeCompare(b.name));
 }
 
@@ -234,7 +228,8 @@ export interface PlayerMatchRecord {
 	roundLabel: string;
 	opponent: string;
 	score?: string;
-	result: 'win' | 'loss' | 'pending';
+	/** Bye advances are not match wins — excluded from W–L on profiles. */
+	result: 'win' | 'loss' | 'pending' | 'bye';
 }
 
 function isGhostOpponent(name: string): boolean {
@@ -260,10 +255,12 @@ export function getPlayerMatchHistory(playerName: string): PlayerMatchRecord[] {
 					const opp = side === 1 ? p2 : p1;
 					let result: PlayerMatchRecord['result'] = 'pending';
 					if (m.winner === 1 || m.winner === 2) {
+						const oppGhost = isGhostOpponent(opp);
 						if (m.winner === side) {
-							result = 'win';
-						} else if (isGhostOpponent(opp)) {
-							result = 'win';
+							result = oppGhost ? 'bye' : 'win';
+						} else if (oppGhost) {
+							// Inconsistent bracket data (opponent is not a real player but they are marked the winner).
+							result = 'pending';
 						} else {
 							result = 'loss';
 						}
@@ -295,7 +292,7 @@ export interface SeriesPost {
 /** Short-form series updates shown on player profiles (replace with CMS or feed later). */
 export const GP_SERIES_POSTS: SeriesPost[] = [
 	{
-		title: 'Stop 1 preview: what is at stake in Ocala?',
+		title: 'Lap 1 preview: what is at stake in Ocala?',
 		date: 'May 2026',
 		excerpt: 'The points race starts here—open draws stacked across every division.',
 		href: '/tournaments',

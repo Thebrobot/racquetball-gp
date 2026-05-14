@@ -59,11 +59,8 @@ function bottomActive(href: string): string {
 			<a href="/leaderboard" class:list={[active('/leaderboard')]} data-key="leaderboard">Leaderboard</a>
 			<a href="/sponsors" class:list={[active('/sponsors')]} data-key="sponsors">Sponsors</a>
 			<div class="nav-drawer-sep" aria-hidden="true"></div>
-			<a
-				class="nav-register"
-				href="mailto:info@floridargp.com?subject=Florida%20Grand%20Prix%20registration"
-			>
-				Register Now
+			<a class:list={['nav-register', active('/contact')]} href="/contact">
+				Get connected with us
 				<svg viewBox="0 0 20 20" fill="none" aria-hidden="true" class="nav-register-arrow"><path d="M4 10h12M11 5l5 5-5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
 			</a>
 		</div>
@@ -109,5 +106,14 @@ function bottomActive(href: string): string {
 			<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
 		</svg>
 		<span>Sponsors</span>
+	</a>
+	<a href="/contact" class:list={['gp-bottom-nav-item', bottomActive('/contact')]} aria-current={path === '/contact' ? 'page' : undefined}>
+		<svg viewBox="0 0 24 24" aria-hidden="true">
+			<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+			<circle cx="8.5" cy="7" r="4"/>
+			<line x1="20" y1="8" x2="20" y2="14"/>
+			<line x1="23" y1="11" x2="17" y2="11"/>
+		</svg>
+		<span>Connect</span>
 	</a>
 </nav>

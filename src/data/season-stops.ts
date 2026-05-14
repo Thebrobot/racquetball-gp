@@ -1,9 +1,9 @@
 /** Grand Prix season stops: homepage bento + tournaments page (single source). */
 
-export type StopKind = 'done' | 'next' | 'upcoming';
+export type StopKind = 'done' | 'next' | 'upcoming' | 'champ';
 
 /** Named area in `.season-bento--creative` (see `grand-prix.css` grid-template-areas). */
-export type SeasonBentoGridArea = 'marq' | 'c1' | 'c2' | 'wide';
+export type SeasonBentoGridArea = 'marq' | 'c1' | 'c2' | 'wide' | 'champ';
 
 export interface SeasonStop {
 	id: string;
@@ -32,13 +32,13 @@ export const TOUR_STOP_COUNT = 4;
 export const SEASON_STOPS: SeasonStop[] = [
 	{
 		id: 'stop-1',
-		label: 'Stop 1 · Season opener',
+		label: 'Lap 1 · Season opener',
 		cityLine: 'Ocala, FL',
-		dateHint: 'May 15–17',
+		dateHint: 'May 14–17',
 		kind: 'next',
 		image: '/images/stops/ocala-spotlight.webp',
 		eventName: 'Ocala Open',
-		dateFull: 'May 15–17, 2026 · Ocala, FL',
+		dateFull: 'May 14–17, 2026 · Ocala, FL',
 		teaser: 'The first Grand Prix stop in history. Be there when the clock starts.',
 		venue: 'Frank DeLuca YMCA',
 		registerUrl: 'https://www.r2sports.com/tourney/home.asp?TID=53697',
@@ -48,7 +48,7 @@ export const SEASON_STOPS: SeasonStop[] = [
 	},
 	{
 		id: 'stop-2',
-		label: 'Stop 2',
+		label: 'Lap 2',
 		cityLine: 'Sarasota, FL',
 		dateHint: 'Jul 10–12',
 		kind: 'upcoming',
@@ -62,7 +62,7 @@ export const SEASON_STOPS: SeasonStop[] = [
 	},
 	{
 		id: 'stop-3',
-		label: 'Stop 3',
+		label: 'Lap 3',
 		cityLine: 'Port St. Lucie, FL',
 		dateHint: 'Oct 23–25',
 		kind: 'upcoming',
@@ -78,14 +78,14 @@ export const SEASON_STOPS: SeasonStop[] = [
 	},
 	{
 		id: 'stop-4',
-		label: 'Stop 4 · Season closer',
+		label: 'Lap 4 · Last 2026 tour stop',
 		cityLine: 'Eustis, FL',
 		dateHint: 'Dec 4–5',
 		kind: 'upcoming',
 		image: '/images/stops/stop-eustis-outdoor.webp',
 		eventName: 'Eustis Outdoor Open',
 		dateFull: 'December 4–5, 2026 · Eustis, FL',
-		teaser: 'Outdoor racquetball at Sunset Island—the last chance to move the statewide leaderboard.',
+		teaser: 'Outdoor racquetball at Sunset Island—final Grand Prix tour weekend of 2026.',
 		venue: 'Sunset Island (outdoor)',
 		registerUrl: 'https://www.r2sports.com/tourney/home.asp?TID=54247',
 		bentoGridArea: 'wide',
@@ -93,3 +93,24 @@ export const SEASON_STOPS: SeasonStop[] = [
 			'Photo: Lake Eustis Lakewalk — Ebyabe / Wikimedia Commons (CC BY-SA 3.0). Sunset Island hosts the outdoor event.',
 	},
 ];
+
+/** Series championship after the four scored tour stops; details TBD. */
+export const SERIES_CHAMPIONSHIP: SeasonStop = {
+	id: 'series-championship',
+	label: 'Series championship',
+	cityLine: 'Location TBD',
+	dateHint: '2027',
+	kind: 'champ',
+	image: '/images/stops/series-championship.webp',
+	eventName: 'Grand Prix Series Championship',
+	dateFull: '2027 · Location TBD',
+	teaser:
+		'Season-capping championship weekend. Host city and dates to be announced; pending USA Racquetball approval.',
+	venue: 'TBD',
+	registerUrl: '#',
+	bentoGridArea: 'champ',
+	photoCredit: 'Photo: Ocala downtown — drinkteatravel.com',
+};
+
+/** Homepage bento, tournaments grid, and hero strip: tour stops plus series championship. */
+export const GRAND_PRIX_FULL_SCHEDULE: SeasonStop[] = [...SEASON_STOPS, SERIES_CHAMPIONSHIP];

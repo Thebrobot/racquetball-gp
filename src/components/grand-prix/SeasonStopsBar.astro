@@ -1,9 +1,10 @@
 ---
-import { SEASON_STOPS } from '../../data/season-stops';
+import { GRAND_PRIX_FULL_SCHEDULE, type SeasonStop } from '../../data/season-stops';
 
-function itemClass(kind: (typeof SEASON_STOPS)[number]['kind']) {
+function itemClass(kind: SeasonStop['kind']) {
 	if (kind === 'done') return 'stop-item done';
 	if (kind === 'next') return 'stop-item next';
+	if (kind === 'champ') return 'stop-item champ';
 	return 'stop-item';
 }
 ---
@@ -11,7 +12,7 @@ function itemClass(kind: (typeof SEASON_STOPS)[number]['kind']) {
 <div class="season-strip" aria-label="Season schedule">
 	<div class="strip-track">
 		{
-			SEASON_STOPS.map((stop) => (
+			GRAND_PRIX_FULL_SCHEDULE.map((stop) => (
 				<div class={itemClass(stop.kind)}>
 					<span class="stop-dot"></span>
 					<span>

@@ -5,12 +5,25 @@ import {
 	LB_CATEGORY_HEADING,
 	LB_DIVISIONS_BY_CATEGORY,
 	getDivisionLeader,
+	getSortedRows,
 	leaderboardTotal,
 	type LbCategory,
 } from '../data/leaderboard';
+import { SEASON_STOPS } from '../data/season-stops';
+import { EVENTS } from '../data/events';
 import { titleSponsor } from '../data/ocala-sponsors';
 
+const stopsComplete = SEASON_STOPS.filter((s) => s.kind === 'done').length;
+const totalStops = SEASON_STOPS.filter((s) => s.kind !== 'champ').length;
+const registeredCount = new Set(
+	EVENTS.flatMap((e) => (e.profiles ?? []).map((p) => p.name))
+).size;
+
+const defaultRows = getSortedRows('singles', 'open-men', true);
+const defaultMaxPts = defaultRows.length ? leaderboardTotal(defaultRows[0]) : 1;
+
 const badgeLabel = { q: 'Qualified', pace: 'On Pace', chase: 'Chasing' } as const;
+const badgeMap = { q: 'badge-q', pace: 'badge-pace', chase: 'badge-chase' } as const;
 function badgeClass(status: keyof typeof badgeLabel): string {
 	return status === 'q' ? 'badge-q' : status === 'pace' ? 'badge-pace' : 'badge-chase';
 }
@@ -35,16 +48,18 @@ function badgeClass(status: keyof typeof badgeLabel): string {
 		/>
 		<div class="section-label">Season 2026</div>
 		<div class="lb-hero-title">Season <span>Standings</span></div>
-		<div class="lb-hero-sub">Updated after every Grand Prix stop · Season opens May 2026</div>
+		<div class="lb-hero-sub">
+			Updated after every Grand Prix stop · Season opens May 2026
+		</div>
 		<div class="lb-stats">
 			<div class="lb-stat">
-				<span class="lb-stat-val"><em>0</em> / 4</span><span class="lb-stat-label">Tour Stops Complete</span>
+				<span class="lb-stat-val"><em>{stopsComplete}</em> / {totalStops}</span><span class="lb-stat-label">Tour Stops Complete</span>
 			</div>
 			<div class="lb-stat">
-				<span class="lb-stat-val">TBD</span><span class="lb-stat-label">Players Registered</span>
+				<span class="lb-stat-val">{registeredCount > 0 ? registeredCount : 'TBD'}</span><span class="lb-stat-label">Players Registered</span>
 			</div>
 			<div class="lb-stat">
-				<span class="lb-stat-val">Dec <em>'26</em></span><span class="lb-stat-label">Season closer</span>
+				<span class="lb-stat-val">Dec <em>'26</em></span><span class="lb-stat-label">Last 2026 tour stop</span>
 			</div>
 		</div>
 	</div>
@@ -141,8 +156,8 @@ function badgeClass(status: keyof typeof badgeLabel): string {
 					<tr>
 						<th style="width:48px">#</th>
 						<th>Player</th>
-						<th class="right hide-mobile">Stop 1</th>
-						<th class="right hide-mobile">Stop 2</th>
+						<th class="right hide-mobile">Lap 1</th>
+						<th class="right hide-mobile">Lap 2</th>
 						<th class="right">Total</th>
 						<th class="right hide-mobile">Wins</th>
 						<th class="right hide-mobile">Place</th>
@@ -150,7 +165,42 @@ function badgeClass(status: keyof typeof badgeLabel): string {
 						<th class="right">Status</th>
 					</tr>
 				</thead>
-				<tbody id="lb-tbody"></tbody>
+				<tbody id="lb-tbody">
+					{defaultRows.map((r, i) => {
+						const total = leaderboardTotal(r);
+						const pctFill = defaultMaxPts > 0 ? Math.round((total / defaultMaxPts) * 100) : 0;
+						return (
+							<tr>
+								<td class="lb-rank-cell">
+									{i === 0 ? (
+										<span class="lb-medal">🥇</span>
+									) : i === 1 ? (
+										<span class="lb-medal">🥈</span>
+									) : i === 2 ? (
+										<span class="lb-medal">🥉</span>
+									) : (
+										<span class="rank-other">{i + 1}</span>
+									)}
+								</td>
+								<td>
+									<span class="lb-player-name">{r.name}</span>
+									<span class="lb-player-city">{r.city}</span>
+									{r.note && <span style="font-size:13px;color:var(--green);display:block;">{r.note}</span>}
+									<div class="lb-progress-bar"><div class="lb-progress-fill" style={`width:${pctFill}%`}></div></div>
+								</td>
+								<td class="lb-stops right hide-mobile">{r.s1 || '-'}</td>
+								<td class="lb-stops right hide-mobile">{r.s2 || '-'}</td>
+								<td class:list={['lb-pts-cell', i === 0 ? 'leader' : '']}>{total}</td>
+								<td class="lb-stops right hide-mobile">{r.wins ?? 0}</td>
+								<td class="lb-stops right hide-mobile">{r.place ?? '-'}</td>
+								<td class="lb-stops right hide-mobile">{r.attendance ?? 0}/4</td>
+								<td class="lb-status-cell">
+									<span class:list={['lb-badge', badgeMap[r.status]]}>{badgeLabel[r.status]}</span>
+								</td>
+							</tr>
+						);
+					})}
+				</tbody>
 			</table>
 			<div class="lb-legend">
 				<span

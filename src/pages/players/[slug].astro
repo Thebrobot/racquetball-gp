@@ -45,6 +45,15 @@ const wins = matchHistory.filter((m) => m.result === 'win').length;
 const losses = matchHistory.filter((m) => m.result === 'loss').length;
 const pending = matchHistory.filter((m) => m.result === 'pending').length;
 
+const primaryDivision = player.divisions?.[0] ?? null;
+const recordStr = matchHistory.length > 0 ? ` · ${wins}W–${losses}L` : '';
+const metaDescription = [
+	player.name,
+	player.city ?? 'Florida',
+	primaryDivision,
+	`2026 Florida Racquetball Grand Prix${recordStr}`,
+].filter(Boolean).join(' · ');
+
 function parseCourtFromNote(note?: string): { court: string | null; rest: string } {
 	if (!note) return { court: null, rest: '' };
 	const m = note.match(/\bcourt\s*#?\s*(\w+)/i);
@@ -59,7 +68,7 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 
 <GrandPrixLayout
 	title={`${player.name} | Florida Racquetball Grand Prix 2026`}
-	description={`Player profile for ${player.name}.`}
+	description={metaDescription}
 	spotlightLabel="Title sponsor"
 	spotlightName={titleSponsor.name}
 	spotlightBlurb={titleSponsor.blurb}
@@ -289,9 +298,17 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 									row.result === 'win' ? 'player-history-badge--win' : '',
 									row.result === 'loss' ? 'player-history-badge--loss' : '',
 									row.result === 'pending' ? 'player-history-badge--pending' : '',
+									row.result === 'bye' ? 'player-history-badge--bye' : '',
 								]}
+								title={row.result === 'bye' ? 'Bye — does not count as a match win' : undefined}
 							>
-								{row.result === 'win' ? 'W' : row.result === 'loss' ? 'L' : '—'}
+								{row.result === 'win'
+									? 'W'
+									: row.result === 'loss'
+										? 'L'
+										: row.result === 'bye'
+											? 'Bye'
+											: '—'}
 							</div>
 						</article>
 					))}
@@ -326,3 +343,17 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 		</div>
 	</section>
 </GrandPrixLayout>
+
+<script type="application/ld+json" set:html={JSON.stringify({
+	"@context": "https://schema.org",
+	"@type": "Person",
+	"name": player.name,
+	...(player.city ? { "address": { "@type": "PostalAddress", "addressLocality": player.city } } : {}),
+	"url": `https://www.racquetballgp.com/players/${player.slug}`,
+	"sport": "Racquetball",
+	"memberOf": {
+		"@type": "SportsOrganization",
+		"name": "Florida Racquetball Grand Prix",
+		"url": "https://www.racquetballgp.com"
+	}
+})} />

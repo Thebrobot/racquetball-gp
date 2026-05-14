@@ -1,0 +1,31 @@
+---
+const shopUrl = 'https://prokennex-racquetball.com/';
+const linkLabel = 'Get yours at prokennex-racquetball.com';
+---
+
+<p class="official-ball-chip">
+	<span class="official-ball-chip__badge">Official ball</span>
+	<span class="official-ball-chip__copy">
+		<strong>ProKennex Black Ball</strong>
+		<span class="official-ball-chip__sep" aria-hidden="true">·</span>
+		<span class="official-ball-chip__meta">2026 Grand Prix</span>
+		<a
+			class="official-ball-chip__link"
+			href={shopUrl}
+			target="_blank"
+			rel="noopener noreferrer"
+			aria-label={`${linkLabel} (opens in new tab)`}
+		>
+			Shop
+			<svg class="official-ball-chip__link-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+				<path
+					d="M14 2H8.5M14 2v5.5M14 2L7.5 8.5M3 4H2v10h10v-1"
+					stroke="currentColor"
+					stroke-width="1.35"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				/>
+			</svg>
+		</a>
+	</span>
+</p>

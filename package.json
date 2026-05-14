@@ -11,6 +11,7 @@
     "preview": "astro preview",
     "lint": "eslint .",
     "optimize:images": "node scripts/optimize-site-images.mjs",
+    "favicon:ico": "node scripts/generate-favicon-ico.mjs",
     "astro": "astro"
   },
   "dependencies": {

@@ -10,19 +10,24 @@ const marqueeSponsors = [...sponsors, ...sponsors];
 	<div class="sponsor-logo-marquee-frame">
 		<div class="sponsor-logo-marquee-track">
 			{marqueeSponsors.map((sponsor, index) => {
-				const Tag = sponsor.url ? 'a' : 'div';
 				const repeated = index >= sponsors.length;
+				const href = sponsor.url ?? '/sponsors';
+				const isExternal = /^https?:\/\//i.test(href);
+				const label = isExternal
+					? `${sponsor.name}, opens sponsor site in a new tab`
+					: `${sponsor.name}, details on Sponsors page`;
 
 				return (
-					<Tag
+					<a
 						class="sponsor-logo-marquee-item"
+						href={href}
+						tabindex={repeated ? -1 : undefined}
 						aria-hidden={repeated ? 'true' : undefined}
-						{...(sponsor.url
-							? { href: sponsor.url, target: '_blank', rel: 'noopener noreferrer' }
-							: {})}
+						aria-label={repeated ? undefined : label}
+						{...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
 					>
-						<img src={sponsor.logoUrl} alt={repeated ? '' : `${sponsor.name} logo`} loading="lazy" />
-					</Tag>
+						<img src={sponsor.logoUrl} alt="" loading="lazy" />
+					</a>
 				);
 			})}
 		</div>
@@ -31,80 +36,115 @@ const marqueeSponsors = [...sponsors, ...sponsors];
 
 <style>
 .sponsor-logo-marquee {
-	width: min(1240px, calc(100vw - 44px));
-	margin: 22px auto 0;
+	width: min(1200px, calc(100vw - 44px));
+	margin: 28px auto 0;
 	color: #fff;
 }
 
 .sponsor-logo-marquee-title {
-	margin: 0 0 12px;
+	margin: 0 0 18px;
 	font-family: 'Barlow Condensed', sans-serif;
-	font-size: clamp(22px, 2.6vw, 34px);
+	font-size: clamp(24px, 2.8vw, 36px);
 	font-weight: 900;
-	letter-spacing: 0.06em;
+	letter-spacing: 0.08em;
 	line-height: 1;
 	text-align: center;
 	text-transform: uppercase;
-	color: #fff;
+	color: rgba(255, 255, 255, 0.96);
+	text-shadow: 0 1px 24px rgba(0, 0, 0, 0.35);
+}
+
+.sponsor-logo-marquee-title::after {
+	content: '';
+	display: block;
+	width: 56px;
+	height: 3px;
+	margin: 14px auto 0;
+	border-radius: 999px;
+	background: linear-gradient(90deg, transparent, rgba(240, 90, 26, 0.95), transparent);
+	box-shadow: 0 0 20px rgba(240, 90, 26, 0.35);
 }
 
 .sponsor-logo-marquee-frame {
 	position: relative;
 	overflow: hidden;
-	border: 1px solid rgba(255, 255, 255, 0.14);
-	border-radius: 16px;
-	background: rgba(255, 255, 255, 0.06);
-	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-.sponsor-logo-marquee-frame::before,
-.sponsor-logo-marquee-frame::after {
-	content: '';
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	z-index: 2;
-	width: 72px;
-	pointer-events: none;
-}
-
-.sponsor-logo-marquee-frame::before {
-	left: 0;
-	background: linear-gradient(90deg, #0a1628 0%, rgba(10, 22, 40, 0) 100%);
-}
-
-.sponsor-logo-marquee-frame::after {
-	right: 0;
-	background: linear-gradient(270deg, #0a1628 0%, rgba(10, 22, 40, 0) 100%);
+	border: none;
+	border-radius: 0;
+	background: transparent;
+	/* Soft horizontal vignette: logos dissolve into page background at both edges */
+	-webkit-mask-image: linear-gradient(
+		to right,
+		transparent 0%,
+		rgba(0, 0, 0, 0.06) 6%,
+		#000 18%,
+		#000 82%,
+		rgba(0, 0, 0, 0.06) 94%,
+		transparent 100%
+	);
+	mask-image: linear-gradient(
+		to right,
+		transparent 0%,
+		rgba(0, 0, 0, 0.06) 6%,
+		#000 18%,
+		#000 82%,
+		rgba(0, 0, 0, 0.06) 94%,
+		transparent 100%
+	);
+	mask-size: 100% 100%;
+	mask-repeat: no-repeat;
 }
 
 .sponsor-logo-marquee-track {
 	display: flex;
 	width: max-content;
 	align-items: center;
-	gap: 16px;
-	padding: 14px 18px;
-	animation: sponsorLogoScroll 46s linear infinite;
+	gap: 22px;
+	padding: 22px 28px;
+	animation: sponsorLogoScroll 58s linear infinite;
 	will-change: transform;
 }
 
-.sponsor-logo-marquee-frame:hover .sponsor-logo-marquee-track {
+.sponsor-logo-marquee-frame:hover .sponsor-logo-marquee-track,
+.sponsor-logo-marquee-frame:focus-within .sponsor-logo-marquee-track {
 	animation-play-state: paused;
 }
 
 .sponsor-logo-marquee-item {
 	display: flex;
-	width: 154px;
-	height: 72px;
-	flex: 0 0 154px;
+	width: 204px;
+	height: 96px;
+	flex: 0 0 204px;
 	align-items: center;
 	justify-content: center;
-	border: 1px solid rgba(15, 23, 42, 0.08);
-	border-radius: 10px;
-	background: #fff;
-	padding: 10px 14px;
+	border-radius: 14px;
+	border: 1px solid rgba(255, 255, 255, 0.55);
+	padding: 14px 18px;
+	cursor: pointer;
 	text-decoration: none;
-	box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+	color: inherit;
+	background: linear-gradient(180deg, #ffffff 0%, #f3f5f8 100%);
+	box-shadow:
+		0 1px 0 rgba(255, 255, 255, 0.85) inset,
+		0 2px 6px rgba(15, 23, 42, 0.06),
+		0 14px 32px rgba(0, 0, 0, 0.18);
+	transition:
+		transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+		box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+		border-color 0.35s ease;
+}
+
+.sponsor-logo-marquee-item:hover {
+	transform: translateY(-3px);
+	border-color: rgba(255, 255, 255, 0.85);
+	box-shadow:
+		0 1px 0 rgba(255, 255, 255, 0.95) inset,
+		0 4px 12px rgba(15, 23, 42, 0.08),
+		0 22px 44px rgba(0, 0, 0, 0.26);
+}
+
+.sponsor-logo-marquee-item:focus-visible {
+	outline: 2px solid rgba(240, 90, 26, 0.95);
+	outline-offset: 3px;
 }
 
 .sponsor-logo-marquee-item img {
@@ -112,6 +152,7 @@ const marqueeSponsors = [...sponsors, ...sponsors];
 	max-width: 100%;
 	max-height: 100%;
 	object-fit: contain;
+	filter: drop-shadow(0 1px 1px rgba(15, 23, 42, 0.06));
 }
 
 @keyframes sponsorLogoScroll {
@@ -127,35 +168,42 @@ const marqueeSponsors = [...sponsors, ...sponsors];
 @media (max-width: 767px) {
 	.sponsor-logo-marquee {
 		width: calc(100vw - 24px);
-		margin-top: 18px;
+		margin-top: 22px;
 	}
 
-	.sponsor-logo-marquee-frame {
-		border-radius: 14px;
-	}
-
-	.sponsor-logo-marquee-frame::before,
-	.sponsor-logo-marquee-frame::after {
-		width: 42px;
+	.sponsor-logo-marquee-title::after {
+		width: 44px;
+		margin-top: 12px;
 	}
 
 	.sponsor-logo-marquee-track {
-		gap: 12px;
-		padding: 12px 14px;
-		animation-duration: 38s;
+		gap: 16px;
+		padding: 18px 20px;
+		animation-duration: 48s;
 	}
 
 	.sponsor-logo-marquee-item {
-		width: 132px;
-		height: 62px;
-		flex-basis: 132px;
-		padding: 8px 12px;
+		width: 158px;
+		height: 78px;
+		flex-basis: 158px;
+		padding: 12px 14px;
+		border-radius: 12px;
 	}
 }
 
 @media (prefers-reduced-motion: reduce) {
+	.sponsor-logo-marquee-frame {
+		overflow-x: auto;
+		overflow-y: hidden;
+		-webkit-overflow-scrolling: touch;
+	}
+
 	.sponsor-logo-marquee-track {
 		animation: none;
+	}
+
+	.sponsor-logo-marquee-item:hover {
+		transform: none;
 	}
 }
 </style>

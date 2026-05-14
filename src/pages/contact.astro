@@ -1,0 +1,58 @@
+---
+import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
+import { titleSponsor } from '../data/ocala-sponsors';
+import { tournamentDirector, registrationContact } from '../data/contacts';
+
+const enc = encodeURIComponent;
+
+const mailKeith = `mailto:${tournamentDirector.email}?subject=${enc('Florida Racquetball Grand Prix — question')}`;
+const mailKeithSponsor = `mailto:${tournamentDirector.email}?subject=${enc('Florida Grand Prix — sponsorship inquiry')}`;
+const mailLeo = `mailto:${registrationContact.email}?subject=${enc('Florida Grand Prix — registration / tournament question')}`;
+---
+
+<GrandPrixLayout
+	title="Contact Us | Florida Racquetball Grand Prix"
+	description="Contact tournament director Keith Lewis or registration lead Leo Vasquez for Florida Racquetball Grand Prix questions, registration help, and sponsorship inquiries."
+	spotlightLabel="Title sponsor"
+	spotlightName={titleSponsor.name}
+	spotlightBlurb={titleSponsor.blurb}
+	spotlightLogoUrl={titleSponsor.logoUrl}
+>
+	<div class="page-hero">
+		<div class="section-label">Get in touch</div>
+		<h1 class="section-title">Contact <span style="color:var(--orange)">Us</span></h1>
+		<p class="section-sub" style="margin-bottom:0;">
+			Tournament director Keith Lewis and registration contact Leo Vasquez are your points of contact for the
+			series. We read every message and typically reply within a few business days.
+		</p>
+	</div>
+
+	<section class="contact-page-section" aria-labelledby="contact-options-heading">
+		<h2 id="contact-options-heading" class="visually-hidden">Ways to reach us</h2>
+		<div class="contact-grid contact-grid--two">
+			<article class="contact-card">
+				<p class="contact-card-role">{tournamentDirector.role}</p>
+				<h3 class="contact-card-title">{tournamentDirector.name}</h3>
+				<p class="contact-card-text">
+					Sponsorships, partnerships, season format, points, stops, and other questions about the Grand Prix
+					as a whole.
+				</p>
+				<div class="contact-card-actions contact-card-actions--stack">
+					<a class="btn-main contact-card-cta" href={mailKeith}>Email {tournamentDirector.name.split(' ')[0]}</a>
+					<a class="btn-ghost contact-card-cta" href={mailKeithSponsor}>Sponsorship inquiry</a>
+				</div>
+			</article>
+			<article class="contact-card">
+				<p class="contact-card-role">{registrationContact.role}</p>
+				<h3 class="contact-card-title">{registrationContact.name}</h3>
+				<p class="contact-card-text">
+					R2 Sports sign-up, divisions, which event to enter, or questions about a specific tournament.
+				</p>
+				<div class="contact-card-actions contact-card-actions--stack">
+					<a class="btn-main contact-card-cta" href={mailLeo}>Email {registrationContact.name.split(' ')[0]}</a>
+					<a class="btn-ghost contact-card-cta" href="/tournaments">View schedule</a>
+				</div>
+			</article>
+		</div>
+	</section>
+</GrandPrixLayout>

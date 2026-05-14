@@ -1,5 +1,6 @@
 ---
 import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
+import OfficialBallChip from '../../components/grand-prix/OfficialBallChip.astro';
 import { EVENTS } from '../../data/events';
 import { getPlayerSlug, PLAYER_IMAGES } from '../../data/players';
 import { formatPlayerInitials } from '../../data/leaderboard';
@@ -45,7 +46,7 @@ for (const d of event.divisionDetails ?? []) {
 
 <GrandPrixLayout
 	title={`${event.name} | Florida Racquetball Grand Prix 2026`}
-	description={`Brackets and participants for the ${event.name}.`}
+	description={`Brackets, results, and ${totalParticipants} participants for the ${event.name} — ${event.dateRange}, ${event.cityLine}. Part of the 2026 Florida Racquetball Grand Prix series.`}
 	spotlightLabel="Title sponsor"
 	spotlightName={titleSponsor.name}
 	spotlightBlurb={titleSponsor.blurb}
@@ -56,6 +57,7 @@ for (const d of event.divisionDetails ?? []) {
 		<div class="section-label">Event</div>
 		<h1 class="section-title">{event.name}</h1>
 		<p class="section-sub">{event.dateRange} · {event.cityLine}</p>
+		<OfficialBallChip />
 		<div class="event-tab-bar" role="tablist" aria-label="Event views">
 			<button
 				class="event-tab event-tab--active"
@@ -182,6 +184,29 @@ for (const d of event.divisionDetails ?? []) {
 		</section>
 	</div>
 </GrandPrixLayout>
+
+<script type="application/ld+json" set:html={JSON.stringify({
+	"@context": "https://schema.org",
+	"@type": "SportsEvent",
+	"name": event.name,
+	"description": `${event.name} — ${event.dateRange}, ${event.cityLine}. Part of the 2026 Florida Racquetball Grand Prix series.`,
+	"startDate": event.dateRange,
+	"location": {
+		"@type": "Place",
+		"name": event.cityLine,
+		"address": {
+			"@type": "PostalAddress",
+			"addressLocality": event.cityLine,
+			"addressCountry": "US"
+		}
+	},
+	"url": `https://www.racquetballgp.com/events/${event.slug}`,
+	"organizer": {
+		"@type": "Organization",
+		"name": "Florida Racquetball Grand Prix",
+		"url": "https://www.racquetballgp.com"
+	}
+})} />
 
 <!-- ── TAB TOGGLE SCRIPT ── -->
 <script>

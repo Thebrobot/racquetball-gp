@@ -1,5 +1,6 @@
 ---
 import GrandPrixLayout from '../../../layouts/GrandPrixLayout.astro';
+import OfficialBallChip from '../../../components/grand-prix/OfficialBallChip.astro';
 import { EVENTS } from '../../../data/events';
 import { getPlayerSlug, PLAYER_IMAGES } from '../../../data/players';
 import { formatPlayerInitials } from '../../../data/leaderboard';
@@ -65,6 +66,7 @@ const bracketsHref = `/events/${event.slug}#brackets`;
 			{event.dateRange} · {event.cityLine}
 			{event.spotlightVenue && <> · {event.spotlightVenue}</>}
 		</p>
+		<OfficialBallChip />
 		<div class="participants-hero-stats">
 			<span class="participants-stat">
 				<span class="participants-stat-num">{totalParticipants}</span>
