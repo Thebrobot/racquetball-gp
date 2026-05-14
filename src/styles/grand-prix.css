@@ -1020,7 +1020,7 @@ html.nav-drawer-open .nav-drawer-backdrop {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: #fff;
 }
@@ -1059,10 +1059,10 @@ html.nav-drawer-open .nav-drawer-backdrop {
   border-radius: 6px;
   padding: 6px 6px;
   display: grid;
-  grid-template-columns: 24px 1fr;
+  grid-template-columns: 26px 1fr;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: #fff;
   transition: background 0.15s ease, opacity 0.2s ease;
@@ -1095,9 +1095,9 @@ html.nav-drawer-open .nav-drawer-backdrop {
 .bracket-seed {
   color: #fff;
   font-weight: 700;
-  font-size: 11px;
-  width: 24px;
-  height: 24px;
+  font-size: 12px;
+  width: 26px;
+  height: 26px;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.08);
   display: inline-flex;
@@ -1151,7 +1151,7 @@ html.nav-drawer-open .nav-drawer-backdrop {
 .bracket-match-time {
   margin-top: 6px;
   padding: 4px 8px 2px;
-  font-size: 12px;
+  font-size: 14px;
   color: #fff;
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 600;
@@ -1166,8 +1166,8 @@ html.nav-drawer-open .nav-drawer-backdrop {
   gap: 5px;
 }
 .bracket-time-icon {
-  width: 13px;
-  height: 13px;
+  width: 15px;
+  height: 15px;
   flex-shrink: 0;
   opacity: 0.7;
 }
@@ -1383,7 +1383,7 @@ html.nav-drawer-open .nav-drawer-backdrop {
 .bracket-shell .bracket-player {
   color: #0a0a0a;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 18px;
   padding: 6px 4px;
 }
 
@@ -1482,7 +1482,7 @@ html.nav-drawer-open .nav-drawer-backdrop {
   border-radius: 8px;
   background: #f1f5f9;
   border: 1px solid #e2e8f0;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: #0a0a0a;
   text-align: left;
@@ -1506,7 +1506,7 @@ html.nav-drawer-open .nav-drawer-backdrop {
 
 .bracket-shell .bracket-player--bye-advancer {
   color: #0a0a0a;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .bracket-shell .bracket-bye-badge {
@@ -5119,19 +5119,19 @@ footer {
     display: block;
   }
   .bracket-player {
-    font-size: 12px;
+    font-size: 14px;
     padding: 4px 5px;
-    grid-template-columns: 18px 1fr;
+    grid-template-columns: 22px 1fr;
     gap: 6px;
   }
   .bracket-player--bye-advancer {
-    font-size: 12px;
+    font-size: 14px;
     gap: 6px;
   }
   .bracket-seed {
-    width: 18px;
-    height: 18px;
-    font-size: 10px;
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
   }
   .bracket-vs-divider {
     display: none;
@@ -5144,7 +5144,7 @@ footer {
     margin: 0 -6px -4px;
     padding: 3px 6px 0;
     border-top: none;
-    font-size: 10px;
+    font-size: 12px;
     opacity: 0.7;
     bottom: -10px;
   }
@@ -5177,11 +5177,11 @@ footer {
     border-top-color: #eef1f5;
   }
   .bracket-shell .bracket-player {
-    font-size: 15px;
+    font-size: 17px;
     padding: 5px 4px;
   }
   .bracket-shell .bracket-player--bye-advancer {
-    font-size: 15px;
+    font-size: 17px;
   }
   .bracket-shell .bracket-match-time {
     position: static;
@@ -5189,7 +5189,7 @@ footer {
     padding: 7px 9px;
     bottom: auto;
     opacity: 1;
-    font-size: 12px;
+    font-size: 14px;
     width: 100%;
     box-sizing: border-box;
     border-radius: 7px;
