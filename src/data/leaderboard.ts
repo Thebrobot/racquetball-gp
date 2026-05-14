@@ -4,7 +4,15 @@ export type LbCategory = 'singles' | 'doubles' | 'mixed';
 export type LbStatus = 'q' | 'pace' | 'chase';
 
 /** Used to order divisions within a category in the overview UI. */
-export type LbDivisionGroup = 'open' | 'a' | 'b' | 'senior';
+export type LbDivisionGroup =
+	| 'open'
+	| 'elite'
+	| 'a'
+	| 'b'
+	| 'c'
+	| 'senior'
+	| 'centurion'
+	| 'superCenturion';
 
 export interface LbDivisionMeta {
 	id: string;
@@ -14,9 +22,13 @@ export interface LbDivisionMeta {
 
 const GROUP_ORDER: Record<LbDivisionGroup, number> = {
 	open: 0,
-	a: 1,
-	b: 2,
-	senior: 3,
+	elite: 1,
+	a: 2,
+	b: 3,
+	c: 4,
+	senior: 5,
+	centurion: 6,
+	superCenturion: 7,
 };
 
 function sortDivisionMetas(entries: LbDivisionMeta[]): LbDivisionMeta[] {
@@ -29,23 +41,29 @@ function sortDivisionMetas(entries: LbDivisionMeta[]): LbDivisionMeta[] {
 
 /**
  * Declared divisions per category (labels + ordering).
- * Keys must match `lbData[category]` when that bracket has standings.
+ * Division `id` values align with `events.ts` `divisionDetails[].id` for Ocala.
+ * Keys must exist on `lbData[category]` when that bracket has standings.
  */
 export const LB_DIVISIONS_BY_CATEGORY: Record<LbCategory, LbDivisionMeta[]> = {
 	singles: sortDivisionMetas([
-		{ id: 'open-men', label: 'Open Men', group: 'open' },
-		{ id: 'open-women', label: 'Open Women', group: 'open' },
-		{ id: 'a-men', label: 'A Men', group: 'a' },
-		{ id: 'a-women', label: 'A Women', group: 'a' },
-		{ id: 'b-men', label: 'B Men', group: 'b' },
-		{ id: 'b-women', label: 'B Women', group: 'b' },
-		{ id: 'senior', label: 'Senior 40+', group: 'senior' },
+		{ id: 'mens-singles-open', label: 'Open', group: 'open' },
+		{ id: 'mens-singles-elite', label: 'Elite', group: 'elite' },
+		{ id: 'mens-singles-a', label: 'A', group: 'a' },
+		{ id: 'mens-singles-b', label: 'B', group: 'b' },
+		{ id: 'mens-singles-c', label: 'C', group: 'c' },
+		{ id: 'mens-age-50', label: '50+', group: 'senior' },
+		{ id: 'mens-age-60', label: '60+', group: 'senior' },
+		{ id: 'mens-age-70', label: '70+', group: 'senior' },
 	]),
 	doubles: sortDivisionMetas([
-		{ id: 'open-men', label: 'Open Men', group: 'open' },
-		{ id: 'open-women', label: 'Open Women', group: 'open' },
+		{ id: 'mens-doubles-open', label: 'Open', group: 'open' },
+		{ id: 'mens-doubles-elite', label: 'Elite', group: 'elite' },
+		{ id: 'mens-doubles-a', label: 'A', group: 'a' },
+		{ id: 'mens-doubles-b', label: 'B', group: 'b' },
+		{ id: 'mens-doubles-centurion', label: 'Centurion+ Open', group: 'centurion' },
+		{ id: 'mens-doubles-super-centurion', label: 'Super Centurion (120+)', group: 'superCenturion' },
 	]),
-	mixed: sortDivisionMetas([{ id: 'open-men', label: 'Open', group: 'open' }]),
+	mixed: sortDivisionMetas([{ id: 'mixed-doubles', label: 'Open / A', group: 'open' }]),
 };
 
 export const LB_OVERVIEW_CATEGORY_ORDER: LbCategory[] = ['singles', 'doubles', 'mixed'];
@@ -82,23 +100,34 @@ export interface LbRow {
 
 export type LbData = Record<LbCategory, Record<string, LbRow[]>>;
 
+const emptySingles = {
+	'mens-singles-open': [],
+	'mens-singles-elite': [],
+	'mens-singles-a': [],
+	'mens-singles-b': [],
+	'mens-singles-c': [],
+	'mens-age-50': [],
+	'mens-age-60': [],
+	'mens-age-70': [],
+} as const;
+
+const emptyDoubles = {
+	'mens-doubles-open': [],
+	'mens-doubles-elite': [],
+	'mens-doubles-a': [],
+	'mens-doubles-b': [],
+	'mens-doubles-centurion': [],
+	'mens-doubles-super-centurion': [],
+} as const;
+
+const emptyMixed = {
+	'mixed-doubles': [],
+} as const;
+
 export const lbData: LbData = {
-	singles: {
-		'open-men': [],
-		'open-women': [],
-		'a-men': [],
-		'a-women': [],
-		'b-men': [],
-		'b-women': [],
-		senior: [],
-	},
-	doubles: {
-		'open-men': [],
-		'open-women': [],
-	},
-	mixed: {
-		'open-men': [],
-	},
+	singles: { ...emptySingles },
+	doubles: { ...emptyDoubles },
+	mixed: { ...emptyMixed },
 };
 
 export const PENDING_ROW: LbRow = {
@@ -160,9 +189,9 @@ export function getDivisionLeader(category: LbCategory, division: string): LbRow
 	return rows.length ? rows[0] : null;
 }
 
-/** Homepage: three headline divisions (Singles Open M/W, Mixed Open). */
+/** Homepage: three headline divisions (singles open + elite, mixed). */
 export const HOME_SPOTLIGHT_TRACKS = [
-	{ category: 'singles' as const, division: 'open-men', label: 'Singles · Open Men' },
-	{ category: 'singles' as const, division: 'open-women', label: 'Singles · Open Women' },
-	{ category: 'mixed' as const, division: 'open-men', label: 'Mixed Doubles · Open' },
+	{ category: 'singles' as const, division: 'mens-singles-open', label: 'Singles · Open' },
+	{ category: 'singles' as const, division: 'mens-singles-elite', label: 'Singles · Elite' },
+	{ category: 'mixed' as const, division: 'mixed-doubles', label: 'Mixed Doubles · Open/A' },
 ] as const;

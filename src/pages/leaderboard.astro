@@ -19,7 +19,7 @@ const registeredCount = new Set(
 	EVENTS.flatMap((e) => (e.profiles ?? []).map((p) => p.name))
 ).size;
 
-const defaultRows = getSortedRows('singles', 'open-men', true);
+const defaultRows = getSortedRows('singles', 'mens-singles-open', true);
 const defaultMaxPts = defaultRows.length ? leaderboardTotal(defaultRows[0]) : 1;
 
 const badgeLabel = { q: 'Qualified', pace: 'On Pace', chase: 'Chasing' } as const;
@@ -141,7 +141,9 @@ function badgeClass(status: keyof typeof badgeLabel): string {
 				</div>
 			</div>
 
-			<p class="lb-context" id="lb-context-line" aria-live="polite">Singles · Open Men</p>
+			<p class="lb-context" id="lb-context-line" aria-live="polite">
+				{LB_CATEGORY_HEADING.singles} · {LB_DIVISIONS_BY_CATEGORY.singles[0]?.label ?? 'Open'}
+			</p>
 
 			<section class="lb-spotlight" aria-label="Top three in selected division" aria-live="polite">
 				<div class="lb-spotlight-inner">
