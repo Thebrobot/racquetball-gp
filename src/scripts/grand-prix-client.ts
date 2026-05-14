@@ -181,6 +181,7 @@ function initNavDrawer() {
 	const backdrop = document.querySelector<HTMLElement>('.nav-drawer-backdrop');
 	const navPanel = document.getElementById('gp-primary-nav');
 	const register = document.querySelector<HTMLAnchorElement>('.nav-pill .nav-register');
+	const drawerClose = document.getElementById('gp-nav-drawer-close');
 	if (!btn || !backdrop || !navPanel) return;
 
 	const menuBtn = btn;
@@ -231,6 +232,7 @@ function initNavDrawer() {
 		a.addEventListener('click', () => setOpen(false)),
 	);
 	register?.addEventListener('click', () => setOpen(false));
+	drawerClose?.addEventListener('click', () => setOpen(false));
 	document.addEventListener('keydown', (e) => {
 		if (e.key === 'Escape') setOpen(false);
 	});

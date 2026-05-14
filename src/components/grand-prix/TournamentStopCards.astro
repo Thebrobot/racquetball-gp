@@ -80,6 +80,20 @@ function registerCtaLabel(url: string): string {
 									{registerCtaLabel(stop.registerUrl)}
 								</a>
 							)}
+							{stop.watchLiveUrl && !isChamp && !regClosed ? (
+								regPending ? (
+									<span class="btn-watch-live disabled" aria-disabled="true">Watch live</span>
+								) : (
+									<a
+										href={stop.watchLiveUrl}
+										class="btn-watch-live"
+										target="_blank"
+										rel="noopener noreferrer"
+									>
+										Watch live
+									</a>
+								)
+							) : null}
 							{stop.bracketsHref ? (
 								<a href={stop.bracketsHref} class="btn-brackets">
 									Brackets

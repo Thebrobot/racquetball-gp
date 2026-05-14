@@ -25,6 +25,8 @@ export interface SeasonStop {
 	bracketsHref?: string;
 	/** On-site participants list (e.g. `/events/ocala-open/participants`); omit when not published yet */
 	participantsHref?: string;
+	/** R2 tournament home / live scores; shows “Watch live” on tournament cards when set */
+	watchLiveUrl?: string;
 }
 
 export const TOUR_STOP_COUNT = 4;
@@ -45,6 +47,7 @@ export const SEASON_STOPS: SeasonStop[] = [
 		bentoGridArea: 'marq',
 		bracketsHref: '/events/ocala-open#brackets',
 		participantsHref: '/events/ocala-open#participants',
+		watchLiveUrl: 'https://www.r2sports.com/tourney/home.asp?TID=53697',
 	},
 	{
 		id: 'stop-2',
@@ -59,6 +62,7 @@ export const SEASON_STOPS: SeasonStop[] = [
 		venue: 'Sarasota YMCA',
 		registerUrl: 'https://www.r2sports.com/tourney/home.asp?TID=54249',
 		bentoGridArea: 'c1',
+		watchLiveUrl: 'https://www.r2sports.com/tourney/home.asp?TID=54249',
 	},
 	{
 		id: 'stop-3',
@@ -73,6 +77,7 @@ export const SEASON_STOPS: SeasonStop[] = [
 		venue: 'Civic Center',
 		registerUrl: 'https://www.r2sports.com/tourney/home.asp?TID=54248',
 		bentoGridArea: 'c2',
+		watchLiveUrl: 'https://www.r2sports.com/tourney/home.asp?TID=54248',
 		photoCredit:
 			'Photo: Port St. Lucie City Hall — Birbie28 / Wikimedia Commons (CC BY-SA 4.0). Civic Center hosts the tournament.',
 	},
@@ -89,6 +94,7 @@ export const SEASON_STOPS: SeasonStop[] = [
 		venue: 'Sunset Island (outdoor)',
 		registerUrl: 'https://www.r2sports.com/tourney/home.asp?TID=54247',
 		bentoGridArea: 'wide',
+		watchLiveUrl: 'https://www.r2sports.com/tourney/home.asp?TID=54247',
 		photoCredit:
 			'Photo: Lake Eustis Lakewalk — Ebyabe / Wikimedia Commons (CC BY-SA 3.0). Sunset Island hosts the outdoor event.',
 	},

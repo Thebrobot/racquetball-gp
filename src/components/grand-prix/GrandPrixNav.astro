@@ -43,11 +43,14 @@ function bottomActive(href: string): string {
 			<span class="visually-hidden">Open menu</span>
 		</button>
 		<div class="nav-links" id="gp-primary-nav">
-			<div class="nav-drawer-head" aria-hidden="true">
-				<a class="nav-drawer-logo-link" href="/" tabindex="-1">
+			<div class="nav-drawer-head">
+				<button type="button" class="nav-drawer-close" id="gp-nav-drawer-close" aria-label="Close menu">
+					<span aria-hidden="true">×</span>
+				</button>
+				<a class="nav-drawer-logo-link" href="/" tabindex="-1" aria-hidden="true">
 					<img
 						src="/images/website-logo.webp"
-						alt="Racquetball Grand Prix"
+						alt=""
 						width="1000"
 						height="200"
 					/>
