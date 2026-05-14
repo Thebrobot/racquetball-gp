@@ -1,4 +1,6 @@
 ---
+import { GRAND_PRIX_FACEBOOK_URL } from '../../data/social';
+
 const year = new Date().getFullYear();
 ---
 
@@ -17,7 +19,7 @@ const year = new Date().getFullYear();
 		<a href="/points">Points</a>
 		<a href="/sponsors">Sponsors</a>
 		<a href="/contact">Contact</a>
-		<a href="https://www.facebook.com/profile.php?id=61579420510625" target="_blank" rel="noopener noreferrer" aria-label="Florida Racquetball Grand Prix on Facebook">Facebook</a>
+		<a href={GRAND_PRIX_FACEBOOK_URL} target="_blank" rel="noopener noreferrer" aria-label="Florida Racquetball Grand Prix on Facebook">Facebook</a>
 	</div>
 	<div class="footer-copy">© {year} Florida Racquetball Grand Prix. All rights reserved.</div>
 </footer>

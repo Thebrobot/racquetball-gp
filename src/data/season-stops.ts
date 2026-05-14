@@ -1,3 +1,5 @@
+import { GRAND_PRIX_FACEBOOK_URL } from './social';
+
 /** Grand Prix season stops: homepage bento + tournaments page (single source). */
 
 export type StopKind = 'done' | 'next' | 'upcoming' | 'champ';
@@ -25,7 +27,7 @@ export interface SeasonStop {
 	bracketsHref?: string;
 	/** On-site participants list (e.g. `/events/ocala-open/participants`); omit when not published yet */
 	participantsHref?: string;
-	/** R2 tournament home / live scores; shows “Watch live” on tournament cards when set */
+	/** Facebook “Watch live” on tournament cards when set */
 	watchLiveUrl?: string;
 }
 
@@ -47,7 +49,7 @@ export const SEASON_STOPS: SeasonStop[] = [
 		bentoGridArea: 'marq',
 		bracketsHref: '/events/ocala-open#brackets',
 		participantsHref: '/events/ocala-open#participants',
-		watchLiveUrl: 'https://www.r2sports.com/tourney/home.asp?TID=53697',
+		watchLiveUrl: GRAND_PRIX_FACEBOOK_URL,
 	},
 	{
 		id: 'stop-2',
@@ -62,7 +64,7 @@ export const SEASON_STOPS: SeasonStop[] = [
 		venue: 'Sarasota YMCA',
 		registerUrl: 'https://www.r2sports.com/tourney/home.asp?TID=54249',
 		bentoGridArea: 'c1',
-		watchLiveUrl: 'https://www.r2sports.com/tourney/home.asp?TID=54249',
+		watchLiveUrl: GRAND_PRIX_FACEBOOK_URL,
 	},
 	{
 		id: 'stop-3',
@@ -77,7 +79,7 @@ export const SEASON_STOPS: SeasonStop[] = [
 		venue: 'Civic Center',
 		registerUrl: 'https://www.r2sports.com/tourney/home.asp?TID=54248',
 		bentoGridArea: 'c2',
-		watchLiveUrl: 'https://www.r2sports.com/tourney/home.asp?TID=54248',
+		watchLiveUrl: GRAND_PRIX_FACEBOOK_URL,
 		photoCredit:
 			'Photo: Port St. Lucie City Hall — Birbie28 / Wikimedia Commons (CC BY-SA 4.0). Civic Center hosts the tournament.',
 	},
@@ -94,7 +96,7 @@ export const SEASON_STOPS: SeasonStop[] = [
 		venue: 'Sunset Island (outdoor)',
 		registerUrl: 'https://www.r2sports.com/tourney/home.asp?TID=54247',
 		bentoGridArea: 'wide',
-		watchLiveUrl: 'https://www.r2sports.com/tourney/home.asp?TID=54247',
+		watchLiveUrl: GRAND_PRIX_FACEBOOK_URL,
 		photoCredit:
 			'Photo: Lake Eustis Lakewalk — Ebyabe / Wikimedia Commons (CC BY-SA 3.0). Sunset Island hosts the outdoor event.',
 	},

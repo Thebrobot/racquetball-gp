@@ -1,4 +1,5 @@
 import resultsData from './ocala-results.json';
+import { GRAND_PRIX_FACEBOOK_URL } from './social';
 
 export type EventStatus = 'live' | 'recent' | 'upcoming';
 
@@ -80,7 +81,7 @@ export interface EventData {
 	/** Home featured strip: hero photo and venue line */
 	spotlightImage?: string;
 	spotlightVenue?: string;
-	/** YouTube / R2 / etc. — shown as "Watch live" on the home spotlight when set */
+	/** Facebook / etc. — shown as "Watch live" on the home spotlight when set */
 	spotlightWatchLiveUrl?: string;
 }
 
@@ -94,7 +95,7 @@ const EVENTS_RAW: EventData[] = [
 		endDate: '2026-05-17',
 		spotlightImage: '/images/stops/ocala-spotlight.webp',
 		spotlightVenue: 'Frank DeLuca YMCA',
-		spotlightWatchLiveUrl: 'https://www.r2sports.com/tourney/home.asp?TID=53697',
+		spotlightWatchLiveUrl: GRAND_PRIX_FACEBOOK_URL,
 		drawBlocks: [],
 		divisions: [
 			"Men's Singles: Open",

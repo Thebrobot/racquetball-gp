@@ -133,7 +133,7 @@ function initLiveWeekendPromo() {
 	const parts: string[] = [];
 	if (liveEvent.watchLiveUrl) {
 		parts.push(
-			`<a class="gp-live-weekend-promo__btn gp-live-weekend-promo__btn--primary" href="${escAttr(liveEvent.watchLiveUrl)}" rel="noopener noreferrer" target="_blank">Watch live &amp; scores</a>`,
+			`<a class="gp-live-weekend-promo__btn gp-live-weekend-promo__btn--primary" href="${escAttr(liveEvent.watchLiveUrl)}" rel="noopener noreferrer" target="_blank">Watch live on Facebook</a>`,
 		);
 	}
 	const bracketsHref = `/events/${liveEvent.slug}#brackets`;
