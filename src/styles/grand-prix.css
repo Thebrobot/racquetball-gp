@@ -3816,6 +3816,8 @@ footer {
     max-width: calc(100vw - 16px);
     min-height: 0;
     justify-content: flex-start;
+    /* Fixed drawer must not be clipped (Safari + overflow-x: clip on parent). */
+    overflow: visible;
   }
   .nav-menu-toggle {
     margin-left: auto;
@@ -3828,7 +3830,7 @@ footer {
     height: 100dvh;
     box-sizing: border-box;
     margin: 0;
-    padding: 0 0 calc(env(safe-area-inset-bottom) + 24px);
+    padding: 0 0 calc(60px + env(safe-area-inset-bottom) + 24px);
     flex-direction: column;
     align-items: stretch;
     flex-wrap: nowrap;
@@ -5206,15 +5208,15 @@ footer {
   }
 }
 
-/* ───── Tournament weekend live promo (slide-in, below mobile nav z-index 10) ───── */
+/* ───── Tournament weekend live promo (above page; on mobile clears bottom tab bar) ───── */
 .gp-live-weekend-promo {
   position: fixed;
-  right: 0;
-  bottom: 0;
-  z-index: 8;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: auto;
+  z-index: 90;
   max-width: min(360px, calc(100vw - 16px));
-  margin: 0 max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom))
-    max(12px, env(safe-area-inset-left));
+  margin: 0;
   font-family: var(--font-body, 'Barlow', system-ui, sans-serif);
   transform: translateX(calc(100% + 24px));
   opacity: 0;
@@ -5223,6 +5225,14 @@ footer {
     transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
     opacity 0.32s ease;
   will-change: transform;
+}
+
+@media (max-width: 640px) {
+  .gp-live-weekend-promo {
+    /* Same stacking band as .gp-bottom-nav; later in DOM paints above the tab bar in overlap. */
+    z-index: 200;
+    bottom: calc(60px + env(safe-area-inset-bottom) + 12px);
+  }
 }
 
 .gp-live-weekend-promo--visible {
