@@ -1,6 +1,9 @@
 ---
+import { inject } from '@vercel/analytics';
 import Seo from '../components/seo/Seo.astro';
 import '../styles/global.css';
+
+inject();
 
 interface Props {
 	title: string;
