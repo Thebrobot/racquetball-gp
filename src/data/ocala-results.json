@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-15T21:05:35.639Z",
+  "lastUpdated": "2026-05-15T22:15:25.365Z",
   "divisions": {
     "mens-singles-open": {
       "MO9": {
@@ -67,6 +67,18 @@
       "MB10": {
         "player1": "Ryan Appleby",
         "player2": "Mike Caldwell"
+      },
+      "MB8": {
+        "player1": "BYE",
+        "player2": "Matthew Brice"
+      },
+      "MB6": {
+        "player1": "BYE",
+        "player2": "Ashley Medlock"
+      },
+      "MB7": {
+        "player1": "Mike Caldwell",
+        "player2": "BYE"
       }
     },
     "mens-singles-c": {
