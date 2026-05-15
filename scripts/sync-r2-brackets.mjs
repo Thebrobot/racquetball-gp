@@ -25,6 +25,7 @@ const RESULTS_PATH = resolve(__dirname, '../src/data/ocala-results.json');
 const TID = '53697';
 const HOME_URL = `https://www.r2sports.com/tourney/home.asp?TID=${TID}`;
 const DIVS_URL = `https://www.r2sports.com/tourney/divisions/listAllDivs.asp?TID=${TID}&sortBy=defaultOrder`;
+const DRAWOUT_BASE = `https://www.r2sports.com/tourney/drawsOut/drawOut.asp?TID=${TID}`;
 
 // Map R2 Sports division labels (as they appear on the page) → our internal IDs
 const DIVISION_ID_MAP = {
@@ -65,33 +66,64 @@ const CODE_ID_MAP = {
 };
 
 /**
+ * R2's division list uses javascript:viewBracket(divID, combinedID). Playwright
+ * cannot navigate to javascript: URLs, so convert to the real drawOut.asp URL.
+ * (Legacy t-bracket.asp?DivisionCode=… URLs now 404 on this host.)
+ */
+function normalizeBracketUrl(href) {
+	const s = String(href ?? '').trim();
+	const js = s.match(/viewBracket\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)/i);
+	if (js) {
+		return `${DRAWOUT_BASE}&divID=${js[1]}&combinedID=${js[2]}`;
+	}
+	if (/^https?:\/\//i.test(s) && /drawOut\.asp/i.test(s)) {
+		return s.split('#')[0];
+	}
+	return null;
+}
+
+/**
+ * Read division short code from bracket header, e.g. "(MO) Men's Singles - Open".
+ */
+async function resolveDivisionCodeFromBracketPage(page) {
+	return page.evaluate(() => {
+		const chunk = (document.body?.innerText ?? '').slice(0, 16000);
+		const m = chunk.match(/\(\s*([A-Z][A-Z0-9+]*)\s*\)\s*(?:Men|Women|Mixed)/);
+		return m ? m[1] : null;
+	});
+}
+
+/**
  * Extract all bracket links from the R2 Sports divisions list page.
- * Returns array of { href, divisionId } objects.
+ * Returns array of { href, divisionId, code } with real https drawOut URLs.
  */
 async function getBracketLinks(page) {
 	await page.goto(DIVS_URL, { waitUntil: 'networkidle', timeout: 30000 });
 
-	const links = await page.evaluate(() => {
+	const rawHrefs = await page.evaluate(() => {
 		return Array.from(document.querySelectorAll('a[href]'))
-			.map((a) => a.href)
-			.filter((href) => /brack|draw|Brack|Draw/i.test(href));
+			.map((a) => a.getAttribute('href'))
+			.filter((h) => h && /viewBracket\s*\(/i.test(h));
 	});
 
-	console.log(`  Found ${links.length} bracket link(s) on divisions page`);
-
+	const seen = new Set();
 	const result = [];
-	for (const href of links) {
+	for (const raw of rawHrefs) {
+		const href = normalizeBracketUrl(raw);
+		if (!href || seen.has(href)) continue;
+		seen.add(href);
+
 		const codeMatch = href.match(/(?:DivisionCode|DivCode|divCode|divisionCode)=([^&]+)/i);
 		if (codeMatch) {
 			const code = decodeURIComponent(codeMatch[1]);
 			const divId = CODE_ID_MAP[code];
-			if (divId) {
-				result.push({ href, divId, code });
-			}
+			if (divId) result.push({ href, divId, code });
 		} else {
 			result.push({ href, divId: null, code: null });
 		}
 	}
+
+	console.log(`  Found ${result.length} unique drawOut bracket URL(s) from divisions page`);
 
 	return result;
 }
@@ -279,41 +311,36 @@ async function main() {
 		const bracketLinks = await getBracketLinks(page);
 
 		if (!bracketLinks.length) {
-			console.log('  ⚠  No bracket links found; trying direct URL construction…');
-
-			for (const [code, divId] of Object.entries(CODE_ID_MAP)) {
-				const url = `https://www.r2sports.com/tourney/t-bracket.asp?TID=${TID}&DivisionCode=${encodeURIComponent(code)}`;
+			console.log(
+				'  ⚠  No viewBracket links on divisions page; cannot fall back to t-bracket.asp (404 on R2).',
+			);
+		} else {
+			for (const { href, divId: presetDivId, code: presetCode } of bracketLinks) {
+				let divId = presetDivId;
+				let code = presetCode;
+				const label = code ?? href.slice(-80);
 				try {
-					await page.goto(url, { waitUntil: 'networkidle', timeout: 15000 });
-					const status = page.url();
-					if (status.includes('404') || status.includes('error')) continue;
+					await page.goto(href, { waitUntil: 'networkidle', timeout: 25000 });
 
-					const data = await extractBracketData(page, code);
+					if (!divId || !code) {
+						const resolved = await resolveDivisionCodeFromBracketPage(page);
+						if (resolved && CODE_ID_MAP[resolved]) {
+							code = resolved;
+							divId = CODE_ID_MAP[resolved];
+						}
+					}
+
+					if (!divId) {
+						console.log(`  ⚠  Skip (unknown division): ${href.slice(0, 100)}…`);
+						continue;
+					}
+
+					const data = await extractBracketData(page, code ?? 'UNK');
 					const matchCount = Object.keys(data).length;
 					if (matchCount > 0) {
 						divisions[divId] = data;
 						scraped++;
-						console.log(`  ✓ ${code}: ${matchCount} match(es)`);
-					} else {
-						console.log(`  – ${code}: no results yet`);
-					}
-				} catch (err) {
-					console.log(`  ✗ ${code}: ${err.message.slice(0, 80)}`);
-				}
-			}
-		} else {
-			for (const { href, divId, code } of bracketLinks) {
-				const label = code ?? href;
-				const resolvedCode = code ?? 'UNK';
-				try {
-					await page.goto(href, { waitUntil: 'networkidle', timeout: 15000 });
-					const data = await extractBracketData(page, resolvedCode);
-					const resolvedId = divId ?? 'unknown';
-					const matchCount = Object.keys(data).length;
-					if (matchCount > 0) {
-						divisions[resolvedId] = data;
-						scraped++;
-						console.log(`  ✓ ${label}: ${matchCount} match(es)`);
+						console.log(`  ✓ ${label}: ${matchCount} match(es) → ${divId}`);
 					} else {
 						console.log(`  – ${label}: no results yet`);
 					}
@@ -334,6 +361,13 @@ async function main() {
 		mergedDivisions[divId] = { ...(mergedDivisions[divId] ?? {}), ...matches };
 	}
 
+	const mergedStr = JSON.stringify(mergedDivisions);
+	const existingStr = JSON.stringify(existing.divisions ?? {});
+	if (mergedStr === existingStr) {
+		console.log('\n✅  No division result changes; leaving ocala-results.json as-is.');
+		return;
+	}
+
 	const output = {
 		lastUpdated: new Date().toISOString(),
 		divisions: mergedDivisions,
@@ -347,5 +381,5 @@ async function main() {
 
 main().catch((err) => {
 	console.error('Fatal error in sync-r2-brackets:', err);
-	process.exit(0);
+	process.exit(1);
 });
