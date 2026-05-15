@@ -1,7 +1,7 @@
 name: Sync R2 Brackets
 
 # Runs every 10 minutes during the tournament weekend.
-# When bracket results change, commits the updated JSON and pushes — which
+# When bracket results change, commits the updated JSON and pushes, which
 # triggers Vercel to rebuild and redeploy the site automatically.
 #
 # You can also trigger a manual sync any time via the GitHub Actions UI

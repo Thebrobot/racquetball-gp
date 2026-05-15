@@ -81,7 +81,7 @@ export interface EventData {
 	/** Home featured strip: hero photo and venue line */
 	spotlightImage?: string;
 	spotlightVenue?: string;
-	/** Facebook / etc. — shown as "Watch live" on the home spotlight when set */
+	/** Facebook / etc., shown as "Watch live" on the home spotlight when set */
 	spotlightWatchLiveUrl?: string;
 }
 

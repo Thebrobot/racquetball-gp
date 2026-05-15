@@ -279,7 +279,7 @@ async function main() {
 		const bracketLinks = await getBracketLinks(page);
 
 		if (!bracketLinks.length) {
-			console.log('  ⚠  No bracket links found — trying direct URL construction…');
+			console.log('  ⚠  No bracket links found; trying direct URL construction…');
 
 			for (const [code, divId] of Object.entries(CODE_ID_MAP)) {
 				const url = `https://www.r2sports.com/tourney/t-bracket.asp?TID=${TID}&DivisionCode=${encodeURIComponent(code)}`;

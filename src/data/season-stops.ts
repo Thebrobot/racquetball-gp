@@ -60,7 +60,7 @@ export const SEASON_STOPS: SeasonStop[] = [
 		image: '/images/stops/stop-sarasota.webp',
 		eventName: 'Sarasota Open',
 		dateFull: 'July 10–12, 2026 · Sarasota, FL',
-		teaser: 'Gulf Coast energy at the Sarasota YMCA—full brackets and Grand Prix points on the line.',
+		teaser: 'Gulf Coast energy at the Sarasota YMCA, with full brackets and Grand Prix points on the line.',
 		venue: 'Sarasota YMCA',
 		registerUrl: 'https://www.r2sports.com/tourney/home.asp?TID=54249',
 		bentoGridArea: 'c1',
@@ -75,13 +75,13 @@ export const SEASON_STOPS: SeasonStop[] = [
 		image: '/images/stops/stop-port-st-lucie.webp',
 		eventName: 'Port St. Lucie Open',
 		dateFull: 'October 23–25, 2026 · Port St. Lucie, FL',
-		teaser: 'Treasure Coast racquetball at the civic center—late-season points and playoff positioning.',
+		teaser: 'Treasure Coast racquetball at the civic center, with late-season points and playoff positioning.',
 		venue: 'Civic Center',
 		registerUrl: 'https://www.r2sports.com/tourney/home.asp?TID=54248',
 		bentoGridArea: 'c2',
 		watchLiveUrl: GRAND_PRIX_FACEBOOK_URL,
 		photoCredit:
-			'Photo: Port St. Lucie City Hall — Birbie28 / Wikimedia Commons (CC BY-SA 4.0). Civic Center hosts the tournament.',
+			'Photo: Port St. Lucie City Hall, Birbie28 / Wikimedia Commons (CC BY-SA 4.0). Civic Center hosts the tournament.',
 	},
 	{
 		id: 'stop-4',
@@ -92,13 +92,13 @@ export const SEASON_STOPS: SeasonStop[] = [
 		image: '/images/stops/stop-eustis-outdoor.webp',
 		eventName: 'Eustis Outdoor Open',
 		dateFull: 'December 4–5, 2026 · Eustis, FL',
-		teaser: 'Outdoor racquetball at Sunset Island—final Grand Prix tour weekend of 2026.',
+		teaser: 'Outdoor racquetball at Sunset Island, the final Grand Prix tour weekend of 2026.',
 		venue: 'Sunset Island (outdoor)',
 		registerUrl: 'https://www.r2sports.com/tourney/home.asp?TID=54247',
 		bentoGridArea: 'wide',
 		watchLiveUrl: GRAND_PRIX_FACEBOOK_URL,
 		photoCredit:
-			'Photo: Lake Eustis Lakewalk — Ebyabe / Wikimedia Commons (CC BY-SA 3.0). Sunset Island hosts the outdoor event.',
+			'Photo: Lake Eustis Lakewalk, Ebyabe / Wikimedia Commons (CC BY-SA 3.0). Sunset Island hosts the outdoor event.',
 	},
 ];
 
@@ -117,7 +117,7 @@ export const SERIES_CHAMPIONSHIP: SeasonStop = {
 	venue: 'TBD',
 	registerUrl: '#',
 	bentoGridArea: 'champ',
-	photoCredit: 'Photo: Ocala downtown — drinkteatravel.com',
+	photoCredit: 'Photo: Ocala downtown, drinkteatravel.com',
 };
 
 /** Homepage bento, tournaments grid, and hero strip: tour stops plus series championship. */

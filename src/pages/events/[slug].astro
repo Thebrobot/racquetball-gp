@@ -46,7 +46,7 @@ for (const d of event.divisionDetails ?? []) {
 
 <GrandPrixLayout
 	title={`${event.name} | Florida Racquetball Grand Prix 2026`}
-	description={`Brackets, results, and ${totalParticipants} participants for the ${event.name} — ${event.dateRange}, ${event.cityLine}. Part of the 2026 Florida Racquetball Grand Prix series.`}
+	description={`Brackets, results, and ${totalParticipants} participants for the ${event.name}, ${event.dateRange}, ${event.cityLine}. Part of the 2026 Florida Racquetball Grand Prix series.`}
 	spotlightLabel="Title sponsor"
 	spotlightName={titleSponsor.name}
 	spotlightBlurb={titleSponsor.blurb}
@@ -171,8 +171,8 @@ for (const d of event.divisionDetails ?? []) {
 								return (
 									<a class="participants-div-row" href={href}>
 										<span class="participants-td--division">{e.division}</span>
-										<span class="participants-td--time">{e.time || '—'}</span>
-										<span class="participants-td--court">{e.court ? `Court ${e.court}` : '—'}</span>
+										<span class="participants-td--time">{e.time || 'TBD'}</span>
+										<span class="participants-td--court">{e.court ? `Court ${e.court}` : 'TBD'}</span>
 									</a>
 								);
 							})}
@@ -189,7 +189,7 @@ for (const d of event.divisionDetails ?? []) {
 	"@context": "https://schema.org",
 	"@type": "SportsEvent",
 	"name": event.name,
-	"description": `${event.name} — ${event.dateRange}, ${event.cityLine}. Part of the 2026 Florida Racquetball Grand Prix series.`,
+	"description": `${event.name}, ${event.dateRange}, ${event.cityLine}. Part of the 2026 Florida Racquetball Grand Prix series.`,
 	"startDate": event.dateRange,
 	"location": {
 		"@type": "Place",

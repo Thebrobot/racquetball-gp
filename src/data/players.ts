@@ -37,7 +37,7 @@ function playerMatchesEntry(playerName: string, entryName: string): boolean {
 	const norm = playerName.trim().toLowerCase();
 	const entryNorm = entryName.trim().toLowerCase();
 	if (entryNorm === norm) return true;
-	// Doubles teams are stored as "LastA / LastB" — match by last name.
+	// Doubles teams are stored as "LastA / LastB"; match by last name.
 	// Use endsWith to handle compound last names like "Van Zant-Russell".
 	const lastName = norm.split(' ').pop() ?? '';
 	if (lastName.length > 1) {
@@ -228,7 +228,7 @@ export interface PlayerMatchRecord {
 	roundLabel: string;
 	opponent: string;
 	score?: string;
-	/** Bye advances are not match wins — excluded from W–L on profiles. */
+	/** Bye advances are not match wins and are excluded from W–L on profiles. */
 	result: 'win' | 'loss' | 'pending' | 'bye';
 }
 
@@ -294,7 +294,7 @@ export const GP_SERIES_POSTS: SeriesPost[] = [
 	{
 		title: 'Lap 1 preview: what is at stake in Ocala?',
 		date: 'May 2026',
-		excerpt: 'The points race starts here—open draws stacked across every division.',
+		excerpt: 'The points race starts here, with open draws stacked across every division.',
 		href: '/tournaments',
 	},
 	{

@@ -300,7 +300,7 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 									row.result === 'pending' ? 'player-history-badge--pending' : '',
 									row.result === 'bye' ? 'player-history-badge--bye' : '',
 								]}
-								title={row.result === 'bye' ? 'Bye — does not count as a match win' : undefined}
+								title={row.result === 'bye' ? 'Bye (does not count as a match win)' : undefined}
 							>
 								{row.result === 'win'
 									? 'W'
@@ -308,7 +308,9 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 										? 'L'
 										: row.result === 'bye'
 											? 'Bye'
-											: '—'}
+											: row.result === 'pending'
+												? 'P'
+												: 'TBD'}
 							</div>
 						</article>
 					))}

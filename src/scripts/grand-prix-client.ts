@@ -442,7 +442,7 @@ function initSeasonStrip() {
 		const startOffset = nextItem ? nextItem.offsetLeft : 0;
 
 		let currentX = -startOffset;
-		const SPEED_PX_PER_S = 60; // pixels per second — comfortable reading pace
+		const SPEED_PX_PER_S = 60; // pixels per second, comfortable reading pace
 		let lastTime = performance.now();
 		let paused = false;
 
@@ -489,7 +489,7 @@ function initSeasonStrip() {
 //   1. Apply margin-top to matches in later rounds so each is vertically
 //      centred between the two "feeder" matches from the previous round.
 //   2. Draw an SVG overlay with ⊢-shaped connectors that use the real
-//      pixel positions — guaranteed to line up no matter the content size.
+//      pixel positions, guaranteed to line up no matter the content size.
 
 function initBracketLayout() {
 	document.querySelectorAll<HTMLElement>('.bracket-grid').forEach((grid) => {
@@ -527,7 +527,7 @@ async function layoutAndDrawBracket(grid: HTMLElement) {
 
 	const isMobile = window.matchMedia('(max-width: 640px)').matches;
 
-	// On mobile, the ESPN-style slider handles layout — skip margin
+	// On mobile, the ESPN-style slider handles layout; skip margin
 	// positioning and connectors entirely (only 1 round visible at a time).
 	if (isMobile) {
 		return;
