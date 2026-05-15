@@ -781,46 +781,65 @@ function applyResults(events: EventData[]): EventData[] {
 	const divResults = (resultsData as { divisions?: Record<string, DivisionResult> }).divisions ?? {};
 	if (!Object.keys(divResults).length) return events;
 
+	// Name-based fallback lookup — used by both SE rounds and RR matches.
+	const findByNames = (
+		matchMap: DivisionResult,
+		a: string,
+		b: string,
+	): MatchResult | undefined => {
+		const ax = a.toLowerCase();
+		const bx = b.toLowerCase();
+		return Object.values(matchMap).find((r) => {
+			const rp1 = (r.player1 ?? '').toLowerCase();
+			const rp2 = (r.player2 ?? '').toLowerCase();
+			return (rp1 === ax && rp2 === bx) || (rp1 === bx && rp2 === ax);
+		});
+	};
+
 	return events.map((event) => ({
 		...event,
 		divisionDetails: event.divisionDetails.map((div) => {
 			const matchMap = divResults[div.id];
-			if (!matchMap || !div.rounds) return div;
+			if (!matchMap) return div;
 
-			const updatedRounds = div.rounds.map((round) => ({
-				...round,
-				matches: round.matches.map((match) => {
-					let res: MatchResult | undefined;
+			// ── Single Elimination ───────────────────────────────────────────
+			if (div.rounds) {
+				const updatedRounds = div.rounds.map((round) => ({
+					...round,
+					matches: round.matches.map((match) => {
+						let res: MatchResult | undefined;
+						if (match.matchId) res = matchMap[match.matchId];
+						if (!res) res = findByNames(matchMap, match.player1, match.player2);
+						if (!res) return match;
+						return {
+							...match,
+							...(res.score != null ? { score: res.score } : {}),
+							...(res.winner != null ? { winner: res.winner } : {}),
+							...(match.player1 === 'TBD' && res.player1 ? { player1: res.player1 } : {}),
+							...(match.player2 === 'TBD' && res.player2 ? { player2: res.player2 } : {}),
+						};
+					}),
+				}));
+				return { ...div, rounds: updatedRounds };
+			}
 
-					// Primary: lookup by matchId
-					if (match.matchId) {
-						res = matchMap[match.matchId];
-					}
-
-					// Fallback: match by player names (case-insensitive)
-					if (!res) {
-						const p1 = match.player1.toLowerCase();
-						const p2 = match.player2.toLowerCase();
-						res = Object.values(matchMap).find((r) => {
-							const rp1 = (r.player1 ?? '').toLowerCase();
-							const rp2 = (r.player2 ?? '').toLowerCase();
-							return (rp1 === p1 && rp2 === p2) || (rp1 === p2 && rp2 === p1);
-						});
-					}
-
-					if (!res) return match;
-
+			// ── Round Robin ──────────────────────────────────────────────────
+			// RR matches don't carry matchId in the static data, so the merge
+			// uses name-based lookup against the scraped team1/team2 pairs.
+			if (div.roundRobinMatches) {
+				const updatedRR = div.roundRobinMatches.map((m) => {
+					const res = findByNames(matchMap, m.team1, m.team2);
+					if (!res) return m;
 					return {
-						...match,
+						...m,
 						...(res.score != null ? { score: res.score } : {}),
 						...(res.winner != null ? { winner: res.winner } : {}),
-						...(match.player1 === 'TBD' && res.player1 ? { player1: res.player1 } : {}),
-						...(match.player2 === 'TBD' && res.player2 ? { player2: res.player2 } : {}),
 					};
-				}),
-			}));
+				});
+				return { ...div, roundRobinMatches: updatedRR };
+			}
 
-			return { ...div, rounds: updatedRounds };
+			return div;
 		}),
 	}));
 }
