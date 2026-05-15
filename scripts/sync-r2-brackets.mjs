@@ -161,18 +161,21 @@ async function extractSingleElimData(page, divCode) {
 		};
 
 		const matchLinks = Array.from(document.querySelectorAll('a[href*="viewAppMatch"]'));
+		const matchCells = new Set(matchLinks.map((l) => l.closest('td')).filter(Boolean));
 
-		// Player-name candidates: profile anchors + standalone bold names.
-		const profileAnchors = Array.from(document.querySelectorAll('a[href*="profile-player.asp"]'));
+		// Player-name candidates: every bold/strong with a valid name OR BYE, PLUS
+		// every profile-player anchor (some R2 layouts put the bold inside the
+		// anchor; others render the bold as a sibling).  We allow bolds inside
+		// profile anchors so both layouts produce a hit.
 		const boldEls = Array.from(document.querySelectorAll('b, strong')).filter((el) => {
-			if (el.closest('a[href*="profile-player.asp"]')) return false;
 			const t = cleanName(el.textContent);
 			return looksLikePlayerName(t) || isBye(t);
 		});
+		const profileAnchors = Array.from(document.querySelectorAll('a[href*="profile-player.asp"]'));
 
 		const candidates = [
-			...profileAnchors.map((el) => ({ el, kind: 'profile' })),
-			...boldEls.map((el) => ({ el, kind: 'bold' })),
+			...boldEls.map((el) => ({ el })),
+			...profileAnchors.map((el) => ({ el })),
 		];
 
 		for (const link of matchLinks) {
@@ -182,11 +185,18 @@ async function extractSingleElimData(page, divCode) {
 			const linkRect = link.getBoundingClientRect();
 			if (linkRect.width < 1 || linkRect.height < 1) continue;
 
+			const ownCell = link.closest('td');
 			const linkCenterX = (linkRect.left + linkRect.right) / 2;
 			const linkCenterY = (linkRect.top + linkRect.bottom) / 2;
 
 			const scored = candidates
 				.map(({ el }) => {
+					// Reject candidates that live inside a DIFFERENT match's cell.
+					// This stops M70+4 from grabbing the "BYE" label that belongs to
+					// the adjacent M70+8 cell.
+					const candCell = el.closest('td');
+					if (candCell && candCell !== ownCell && matchCells.has(candCell)) return null;
+
 					const r = el.getBoundingClientRect();
 					if (r.width < 1 || r.height < 1) return null;
 					const cx = (r.left + r.right) / 2;
@@ -200,7 +210,10 @@ async function extractSingleElimData(page, divCode) {
 				})
 				.filter(Boolean)
 				.filter((c) => c.dx >= -10 && c.dx <= 400)
-				.filter((c) => Math.abs(c.dy) <= 90);
+				.filter((c) => Math.abs(c.dy) <= 120)
+				// Drop candidates whose text fails validation early so they don't
+				// "win" the above/below slot and block a valid candidate behind them.
+				.filter((c) => looksLikePlayerName(c.text) || isBye(c.text));
 
 			const above = scored
 				.filter((c) => c.dy < 0)

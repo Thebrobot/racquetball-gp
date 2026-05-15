@@ -1,14 +1,18 @@
 ---
 import type { EventBracketMatch, EventBracketRound, EventDivisionDetail } from '../../data/events';
 import { getAllPlayers, getPlayerSlug } from '../../data/players';
+import { resolveTeamMembers } from '../../lib/resolve-team-members';
 
 interface Props {
 	division: EventDivisionDetail;
+	/** When set, disambiguates shared last names (e.g. two Jennings) using event participant rows. */
+	eventName?: string;
 }
 
-const { division } = Astro.props;
+const { division, eventName } = Astro.props;
 const rounds = division.rounds ?? [];
 const allPlayers = getAllPlayers();
+const bracketTeamCtx = eventName ? { eventName, division: division.label } : undefined;
 const playerIndex = new Map(allPlayers.map((player) => [player.name.toLowerCase(), player]));
 
 type Layout = {
@@ -227,36 +231,17 @@ function playerLocation(rawName: string, roundIndex: number) {
 	return playerIndex.get(rawName.toLowerCase())?.city ?? '';
 }
 
-function resolveTeamMembers(teamStr: string): { name: string; slug?: string }[] {
-	return teamStr.split(/\s*\/\s*/).map((part) => {
-		const trimmed = part.trim();
-		const partLower = trimmed.toLowerCase();
-		const initMatch = trimmed.match(/^([A-Za-z])\.\s+(.+)$/);
-
-		if (initMatch) {
-			const [, init, lastName] = initMatch;
-			const lnLower = lastName.toLowerCase();
-			const found = allPlayers.find(
-				(player) =>
-					player.name.toLowerCase().endsWith(lnLower) &&
-					player.name[0]?.toLowerCase() === init.toLowerCase(),
-			);
-			if (found) return { name: found.name, slug: found.slug };
-		}
-
-		const found = allPlayers.find((player) => player.name.toLowerCase().endsWith(partLower));
-		if (found) return { name: found.name, slug: found.slug };
-		return { name: trimmed };
-	});
-}
-
-function nameSegments(rawName: string, displayName: string): NameSegment[] {
+function nameSegments(rawName: string, displayName: string, scheduledTime?: string): NameSegment[] {
 	if (isLinkablePlayer(rawName)) {
 		return [{ text: displayName, href: `/players/${getPlayerSlug(rawName)}` }];
 	}
 
 	if (rawName.includes('/') && !displayName.startsWith('Winner ')) {
-		const rawMembers = resolveTeamMembers(rawName);
+		const ctx =
+			bracketTeamCtx && scheduledTime
+				? { ...bracketTeamCtx, time: scheduledTime }
+				: bracketTeamCtx;
+		const rawMembers = resolveTeamMembers(rawName, allPlayers, ctx);
 		const displayParts = displayName.split(/\s*\/\s*/);
 		return rawMembers.map((member, index) => ({
 			text: displayParts[index] ?? member.name,
@@ -280,7 +265,7 @@ function buildSide(match: EventBracketMatch, roundIndex: number, gameIndex: numb
 		location: playerLocation(rawName, roundIndex),
 		winner,
 		bye: rawName.trim().toUpperCase() === 'BYE',
-		segments: nameSegments(rawName, displayName),
+		segments: nameSegments(rawName, displayName, match.scheduledTime),
 	};
 }
 

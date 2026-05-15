@@ -5,6 +5,7 @@ import SponsorLogoMarquee from '../../../../components/grand-prix/SponsorLogoMar
 import OfficialBallChip from '../../../../components/grand-prix/OfficialBallChip.astro';
 import { EVENTS } from '../../../../data/events';
 import { getAllPlayers, getPlayerSlug } from '../../../../data/players';
+import { resolveTeamMembers } from '../../../../lib/resolve-team-members';
 import { titleSponsor } from '../../../../data/ocala-sponsors';
 
 export async function getStaticPaths() {
@@ -29,28 +30,7 @@ const isLinkablePlayer = (name: string) => {
 
 // Resolve "LastA / LastB" or "M. Huyke / O. Huyke" to full names + profile slugs.
 const allPlayers = getAllPlayers();
-function resolveTeamMembers(teamStr: string): { name: string; slug?: string }[] {
-	return teamStr.split(/\s*\/\s*/).map((part) => {
-		part = part.trim();
-		const partLower = part.toLowerCase();
-		const initMatch = part.match(/^([A-Za-z])\.\s+(.+)$/);
-		if (initMatch) {
-			const [, init, lastName] = initMatch;
-			const lnLower = lastName.toLowerCase();
-			const found = allPlayers.find(
-				(p) =>
-					p.name.toLowerCase().endsWith(lnLower) &&
-					p.name[0].toLowerCase() === init.toLowerCase(),
-			);
-			if (found) return { name: found.name, slug: found.slug };
-		}
-		const found = allPlayers.find(
-			(p) => p.name.toLowerCase().endsWith(partLower),
-		);
-		if (found) return { name: found.name, slug: found.slug };
-		return { name: part };
-	});
-}
+const bracketTeamCtxBase = { eventName: event.name, division: division.label };
 // ── Round-robin standings (computed from match results) ───────────────────────
 type StandingRow = { name: string; w: number; l: number; played: number };
 const standingsMap = new Map<string, StandingRow>();
@@ -96,7 +76,7 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 
 	{division.format === 'single' ? (
 		<section class="event-section">
-			<SingleEliminationBracket division={division} />
+			<SingleEliminationBracket division={division} eventName={event.name} />
 			<SponsorLogoMarquee />
 		</section>
 	) : (
@@ -112,7 +92,7 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 					<span class="rr-champion-label">Pool Champion</span>
 				{poolWinner.includes('/') ? (
 					<span class="rr-champion-name">
-						{resolveTeamMembers(poolWinner).map((m, j, arr) => (
+						{resolveTeamMembers(poolWinner, allPlayers, bracketTeamCtxBase).map((m, j, arr) => (
 							<>
 								{m.slug ? <a class="rr-champion-name-link" href={`/players/${m.slug}`}>{m.name}</a> : m.name}
 								{j < arr.length - 1 && ' / '}
@@ -142,7 +122,7 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 							<span class="rr-standings-rank">{i + 1}</span>
 						<span class="rr-standings-name">
 							{s.name.includes('/') ? (
-								resolveTeamMembers(s.name).map((m, j, arr) => (
+								resolveTeamMembers(s.name, allPlayers, bracketTeamCtxBase).map((m, j, arr) => (
 									<>
 										{m.slug ? <a href={`/players/${m.slug}`}>{m.name}</a> : <span>{m.name}</span>}
 										{j < arr.length - 1 && ' / '}
@@ -172,6 +152,7 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 					const isComplete = !!m.winner;
 					const t1Wins = m.winner === 1;
 					const t2Wins = m.winner === 2;
+					const matchCtx = { ...bracketTeamCtxBase, time: m.scheduledTime };
 					return (
 						<div class:list={['rr-card', isComplete && 'rr-card--complete']}>
 							<div class="rr-card-meta">
@@ -184,7 +165,7 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 							<div class:list={['rr-card-player', t1Wins && 'rr-card-player--winner']}>
 								{m.team1.includes('/') ? (
 									<span class="rr-card-name">
-										{resolveTeamMembers(m.team1).map((mem, j, arr) => (
+										{resolveTeamMembers(m.team1, allPlayers, matchCtx).map((mem, j, arr) => (
 											<>
 												{mem.slug ? <a href={`/players/${mem.slug}`}>{mem.name}</a> : mem.name}
 												{j < arr.length - 1 && ' / '}
@@ -213,7 +194,7 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 								)}
 								{m.team2.includes('/') ? (
 									<span class="rr-card-name">
-										{resolveTeamMembers(m.team2).map((mem, j, arr) => (
+										{resolveTeamMembers(m.team2, allPlayers, matchCtx).map((mem, j, arr) => (
 											<>
 												{mem.slug ? <a href={`/players/${mem.slug}`}>{mem.name}</a> : mem.name}
 												{j < arr.length - 1 && ' / '}
@@ -245,7 +226,7 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 						<div class="rr-roster-item">
 							{p.includes('/') ? (
 								<span class="rr-roster-name">
-									{resolveTeamMembers(p).map((m, j, arr) => (
+									{resolveTeamMembers(p, allPlayers, bracketTeamCtxBase).map((m, j, arr) => (
 										<>
 											{m.slug ? <a href={`/players/${m.slug}`}>{m.name}</a> : m.name}
 											{j < arr.length - 1 && ' / '}

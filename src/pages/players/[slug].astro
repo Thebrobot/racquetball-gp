@@ -1,6 +1,7 @@
 ---
 import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
 import { getAllPlayers, getPlayerMatchHistory, getPlayerScheduleEntries, GP_SERIES_POSTS, PLAYER_IMAGES } from '../../data/players';
+import { resolveTeamMembers, type TeamResolveCtx } from '../../lib/resolve-team-members';
 import { titleSponsor } from '../../data/ocala-sponsors';
 
 export async function getStaticPaths() {
@@ -12,29 +13,6 @@ const { player } = Astro.props;
 // Build a lookup so doubles team strings ("Artman / Jennings", "M. Huyke / O. Huyke")
 // can be resolved to full names + profile slugs.
 const allPlayers = getAllPlayers();
-
-function resolveTeamMembers(teamStr: string): { name: string; slug?: string }[] {
-	return teamStr.split(/\s*\/\s*/).map((part) => {
-		part = part.trim();
-		const partLower = part.toLowerCase();
-		const initMatch = part.match(/^([A-Za-z])\.\s+(.+)$/);
-		if (initMatch) {
-			const [, init, lastName] = initMatch;
-			const lnLower = lastName.toLowerCase();
-			const found = allPlayers.find(
-				(p) =>
-					p.name.toLowerCase().endsWith(lnLower) &&
-					p.name[0].toLowerCase() === init.toLowerCase(),
-			);
-			if (found) return { name: found.name, slug: found.slug };
-		}
-		const found = allPlayers.find(
-			(p) => p.name.toLowerCase().endsWith(partLower),
-		);
-		if (found) return { name: found.name, slug: found.slug };
-		return { name: part };
-	});
-}
 const bio =
 	player.bio ||
 	`Grand Prix competitor from ${player.city ?? 'Florida'}. Focused on steady finishes and building points across every stop.`;
@@ -149,6 +127,11 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 					const bracketHref = entry.eventSlug && entry.divisionId
 						? `/events/${entry.eventSlug}/divisions/${entry.divisionId}`
 						: null;
+					const teamResolveCtx: TeamResolveCtx = {
+						eventName: entry.eventName,
+						division: entry.division,
+						time: entry.time,
+					};
 					return (
 						<article class="player-ticket">
 							<div class="player-ticket-top">
@@ -181,7 +164,7 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 									{entry.opponents.map((opp, i) => {
 										const slug = entry.opponentSlugs?.[i];
 										if (opp.includes('/')) {
-											const members = resolveTeamMembers(opp);
+											const members = resolveTeamMembers(opp, allPlayers, teamResolveCtx);
 											return (
 												<li>
 													<span class="player-ticket-team">
@@ -217,7 +200,7 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 								<span class="player-ticket-vs">vs</span>
 								{entry.opponent.includes('/') ? (
 									<span class="player-ticket-team">
-										{resolveTeamMembers(entry.opponent).map((m, j, arr) => (
+										{resolveTeamMembers(entry.opponent, allPlayers, teamResolveCtx).map((m, j, arr) => (
 											<>
 												{m.slug ? (
 													<a class="player-ticket-opponent-link" href={`/players/${m.slug}`}>{m.name}</a>
