@@ -12,6 +12,12 @@ on:
     # Every 10 minutes, Thu–Mon covering May 14–18 2026 (tournament: May 15–17)
     - cron: '*/10 * 14,15,16,17,18 5 *'
   workflow_dispatch: # manual trigger
+  # Run once when the scraper or this workflow changes (push alone does not update JSON).
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/sync-r2-brackets.mjs'
+      - '.github/workflows/sync-brackets.yml'
 
 permissions:
   contents: write # needed to commit + push the results JSON
