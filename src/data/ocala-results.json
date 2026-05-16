@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-16T10:41:28.877Z",
+  "lastUpdated": "2026-05-16T11:25:00.263Z",
   "divisions": {
     "mens-singles-open": {
       "MO9": {
@@ -128,9 +128,7 @@
       },
       "M50+4": {
         "player1": "C Beacher",
-        "player2": "C Steinheiser",
-        "winner": 1,
-        "score": "11-15,15-11,11-6"
+        "player2": "C Steinheiser"
       },
       "M50+3": {
         "player1": "J Johnston",
@@ -208,9 +206,7 @@
     "mens-doubles-a": {
       "MAD5": {
         "player1": "Paul Sotolongo / Andres Urzua",
-        "player2": "Jim Russell / Kelly Van Zant - Russell",
-        "winner": 1,
-        "score": "5-15,15-14,11-8"
+        "player2": "Jim Russell / Kelly Van Zant - Russell"
       },
       "MAD6": {
         "player1": "Brian Grantham / Wade Stubanas",
