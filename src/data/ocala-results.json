@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-16T18:36:32.315Z",
+  "lastUpdated": "2026-05-16T18:43:16.551Z",
   "divisions": {
     "mens-singles-open": {
       "MO9": {
@@ -80,15 +80,21 @@
       },
       "MA6": {
         "player1": "G Henry",
-        "player2": "W Stubanas"
+        "player2": "W Stubanas",
+        "winner": 2,
+        "score": "WBF - No Show"
       },
       "MA5": {
         "player1": "M Muriel",
-        "player2": "B Grantham"
+        "player2": "B Grantham",
+        "winner": 2,
+        "score": "WBF - No Show"
       },
       "MA7": {
         "player1": "R Jennings",
-        "player2": "K Oliveira"
+        "player2": "K Oliveira",
+        "winner": 2,
+        "score": "WBF - No Show"
       }
     },
     "mens-singles-b": {
@@ -131,6 +137,10 @@
       "MB3": {
         "player1": "M Kern",
         "player2": "K Artman"
+      },
+      "MB4": {
+        "player1": "M Brice",
+        "player2": "E Martinez"
       }
     },
     "mens-singles-c": {
@@ -262,7 +272,9 @@
     "mens-doubles-a": {
       "MAD5": {
         "player1": "Paul Sotolongo / Andres Urzua",
-        "player2": "Jim Russell / Kelly Van Zant - Russell"
+        "player2": "Jim Russell / Kelly Van Zant - Russell",
+        "winner": 1,
+        "score": "15-11,15-13"
       },
       "MAD6": {
         "player1": "Brian Grantham / Wade Stubanas",
@@ -284,7 +296,9 @@
     "mens-doubles-b": {
       "MBD5": {
         "player1": "Don Strickland / Jonathan Estepan",
-        "player2": "Matt Kern / Ryan Appleby"
+        "player2": "Matt Kern / Ryan Appleby",
+        "winner": 2,
+        "score": "609-1"
       },
       "MBD3": {
         "player1": "Manzano / Sotolongo",
