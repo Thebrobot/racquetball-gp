@@ -55,6 +55,8 @@ export interface RoundRobinMatch {
 	score?: string;
 	/** Which team won: 1 = team1, 2 = team2 */
 	winner?: 1 | 2;
+	/** R2 match code without spaces, e.g. "MOD6" or "MXOA4" — used to merge ocala-results.json */
+	matchId?: string;
 }
 
 export interface EventDivisionDetail {
@@ -209,7 +211,7 @@ const EVENTS_RAW: EventData[] = [
 					label: 'Round of 16',
 					matches: [
 						{ player1: 'Brendan Anthony',  player2: 'BYE',              seed1: 1,              winner: 1, matchId: 'MA16' },
-						{ player1: "Russell O'Neal",   player2: 'Kyle Artman',      seed1: 9, seed2: 8,   scheduledTime: 'Friday · 4:30 PM',    court: 'Court 4', matchId: 'MA9',  winner: 2 },
+						{ player1: "Russell O'Neal",   player2: 'Kyle Artman',      seed1: 9, seed2: 8,   scheduledTime: 'Friday · 4:30 PM',    court: 'Court 4', matchId: 'MA9',  winner: 2, score: 'WBF - No Show' },
 						{ player1: 'Mauricio Muriel',  player2: 'BYE',              seed1: 5,              winner: 1, matchId: 'MA12' },
 						{ player1: 'BYE',              player2: 'Brian Grantham',              seed2: 4,   winner: 2, matchId: 'MA13' },
 						{ player1: 'Gordon Henry',     player2: 'BYE',              seed1: 3,              winner: 1, matchId: 'MA14' },
@@ -221,9 +223,9 @@ const EVENTS_RAW: EventData[] = [
 				{
 					label: 'Quarterfinals',
 					matches: [
-						{ player1: 'Brendan Anthony',  player2: 'TBD',              seed1: 1,              scheduledTime: 'Saturday · 1:00 PM',  court: 'Court 2', matchId: 'MA8' },
+						{ player1: 'Brendan Anthony',  player2: 'Kyle Artman',      seed1: 1, seed2: 8,   scheduledTime: 'Saturday · 1:00 PM',  court: 'Court 2', matchId: 'MA8' },
 						{ player1: 'Mauricio Muriel',  player2: 'Brian Grantham',   seed1: 5, seed2: 4,   scheduledTime: 'Saturday · 6:00 PM',  court: 'Court 4', matchId: 'MA5' },
-						{ player1: 'Gordon Henry',     player2: 'TBD',              seed1: 3,              scheduledTime: 'Saturday · 9:00 AM',  court: 'Court 4', matchId: 'MA6' },
+						{ player1: 'Gordon Henry',     player2: 'Wade Stubanas',    seed1: 3, seed2: 6,   scheduledTime: 'Saturday · 9:00 AM',  court: 'Court 4', matchId: 'MA6' },
 						{ player1: 'TBD',              player2: 'Kleber Oliveira',             seed2: 2,   scheduledTime: 'Saturday · 8:00 PM',  court: 'Court 2', matchId: 'MA7' },
 					],
 				},
@@ -256,7 +258,7 @@ const EVENTS_RAW: EventData[] = [
 						{ player1: 'Ben Mordkovich',   player2: 'Edgar Martinez',   seed1: 13, seed2: 4,   scheduledTime: 'Saturday · 8:00 AM', court: 'Court 1', matchId: 'MB13' },
 						{ player1: 'Matt Kern',        player2: 'BYE',              seed1: 3,               winner: 1, matchId: 'MB14' },
 						{ player1: 'Ashley Medlock',   player2: 'Mark Manzano',     seed1: 11, seed2: 6,   scheduledTime: 'Friday · 5:30 PM',   court: 'Court 2', matchId: 'MB11', winner: 1, score: '15-13, 15-6' },
-						{ player1: 'Ryan Appleby',     player2: 'Mike Caldwell',    seed1: 7,  seed2: 10,  scheduledTime: 'Friday · 5:30 PM',   court: 'Court 3', matchId: 'MB10', winner: 1, score: '7-15, 15-5, 11-4' },
+						{ player1: 'Mike Caldwell',    player2: 'Ryan Appleby',     seed1: 10, seed2: 7,   scheduledTime: 'Friday · 5:30 PM',   court: 'Court 3', matchId: 'MB10', winner: 2, score: '7-15, 15-5, 11-4' },
 						{ player1: 'BYE',              player2: 'Kyle Artman',                  seed2: 2,  winner: 2, matchId: 'MB15' },
 					],
 				},
@@ -266,7 +268,7 @@ const EVENTS_RAW: EventData[] = [
 						{ player1: 'Scott Gill',       player2: 'TBD',              seed1: 1,               scheduledTime: 'Saturday · 11:00 AM', court: 'Court 3', matchId: 'MB8' },
 						{ player1: 'Edgar Martinez',   player2: 'TBD',              seed1: 4,               scheduledTime: 'Saturday · 8:00 AM',  court: 'Court 1', matchId: 'MB5' },
 						{ player1: 'Matt Kern',        player2: 'TBD',              seed1: 3,               scheduledTime: 'Saturday · 11:00 AM', court: 'Court 4', matchId: 'MB6' },
-						{ player1: 'TBD',              player2: 'Kyle Artman',                  seed2: 2,  scheduledTime: 'Saturday · 8:00 AM',  court: 'Court 4', matchId: 'MB7' },
+						{ player1: 'Ryan Appleby',     player2: 'Kyle Artman',      seed1: 7,  seed2: 2,   scheduledTime: 'Saturday · 8:00 AM',  court: 'Court 4', matchId: 'MB7' },
 					],
 				},
 				{
@@ -290,9 +292,9 @@ const EVENTS_RAW: EventData[] = [
 				format: 'roundrobin',
 				roundRobinPlayers: ['Michael Ammen', 'Ben Mordkovich', 'Gordon Kelly'],
 				roundRobinMatches: [
-					{ round: 'Round 1', team1: 'Michael Ammen', team2: 'Ben Mordkovich', scheduledTime: 'Saturday · 8:00 AM',  court: 'Court 2' },
-					{ round: 'Round 2', team1: 'Michael Ammen', team2: 'Gordon Kelly',   scheduledTime: 'Saturday · 10:00 AM', court: 'Court 2' },
-					{ round: 'Round 3', team1: 'Gordon Kelly',  team2: 'Ben Mordkovich', scheduledTime: 'Saturday · 12:00 PM', court: 'Court 2', winner: 2 },
+					{ round: 'Round 1', team1: 'Michael Ammen', team2: 'Ben Mordkovich', scheduledTime: 'Saturday · 8:00 AM', court: 'Court 2', matchId: 'MC3' },
+					{ round: 'Round 2', team1: 'Gordon Kelly', team2: 'Ben Mordkovich', scheduledTime: 'Saturday · 12:00 PM', winner: 2, matchId: 'MC2' },
+					{ round: 'Round 3', team1: 'Gordon Kelly', team2: 'Michael Ammen', scheduledTime: 'Sunday · 1:00 PM', court: 'Court 4', matchId: 'MC1' },
 				],
 			},
 			// ── Age Singles ────────────────────────────────────────────────────────
@@ -396,12 +398,12 @@ const EVENTS_RAW: EventData[] = [
 				],
 				// Full schedule from R2 Sports
 				roundRobinMatches: [
-					{ round: 'Round 1', team1: 'Garcia / Nolan',      team2: 'Beacher / Toston',      scheduledTime: 'Saturday · 2:00 PM' },
-					{ round: 'Round 1', team1: 'M. Huyke / O. Huyke', team2: 'Rivero / Steinheiser',  scheduledTime: 'Saturday · 4:00 PM', court: 'Court 3' },
-					{ round: 'Round 2', team1: 'Garcia / Nolan',      team2: 'Rivero / Steinheiser',  scheduledTime: 'Saturday · 5:00 PM', court: 'Court 2' },
-					{ round: 'Round 2', team1: 'M. Huyke / O. Huyke', team2: 'Beacher / Toston',      scheduledTime: 'Saturday · 7:00 PM', court: 'Court 4' },
-					{ round: 'Round 3', team1: 'Rivero / Steinheiser', team2: 'Beacher / Toston',     scheduledTime: 'Sunday · 12:00 PM',  court: 'Court 3' },
-					{ round: 'Round 3', team1: 'Garcia / Nolan',      team2: 'M. Huyke / O. Huyke',  scheduledTime: 'Sunday · 12:00 PM' },
+					{ round: 'Round 1', team1: 'Garcia / Nolan', team2: 'Beacher / Toston', scheduledTime: 'Saturday · 2:00 PM', matchId: 'MOD6' },
+					{ round: 'Round 1', team1: 'M. Huyke / O. Huyke', team2: 'Rivero / Steinheiser', scheduledTime: 'Saturday · 4:00 PM', court: 'Court 3', matchId: 'MOD5' },
+					{ round: 'Round 2', team1: 'Garcia / Nolan', team2: 'Rivero / Steinheiser', scheduledTime: 'Saturday · 5:00 PM', court: 'Court 2', matchId: 'MOD4' },
+					{ round: 'Round 2', team1: 'M. Huyke / O. Huyke', team2: 'Beacher / Toston', scheduledTime: 'Saturday · 7:00 PM', court: 'Court 4', matchId: 'MOD3' },
+					{ round: 'Round 3', team1: 'Rivero / Steinheiser', team2: 'Beacher / Toston', scheduledTime: 'Sunday · 12:00 PM', court: 'Court 3', matchId: 'MOD2' },
+					{ round: 'Round 3', team1: 'Garcia / Nolan', team2: 'M. Huyke / O. Huyke', scheduledTime: 'Sunday · 12:00 PM', matchId: 'MOD1' },
 				],
 			},
 		{
@@ -414,7 +416,7 @@ const EVENTS_RAW: EventData[] = [
 					matches: [
 						{ player1: 'Deeney / Saunders',  player2: 'B. Haacke / S. Haacke', scheduledTime: 'Friday · 6:30 PM',    court: 'Court 4', winner: 2, score: '15-7, 15-7' },
 						{ player1: 'Garcia / Nolan',     player2: 'Fajardo / Russell',     scheduledTime: 'Friday · 7:30 PM',    court: 'Court 2', winner: 2, score: '15-13, 15-7' },
-						{ player1: 'Johnston / Lopez',   player2: 'Artman / Oliveira',     scheduledTime: 'Saturday · 10:00 AM', court: 'Court 3' },
+						{ player1: 'Johnston / Lopez',   player2: 'K. Artman / Oliveira',     scheduledTime: 'Saturday · 10:00 AM', court: 'Court 3' },
 						{ player1: 'Anthony / Schulze',  player2: 'Beacher / Toston',      scheduledTime: 'Saturday · 12:00 PM', court: 'Court 3' },
 					],
 				},
@@ -530,9 +532,9 @@ const EVENTS_RAW: EventData[] = [
 					'Hernandez / Martinez',
 				],
 				roundRobinMatches: [
-					{ round: 'Round 1', team1: 'Gaerlan / Lewis',    team2: 'Hernandez / Martinez', scheduledTime: 'Saturday · 10:00 AM', court: 'Court 4' },
-					{ round: 'Round 2', team1: 'Fry / Gutierrez',    team2: 'Hernandez / Martinez', scheduledTime: 'Saturday · 4:00 PM' },
-					{ round: 'Round 3', team1: 'Fry / Gutierrez',    team2: 'Gaerlan / Lewis',      scheduledTime: 'Sunday · 9:00 AM' },
+					{ round: 'Round 1', team1: 'Hernandez / Martinez', team2: 'Gaerlan / Lewis', scheduledTime: 'Saturday · 10:00 AM', court: 'Court 4', matchId: 'MSCD3' },
+					{ round: 'Round 2', team1: 'Fry / Gutierrez', team2: 'Gaerlan / Lewis', scheduledTime: 'Saturday · 4:00 PM', matchId: 'MSCD2' },
+					{ round: 'Round 3', team1: 'Fry / Gutierrez', team2: 'Hernandez / Martinez', scheduledTime: 'Sunday · 11:00 AM', court: 'Court 2', matchId: 'MSCD1' },
 				],
 			},
 			{
@@ -546,12 +548,12 @@ const EVENTS_RAW: EventData[] = [
 					'Russell / Van Zant-Russell',
 				],
 				roundRobinMatches: [
-					{ round: 'Round 1', team1: 'Brandt / Henry',           team2: 'Jennings / Jennings',       scheduledTime: 'Friday · 6:30 PM',    court: 'Court 2', winner: 1 },
-					{ round: 'Round 2', team1: 'Russell / Van Zant-Russell', team2: 'Jennings / Jennings',     scheduledTime: 'Saturday · 2:00 PM',  court: 'Court 3' },
-					{ round: 'Round 2', team1: 'Anthony / Artman',         team2: 'Brandt / Henry',            scheduledTime: 'Saturday · 4:00 PM',  court: 'Court 4' },
-					{ round: 'Round 3', team1: 'Anthony / Artman',         team2: 'Russell / Van Zant-Russell', scheduledTime: 'Saturday · 6:00 PM', court: 'Court 4' },
-					{ round: 'Round 3', team1: 'Brandt / Henry',           team2: 'Russell / Van Zant-Russell', scheduledTime: 'Sunday · 9:00 AM',   court: 'Court 2' },
-					{ round: 'Round 1', team1: 'Anthony / Artman',         team2: 'Jennings / Jennings',       scheduledTime: 'Saturday · 10:00 AM', court: 'Court 1' },
+					{ round: 'Round 1', team1: 'Russell / Van Zant-Russell', team2: 'Anthony / Artman', scheduledTime: 'Saturday · 4:00 PM', court: 'Court 4', matchId: 'MXOA6' },
+					{ round: 'Round 1', team1: 'Brandt / Henry', team2: 'Jennings / Jennings', scheduledTime: 'Friday · 6:30 PM', court: 'Court 2', winner: 1, matchId: 'MXOA5' },
+					{ round: 'Round 2', team1: 'Russell / Van Zant-Russell', team2: 'Jennings / Jennings', scheduledTime: 'Saturday · 2:00 PM', court: 'Court 3', matchId: 'MXOA4' },
+					{ round: 'Round 2', team1: 'Brandt / Henry', team2: 'Anthony / Artman', scheduledTime: 'Saturday · 6:00 PM', court: 'Court 2', matchId: 'MXOA3' },
+					{ round: 'Round 3', team1: 'Jennings / Jennings', team2: 'Anthony / Artman', scheduledTime: 'Sunday · 10:00 AM', court: 'Court 4', matchId: 'MXOA2' },
+					{ round: 'Round 3', team1: 'Russell / Van Zant-Russell', team2: 'Brandt / Henry', scheduledTime: 'Sunday · 11:00 AM', court: 'Court 3', matchId: 'MXOA1' },
 				],
 			},
 		],
@@ -567,12 +569,15 @@ const EVENTS_RAW: EventData[] = [
 			{ name: 'Brendan Anthony', division: 'Mixed Doubles: Open/A',         time: 'Saturday · 4:00 PM',  note: 'Court 4' },
 			// Ryan Appleby
 			{ name: 'Ryan Appleby', division: "Men's Singles: B",                 time: 'Friday · 5:30 PM',    note: 'Court 3' },
+			{ name: 'Ryan Appleby', division: "Men's Singles: B",                 time: 'Saturday · 8:00 AM',  note: 'Court 4' },
 			{ name: 'Ryan Appleby', division: "Men's Doubles: B",                 time: 'Saturday · 5:00 PM',  note: 'Court 1' },
 			// Havan Artman
 			{ name: 'Havan Artman', division: "Men's Singles: B",                 time: 'Friday · 7:30 PM',    note: 'Court 4' },
 			{ name: 'Havan Artman', division: 'Mixed Doubles: Open/A',            time: 'Saturday · 4:00 PM',  note: 'Court 4' },
 			// Kyle Artman
+			{ name: 'Kyle Artman', division: "Men's Doubles: Elite",              time: 'Saturday · 10:00 AM', note: 'Court 3' },
 			{ name: 'Kyle Artman', division: "Men's Singles: A",                  time: 'Friday · 4:30 PM',    note: 'Court 4' },
+			{ name: 'Kyle Artman', division: "Men's Singles: A",                  time: 'Saturday · 1:00 PM',  note: 'Court 2' },
 			{ name: 'Kyle Artman', division: "Men's Doubles: A",                  time: 'Friday · 5:30 PM',    note: 'Court 4' },
 			{ name: 'Kyle Artman', division: "Men's Singles: B",                  time: 'Saturday · 8:00 AM',  note: 'Court 4' },
 			// Amir Baig
@@ -670,7 +675,7 @@ const EVENTS_RAW: EventData[] = [
 			{ name: 'John Johnston', division: "Men's Doubles: Centurion+ Open",  time: 'Saturday · 5:00 PM',  note: 'Court 4' },
 			// Gordon Kelly
 			{ name: 'Gordon Kelly', division: "Men's Age Singles: 70+",           time: 'Friday · 6:30 PM',    note: 'Court 3' },
-			{ name: 'Gordon Kelly', division: "Men's Singles: C",                 time: 'Saturday · 12:00 PM', note: 'Court 4' },
+			{ name: 'Gordon Kelly', division: "Men's Singles: C",                 time: 'Saturday · 12:00 PM' },
 			// Matt Kern
 			{ name: 'Matt Kern', division: "Men's Singles: B",                    time: 'Saturday · 11:00 AM', note: 'Court 4' },
 			{ name: 'Matt Kern', division: "Men's Doubles: B",                    time: 'Saturday · 5:00 PM',  note: 'Court 1' },
@@ -720,7 +725,7 @@ const EVENTS_RAW: EventData[] = [
 			// Jim Russell
 			{ name: 'Jim Russell', division: "Men's Doubles: Elite",              time: 'Friday · 7:30 PM',    note: 'Court 2' },
 			{ name: 'Jim Russell', division: "Men's Doubles: A",                  time: 'Saturday · 12:00 PM', note: 'Court 2' },
-			{ name: 'Jim Russell', division: 'Mixed Doubles: Open/A',             time: 'Saturday · 2:00 PM',  note: 'Court 3' },
+			{ name: 'Jim Russell', division: 'Mixed Doubles: Open/A',             time: 'Saturday · 4:00 PM',  note: 'Court 4' },
 			// Elijah Saunders
 			{ name: 'Elijah Saunders', division: "Men's Doubles: Elite",          time: 'Friday · 6:30 PM',    note: 'Court 4' },
 			// Timothy Schnellenberger
@@ -741,6 +746,7 @@ const EVENTS_RAW: EventData[] = [
 			{ name: 'Don Strickland', division: "Men's Doubles: B",               time: 'Saturday · 5:00 PM',  note: 'Court 1' },
 			// Wade Stubanas
 			{ name: 'Wade Stubanas', division: "Men's Singles: A",                time: 'Friday · 4:30 PM',    note: 'Court 1' },
+			{ name: 'Wade Stubanas', division: "Men's Singles: A",                time: 'Saturday · 9:00 AM',  note: 'Court 4' },
 			{ name: 'Wade Stubanas', division: "Men's Doubles: A",                time: 'Saturday · 1:00 PM',  note: 'Court 4' },
 			// Scott Swartz
 			{ name: 'Scott Swartz', division: "Men's Doubles: B",                 time: 'Sunday · 8:00 AM',    note: 'Court 4' },
@@ -755,7 +761,7 @@ const EVENTS_RAW: EventData[] = [
 			{ name: 'Andres Urzua', division: "Men's Doubles: A",                 time: 'Saturday · 12:00 PM', note: 'Court 2' },
 			// Kelly Van Zant-Russell
 			{ name: 'Kelly Van Zant-Russell', division: "Men's Doubles: A",       time: 'Saturday · 12:00 PM', note: 'Court 2' },
-			{ name: 'Kelly Van Zant-Russell', division: 'Mixed Doubles: Open/A',  time: 'Saturday · 2:00 PM',  note: 'Court 3' },
+			{ name: 'Kelly Van Zant-Russell', division: 'Mixed Doubles: Open/A',  time: 'Saturday · 4:00 PM',  note: 'Court 4' },
 			// Robert Yanchis
 			{ name: 'Robert Yanchis', division: "Men's Singles: A",               time: 'Friday · 4:30 PM',    note: 'Court 1' },
 			{ name: 'Robert Yanchis', division: "Men's Doubles: A",               time: 'Saturday · 1:00 PM',  note: 'Court 4' },
@@ -780,6 +786,14 @@ type DivisionResult = Record<string, MatchResult>;
 function applyResults(events: EventData[]): EventData[] {
 	const divResults = (resultsData as { divisions?: Record<string, DivisionResult> }).divisions ?? {};
 	if (!Object.keys(divResults).length) return events;
+
+	/** Never promote R2 scrape noise (e.g. "BYE") into a real TBD slot on our bracket. */
+	const fillFromResult = (slot: string, name: string | null | undefined): string | null => {
+		if (slot !== 'TBD') return null;
+		const n = (name ?? '').trim();
+		if (!n || n.toUpperCase() === 'BYE') return null;
+		return n;
+	};
 
 	// Name-based fallback lookup — used by both SE rounds and RR matches.
 	const findByNames = (
@@ -811,12 +825,14 @@ function applyResults(events: EventData[]): EventData[] {
 						if (match.matchId) res = matchMap[match.matchId];
 						if (!res) res = findByNames(matchMap, match.player1, match.player2);
 						if (!res) return match;
+						const p1Fill = fillFromResult(match.player1, res.player1);
+						const p2Fill = fillFromResult(match.player2, res.player2);
 						return {
 							...match,
 							...(res.score != null ? { score: res.score } : {}),
 							...(res.winner != null ? { winner: res.winner } : {}),
-							...(match.player1 === 'TBD' && res.player1 ? { player1: res.player1 } : {}),
-							...(match.player2 === 'TBD' && res.player2 ? { player2: res.player2 } : {}),
+							...(p1Fill ? { player1: p1Fill } : {}),
+							...(p2Fill ? { player2: p2Fill } : {}),
 						};
 					}),
 				}));
@@ -828,7 +844,7 @@ function applyResults(events: EventData[]): EventData[] {
 			// uses name-based lookup against the scraped team1/team2 pairs.
 			if (div.roundRobinMatches) {
 				const updatedRR = div.roundRobinMatches.map((m) => {
-					const res = findByNames(matchMap, m.team1, m.team2);
+					const res = m.matchId ? matchMap[m.matchId] : findByNames(matchMap, m.team1, m.team2);
 					if (!res) return m;
 					return {
 						...m,

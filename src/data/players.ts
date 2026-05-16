@@ -1,5 +1,6 @@
 import { LB_CATEGORY_HEADING, LB_DIVISIONS_BY_CATEGORY, lbData } from './leaderboard';
 import { EVENTS } from './events';
+import type { EventBracketMatch, EventBracketRound } from './events';
 import { PLAYER_IMAGES } from './player-images';
 export { PLAYER_IMAGES };
 
@@ -105,22 +106,38 @@ export function getPlayerScheduleEntries(
 			continue;
 		}
 
-		// ── Single elimination: find the match containing this player ────────────
+		// ── Single elimination: attach opponent + times from bracket data ───────
+		// Prefer a match whose scheduledTime matches the profile row; otherwise
+		// the first match in draw order with a real opponent (skips early BYEs).
 		if (div?.rounds) {
-			outer: for (const round of div.rounds) {
+			const cands: { round: EventBracketRound; match: EventBracketMatch; side: 1 | 2 }[] = [];
+			for (const round of div.rounds) {
 				for (const match of round.matches) {
 					const p1 = (match.player1 ?? '').trim();
 					const p2 = (match.player2 ?? '').trim();
 					const side = playerMatchesEntry(playerName, p1) ? 1 : playerMatchesEntry(playerName, p2) ? 2 : null;
 					if (side === null) continue;
-					if (match.scheduledTime && match.scheduledTime !== entry.time) continue;
-					const rawOpp = (side === 1 ? p2 : p1).trim();
-					if (!isGhostName(rawOpp)) {
-						base.opponent = rawOpp;
-						if (!rawOpp.includes('/')) base.opponentSlug = getPlayerSlug(rawOpp);
-					}
-					break outer;
+					cands.push({ round, match, side });
 				}
+			}
+
+			let pick = cands.find((c) => c.match.scheduledTime && c.match.scheduledTime === entry.time);
+			if (!pick) {
+				pick = cands.find((c) => {
+					const rawOpp = (c.side === 1 ? c.match.player2 : c.match.player1)?.trim() ?? '';
+					return !isGhostName(rawOpp);
+				});
+			}
+			if (!pick && cands.length) pick = cands[0];
+
+			if (pick) {
+				const rawOpp = (pick.side === 1 ? pick.match.player2 : pick.match.player1)?.trim() ?? '';
+				if (!isGhostName(rawOpp)) {
+					base.opponent = rawOpp;
+					if (!rawOpp.includes('/')) base.opponentSlug = getPlayerSlug(rawOpp);
+				}
+				if (pick.match.scheduledTime) base.time = pick.match.scheduledTime;
+				if (pick.match.court) base.note = pick.match.court;
 			}
 		}
 		out.push(base);

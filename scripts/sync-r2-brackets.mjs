@@ -5,14 +5,18 @@
  * src/data/ocala-results.json.  Called automatically by the GitHub Actions
  * cron workflow every 10 minutes during the tournament weekend.
  *
- * Results are keyed by match ID (e.g. "MO9" for Single Elim, "MC1" for Round
- * Robin) for precise merging with the static bracket data in src/data/events.ts.
+ * R2 Sports HTML structure (discovered from live pages):
  *
- * Two extractors:
- *   • extractSingleElimData() — for view-bracket.asp pages
- *   • extractRoundRobinData() — for roundRobin.asp pages
+ *   Single-elim match box — a <table> containing:
+ *     <strong>Player Name</strong>: City, ST
+ *     <a href="javascript:viewAppMatch(N);">matchId</a>
  *
- * Both routes are detected by the final URL after R2's drawOut.asp redirect.
+ *   Advancement box (shows who won the previous round and with what score) —
+ *   a <table> with NO viewAppMatch link, but with:
+ *     <td><strong>AbbreviatedWinner</strong> score-or-WBF-text</td>
+ *
+ *   Round-robin schedule table — rows containing "Team1 vs Team2" text
+ *   and a match-code link like "MC 1".
  *
  * Usage:
  *   node scripts/sync-r2-brackets.mjs
@@ -29,242 +33,203 @@ import { dirname, resolve } from 'path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RESULTS_PATH = resolve(__dirname, '../src/data/ocala-results.json');
 const TID = '53697';
-const HOME_URL = `https://www.r2sports.com/tourney/home.asp?TID=${TID}`;
-const DIVS_URL = `https://www.r2sports.com/tourney/divisions/listAllDivs.asp?TID=${TID}&sortBy=defaultOrder`;
 const DRAWOUT_BASE = `https://www.r2sports.com/tourney/drawsOut/drawOut.asp?TID=${TID}`;
 
-// Map short codes used in URLs → our internal IDs
+// Division short-code → our internal ID
 const CODE_ID_MAP = {
-	MO: 'mens-singles-open',
-	ME: 'mens-singles-elite',
-	MA: 'mens-singles-a',
-	MB: 'mens-singles-b',
-	MC: 'mens-singles-c',
+	MO:   'mens-singles-open',
+	ME:   'mens-singles-elite',
+	MA:   'mens-singles-a',
+	MB:   'mens-singles-b',
+	MC:   'mens-singles-c',
 	'M50+': 'mens-age-50',
 	'M60+': 'mens-age-60',
 	'M70+': 'mens-age-70',
-	MOD: 'mens-doubles-open',
-	MED: 'mens-doubles-elite',
-	MAD: 'mens-doubles-a',
-	MBD: 'mens-doubles-b',
+	MOD:  'mens-doubles-open',
+	MED:  'mens-doubles-elite',
+	MAD:  'mens-doubles-a',
+	MBD:  'mens-doubles-b',
 	MCOD: 'mens-doubles-centurion',
 	MSCD: 'mens-doubles-super-centurion',
 	MXOA: 'mixed-doubles',
 };
 
-/**
- * R2's division list uses javascript:viewBracket(divID, combinedID). Playwright
- * cannot navigate to javascript: URLs, so convert to the real drawOut.asp URL.
- * drawOut.asp then 302-redirects to either view-bracket.asp (single-elim)
- * or roundRobin.asp (round robin).
- */
-function normalizeBracketUrl(href) {
-	const s = String(href ?? '').trim();
-	const js = s.match(/viewBracket\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)/i);
-	if (js) {
-		return `${DRAWOUT_BASE}&divID=${js[1]}&combinedID=${js[2]}`;
-	}
-	if (/^https?:\/\//i.test(s) && /drawOut\.asp/i.test(s)) {
-		return s.split('#')[0];
-	}
-	return null;
-}
-
-/** Pull "(MO)", "(ME)", etc. out of the bracket page header text. */
-async function resolveDivisionCodeFromBracketPage(page) {
-	return page.evaluate(() => {
-		const chunk = (document.body?.innerText ?? '').slice(0, 16000);
-		const m = chunk.match(/\(\s*([A-Z][A-Z0-9+]*)\s*\)\s*(?:Men|Women|Mixed)/);
-		return m ? m[1] : null;
-	});
-}
-
-/** Extract all bracket links from the divisions list page. */
-async function getBracketLinks(page) {
-	await page.goto(DIVS_URL, { waitUntil: 'domcontentloaded', timeout: 25000 });
-
-	const rawHrefs = await page.evaluate(() =>
-		Array.from(document.querySelectorAll('a[href]'))
-			.map((a) => a.getAttribute('href'))
-			.filter((h) => h && /viewBracket\s*\(/i.test(h)),
-	);
-
-	const seen = new Set();
-	const result = [];
-	for (const raw of rawHrefs) {
-		const href = normalizeBracketUrl(raw);
-		if (!href || seen.has(href)) continue;
-		seen.add(href);
-		result.push({ href });
-	}
-
-	console.log(`  Found ${result.length} unique drawOut bracket URL(s) from divisions page`);
-	return result;
-}
+// Discovered divIDs from the bracket page nav bar (javascript:viewBracket(divID, combinedID))
+// Used to build direct URLs without needing to scrape the divisions list.
+const DIVISION_URLS = [
+	{ code: 'MO',   divID: 2,     combinedID: 0 },
+	{ code: 'ME',   divID: 753,   combinedID: 0 },
+	{ code: 'MA',   divID: 3,     combinedID: 0 },
+	{ code: 'MB',   divID: 4,     combinedID: 0 },
+	{ code: 'MC',   divID: 5,     combinedID: 0 },
+	{ code: 'M50+', divID: 22,    combinedID: 0 },
+	{ code: 'M60+', divID: 26,    combinedID: 0 },
+	{ code: 'M70+', divID: 30,    combinedID: 0 },
+	{ code: 'MOD',  divID: 68,    combinedID: 0 },
+	{ code: 'MED',  divID: 756,   combinedID: 0 },
+	{ code: 'MAD',  divID: 69,    combinedID: 0 },
+	{ code: 'MBD',  divID: 70,    combinedID: 0 },
+	{ code: 'MCOD', divID: 10146, combinedID: 0 },
+	{ code: 'MSCD', divID: 28003, combinedID: 0 },
+	{ code: 'MXOA', divID: 0,     combinedID: 236959 },
+];
 
 /**
  * Single-elimination bracket extractor.
  *
- * Strategy: anchor on every <a> whose href contains "viewAppMatch" — each one
- * is a real match.  The link's text is the display match ID (e.g. "MO9").
- * Player names come from the nearest profile-player.asp anchors (or bolded
- * abbreviated names like "G Fry" in later rounds) directly above and below
- * the match cell in page coordinates.  Result text ("WBF - No Show" or
- * digit-digit scores) is read from the match cell.
+ * R2 Sports bracket structure insight:
+ *   - Early-round match boxes contain FULL player names in <strong> tags,
+ *     plus a <a href="javascript:viewAppMatch(N);">matchId</a> link.
+ *   - Later-round "advancement" cells also have viewAppMatch links, but show
+ *     ABBREVIATED names (e.g. "K Artman") — one per player who advanced —
+ *     with the score from their previous match in the same <td>.
+ *
+ * Strategy:
+ *  Pass 1 — Build a match map using ONLY full player names (where first name
+ *            is more than one character). Abbreviated-name cells are treated as
+ *            source-match result carriers, not match-map entries.
+ *  Pass 2 — Scan every <strong>+score cell in the page (regardless of whether
+ *            its table has a viewAppMatch link) and match the abbreviated
+ *            advancing player back to their source match by last name.
  */
-async function extractSingleElimData(page, divCode) {
-	return page.evaluate((divCode) => {
-		const results = {};
-
+async function extractSingleElimData(page) {
+	return page.evaluate(() => {
 		const cleanName = (s) =>
-			(s ?? '')
-				.replace(/\s*:\s*.*$/, '') // strip ": *City, ST*" suffix
-				.replace(/\s+/g, ' ')
-				.trim();
+			(s ?? '').replace(/\s*:\s*.*$/, '').replace(/\s+/g, ' ').trim();
 
-		const looksLikeJunk = (s) => {
-			if (!s) return true;
-			const t = s.trim();
-			if (t.length < 2 || t.length > 80) return true;
-			if (/[|]/.test(t)) return true;
-			if (/^\(/.test(t)) return true; // division headers like "(MO) Men's Singles..."
-			if (/^WBF\b|No[\s-]?Show|Forfeit|Injury|Win\s+By/i.test(t)) return true; // result strings
-			if (/^\d/.test(t)) return true; // names never start with a digit (rejects "2026 Florida Open...", "1st", etc.)
-			if (/^(Men'?s|Women'?s|Mixed|Boys'?|Girls'?)\s/i.test(t)) return true; // division labels
-			if (/^(Director Login|Software Support|USA Racquetball|More Racquetball|Racquetball Software|Racquetball Ladder|Home$|Brackets$|Results$|Times$|Login$|Print|Save|View Event|Online Event|Registered Participants|By Country|By State|By City|By Venue|By School|First Round Start|Visit our|R2 Sports|Privacy|Refund|Copyright|Site by|Racquetball Tournament|Racquetball Event|Racquetball Director|Latin American|Rapha International|Jeff Hart|Frank Hotels|Florida Racquetball|Imaginex|Facebook|Hotel|Map|Sponsors|Prizes|Info|Register|Contact|Media|Divs|USAR|Single Elimination|Round Robin|Champion|CHAMPION|EVENTDIVISIONS|Instructions|Qtrs?$|Quarters$|Semis?$|Semifinals$|Finals?$|16s$|32s$|64s$|8s$|4s$|2s$)/i.test(t)) return true;
-			if (/Tournament Bracket|Event Sponsors|Event Information|All rights reserved|drawOut|view-bracket|profile-player|sortBy|TID=/i.test(t)) return true;
-			if (/^[A-Z][A-Z0-9+]{0,4}\d{1,3}$/.test(t)) return true; // match-ID-like ("MO9")
-			if (/^[A-Z][A-Z0-9+]{0,4}\s+\d{1,3}$/.test(t)) return true; // "MC 1" style
-			if (/^(Sa|Su|Mo|Tu|We|Th|Fr|Sat|Sun|Mon|Tue|Wed|Thu|Fri)\b/i.test(t)) return true; // schedules
-			if (/^\d{1,3}\s*[-–]\s*\d/.test(t)) return true; // looks like a score
-			return false;
+		const isPlayerName = (s) => {
+			const t = (s ?? '').trim();
+			return t.length >= 3 && (t.includes(' ') || t.includes('/')) && /[A-Za-z]/.test(t);
 		};
 
-		const looksLikePlayerName = (s) => {
-			if (looksLikeJunk(s)) return false;
-			const t = s.trim();
-			// Real player names always have either a space (first+last) or a slash
-			// (doubles team).  Single-word strings like "Qtrs", "Final", "Champion"
-			// are excluded.  Allows abbreviated advancers like "G Fry", "M Ammen".
-			return /[A-Za-z]/.test(t) && (t.includes(' ') || t.includes('/'));
-		};
-
-		const isBye = (s) => /^BYE$/i.test((s ?? '').trim());
+		// A "full" name has a first name longer than one character on each side of "/".
+		// "Kyle Artman" → true; "K Artman" → false; "Alexis Fajardo / Jim Russell" → true.
+		const isFullName = (s) =>
+			isPlayerName(s) &&
+			s.split('/').every((part) => {
+				const words = part.trim().split(/\s+/);
+				return words.length >= 2 && words[0].length > 1;
+			});
 
 		const extractScore = (text) => {
 			const t = String(text ?? '');
-			const wbf = t.match(/WBF[^\n\r]*/i);
-			if (wbf) return wbf[0].replace(/\s*\[.*$/, '').trim();
-			const num = t.match(/\d{1,3}\s*[-–]\s*\d{1,3}(?:\s*,\s*\d{1,3}\s*[-–]\s*\d{1,3}){0,4}/);
-			if (num) return num[0].replace(/–/g, '-').replace(/\s+/g, '');
-			return null;
+			const wbf = t.match(/WBF[^\n\r]*/i) ?? t.match(/No[\s-]?Show[^\n\r]*/i) ?? t.match(/Forfeit[^\n\r]*/i);
+			if (wbf) return wbf[0].trim();
+			const m = t.match(/\d{1,3}[-–]\d{1,3}(?:[,\s]+\d{1,3}[-–]\d{1,3})*/);
+			return m ? m[0].replace(/–/g, '-').replace(/\s+/g, '') : null;
 		};
 
-		const matchLinks = Array.from(document.querySelectorAll('a[href*="viewAppMatch"]'));
-		const matchCells = new Set(matchLinks.map((l) => l.closest('td')).filter(Boolean));
+		// Last names from a player/team string for fuzzy matching.
+		// "Kyle Artman" → ["artman"]   "K Artman" → ["artman"]
+		// "Alexis Fajardo / Jim Russell" → ["fajardo", "russell"]
+		const lastNames = (name) =>
+			(name ?? '').split('/').map((p) => p.trim().split(/\s+/).pop()?.toLowerCase()).filter(Boolean);
 
-		// Player-name candidates: every bold/strong with a valid name OR BYE, PLUS
-		// every profile-player anchor (some R2 layouts put the bold inside the
-		// anchor; others render the bold as a sibling).  We allow bolds inside
-		// profile anchors so both layouts produce a hit.
-		const boldEls = Array.from(document.querySelectorAll('b, strong')).filter((el) => {
-			const t = cleanName(el.textContent);
-			return looksLikePlayerName(t) || isBye(t);
-		});
-		const profileAnchors = Array.from(document.querySelectorAll('a[href*="profile-player.asp"]'));
+		// ── Pass 1: match map from ALL match boxes (full AND abbreviated names) ──
+		const allTables = Array.from(document.querySelectorAll('table'));
+		const matchBoxes = allTables.filter((t) => t.querySelector('a[href*="viewAppMatch"]'));
 
-		const candidates = [
-			...boldEls.map((el) => ({ el })),
-			...profileAnchors.map((el) => ({ el })),
-		];
+		const matchMap = {}; // matchId → { player1, player2 }
 
-		for (const link of matchLinks) {
-			const matchId = (link.textContent ?? '').trim();
+		for (const box of matchBoxes) {
+			const link = box.querySelector('a[href*="viewAppMatch"]');
+			const matchId = (link?.textContent ?? '').trim();
 			if (!/^[A-Z][A-Z0-9+]{0,4}\d{1,3}$/.test(matchId)) continue;
 
-			const linkRect = link.getBoundingClientRect();
-			if (linkRect.width < 1 || linkRect.height < 1) continue;
+			const names = Array.from(box.querySelectorAll('strong, b'))
+				.map((el) => cleanName(el.textContent))
+				.filter(isPlayerName);
 
-			const ownCell = link.closest('td');
-			const linkCenterX = (linkRect.left + linkRect.right) / 2;
-			const linkCenterY = (linkRect.top + linkRect.bottom) / 2;
+			if (names.length === 0) continue;
+			matchMap[matchId] = {
+				player1: names[0] ?? null,
+				player2: names[1] ?? null,
+			};
+		}
 
-			const scored = candidates
-				.map(({ el }) => {
-					// Reject candidates that live inside a DIFFERENT match's cell.
-					// This stops M70+4 from grabbing the "BYE" label that belongs to
-					// the adjacent M70+8 cell.
-					const candCell = el.closest('td');
-					if (candCell && candCell !== ownCell && matchCells.has(candCell)) return null;
+		// ── Pass 2: resolve source-match results from all score-bearing cells ──
+		// Scan EVERY table for <strong> cells that contain both a player name and
+		// a score/WBF string. When the same last name appears in multiple unresolved
+		// matches, prefer the entry where the player slot has a FULL name — that
+		// identifies the earlier-round match the advancement box is resolving.
+		const results = { ...matchMap };
 
-					const r = el.getBoundingClientRect();
-					if (r.width < 1 || r.height < 1) return null;
-					const cx = (r.left + r.right) / 2;
-					const cy = (r.top + r.bottom) / 2;
-					return {
-						el,
-						dx: linkCenterX - cx, // positive = candidate is left of link
-						dy: cy - linkCenterY, // negative = candidate is above link
-						text: cleanName(el.textContent) || (isBye(el.textContent) ? 'BYE' : ''),
-					};
-				})
-				.filter(Boolean)
-				.filter((c) => c.dx >= -10 && c.dx <= 400)
-				.filter((c) => Math.abs(c.dy) <= 120)
-				// Drop candidates whose text fails validation early so they don't
-				// "win" the above/below slot and block a valid candidate behind them.
-				.filter((c) => looksLikePlayerName(c.text) || isBye(c.text));
+		for (const box of allTables) {
+			for (const cell of Array.from(box.querySelectorAll('td'))) {
+				const strong = cell.querySelector('strong, b');
+				if (!strong) continue;
+				const advancerName = cleanName(strong.textContent);
+				if (!isPlayerName(advancerName)) continue;
 
-			const above = scored
-				.filter((c) => c.dy < 0)
-				.sort((a, b) => Math.abs(a.dy) - Math.abs(b.dy))[0];
-			const below = scored
-				.filter((c) => c.dy > 0)
-				.sort((a, b) => Math.abs(a.dy) - Math.abs(b.dy))[0];
+				const score = extractScore(cell.textContent ?? '');
+				if (!score) continue;
 
-			const player1Raw = above?.text || '';
-			const player2Raw = below?.text || '';
+				const advLN = lastNames(advancerName);
+				if (!advLN.length) continue;
 
-			const cell = link.closest('td') ?? link.parentElement;
-			const cellText = (cell?.innerText ?? '').trim();
-			const score = extractScore(cellText);
+				// Track the best match candidate, preferring full-name slots to
+				// resolve the ambiguity when a player appears in multiple rounds.
+				let fullMatch = null;  // { matchId, data, side } — player in a full-name slot
+				let abbrMatch = null;  // { matchId, data, side } — player in an abbreviated slot
+				let ambiguous = false;
 
-			const entry = {};
-			if (looksLikePlayerName(player1Raw) || isBye(player1Raw)) entry.player1 = player1Raw;
-			if (looksLikePlayerName(player2Raw) || isBye(player2Raw)) entry.player2 = player2Raw;
-			if (score) entry.score = score;
+				for (const [matchId, data] of Object.entries(results)) {
+					if (data.winner != null) continue;
+					const p1LN = lastNames(data.player1 ?? '');
+					const p2LN = lastNames(data.player2 ?? '');
 
-			if (!entry.player1 && !entry.player2 && !entry.score) continue;
-			if (isBye(player1Raw) && isBye(player2Raw)) continue;
+					const hitsP1 = advLN.every((ln) => p1LN.some((p) => p === ln || p.includes(ln) || ln.includes(p)));
+					const hitsP2 = advLN.every((ln) => p2LN.some((p) => p === ln || p.includes(ln) || ln.includes(p)));
 
-			results[matchId] = entry;
+					if (hitsP1 && !hitsP2) {
+						if (isFullName(data.player1 ?? '')) {
+							if (fullMatch) { ambiguous = true; break; }
+							fullMatch = { matchId, data, side: 1 };
+						} else if (!fullMatch) {
+							abbrMatch = { matchId, data, side: 1 };
+						}
+					} else if (hitsP2 && !hitsP1) {
+						if (isFullName(data.player2 ?? '')) {
+							if (fullMatch) { ambiguous = true; break; }
+							fullMatch = { matchId, data, side: 2 };
+						} else if (!fullMatch) {
+							abbrMatch = { matchId, data, side: 2 };
+						}
+					}
+				}
+
+				if (ambiguous) continue;
+				const target = fullMatch ?? abbrMatch;
+				if (target) {
+					results[target.matchId] = { ...target.data, winner: target.side, score };
+				}
+			}
 		}
 
 		return results;
-	}, divCode);
+	});
 }
 
 /**
  * Round-robin extractor (roundRobin.asp pages).
  *
- * Walks the schedule table at the bottom of the page (Round | Versus |
- * Participants | Times | Scores | Code).  Keys by the displayed match code
- * (e.g. "MC 1" → normalized "MC1") and emits player1/player2/score/winner
- * for each row.
+ * Looks for table rows containing "Team1 vs Team2" and a match-code link
+ * (e.g. "MC 1" → normalised to "MC1"). Extracts player names, score, and
+ * winner from each row.
  */
-async function extractRoundRobinData(page, divCode) {
-	return page.evaluate((divCode) => {
+async function extractRoundRobinData(page) {
+	return page.evaluate(() => {
 		const results = {};
 
 		const extractScore = (text) => {
 			const t = String(text ?? '');
-			const wbf = t.match(/WBF[^\n\r]*/i);
-			if (wbf) return wbf[0].replace(/\s*\[.*$/, '').trim();
-			const num = t.match(/\d{1,3}\s*[-–]\s*\d{1,3}(?:\s*,\s*\d{1,3}\s*[-–]\s*\d{1,3}){0,4}/);
-			if (num) return num[0].replace(/–/g, '-').replace(/\s+/g, '');
-			return null;
+			const wbf = t.match(/WBF[^\n\r]*/i) ?? t.match(/No[\s-]?Show[^\n\r]*/i);
+			if (wbf) return wbf[0].trim();
+			const m = t.match(/\d{1,3}[-–]\d{1,3}(?:[,\s]+\d{1,3}[-–]\d{1,3})*/);
+			return m ? m[0].replace(/–/g, '-').replace(/\s+/g, '') : null;
 		};
 
+		// RR match code links look like "MC 1", "MOD 2", "MXOA 3", etc.
 		const codeRe = /^[A-Z][A-Z0-9+]{0,4}\s+\d{1,3}$/;
 		const matchLinks = Array.from(document.querySelectorAll('a')).filter((a) =>
 			codeRe.test((a.textContent ?? '').trim()),
@@ -278,8 +243,9 @@ async function extractRoundRobinData(page, divCode) {
 			if (!row) continue;
 			const rowText = (row.innerText ?? '').replace(/\s+/g, ' ').trim();
 
+			// Match "Team1 vs Team2" pattern before a day-of-week abbreviation
 			const versus = rowText.match(
-				/([A-Z][A-Za-z .'\-/]+?)\s+vs\.?\s+([A-Z][A-Za-z .'\-/]+?)(?:\s+-\s+W)?\s+(?:Sa|Su|Mo|Tu|We|Th|Fr|Sat|Sun|Mon|Tue|Wed|Thu|Fri)\b/,
+				/([A-Z][A-Za-z .'\-\/]+?)\s+vs\.?\s+([A-Z][A-Za-z .'\-\/]+?)(?:\s+-\s+W)?\s+(?:Sa|Su|Mo|Tu|We|Th|Fr)\b/,
 			);
 			if (!versus) continue;
 
@@ -287,8 +253,9 @@ async function extractRoundRobinData(page, divCode) {
 			const player2 = versus[2].trim();
 			const score = extractScore(rowText);
 
+			// "W" marker: "Team2 - W Sa …" means team2 won (default WBF style)
 			let winner;
-			if (/vs\.?\s+[A-Z][A-Za-z .'\-/]+?\s+-\s+W\s+(?:Sa|Su|Mo|Tu|We|Th|Fr|Sat|Sun|Mon|Tue|Wed|Thu|Fri)/.test(rowText)) {
+			if (/vs\.?\s+[A-Z][\w .'\-/]+?\s+-\s+W\s+(?:Sa|Su|Mo|Tu|We|Th|Fr)/.test(rowText)) {
 				winner = 2;
 			} else if (/-\s+W\s+vs\.?/.test(rowText)) {
 				winner = 1;
@@ -302,30 +269,38 @@ async function extractRoundRobinData(page, divCode) {
 		}
 
 		return results;
-	}, divCode);
+	});
 }
 
-async function processOneBracket(page, href) {
-	await page.goto(href, { waitUntil: 'domcontentloaded', timeout: 25000 });
-	// Let bracket tables lay out so getBoundingClientRect returns real coords.
-	await page.waitForTimeout(400);
+/** Resolve the division short code from a bracket page's header text. */
+async function resolveDivCode(page) {
+	return page.evaluate(() => {
+		const text = (document.body?.innerText ?? '').slice(0, 8000);
+		const m = text.match(/\(\s*([A-Z][A-Z0-9+]*)\s*\)\s*(?:Men|Women|Mixed)/);
+		return m ? m[1] : null;
+	});
+}
 
-	const url = page.url();
-	const divCode = await resolveDivisionCodeFromBracketPage(page);
+async function processDivision(page, divID, combinedID) {
+	const url = `${DRAWOUT_BASE}&divID=${divID}&combinedID=${combinedID}`;
+	await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+
+	const finalUrl = page.url();
+	const divCode = await resolveDivCode(page);
 	const divId = divCode ? CODE_ID_MAP[divCode] : null;
 
-	if (!divId) return { divId: null, divCode, format: null, data: {} };
+	if (!divId) {
+		return { divCode, divId: null, data: {} };
+	}
 
 	let data;
-	let format;
-	if (/roundRobin\.asp/i.test(url)) {
-		format = 'rr';
-		data = await extractRoundRobinData(page, divCode);
+	if (/roundRobin\.asp/i.test(finalUrl)) {
+		data = await extractRoundRobinData(page);
 	} else {
-		format = 'se';
-		data = await extractSingleElimData(page, divCode);
+		data = await extractSingleElimData(page);
 	}
-	return { divId, divCode, format, data };
+
+	return { divCode, divId, data };
 }
 
 async function main() {
@@ -336,7 +311,7 @@ async function main() {
 		try {
 			existing = JSON.parse(readFileSync(RESULTS_PATH, 'utf-8'));
 		} catch {
-			// ignore
+			// ignore corrupt file
 		}
 	}
 
@@ -356,37 +331,27 @@ async function main() {
 			viewport: { width: 1600, height: 1200 },
 		});
 		const page = await context.newPage();
-		page.setDefaultTimeout(20000);
+		page.setDefaultTimeout(30000);
 
-		console.log('  Visiting tournament home page…');
-		await page.goto(HOME_URL, { waitUntil: 'domcontentloaded', timeout: 20000 });
-
-		console.log('  Loading divisions list…');
-		const bracketLinks = await getBracketLinks(page);
-
-		if (!bracketLinks.length) {
-			console.log('  ⚠  No viewBracket links on divisions page; aborting.');
-		} else {
-			for (const { href } of bracketLinks) {
-				const label = href.slice(-80);
-				try {
-					const { divId, divCode, format, data } = await processOneBracket(page, href);
-					if (!divId) {
-						console.log(`  ⚠  Skip (unknown division code "${divCode}"): …${label}`);
-						continue;
-					}
-					const matchCount = Object.keys(data).length;
-					if (matchCount > 0) {
-						divisions[divId] = data;
-						scraped++;
-						totalMatches += matchCount;
-						console.log(`  ✓ ${divCode} [${format}]: ${matchCount} match(es) → ${divId}`);
-					} else {
-						console.log(`  – ${divCode} [${format}]: no extractable results yet`);
-					}
-				} catch (err) {
-					console.log(`  ✗ …${label}: ${(err.message ?? String(err)).slice(0, 100)}`);
+		for (const { code, divID, combinedID } of DIVISION_URLS) {
+			try {
+				const { divCode, divId, data } = await processDivision(page, divID, combinedID);
+				if (!divId) {
+					console.log(`  ⚠  ${code}: could not resolve division (got "${divCode}")`);
+					continue;
 				}
+				const matchCount = Object.keys(data).length;
+				const withResults = Object.values(data).filter((d) => d.winner != null).length;
+				if (matchCount > 0) {
+					divisions[divId] = data;
+					scraped++;
+					totalMatches += withResults;
+					console.log(`  ✓ ${code}: ${matchCount} match(es), ${withResults} with results → ${divId}`);
+				} else {
+					console.log(`  – ${code}: no data extracted yet`);
+				}
+			} catch (err) {
+				console.log(`  ✗ ${code}: ${(err.message ?? String(err)).slice(0, 120)}`);
 			}
 		}
 
@@ -395,7 +360,8 @@ async function main() {
 		await browser.close();
 	}
 
-	// Merge: preserve existing match results, overlay newly scraped data.
+	// Merge: overlay fresh data on top of existing, preserving anything we
+	// could not re-scrape (e.g. completed divisions from earlier in the event).
 	const mergedDivisions = { ...existing.divisions };
 	for (const [divId, matches] of Object.entries(divisions)) {
 		mergedDivisions[divId] = { ...(mergedDivisions[divId] ?? {}), ...matches };
@@ -404,7 +370,7 @@ async function main() {
 	const mergedStr = JSON.stringify(mergedDivisions);
 	const existingStr = JSON.stringify(existing.divisions ?? {});
 	if (mergedStr === existingStr) {
-		console.log('\n✅  No division result changes; leaving ocala-results.json as-is.');
+		console.log('\n✅  No changes — ocala-results.json is already up to date.');
 		return;
 	}
 
@@ -414,8 +380,7 @@ async function main() {
 	};
 
 	writeFileSync(RESULTS_PATH, JSON.stringify(output, null, 2) + '\n');
-
-	console.log(`\n✅  Done. Scraped ${scraped} division(s), ${totalMatches} match(es) total.`);
+	console.log(`\n✅  Done. ${scraped} division(s), ${totalMatches} results written.`);
 	console.log(`   Updated: ${RESULTS_PATH}`);
 }
 
