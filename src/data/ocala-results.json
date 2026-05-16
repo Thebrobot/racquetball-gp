@@ -154,9 +154,7 @@
       },
       "M70+4": {
         "player1": "G Fry",
-        "player2": "M Ammen",
-        "winner": 1,
-        "score": "WBF - No Show"
+        "player2": "M Ammen"
       },
       "M70+3": {
         "player1": "P Gaerlan",
@@ -226,9 +224,7 @@
     "mens-doubles-b": {
       "MBD5": {
         "player1": "Don Strickland / Jonathan Estepan",
-        "player2": "Matt Kern / Ryan Appleby",
-        "winner": 2,
-        "score": "609-1"
+        "player2": "Matt Kern / Ryan Appleby"
       },
       "MBD3": {
         "player1": "Manzano / Sotolongo",

@@ -3,17 +3,6 @@
   "eventSlug": "ocala-open",
   "events": [
     {
-      "id": "2026-05-16T10:41:28.877Z-mens-doubles-b-MBD5",
-      "at": "2026-05-16T10:41:28.877Z",
-      "type": "result",
-      "divisionId": "mens-doubles-b",
-      "divisionLabel": "Men's Doubles: B",
-      "matchId": "MBD5",
-      "headline": "Matt Kern / Ryan Appleby def Don Strickland / Jonathan Estepan",
-      "detail": "609-1",
-      "bracketHref": "/events/ocala-open/divisions/mens-doubles-b"
-    },
-    {
       "id": "2026-05-16T20:30:00.000Z-mens-doubles-a-MAD5",
       "at": "2026-05-16T20:30:00.000Z",
       "type": "result",
