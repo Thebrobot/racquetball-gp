@@ -209,11 +209,11 @@ const EVENTS_RAW: EventData[] = [
 					label: 'Round of 16',
 					matches: [
 						{ player1: 'Brendan Anthony',  player2: 'BYE',              seed1: 1,              winner: 1, matchId: 'MA16' },
-						{ player1: "Russell O'Neal",   player2: 'Kyle Artman',      seed1: 9, seed2: 8,   scheduledTime: 'Friday · 4:30 PM',    court: 'Court 4', matchId: 'MA9' },
+						{ player1: "Russell O'Neal",   player2: 'Kyle Artman',      seed1: 9, seed2: 8,   scheduledTime: 'Friday · 4:30 PM',    court: 'Court 4', matchId: 'MA9',  winner: 2 },
 						{ player1: 'Mauricio Muriel',  player2: 'BYE',              seed1: 5,              winner: 1, matchId: 'MA12' },
 						{ player1: 'BYE',              player2: 'Brian Grantham',              seed2: 4,   winner: 2, matchId: 'MA13' },
 						{ player1: 'Gordon Henry',     player2: 'BYE',              seed1: 3,              winner: 1, matchId: 'MA14' },
-						{ player1: 'Robert Yanchis',   player2: 'Wade Stubanas',    seed1: 11, seed2: 6,  scheduledTime: 'Friday · 4:30 PM',    court: 'Court 1', matchId: 'MA11' },
+						{ player1: 'Robert Yanchis',   player2: 'Wade Stubanas',    seed1: 11, seed2: 6,  scheduledTime: 'Friday · 4:30 PM',    court: 'Court 1', matchId: 'MA11', winner: 2, score: '12-15, 15-11, 11-4' },
 						{ player1: 'Jorge Moreno',     player2: 'Ron Jennings',     seed1: 7, seed2: 10,  scheduledTime: 'Saturday · 11:00 AM', court: 'Court 1', matchId: 'MA10' },
 						{ player1: 'BYE',              player2: 'Kleber Oliveira',             seed2: 2,   winner: 2, matchId: 'MA15' },
 					],
@@ -251,12 +251,12 @@ const EVENTS_RAW: EventData[] = [
 					label: 'Round of 16',
 					matches: [
 						{ player1: 'Scott Gill',       player2: 'BYE',              seed1: 1,               winner: 1, matchId: 'MB16' },
-						{ player1: 'Matthew Brice',    player2: 'Jonathan Estepan', seed1: 9,  seed2: 8,   scheduledTime: 'Friday · 5:30 PM',   court: 'Court 1', matchId: 'MB9' },
-						{ player1: 'Daniel Bray',      player2: 'Havan Artman',     seed1: 5,  seed2: 12,  scheduledTime: 'Friday · 7:30 PM',   court: 'Court 4', matchId: 'MB12' },
-						{ player1: 'BYE',              player2: 'Edgar Martinez',               seed2: 4,  winner: 2, matchId: 'MB13' },
+						{ player1: 'Matthew Brice',    player2: 'Jonathan Estepan', seed1: 9,  seed2: 8,   scheduledTime: 'Friday · 5:30 PM',   court: 'Court 1', matchId: 'MB9',  winner: 1, score: '15-7, 15-10' },
+						{ player1: 'Daniel Bray',      player2: 'Havan Artman',     seed1: 5,  seed2: 12,  scheduledTime: 'Friday · 7:30 PM',   court: 'Court 4', matchId: 'MB12', winner: 1 },
+						{ player1: 'Ben Mordkovich',   player2: 'Edgar Martinez',   seed1: 13, seed2: 4,   scheduledTime: 'Saturday · 8:00 AM', court: 'Court 1', matchId: 'MB13' },
 						{ player1: 'Matt Kern',        player2: 'BYE',              seed1: 3,               winner: 1, matchId: 'MB14' },
-						{ player1: 'Ashley Medlock',   player2: 'Mark Manzano',     seed1: 11, seed2: 6,   scheduledTime: 'Friday · 5:30 PM',   court: 'Court 2', matchId: 'MB11' },
-						{ player1: 'Ryan Appleby',     player2: 'Mike Caldwell',    seed1: 7,  seed2: 10,  scheduledTime: 'Friday · 5:30 PM',   court: 'Court 3', matchId: 'MB10' },
+						{ player1: 'Ashley Medlock',   player2: 'Mark Manzano',     seed1: 11, seed2: 6,   scheduledTime: 'Friday · 5:30 PM',   court: 'Court 2', matchId: 'MB11', winner: 1, score: '15-13, 15-6' },
+						{ player1: 'Ryan Appleby',     player2: 'Mike Caldwell',    seed1: 7,  seed2: 10,  scheduledTime: 'Friday · 5:30 PM',   court: 'Court 3', matchId: 'MB10', winner: 1, score: '7-15, 15-5, 11-4' },
 						{ player1: 'BYE',              player2: 'Kyle Artman',                  seed2: 2,  winner: 2, matchId: 'MB15' },
 					],
 				},
@@ -292,7 +292,7 @@ const EVENTS_RAW: EventData[] = [
 				roundRobinMatches: [
 					{ round: 'Round 1', team1: 'Michael Ammen', team2: 'Ben Mordkovich', scheduledTime: 'Saturday · 8:00 AM',  court: 'Court 2' },
 					{ round: 'Round 2', team1: 'Michael Ammen', team2: 'Gordon Kelly',   scheduledTime: 'Saturday · 10:00 AM', court: 'Court 2' },
-					{ round: 'Round 3', team1: 'Gordon Kelly',  team2: 'Ben Mordkovich', scheduledTime: 'Saturday · 12:00 PM', court: 'Court 2' },
+					{ round: 'Round 3', team1: 'Gordon Kelly',  team2: 'Ben Mordkovich', scheduledTime: 'Saturday · 12:00 PM', court: 'Court 2', winner: 2 },
 				],
 			},
 			// ── Age Singles ────────────────────────────────────────────────────────
@@ -305,8 +305,8 @@ const EVENTS_RAW: EventData[] = [
 					label: 'Quarterfinals',
 					matches: [
 						{ player1: 'Chad Beacher',    player2: 'BYE',                      seed1: 1,             winner: 1 },
-						{ player1: 'Trace Gunsch',    player2: 'Chris Steinheiser',         seed1: 4, seed2: 5,  scheduledTime: 'Friday · 6:30 PM', court: 'Court 1' },
-						{ player1: 'Charles Cole',    player2: 'John Johnston',             seed1: 3, seed2: 6,  scheduledTime: 'Friday · 7:30 PM', court: 'Court 1' },
+						{ player1: 'Trace Gunsch',    player2: 'Chris Steinheiser',         seed1: 4, seed2: 5,  scheduledTime: 'Friday · 6:30 PM', court: 'Court 1', winner: 2, score: '11-15, 15-11, 11-6' },
+						{ player1: 'Charles Cole',    player2: 'John Johnston',             seed1: 3, seed2: 6,  scheduledTime: 'Friday · 7:30 PM', court: 'Court 1', winner: 1, score: '15-11, 15-7' },
 						{ player1: 'Kleber Oliveira', player2: 'Timothy Schnellenberger',   seed1: 7, seed2: 2,  scheduledTime: 'Friday · 7:30 PM', court: 'Court 3' },
 					],
 				},
@@ -333,17 +333,17 @@ const EVENTS_RAW: EventData[] = [
 				{
 					label: 'Quarterfinals',
 					matches: [
-						{ player1: 'Gordon Henry',  player2: 'BYE',            seed1: 1,             winner: 1 },
-						{ player1: 'Laura Brandt',  player2: 'Eric Foley',     seed1: 4, seed2: 5,  scheduledTime: 'Saturday · 10:00 AM', court: 'Court 2' },
-						{ player1: 'Michael Ammen', player2: "Russell O'Neal", seed1: 3, seed2: 6,  scheduledTime: 'Saturday · 3:00 PM',  court: 'Court 1' },
-						{ player1: 'BYE',           player2: 'Charles Cole',              seed2: 2, winner: 2 },
+						{ player1: 'Charles Cole',  player2: 'BYE',            seed1: 1,             winner: 1 },
+						{ player1: 'Eric Foley',    player2: 'Laura Brandt',   seed1: 3, seed2: 6,  scheduledTime: 'Saturday · 10:00 AM', court: 'Court 2' },
+						{ player1: 'Michael Ammen', player2: "Russell O'Neal", seed1: 4, seed2: 5,  scheduledTime: 'Saturday · 3:00 PM',  court: 'Court 1' },
+						{ player1: 'BYE',           player2: 'Gordon Henry',              seed2: 2, winner: 2 },
 					],
 				},
 				{
 					label: 'Semifinals',
 					matches: [
-						{ player1: 'Gordon Henry',  player2: 'TBD', seed1: 1, scheduledTime: 'Sunday · 8:00 AM', court: 'Court 3' },
-						{ player1: 'TBD',           player2: 'Charles Cole',   seed2: 2, scheduledTime: 'Sunday · 9:00 AM', court: 'Court 1' },
+						{ player1: 'TBD',           player2: 'Gordon Henry', seed2: 2, scheduledTime: 'Sunday · 8:00 AM', court: 'Court 3' },
+						{ player1: 'Charles Cole',  player2: 'TBD',          seed1: 1, scheduledTime: 'Sunday · 9:00 AM', court: 'Court 1' },
 					],
 				},
 				{
@@ -363,16 +363,16 @@ const EVENTS_RAW: EventData[] = [
 					label: 'Quarterfinals',
 					matches: [
 						{ player1: 'Gene Fry',       player2: 'BYE',          seed1: 1,             winner: 1 },
-						{ player1: 'Michael Ammen',  player2: 'Gordon Kelly', seed1: 4, seed2: 5,  scheduledTime: 'Friday · 6:30 PM',   court: 'Court 3' },
-						{ player1: 'Philip Gaerlan', player2: 'Scott Gill',   seed1: 3, seed2: 6,  scheduledTime: 'Saturday · 1:00 PM', court: 'Court 1' },
-						{ player1: 'BYE',            player2: 'TBD',                    seed2: 2,  winner: 2 },
+						{ player1: 'Michael Ammen',  player2: 'Gordon Kelly', seed1: 4, seed2: 5,  scheduledTime: 'Friday · 6:30 PM',   court: 'Court 3', winner: 1 },
+						{ player1: 'Philip Gaerlan', player2: 'BYE',         seed1: 3,             winner: 1 },
+						{ player1: 'BYE',            player2: 'Scott Gill',             seed2: 2,  winner: 2 },
 					],
 				},
 				{
 					label: 'Semifinals',
 					matches: [
-						{ player1: 'Gene Fry', player2: 'TBD', seed1: 1, scheduledTime: 'Saturday · 2:00 PM', court: 'Court 2' },
-						{ player1: 'TBD',      player2: 'TBD' },
+						{ player1: 'Gene Fry',       player2: 'Michael Ammen', seed1: 1, seed2: 4, scheduledTime: 'Saturday · 2:00 PM', court: 'Court 2', winner: 2 },
+						{ player1: 'Philip Gaerlan', player2: 'Scott Gill',    seed1: 3, seed2: 2, scheduledTime: 'Saturday · 1:00 PM', court: 'Court 1' },
 					],
 				},
 				{
@@ -412,9 +412,9 @@ const EVENTS_RAW: EventData[] = [
 				{
 					label: 'Quarterfinals',
 					matches: [
-						{ player1: 'Deeney / Saunders',  player2: 'B. Haacke / S. Haacke', scheduledTime: 'Friday · 6:30 PM',    court: 'Court 4' },
-						{ player1: 'Garcia / Nolan',     player2: 'Fajardo / Russell',     scheduledTime: 'Friday · 7:30 PM',    court: 'Court 2' },
-						{ player1: 'Johnston / Lopez',   player2: 'Oliveira / TBD',        scheduledTime: 'Saturday · 10:00 AM', court: 'Court 3' },
+						{ player1: 'Deeney / Saunders',  player2: 'B. Haacke / S. Haacke', scheduledTime: 'Friday · 6:30 PM',    court: 'Court 4', winner: 2, score: '15-7, 15-7' },
+						{ player1: 'Garcia / Nolan',     player2: 'Fajardo / Russell',     scheduledTime: 'Friday · 7:30 PM',    court: 'Court 2', winner: 2, score: '15-13, 15-7' },
+						{ player1: 'Johnston / Lopez',   player2: 'Artman / Oliveira',     scheduledTime: 'Saturday · 10:00 AM', court: 'Court 3' },
 						{ player1: 'Anthony / Schulze',  player2: 'Beacher / Toston',      scheduledTime: 'Saturday · 12:00 PM', court: 'Court 3' },
 					],
 				},
@@ -442,7 +442,7 @@ const EVENTS_RAW: EventData[] = [
 					label: 'Quarterfinals',
 					matches: [
 						{ player1: 'Haacke / Muriel',            player2: 'BYE',                seed1: 1,             winner: 1 },
-						{ player1: 'Artman / Jennings',          player2: 'Hernandez / Moreno', seed1: 4, seed2: 5,  scheduledTime: 'Friday · 5:30 PM',    court: 'Court 4' },
+						{ player1: 'Artman / Jennings',          player2: 'Hernandez / Moreno', seed1: 4, seed2: 5,  scheduledTime: 'Friday · 5:30 PM',    court: 'Court 4', winner: 2, score: '5-15, 15-14, 11-8' },
 						{ player1: 'Russell / Van Zant-Russell', player2: 'Sotolongo / Urzua',  seed1: 3, seed2: 6,  scheduledTime: 'Saturday · 12:00 PM', court: 'Court 2' },
 						{ player1: 'Grantham / Stubanas',        player2: 'Medlock / Yanchis',  seed1: 7, seed2: 2,  scheduledTime: 'Saturday · 1:00 PM',  court: 'Court 4' },
 					],
@@ -546,7 +546,7 @@ const EVENTS_RAW: EventData[] = [
 					'Russell / Van Zant-Russell',
 				],
 				roundRobinMatches: [
-					{ round: 'Round 1', team1: 'Brandt / Henry',           team2: 'Jennings / Jennings',       scheduledTime: 'Friday · 6:30 PM',    court: 'Court 2' },
+					{ round: 'Round 1', team1: 'Brandt / Henry',           team2: 'Jennings / Jennings',       scheduledTime: 'Friday · 6:30 PM',    court: 'Court 2', winner: 1 },
 					{ round: 'Round 2', team1: 'Russell / Van Zant-Russell', team2: 'Jennings / Jennings',     scheduledTime: 'Saturday · 2:00 PM',  court: 'Court 3' },
 					{ round: 'Round 2', team1: 'Anthony / Artman',         team2: 'Brandt / Henry',            scheduledTime: 'Saturday · 4:00 PM',  court: 'Court 4' },
 					{ round: 'Round 3', team1: 'Anthony / Artman',         team2: 'Russell / Van Zant-Russell', scheduledTime: 'Saturday · 6:00 PM', court: 'Court 4' },
