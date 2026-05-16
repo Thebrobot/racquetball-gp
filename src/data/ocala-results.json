@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-16T19:44:58.269Z",
+  "lastUpdated": "2026-05-16T20:32:05.318Z",
   "divisions": {
     "mens-singles-open": {
       "MO9": {
@@ -63,6 +63,10 @@
       "ME8": {
         "player1": "J Deeney",
         "player2": "M Huyke"
+      },
+      "ME4": {
+        "player1": "M Huyke",
+        "player2": "I Taylor"
       }
     },
     "mens-singles-a": {
