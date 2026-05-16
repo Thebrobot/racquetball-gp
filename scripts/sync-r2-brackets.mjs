@@ -168,14 +168,16 @@ async function extractSingleElimData(page) {
 			};
 		}
 
-		// ── Pass 2: resolve source-match results from all score-bearing cells ──
-		// Scan EVERY table for <strong> cells that contain both a player name and
-		// a score/WBF string. When the same last name appears in multiple unresolved
-		// matches, prefer the entry where the player slot has a FULL name — that
-		// identifies the earlier-round match the advancement box is resolving.
+		// ── Pass 2: resolve source-match results from advancement cells only ──
+		// Scan only tables WITHOUT a viewAppMatch link (true advancement boxes
+		// between rounds). Match boxes (which have viewAppMatch) can display a
+		// player's PREVIOUS match score as context underneath their abbreviated
+		// name — scanning those too caused false positives where the context
+		// score was incorrectly applied to the upcoming (unplayed) match.
 		const results = { ...matchMap };
+		const advancementBoxes = allTables.filter((t) => !t.querySelector('a[href*="viewAppMatch"]'));
 
-		for (const box of allTables) {
+		for (const box of advancementBoxes) {
 			for (const cell of Array.from(box.querySelectorAll('td'))) {
 				const strong = cell.querySelector('strong, b');
 				if (!strong) continue;
