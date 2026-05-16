@@ -308,8 +308,8 @@ const EVENTS_RAW: EventData[] = [
 					matches: [
 						{ player1: 'Chad Beacher',    player2: 'BYE',                      seed1: 1,             winner: 1 },
 						{ player1: 'Trace Gunsch',    player2: 'Chris Steinheiser',         seed1: 4, seed2: 5,  scheduledTime: 'Friday · 6:30 PM', court: 'Court 1', winner: 2, score: '11-15, 15-11, 11-6' },
-						{ player1: 'Charles Cole',    player2: 'John Johnston',             seed1: 3, seed2: 6,  scheduledTime: 'Friday · 7:30 PM', court: 'Court 1', winner: 1, score: '15-11, 15-7' },
-						{ player1: 'Kleber Oliveira', player2: 'Timothy Schnellenberger',   seed1: 7, seed2: 2,  scheduledTime: 'Friday · 7:30 PM', court: 'Court 3' },
+						{ player1: 'Charles Cole',    player2: 'John Johnston',             seed1: 3, seed2: 6,  scheduledTime: 'Friday · 7:30 PM', court: 'Court 1', winner: 2, score: '15-11, 15-7' },
+						{ player1: 'Kleber Oliveira', player2: 'Timothy Schnellenberger',   seed1: 7, seed2: 2,  scheduledTime: 'Friday · 7:30 PM', court: 'Court 3', winner: 1, score: '15-7, 15-4' },
 					],
 				},
 				{
