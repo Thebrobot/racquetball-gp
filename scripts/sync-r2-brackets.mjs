@@ -455,11 +455,20 @@ async function main() {
 		await browser.close();
 	}
 
-	// Merge: overlay fresh data on top of existing, preserving anything we
-	// could not re-scrape (e.g. completed divisions from earlier in the event).
+	// Merge: overlay fresh data on top of existing. For each match, do a deep
+	// merge so that a previously-confirmed winner/score is never lost if the
+	// current scrape didn't re-detect it (e.g. because the player now appears
+	// only as an abbreviated name in a later-round advancement cell).
 	const mergedDivisions = { ...existing.divisions };
 	for (const [divId, matches] of Object.entries(divisions)) {
-		mergedDivisions[divId] = { ...(mergedDivisions[divId] ?? {}), ...matches };
+		const existingDiv = mergedDivisions[divId] ?? {};
+		const mergedDiv = { ...existingDiv };
+		for (const [matchId, newMatch] of Object.entries(matches)) {
+			// Spread existing first, then new — winner/score from existing are
+			// preserved if the new scrape doesn't include them.
+			mergedDiv[matchId] = { ...(existingDiv[matchId] ?? {}), ...newMatch };
+		}
+		mergedDivisions[divId] = mergedDiv;
 	}
 
 	const mergedStr = JSON.stringify(mergedDivisions);

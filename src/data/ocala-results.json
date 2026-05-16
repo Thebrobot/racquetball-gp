@@ -178,7 +178,9 @@
       },
       "M50+4": {
         "player1": "C Beacher",
-        "player2": "C Steinheiser"
+        "player2": "C Steinheiser",
+        "winner": 1,
+        "score": "11-15,15-11,11-6"
       },
       "M50+3": {
         "player1": "J Johnston",
