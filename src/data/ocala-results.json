@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-16T09:19:55.141Z",
+  "lastUpdated": "2026-05-16T10:41:28.877Z",
   "divisions": {
     "mens-singles-open": {
       "MO9": {
@@ -234,7 +234,9 @@
     "mens-doubles-b": {
       "MBD5": {
         "player1": "Don Strickland / Jonathan Estepan",
-        "player2": "Matt Kern / Ryan Appleby"
+        "player2": "Matt Kern / Ryan Appleby",
+        "winner": 2,
+        "score": "609-1"
       },
       "MBD3": {
         "player1": "Manzano / Sotolongo",
