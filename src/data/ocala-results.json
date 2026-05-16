@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-16T15:50:26.333Z",
+  "lastUpdated": "2026-05-16T16:34:39.685Z",
   "divisions": {
     "mens-singles-open": {
       "MO9": {
@@ -21,6 +21,10 @@
       "MO8": {
         "player1": "A Herrera",
         "player2": "S Haacke"
+      },
+      "MO7": {
+        "player1": "O Huyke",
+        "player2": "D Pruitt"
       }
     },
     "mens-singles-elite": {
@@ -284,7 +288,9 @@
     "mens-doubles-super-centurion": {
       "MSCD3": {
         "player1": "Edgar Martinez / Hector Hernandez",
-        "player2": "Scott Swartz / Steven Lewis"
+        "player2": "Scott Swartz / Steven Lewis",
+        "score": "15-10,15-13",
+        "winner": 2
       },
       "MSCD2": {
         "player1": "Tony Gutierrez / Gene Fry",
