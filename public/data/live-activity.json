@@ -1,7 +1,18 @@
 {
-  "lastUpdated": "2026-05-16T21:30:44.417Z",
+  "lastUpdated": "2026-05-16T22:25:13.850Z",
   "eventSlug": "ocala-open",
   "events": [
+    {
+      "id": "2026-05-16T22:25:13.850Z-mixed-doubles-MXOA3",
+      "at": "2026-05-16T22:25:13.850Z",
+      "type": "result",
+      "divisionId": "mixed-doubles",
+      "divisionLabel": "Mixed Doubles: Open/A",
+      "matchId": "MXOA3",
+      "headline": "Laura Brandt / Gordon Henry - W def Brendan Anthony / Havan Artman",
+      "detail": "15-6,15-9",
+      "bracketHref": "/events/ocala-open/divisions/mixed-doubles"
+    },
     {
       "id": "2026-05-16T21:30:44.417Z-mens-doubles-open-MOD5",
       "at": "2026-05-16T21:30:44.417Z",
