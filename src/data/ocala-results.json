@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-16T00:08:58.344Z",
+  "lastUpdated": "2026-05-16T03:58:50.792Z",
   "divisions": {
     "mens-singles-open": {
       "MO9": {
@@ -113,6 +113,10 @@
       "M50+4": {
         "player1": "C Beacher",
         "player2": "Trace Gunsch"
+      },
+      "M50+3": {
+        "player1": "John Johnston",
+        "player2": "Kleber Oliveira"
       }
     },
     "mens-age-60": {
@@ -175,7 +179,7 @@
         "player2": "Elijah Saunders / Jordan Deeney"
       },
       "MED7": {
-        "player1": "Kleber Oliveira /",
+        "player1": "Kyle Artman / Kleber Oliveira",
         "player2": "John Johnston / Frank Lopez"
       }
     },
