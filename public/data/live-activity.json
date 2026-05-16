@@ -25,17 +25,6 @@
       "bracketHref": "/events/ocala-open/divisions/mens-doubles-a"
     },
     {
-      "id": "2026-05-16T20:30:00.000Z-mens-age-70-M70+4",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-age-70",
-      "divisionLabel": "Men's Age Singles: 70+",
-      "matchId": "M70+4",
-      "headline": "G Fry def M Ammen",
-      "detail": "WBF - No Show",
-      "bracketHref": "/events/ocala-open/divisions/mens-age-70"
-    },
-    {
       "id": "2026-05-16T20:30:00.000Z-mens-age-50-M50+4",
       "at": "2026-05-16T20:30:00.000Z",
       "type": "result",
@@ -45,50 +34,6 @@
       "headline": "C Beacher def C Steinheiser",
       "detail": "11-15,15-11,11-6",
       "bracketHref": "/events/ocala-open/divisions/mens-age-50"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-singles-b-MB8",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-singles-b",
-      "divisionLabel": "Men's Singles: B",
-      "matchId": "MB8",
-      "headline": "S Gill def M Brice",
-      "detail": "WBF - No Show",
-      "bracketHref": "/events/ocala-open/divisions/mens-singles-b"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-singles-a-MA5",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-singles-a",
-      "divisionLabel": "Men's Singles: A",
-      "matchId": "MA5",
-      "headline": "Brian Grantham def Mauricio Muriel",
-      "detail": "WBF - No Show",
-      "bracketHref": "/events/ocala-open/divisions/mens-singles-a"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-singles-a-MA6",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-singles-a",
-      "divisionLabel": "Men's Singles: A",
-      "matchId": "MA6",
-      "headline": "Wade Stubanas def Gordon Henry",
-      "detail": "WBF - No Show",
-      "bracketHref": "/events/ocala-open/divisions/mens-singles-a"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-singles-a-MA8",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-singles-a",
-      "divisionLabel": "Men's Singles: A",
-      "matchId": "MA8",
-      "headline": "Brendan Anthony def Kyle Artman",
-      "detail": "WBF - No Show",
-      "bracketHref": "/events/ocala-open/divisions/mens-singles-a"
     },
     {
       "id": "2026-05-16T20:30:00.000Z-mens-doubles-elite-MED6",
