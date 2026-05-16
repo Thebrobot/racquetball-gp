@@ -1,0 +1,96 @@
+---
+import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { EVENTS } from '../data/events';
+import { titleSponsor } from '../data/ocala-sponsors';
+
+type LiveActivityEvent = {
+	id: string;
+	at: string;
+	type: string;
+	divisionId: string;
+	divisionLabel: string;
+	matchId: string;
+	headline: string;
+	detail?: string;
+	bracketHref: string;
+};
+
+type LiveActivityFeed = {
+	lastUpdated: string | null;
+	eventSlug: string;
+	events: LiveActivityEvent[];
+};
+
+const feedPath = join(process.cwd(), 'public/data/live-activity.json');
+let feed: LiveActivityFeed = { lastUpdated: null, eventSlug: 'ocala-open', events: [] };
+try {
+	feed = JSON.parse(readFileSync(feedPath, 'utf-8')) as LiveActivityFeed;
+} catch {
+	/* use empty feed */
+}
+
+const event = EVENTS.find((e) => e.slug === feed.eventSlug);
+const eventName = event?.name ?? 'Ocala Open';
+const eventDateRange = event?.dateRange ?? '';
+
+function formatSyncedAt(iso: string | null): string {
+	if (!iso) return 'Not yet synced';
+	const d = new Date(iso);
+	if (Number.isNaN(d.getTime())) return 'Not yet synced';
+	return d.toLocaleString('en-US', {
+		month: 'short',
+		day: 'numeric',
+		hour: 'numeric',
+		minute: '2-digit',
+		timeZoneName: 'short',
+	});
+}
+---
+
+<GrandPrixLayout
+	title="Live Updates | Florida Racquetball Grand Prix"
+	description="Live bracket updates from the Ocala Open — match results and advancing players as scores are posted."
+	spotlightLabel="Title sponsor"
+	spotlightName={titleSponsor.name}
+	spotlightBlurb={titleSponsor.blurb}
+	spotlightLogoUrl={titleSponsor.logoUrl}
+>
+	<div class="page-hero" id="live-updates-page" data-last-updated={feed.lastUpdated ?? ''}>
+		<div class="section-label">Tournament weekend</div>
+		<h1 class="section-title">Live <span style="color:var(--orange)">updates</span></h1>
+		<p class="section-sub live-page-sub">
+			{eventName}{eventDateRange ? ` · ${eventDateRange}` : ''}. Results appear here as bracket automation
+			syncs from R2 Sports (typically every 10 minutes during play).
+		</p>
+		<p class="live-sync-label" id="live-sync-label">
+			Last synced <span id="live-sync-time">{formatSyncedAt(feed.lastUpdated)}</span>
+		</p>
+	</div>
+
+	<section class="live-feed-section" aria-labelledby="live-feed-heading">
+		<h2 id="live-feed-heading" class="visually-hidden">Recent bracket activity</h2>
+		<div class="live-feed-list" id="live-feed-list">
+			{feed.events.length === 0 ? (
+				<p class="live-feed-empty" id="live-feed-empty">
+					Waiting for bracket updates… Check back during match play.
+				</p>
+			) : (
+				feed.events.map((item, i) => (
+					<article class:list={['live-feed-card', { 'live-feed-card--fresh': i === 0 }]} data-at={item.at} data-id={item.id}>
+						<time class="live-feed-time" datetime={item.at} data-live-time={item.at}>
+							{item.at}
+						</time>
+						<p class="live-feed-division">{item.divisionLabel}</p>
+						<h3 class="live-feed-headline">{item.headline}</h3>
+						{item.detail && <p class="live-feed-detail">{item.detail}</p>}
+						<a class="live-feed-link" href={item.bracketHref}>
+							View bracket →
+						</a>
+					</article>
+				))
+			)}
+		</div>
+	</section>
+</GrandPrixLayout>

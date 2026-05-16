@@ -110,13 +110,19 @@ function bottomActive(href: string): string {
 		</svg>
 		<span>Sponsors</span>
 	</a>
-	<a href="/contact" class:list={['gp-bottom-nav-item', bottomActive('/contact')]} aria-current={path === '/contact' ? 'page' : undefined}>
+	<a
+		href="/live"
+		id="gp-bottom-nav-live"
+		class:list={['gp-bottom-nav-item', bottomActive('/live')]}
+		aria-current={path.startsWith('/live') ? 'page' : undefined}
+	>
 		<svg viewBox="0 0 24 24" aria-hidden="true">
-			<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-			<circle cx="8.5" cy="7" r="4"/>
-			<line x1="20" y1="8" x2="20" y2="14"/>
-			<line x1="23" y1="11" x2="17" y2="11"/>
+			<circle cx="12" cy="12" r="2"/>
+			<path d="M12 2a10 10 0 0 1 10 10"/>
+			<path d="M12 22a10 10 0 0 0-10-10"/>
+			<path d="M2 12h4"/>
+			<path d="M18 12h4"/>
 		</svg>
-		<span>Connect</span>
+		<span>Live</span>
 	</a>
 </nav>

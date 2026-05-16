@@ -26,12 +26,33 @@
  */
 
 import { chromium } from 'playwright';
-import { writeFileSync, readFileSync, existsSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RESULTS_PATH = resolve(__dirname, '../src/data/ocala-results.json');
+const ACTIVITY_PATH = resolve(__dirname, '../public/data/live-activity.json');
+const EVENT_SLUG = 'ocala-open';
+const MAX_ACTIVITY_EVENTS = 80;
+
+const DIVISION_LABELS = {
+	'mens-singles-open': "Men's Singles: Open",
+	'mens-singles-elite': "Men's Singles: Elite",
+	'mens-singles-a': "Men's Singles: A",
+	'mens-singles-b': "Men's Singles: B",
+	'mens-singles-c': "Men's Singles: C",
+	'mens-age-50': "Men's Age Singles: 50+",
+	'mens-age-60': "Men's Age Singles: 60+",
+	'mens-age-70': "Men's Age Singles: 70+",
+	'mens-doubles-open': "Men's Doubles: Open",
+	'mens-doubles-elite': "Men's Doubles: Elite",
+	'mens-doubles-a': "Men's Doubles: A",
+	'mens-doubles-b': "Men's Doubles: B",
+	'mens-doubles-centurion': "Men's Doubles: Centurion+ Open",
+	'mens-doubles-super-centurion': "Men's Doubles: Super Centurion (120+)",
+	'mixed-doubles': 'Mixed Doubles: Open/A',
+};
 const TID = '53697';
 const DRAWOUT_BASE = `https://www.r2sports.com/tourney/drawsOut/drawOut.asp?TID=${TID}`;
 
@@ -303,6 +324,72 @@ async function processDivision(page, divID, combinedID) {
 	return { divCode, divId, data };
 }
 
+function winnerLoserNames(match) {
+	if (match.winner !== 1 && match.winner !== 2) return null;
+	const winnerName = match.winner === 1 ? match.player1 : match.player2;
+	const loserName = match.winner === 1 ? match.player2 : match.player1;
+	if (!winnerName?.trim() || !loserName?.trim()) return null;
+	return { winnerName: winnerName.trim(), loserName: loserName.trim() };
+}
+
+/** Emit feed entries when winners/scores change between sync snapshots. */
+function detectActivityChanges(prevDivisions, nextDivisions, at) {
+	const newEvents = [];
+	const prev = prevDivisions ?? {};
+	const next = nextDivisions ?? {};
+
+	for (const [divId, matches] of Object.entries(next)) {
+		const divisionLabel = DIVISION_LABELS[divId] ?? divId;
+		for (const [matchId, newMatch] of Object.entries(matches)) {
+			const oldMatch = prev[divId]?.[matchId];
+			const hadWinner = oldMatch?.winner === 1 || oldMatch?.winner === 2;
+			const hasWinner = newMatch.winner === 1 || newMatch.winner === 2;
+
+			if (!hasWinner) continue;
+
+			const winnerChanged = oldMatch?.winner !== newMatch.winner;
+			const scoreChanged =
+				(oldMatch?.score ?? null) !== (newMatch.score ?? null) && newMatch.score != null;
+			const newlySet = !hadWinner && hasWinner;
+
+			if (!newlySet && !winnerChanged && !scoreChanged) continue;
+
+			const names = winnerLoserNames(newMatch);
+			if (!names) continue;
+
+			newEvents.push({
+				id: `${at}-${divId}-${matchId}`,
+				at,
+				type: 'result',
+				divisionId: divId,
+				divisionLabel,
+				matchId,
+				headline: `${names.winnerName} def ${names.loserName}`,
+				detail: newMatch.score ?? undefined,
+				bracketHref: `/events/${EVENT_SLUG}/divisions/${divId}`,
+			});
+		}
+	}
+
+	return newEvents;
+}
+
+function readActivityFeed() {
+	if (!existsSync(ACTIVITY_PATH)) {
+		return { lastUpdated: null, eventSlug: EVENT_SLUG, events: [] };
+	}
+	try {
+		return JSON.parse(readFileSync(ACTIVITY_PATH, 'utf-8'));
+	} catch {
+		return { lastUpdated: null, eventSlug: EVENT_SLUG, events: [] };
+	}
+}
+
+function writeActivityFeed(feed) {
+	mkdirSync(dirname(ACTIVITY_PATH), { recursive: true });
+	writeFileSync(ACTIVITY_PATH, JSON.stringify(feed, null, 2) + '\n');
+}
+
 async function main() {
 	console.log('🎾  Syncing R2 Sports bracket results…');
 
@@ -374,14 +461,30 @@ async function main() {
 		return;
 	}
 
+	const at = new Date().toISOString();
 	const output = {
-		lastUpdated: new Date().toISOString(),
+		lastUpdated: at,
 		divisions: mergedDivisions,
 	};
 
 	writeFileSync(RESULTS_PATH, JSON.stringify(output, null, 2) + '\n');
+
+	const newActivity = detectActivityChanges(existing.divisions ?? {}, mergedDivisions, at);
+	const prevFeed = readActivityFeed();
+	const mergedEvents = [...newActivity, ...(prevFeed.events ?? [])].slice(0, MAX_ACTIVITY_EVENTS);
+	const activityOutput = {
+		lastUpdated: at,
+		eventSlug: EVENT_SLUG,
+		events: mergedEvents,
+	};
+	writeActivityFeed(activityOutput);
+
 	console.log(`\n✅  Done. ${scraped} division(s), ${totalMatches} results written.`);
+	if (newActivity.length) {
+		console.log(`   Activity: ${newActivity.length} new feed item(s)`);
+	}
 	console.log(`   Updated: ${RESULTS_PATH}`);
+	console.log(`   Updated: ${ACTIVITY_PATH}`);
 }
 
 main().catch((err) => {

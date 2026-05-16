@@ -2,6 +2,12 @@
 	"$schema": "https://openapi.vercel.sh/vercel.json",
 	"headers": [
 		{
+			"source": "/data/live-activity.json",
+			"headers": [
+				{ "key": "Cache-Control", "value": "public, max-age=60, stale-while-revalidate=300" }
+			]
+		},
+		{
 			"source": "/(.*)",
 			"headers": [
 				{ "key": "X-Frame-Options", "value": "DENY" },

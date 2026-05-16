@@ -857,6 +857,193 @@ function initHeroVideo() {
 	});
 }
 
+// ── LIVE ACTIVITY FEED ─────────────────────────────────────────────────────
+
+const LIVE_ACTIVITY_URL = '/data/live-activity.json';
+const LIVE_ACTIVITY_SEEN_KEY = 'gp:liveActivitySeenAt';
+const LIVE_ACTIVITY_POLL_MS = 60_000;
+
+type LiveActivityEvent = {
+	id: string;
+	at: string;
+	type: string;
+	divisionId: string;
+	divisionLabel: string;
+	matchId: string;
+	headline: string;
+	detail?: string;
+	bracketHref: string;
+};
+
+type LiveActivityFeed = {
+	lastUpdated: string | null;
+	eventSlug: string;
+	events: LiveActivityEvent[];
+};
+
+function formatRelativeTime(iso: string): string {
+	const d = new Date(iso);
+	if (Number.isNaN(d.getTime())) return '';
+	const sec = Math.floor((Date.now() - d.getTime()) / 1000);
+	if (sec < 60) return 'Just now';
+	if (sec < 3600) return `${Math.floor(sec / 60)} min ago`;
+	if (sec < 86400) return `${Math.floor(sec / 3600)} hr ago`;
+	return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
+
+function formatSyncedAt(iso: string | null): string {
+	if (!iso) return 'Not yet synced';
+	const d = new Date(iso);
+	if (Number.isNaN(d.getTime())) return 'Not yet synced';
+	return d.toLocaleString('en-US', {
+		month: 'short',
+		day: 'numeric',
+		hour: 'numeric',
+		minute: '2-digit',
+		timeZoneName: 'short',
+	});
+}
+
+function readLiveActivitySeenAt(): string | null {
+	try {
+		return localStorage.getItem(LIVE_ACTIVITY_SEEN_KEY);
+	} catch {
+		return null;
+	}
+}
+
+function writeLiveActivitySeenAt(at: string) {
+	try {
+		localStorage.setItem(LIVE_ACTIVITY_SEEN_KEY, at);
+	} catch {
+		/* ignore */
+	}
+}
+
+function latestEventAt(feed: LiveActivityFeed): string | null {
+	const first = feed.events[0];
+	return first?.at ?? feed.lastUpdated ?? null;
+}
+
+function hasUnreadLiveActivity(feed: LiveActivityFeed): boolean {
+	const latest = latestEventAt(feed);
+	if (!latest) return false;
+	const seen = readLiveActivitySeenAt();
+	if (!seen) return feed.events.length > 0;
+	return latest > seen;
+}
+
+async function fetchLiveActivity(): Promise<LiveActivityFeed | null> {
+	try {
+		const res = await fetch(`${LIVE_ACTIVITY_URL}?t=${Date.now()}`, { cache: 'no-store' });
+		if (!res.ok) return null;
+		return (await res.json()) as LiveActivityFeed;
+	} catch {
+		return null;
+	}
+}
+
+function renderLiveFeedCard(item: LiveActivityEvent, fresh: boolean): string {
+	const detail = item.detail
+		? `<p class="live-feed-detail">${esc(item.detail)}</p>`
+		: '';
+	return `<article class="live-feed-card${fresh ? ' live-feed-card--fresh' : ''}" data-at="${escAttr(item.at)}" data-id="${escAttr(item.id)}">
+		<time class="live-feed-time" datetime="${escAttr(item.at)}">${esc(formatRelativeTime(item.at))}</time>
+		<p class="live-feed-division">${esc(item.divisionLabel)}</p>
+		<h3 class="live-feed-headline">${esc(item.headline)}</h3>
+		${detail}
+		<a class="live-feed-link" href="${escAttr(item.bracketHref)}">View bracket →</a>
+	</article>`;
+}
+
+function renderLiveFeedList(feed: LiveActivityFeed, prevLastUpdated: string | null) {
+	const list = document.getElementById('live-feed-list');
+	if (!list) return;
+
+	if (!feed.events.length) {
+		list.innerHTML =
+			'<p class="live-feed-empty" id="live-feed-empty">Waiting for bracket updates… Check back during match play.</p>';
+		return;
+	}
+
+	const isNewSync = prevLastUpdated != null && feed.lastUpdated !== prevLastUpdated;
+	list.innerHTML = feed.events
+		.map((item, i) => renderLiveFeedCard(item, isNewSync && i === 0))
+		.join('');
+}
+
+function updateLiveSyncLabel(feed: LiveActivityFeed) {
+	const el = document.getElementById('live-sync-time');
+	if (el) el.textContent = formatSyncedAt(feed.lastUpdated);
+	const page = document.getElementById('live-updates-page');
+	if (page && feed.lastUpdated) page.setAttribute('data-last-updated', feed.lastUpdated);
+}
+
+function updateBottomNavUnread(feed: LiveActivityFeed) {
+	const tab = document.getElementById('gp-bottom-nav-live');
+	if (!tab) return;
+	tab.classList.toggle('gp-bottom-nav-item--unread', hasUnreadLiveActivity(feed));
+}
+
+function markLiveActivityRead(feed: LiveActivityFeed) {
+	const at = latestEventAt(feed);
+	if (at) writeLiveActivitySeenAt(at);
+	updateBottomNavUnread(feed);
+}
+
+let liveActivityPollTimer: ReturnType<typeof setInterval> | null = null;
+let livePageLastKnown: string | null = null;
+
+function hydrateLiveFeedTimes() {
+	document.querySelectorAll<HTMLElement>('[data-live-time]').forEach((el) => {
+		const iso = el.getAttribute('data-live-time');
+		if (iso) el.textContent = formatRelativeTime(iso);
+	});
+}
+
+function onLiveActivityFeed(feed: LiveActivityFeed) {
+	updateBottomNavUnread(feed);
+	const page = document.getElementById('live-updates-page');
+	if (!page) return;
+	const prev = livePageLastKnown ?? page.getAttribute('data-last-updated');
+	if (feed.lastUpdated !== prev) {
+		renderLiveFeedList(feed, prev);
+		updateLiveSyncLabel(feed);
+		livePageLastKnown = feed.lastUpdated;
+		page.setAttribute('data-last-updated', feed.lastUpdated ?? '');
+	}
+}
+
+function startLiveActivityPolling() {
+	const poll = async () => {
+		if (document.visibilityState !== 'visible') return;
+		const feed = await fetchLiveActivity();
+		if (feed) onLiveActivityFeed(feed);
+	};
+	void poll();
+	if (liveActivityPollTimer) clearInterval(liveActivityPollTimer);
+	liveActivityPollTimer = setInterval(poll, LIVE_ACTIVITY_POLL_MS);
+	document.addEventListener('visibilitychange', () => {
+		if (document.visibilityState === 'visible') void poll();
+	});
+}
+
+function initLiveActivity() {
+	const tab = document.getElementById('gp-bottom-nav-live');
+	const page = document.getElementById('live-updates-page');
+	if (!tab && !page) return;
+
+	if (page) {
+		livePageLastKnown = page.getAttribute('data-last-updated');
+		hydrateLiveFeedTimes();
+		void fetchLiveActivity().then((feed) => {
+			if (feed) markLiveActivityRead(feed);
+		});
+	}
+
+	startLiveActivityPolling();
+}
+
 initNavDrawer();
 initLiveWeekendPromo();
 initLeaderboardPage();
@@ -864,6 +1051,7 @@ initHeroVideo();
 initBracketTabs();
 initBracketLayout();
 initSeasonStrip();
+initLiveActivity();
 
 type Win = Window &
 	typeof globalThis & {
