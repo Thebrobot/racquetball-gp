@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-16T15:39:42.046Z",
+  "lastUpdated": "2026-05-16T15:50:26.333Z",
   "divisions": {
     "mens-singles-open": {
       "MO9": {
@@ -77,6 +77,10 @@
       "MA5": {
         "player1": "M Muriel",
         "player2": "B Grantham"
+      },
+      "MA7": {
+        "player1": "R Jennings",
+        "player2": "K Oliveira"
       }
     },
     "mens-singles-b": {
