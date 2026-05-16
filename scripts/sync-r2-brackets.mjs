@@ -168,21 +168,27 @@ async function extractSingleElimData(page) {
 			};
 		}
 
-		// ── Pass 2: resolve source-match results from advancement cells only ──
-		// Scan only tables WITHOUT a viewAppMatch link (true advancement boxes
-		// between rounds). Match boxes (which have viewAppMatch) can display a
-		// player's PREVIOUS match score as context underneath their abbreviated
-		// name — scanning those too caused false positives where the context
-		// score was incorrectly applied to the upcoming (unplayed) match.
+		// ── Pass 2: resolve source-match results from score-bearing cells ──
+		// Scan all tables for <strong>+score cells. However, if the cell is
+		// inside a match box (has viewAppMatch) and the player name is
+		// ABBREVIATED, skip it — R2 shows the previous-match score underneath
+		// an abbreviated advancing-player name as context for the upcoming
+		// match. Reading those caused false positives where the context score
+		// was applied to the not-yet-played match instead of the source match.
+		// Full names in match boxes are safe to process (early-round results).
 		const results = { ...matchMap };
-		const advancementBoxes = allTables.filter((t) => !t.querySelector('a[href*="viewAppMatch"]'));
 
-		for (const box of advancementBoxes) {
+		for (const box of allTables) {
+			const isMatchBox = !!box.querySelector('a[href*="viewAppMatch"]');
 			for (const cell of Array.from(box.querySelectorAll('td'))) {
 				const strong = cell.querySelector('strong, b');
 				if (!strong) continue;
 				const advancerName = cleanName(strong.textContent);
 				if (!isPlayerName(advancerName)) continue;
+
+				// Skip abbreviated names inside match boxes — they are advancement
+				// context (previous-match score), not the result of this match.
+				if (isMatchBox && !isFullName(advancerName)) continue;
 
 				const score = extractScore(cell.textContent ?? '');
 				if (!score) continue;
