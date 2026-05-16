@@ -1,7 +1,18 @@
 {
-  "lastUpdated": "2026-05-16T17:35:44.406Z",
+  "lastUpdated": "2026-05-16T18:36:32.315Z",
   "eventSlug": "ocala-open",
   "events": [
+    {
+      "id": "2026-05-16T18:36:32.315Z-mixed-doubles-MXOA4",
+      "at": "2026-05-16T18:36:32.315Z",
+      "type": "result",
+      "divisionId": "mixed-doubles",
+      "divisionLabel": "Mixed Doubles: Open/A",
+      "matchId": "MXOA4",
+      "headline": "Jim Russell / Kelly Van Zant - Russell - W def Michelle Jennings / Ron Jennings",
+      "detail": "WBF - No Show MXOA 4",
+      "bracketHref": "/events/ocala-open/divisions/mixed-doubles"
+    },
     {
       "id": "2026-05-16T16:34:39.685Z-mens-doubles-super-centurion-MSCD3",
       "at": "2026-05-16T16:34:39.685Z",
