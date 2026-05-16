@@ -836,6 +836,38 @@ function applyResults(events: EventData[]): EventData[] {
 						};
 					}),
 				}));
+
+				// Propagate winner names into TBD slots in later rounds so the
+				// bracket display shows the advancing player instead of "TBD".
+				const isGhostSlot = (s: string) => {
+					const u = s.trim().toUpperCase();
+					return u === 'TBD' || u === '' || u === 'BYE';
+				};
+				const feederWinnerName = (feeder: EventBracketMatch | undefined): string | null => {
+					if (!feeder?.winner) return null;
+					const name = feeder.winner === 1 ? feeder.player1 : feeder.player2;
+					return !isGhostSlot(name) ? name : null;
+				};
+				for (let ri = 1; ri < updatedRounds.length; ri++) {
+					updatedRounds[ri] = {
+						...updatedRounds[ri]!,
+						matches: updatedRounds[ri]!.matches.map((match, gi) => {
+							let { player1, player2 } = match;
+							if (isGhostSlot(player1)) {
+								const name = feederWinnerName(updatedRounds[ri - 1]?.matches[gi * 2]);
+								if (name) player1 = name;
+							}
+							if (isGhostSlot(player2)) {
+								const name = feederWinnerName(updatedRounds[ri - 1]?.matches[gi * 2 + 1]);
+								if (name) player2 = name;
+							}
+							return player1 !== match.player1 || player2 !== match.player2
+								? { ...match, player1, player2 }
+								: match;
+						}),
+					};
+				}
+
 				return { ...div, rounds: updatedRounds };
 			}
 
