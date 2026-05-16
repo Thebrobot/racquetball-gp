@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-16T19:13:28.654Z",
+  "lastUpdated": "2026-05-16T19:44:58.269Z",
   "divisions": {
     "mens-singles-open": {
       "MO9": {
@@ -29,6 +29,10 @@
       "MO4": {
         "player1": "A Herrera",
         "player2": "J Deeney"
+      },
+      "MO3": {
+        "player1": "A Ramirez",
+        "player2": "D Pruitt"
       }
     },
     "mens-singles-elite": {
