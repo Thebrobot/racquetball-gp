@@ -373,8 +373,8 @@ const EVENTS_RAW: EventData[] = [
 				{
 					label: 'Semifinals',
 					matches: [
-						{ player1: 'Gene Fry',       player2: 'Michael Ammen', seed1: 1, seed2: 4, scheduledTime: 'Saturday · 2:00 PM', court: 'Court 2', winner: 2 },
-						{ player1: 'Philip Gaerlan', player2: 'Scott Gill',    seed1: 3, seed2: 2, scheduledTime: 'Saturday · 1:00 PM', court: 'Court 1' },
+						{ player1: 'Gene Fry',       player2: 'Michael Ammen', seed1: 1, seed2: 4, scheduledTime: 'Sunday · 2:00 PM', court: 'Court 2' },
+						{ player1: 'Philip Gaerlan', player2: 'Scott Gill',    seed1: 3, seed2: 2, scheduledTime: 'Saturday · 1:00 PM', court: 'Court 1', matchId: 'M70+3' },
 					],
 				},
 				{
@@ -414,23 +414,23 @@ const EVENTS_RAW: EventData[] = [
 				{
 					label: 'Quarterfinals',
 					matches: [
-						{ player1: 'Deeney / Saunders',  player2: 'B. Haacke / S. Haacke', scheduledTime: 'Friday · 6:30 PM',    court: 'Court 4', winner: 2, score: '15-7, 15-7' },
-						{ player1: 'Garcia / Nolan',     player2: 'Fajardo / Russell',     scheduledTime: 'Friday · 7:30 PM',    court: 'Court 2', winner: 2, score: '15-13, 15-7' },
-						{ player1: 'Johnston / Lopez',   player2: 'K. Artman / Oliveira',     scheduledTime: 'Saturday · 10:00 AM', court: 'Court 3' },
-						{ player1: 'Anthony / Schulze',  player2: 'Beacher / Toston',      scheduledTime: 'Saturday · 12:00 PM', court: 'Court 3' },
+						{ player1: 'Anthony / Schulze',     player2: 'Toston / Beacher',    seed1: 1, seed2: 8,  scheduledTime: 'Saturday · 12:00 PM', court: 'Court 3', matchId: 'MED8' },
+						{ player1: 'Fajardo / Russell',     player2: 'Nolan / Garcia',      seed1: 5, seed2: 4,  matchId: 'MED5', winner: 1, score: '15-13, 15-7' },
+						{ player1: 'B. Haacke / S. Haacke', player2: 'Saunders / Deeney',  seed1: 3, seed2: 6,  matchId: 'MED6', winner: 1, score: '15-7, 15-7' },
+						{ player1: 'Artman / Oliveira',     player2: 'Johnston / Lopez',    seed1: 7, seed2: 2,  scheduledTime: 'Saturday · 10:00 AM',  court: 'Court 3', matchId: 'MED7' },
 					],
 				},
 				{
 					label: 'Semifinals',
 					matches: [
-						{ player1: 'TBD', player2: 'TBD' },
-						{ player1: 'TBD', player2: 'TBD' },
+						{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Saturday · 8:00 PM', court: 'Court 1', matchId: 'MED4' },
+						{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Saturday · 2:00 PM', court: 'Court 1', matchId: 'MED3' },
 					],
 				},
 				{
 					label: 'Finals',
 					matches: [
-						{ player1: 'TBD', player2: 'TBD' },
+						{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Sunday · 1:00 PM', court: 'Court 1', matchId: 'MED1' },
 					],
 				},
 			],
