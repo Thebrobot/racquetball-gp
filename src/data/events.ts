@@ -472,23 +472,23 @@ const EVENTS_RAW: EventData[] = [
 				{
 					label: 'Quarterfinals',
 					matches: [
-						{ player1: 'Hernandez / Swartz', player2: 'BYE',                seed1: 1,             winner: 1 },
-						{ player1: 'Appleby / Kern',     player2: 'Estepan / Strickland', seed1: 4, seed2: 5, scheduledTime: 'Saturday · 5:00 PM', court: 'Court 1' },
-						{ player1: 'Brice / Martinez',   player2: 'Manzano / Sotolongo', seed1: 3, seed2: 6, scheduledTime: 'Sunday · 9:00 AM',   court: 'Court 3' },
-						{ player1: 'BYE',                player2: 'TBD',                            seed2: 2, winner: 2 },
+						{ player1: 'Swartz / Hernandez',   player2: 'BYE',              seed1: 1,             winner: 1 },
+						{ player1: 'Strickland / Estepan', player2: 'Kern / Appleby',   seed1: 5, seed2: 4,  scheduledTime: 'Saturday · 5:00 PM', court: 'Court 1', matchId: 'MBD5' },
+						{ player1: 'Manzano / Sotolongo',  player2: 'BYE',              seed1: 3,             winner: 1 },
+						{ player1: 'BYE',                  player2: 'Brice / Martinez',           seed2: 2,   winner: 2 },
 					],
 				},
 				{
 					label: 'Semifinals',
 					matches: [
-						{ player1: 'Hernandez / Swartz', player2: 'TBD', seed1: 1, scheduledTime: 'Sunday · 8:00 AM', court: 'Court 4' },
-						{ player1: 'TBD',                player2: 'TBD' },
+						{ player1: 'Swartz / Hernandez',  player2: 'TBD',             seed1: 1,             scheduledTime: 'Sunday · 8:00 AM', court: 'Court 4' },
+						{ player1: 'Manzano / Sotolongo', player2: 'Brice / Martinez', seed1: 3, seed2: 2,  scheduledTime: 'Sunday · 9:00 AM', court: 'Court 3', matchId: 'MBD3' },
 					],
 				},
 				{
 					label: 'Finals',
 					matches: [
-						{ player1: 'TBD', player2: 'TBD' },
+						{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Sunday · 12:00 PM', court: 'Court 4', matchId: 'MBD1' },
 					],
 				},
 			],
@@ -501,23 +501,23 @@ const EVENTS_RAW: EventData[] = [
 				{
 					label: 'Quarterfinals',
 					matches: [
-						{ player1: 'Hernandez / Herrera', player2: 'BYE',                seed1: 1,             winner: 1 },
-						{ player1: 'Foley / Nolan',       player2: 'Haacke / Urzua',     seed1: 4, seed2: 5,  scheduledTime: 'Saturday · 9:00 AM',  court: 'Court 1' },
-						{ player1: 'Baig / Rivero',       player2: 'Gutierrez / Ramirez', seed1: 3, seed2: 6, scheduledTime: 'Saturday · 10:00 AM', court: 'Court 1' },
-						{ player1: 'BYE',                 player2: 'Johnston / Lopez',               seed2: 2, winner: 2 },
+						{ player1: 'Herrera / Hernandez', player2: 'BYE',           seed1: 1,             winner: 1,  matchId: 'MCOD8' },
+						{ player1: 'Haacke / Urzua',      player2: 'Foley / Nolan', seed1: 5, seed2: 4,  scheduledTime: 'Saturday · 9:00 AM',  court: 'Court 1', matchId: 'MCOD5' },
+						{ player1: 'Ramirez / Gutierrez', player2: 'Baig / Rivero', seed1: 3, seed2: 6,  scheduledTime: 'Saturday · 10:00 AM', court: 'Court 1', matchId: 'MCOD6' },
+						{ player1: 'BYE',                 player2: 'Lopez / Johnston',        seed2: 2,   winner: 2,  matchId: 'MCOD7' },
 					],
 				},
 				{
 					label: 'Semifinals',
 					matches: [
-						{ player1: 'Hernandez / Herrera', player2: 'TBD', seed1: 1, scheduledTime: 'Saturday · 4:00 PM', court: 'Court 1' },
-						{ player1: 'TBD',                 player2: 'Johnston / Lopez', seed2: 2, scheduledTime: 'Saturday · 5:00 PM', court: 'Court 4' },
+						{ player1: 'Herrera / Hernandez', player2: 'TBD',            seed1: 1,             scheduledTime: 'Saturday · 4:00 PM', court: 'Court 1', matchId: 'MCOD4' },
+						{ player1: 'TBD',                 player2: 'Lopez / Johnston', seed2: 2,            scheduledTime: 'Saturday · 5:00 PM', court: 'Court 4', matchId: 'MCOD3' },
 					],
 				},
 				{
 					label: 'Finals',
 					matches: [
-						{ player1: 'TBD', player2: 'TBD' },
+						{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Sunday · 11:00 AM', court: 'Court 1', matchId: 'MCOD1' },
 					],
 				},
 			],
