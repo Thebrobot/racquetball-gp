@@ -1,7 +1,18 @@
 {
-  "lastUpdated": "2026-05-16T18:43:16.551Z",
+  "lastUpdated": "2026-05-16T19:13:28.654Z",
   "eventSlug": "ocala-open",
   "events": [
+    {
+      "id": "2026-05-16T19:13:28.654Z-mens-doubles-open-MOD6",
+      "at": "2026-05-16T19:13:28.654Z",
+      "type": "result",
+      "divisionId": "mens-doubles-open",
+      "divisionLabel": "Men's Doubles: Open",
+      "matchId": "MOD6",
+      "headline": "Darron Toston / Chad Beacher def Jiovanni Garcia / Charles Nolan",
+      "detail": "15-11,15-13",
+      "bracketHref": "/events/ocala-open/divisions/mens-doubles-open"
+    },
     {
       "id": "2026-05-16T18:43:16.551Z-mens-singles-a-MA6",
       "at": "2026-05-16T18:43:16.551Z",

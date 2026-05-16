@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-16T18:43:16.551Z",
+  "lastUpdated": "2026-05-16T19:13:28.654Z",
   "divisions": {
     "mens-singles-open": {
       "MO9": {
@@ -199,6 +199,10 @@
       "M60+3": {
         "player1": "E Foley",
         "player2": "G Henry"
+      },
+      "M60+4": {
+        "player1": "C Cole",
+        "player2": "M Ammen"
       }
     },
     "mens-age-70": {
@@ -222,7 +226,9 @@
     "mens-doubles-open": {
       "MOD6": {
         "player1": "Jiovanni Garcia / Charles Nolan",
-        "player2": "Darron Toston / Chad Beacher"
+        "player2": "Darron Toston / Chad Beacher",
+        "score": "15-11,15-13",
+        "winner": 2
       },
       "MOD5": {
         "player1": "Orlando Josu Huyke / Mario Andres Huyke",
