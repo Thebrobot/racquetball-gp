@@ -52,21 +52,15 @@
       },
       "MA8": {
         "player1": "B Anthony",
-        "player2": "K Artman",
-        "winner": 1,
-        "score": "WBF - No Show"
+        "player2": "K Artman"
       },
       "MA6": {
         "player1": "G Henry",
-        "player2": "W Stubanas",
-        "winner": 2,
-        "score": "WBF - No Show"
+        "player2": "W Stubanas"
       },
       "MA5": {
         "player1": "M Muriel",
-        "player2": "B Grantham",
-        "winner": 2,
-        "score": "WBF - No Show"
+        "player2": "B Grantham"
       }
     },
     "mens-singles-b": {
@@ -92,9 +86,7 @@
       },
       "MB8": {
         "player1": "S Gill",
-        "player2": "M Brice",
-        "winner": 1,
-        "score": "WBF - No Show"
+        "player2": "M Brice"
       },
       "MB6": {
         "player1": "M Kern",
