@@ -1,7 +1,18 @@
 {
-  "lastUpdated": "2026-05-17T14:14:53.894Z",
+  "lastUpdated": "2026-05-17T15:20:19.047Z",
   "eventSlug": "ocala-open",
   "events": [
+    {
+      "id": "2026-05-17T15:20:19.047Z-mens-doubles-b-MBD1",
+      "at": "2026-05-17T15:20:19.047Z",
+      "type": "result",
+      "divisionId": "mens-doubles-b",
+      "divisionLabel": "Men's Doubles: B",
+      "matchId": "MBD1",
+      "headline": "Kern / Appleby def Manzano / Sotolongo",
+      "detail": "15-2,15-4",
+      "bracketHref": "/events/ocala-open/divisions/mens-doubles-b"
+    },
     {
       "id": "2026-05-17T14:14:53.894Z-mens-doubles-open-MOD1",
       "at": "2026-05-17T14:14:53.894Z",

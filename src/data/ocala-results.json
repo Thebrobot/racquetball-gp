@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-17T14:14:53.894Z",
+  "lastUpdated": "2026-05-17T15:20:19.047Z",
   "divisions": {
     "mens-singles-open": {
       "MO9": {
@@ -366,6 +366,12 @@
         "player1": "Swartz / Hernandez",
         "player2": "Kern / Appleby",
         "winner": 2,
+        "score": "15-2,15-4"
+      },
+      "MBD1": {
+        "player1": "Kern / Appleby",
+        "player2": "Manzano / Sotolongo",
+        "winner": 1,
         "score": "15-2,15-4"
       }
     },
