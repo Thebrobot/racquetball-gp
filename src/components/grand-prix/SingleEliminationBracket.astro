@@ -38,7 +38,11 @@ let _colorIdx = 0;
 for (const round of rounds) {
 	for (const match of round.matches) {
 		const name = getMatchWinnerName(match);
-		if (name && !winnerColorMap.has(name)) {
+		if (!name) continue;
+		// Skip BYE wins — advancing past a BYE isn't a real match result
+		const loser = match.winner === 1 ? match.player2 : match.player1;
+		if (loser.trim().toUpperCase() === 'BYE') continue;
+		if (!winnerColorMap.has(name)) {
 			winnerColorMap.set(name, WINNER_PALETTE[_colorIdx++ % WINNER_PALETTE.length]!);
 		}
 	}
