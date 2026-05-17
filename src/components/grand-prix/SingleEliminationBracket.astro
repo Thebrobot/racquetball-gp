@@ -63,6 +63,7 @@ type Layout = {
 type PathSegment = {
 	d: string;
 	color: string;
+	strokeWidth: number;
 };
 
 type BoardView = {
@@ -93,8 +94,6 @@ type BracketSide = {
 	bye: boolean;
 	segments: NameSegment[];
 };
-
-const CONNECTOR_NEUTRAL = '#cbd5e1';
 
 const desktopLayout = createLayout(rounds, {
 	cardWidth: 220,
@@ -190,6 +189,13 @@ function getCenterY(layout: Layout, roundIndex: number, gameIndex: number) {
 }
 
 function connectorSegments(layout: Layout): PathSegment[] {
+	const NEUTRAL = '#cbd5e1';
+	const seg = (d: string, winnerColor: string | null): PathSegment => ({
+		d,
+		color: winnerColor ?? NEUTRAL,
+		strokeWidth: winnerColor ? 2.5 : 2,
+	});
+
 	const segs: PathSegment[] = [];
 
 	for (let fromRound = 0; fromRound < rounds.length - 1; fromRound++) {
@@ -210,18 +216,17 @@ function connectorSegments(layout: Layout): PathSegment[] {
 				: getCenterY(layout, fromRound, secondGame);
 			const y3 = getCenterY(layout, fromRound + 1, pairIndex);
 
-			const color1 = getMatchWinnerColor(rounds[fromRound]?.matches[firstGame]) ?? CONNECTOR_NEUTRAL;
-			const color2 = getMatchWinnerColor(rounds[fromRound]?.matches[secondGame]) ?? CONNECTOR_NEUTRAL;
-			// Trunk carries the color of whoever WON the next-round match (the advancing player)
-			const trunkColor = getMatchWinnerColor(nextRound.matches[pairIndex]) ?? CONNECTOR_NEUTRAL;
+			const c1 = getMatchWinnerColor(rounds[fromRound]?.matches[firstGame]);
+			const c2 = getMatchWinnerColor(rounds[fromRound]?.matches[secondGame]);
+			const ct = getMatchWinnerColor(nextRound.matches[pairIndex]);
 
 			if (y1 === y2) {
-				segs.push({ d: `M ${x1} ${y1} H ${x2}`, color: color1 });
+				segs.push(seg(`M ${x1} ${y1} H ${x2}`, c1));
 			} else {
-				segs.push({ d: `M ${x1} ${y1} H ${midX}`, color: color1 });       // top stub
-				segs.push({ d: `M ${midX} ${y1} V ${y2}`, color: CONNECTOR_NEUTRAL }); // stem (neutral junction)
-				segs.push({ d: `M ${midX} ${y2} H ${x1}`, color: color2 });       // bottom stub
-				segs.push({ d: `M ${midX} ${y3} H ${x2}`, color: trunkColor });   // trunk
+				segs.push(seg(`M ${x1} ${y1} H ${midX}`, c1));      // top stub
+				segs.push(seg(`M ${midX} ${y1} V ${y2}`, null));     // stem — always neutral
+				segs.push(seg(`M ${midX} ${y2} H ${x1}`, c2));      // bottom stub
+				segs.push(seg(`M ${midX} ${y3} H ${x2}`, ct));      // trunk
 			}
 		}
 	}
@@ -375,7 +380,7 @@ function matchStatus(match: EventBracketMatch) {
 								d={seg.d}
 								fill="none"
 								stroke={seg.color}
-								stroke-width={seg.color === CONNECTOR_NEUTRAL ? '2' : '2.5'}
+								stroke-width={seg.strokeWidth}
 								stroke-linejoin="round"
 							/>
 						))}
