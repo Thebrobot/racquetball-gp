@@ -194,7 +194,8 @@ function isGhostName(name: string) {
 
 function isLinkablePlayer(name: string) {
 	const trimmed = name.trim();
-	return !isGhostName(trimmed) && !trimmed.includes('/') && !trimmed.startsWith('Winner ');
+	if (isGhostName(trimmed) || trimmed.includes('/') || trimmed.startsWith('Winner ')) return false;
+	return playerIndex.has(trimmed.toLowerCase());
 }
 
 function abbreviateName(name: string) {
