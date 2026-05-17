@@ -1,7 +1,18 @@
 {
-  "lastUpdated": "2026-05-17T15:36:25.000Z",
+  "lastUpdated": "2026-05-17T16:17:21.160Z",
   "eventSlug": "ocala-open",
   "events": [
+    {
+      "id": "2026-05-17T16:17:21.160Z-mens-singles-a-MA1",
+      "at": "2026-05-17T16:17:21.160Z",
+      "type": "result",
+      "divisionId": "mens-singles-a",
+      "divisionLabel": "Men's Singles: A",
+      "matchId": "MA1",
+      "headline": "B Anthony def G Henry",
+      "detail": "WBF - No Show",
+      "bracketHref": "/events/ocala-open/divisions/mens-singles-a"
+    },
     {
       "id": "2026-05-17T15:36:25.000Z-mens-singles-a-MA1",
       "at": "2026-05-17T15:36:25.000Z",

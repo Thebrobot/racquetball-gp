@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-17T15:36:25.000Z",
+  "lastUpdated": "2026-05-17T16:17:21.160Z",
   "divisions": {
     "mens-singles-open": {
       "MO9": {
@@ -126,7 +126,9 @@
       },
       "MA1": {
         "player1": "B Anthony",
-        "player2": "G Henry"
+        "player2": "G Henry",
+        "winner": 1,
+        "score": "WBF - No Show"
       }
     },
     "mens-singles-b": {
@@ -355,6 +357,10 @@
       "MAD3": {
         "player1": "Grantham / Stubanas",
         "player2": "Hernandez / Moreno"
+      },
+      "MAD1": {
+        "player1": "Muriel / Haacke",
+        "player2": "Grantham / Stubanas"
       }
     },
     "mens-doubles-b": {
