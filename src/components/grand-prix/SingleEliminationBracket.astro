@@ -195,7 +195,9 @@ function isGhostName(name: string) {
 function isLinkablePlayer(name: string) {
 	const trimmed = name.trim();
 	if (isGhostName(trimmed) || trimmed.includes('/') || trimmed.startsWith('Winner ')) return false;
-	return playerIndex.has(trimmed.toLowerCase());
+	// Don't link abbreviated names (single-letter first name) — their slug won't match a player page
+	const parts = trimmed.split(/\s+/);
+	return parts.length >= 2 && parts[0]!.length > 1;
 }
 
 function abbreviateName(name: string) {
