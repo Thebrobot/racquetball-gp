@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-17T16:17:21.160Z",
+  "lastUpdated": "2026-05-17T17:18:09.834Z",
   "divisions": {
     "mens-singles-open": {
       "MO9": {
@@ -425,8 +425,10 @@
         "winner": 1
       },
       "MSCD1": {
-        "player1": "Tony Gutierrez / Gene Fry",
-        "player2": "Edgar Martinez / Hector Hernandez"
+        "player1": "Tony Gutierrez / Gene Fry - W",
+        "player2": "Edgar Martinez / Hector Hernandez",
+        "score": "15-5,15-3",
+        "winner": 1
       }
     },
     "mixed-doubles": {
@@ -456,7 +458,9 @@
       },
       "MXOA1": {
         "player1": "Jim Russell / Kelly Van Zant - Russell",
-        "player2": "Laura Brandt / Gordon Henry"
+        "player2": "Laura Brandt / Gordon Henry",
+        "score": "15-7,15-11",
+        "winner": 2
       }
     }
   }

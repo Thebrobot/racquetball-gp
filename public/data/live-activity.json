@@ -1,7 +1,29 @@
 {
-  "lastUpdated": "2026-05-17T16:17:21.160Z",
+  "lastUpdated": "2026-05-17T17:18:09.834Z",
   "eventSlug": "ocala-open",
   "events": [
+    {
+      "id": "2026-05-17T17:18:09.834Z-mens-doubles-super-centurion-MSCD1",
+      "at": "2026-05-17T17:18:09.834Z",
+      "type": "result",
+      "divisionId": "mens-doubles-super-centurion",
+      "divisionLabel": "Men's Doubles: Super Centurion (120+)",
+      "matchId": "MSCD1",
+      "headline": "Tony Gutierrez / Gene Fry - W def Edgar Martinez / Hector Hernandez",
+      "detail": "15-5,15-3",
+      "bracketHref": "/events/ocala-open/divisions/mens-doubles-super-centurion"
+    },
+    {
+      "id": "2026-05-17T17:18:09.834Z-mixed-doubles-MXOA1",
+      "at": "2026-05-17T17:18:09.834Z",
+      "type": "result",
+      "divisionId": "mixed-doubles",
+      "divisionLabel": "Mixed Doubles: Open/A",
+      "matchId": "MXOA1",
+      "headline": "Laura Brandt / Gordon Henry def Jim Russell / Kelly Van Zant - Russell",
+      "detail": "15-7,15-11",
+      "bracketHref": "/events/ocala-open/divisions/mixed-doubles"
+    },
     {
       "id": "2026-05-17T16:17:21.160Z-mens-singles-a-MA1",
       "at": "2026-05-17T16:17:21.160Z",
