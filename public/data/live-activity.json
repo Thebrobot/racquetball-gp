@@ -42,7 +42,7 @@
       "divisionId": "mens-doubles-open",
       "divisionLabel": "Men's Doubles: Open",
       "matchId": "MOD3",
-      "headline": "Orlando Josu Huyke / Mario Andres Huyke - W def Darron Toston / Chad Beacher",
+      "headline": "Orlando Josu Huyke / Mario Andres Huyke def Darron Toston / Chad Beacher",
       "detail": "15-7,15-5",
       "bracketHref": "/events/ocala-open/divisions/mens-doubles-open"
     },
@@ -53,7 +53,7 @@
       "divisionId": "mens-doubles-open",
       "divisionLabel": "Men's Doubles: Open",
       "matchId": "MOD4",
-      "headline": "Jiovanni Garcia / Charles Nolan - W def Chris Steinheiser / Yelandi Rivero",
+      "headline": "Jiovanni Garcia / Charles Nolan def Chris Steinheiser / Yelandi Rivero",
       "detail": "15-10,10-15,11-10",
       "bracketHref": "/events/ocala-open/divisions/mens-doubles-open"
     },
@@ -64,7 +64,7 @@
       "divisionId": "mixed-doubles",
       "divisionLabel": "Mixed Doubles: Open/A",
       "matchId": "MXOA3",
-      "headline": "Laura Brandt / Gordon Henry - W def Brendan Anthony / Havan Artman",
+      "headline": "Laura Brandt / Gordon Henry def Brendan Anthony / Havan Artman",
       "detail": "15-6,15-9",
       "bracketHref": "/events/ocala-open/divisions/mixed-doubles"
     },
@@ -75,7 +75,7 @@
       "divisionId": "mens-doubles-open",
       "divisionLabel": "Men's Doubles: Open",
       "matchId": "MOD5",
-      "headline": "Orlando Josu Huyke / Mario Andres Huyke - W def Chris Steinheiser / Yelandi Rivero",
+      "headline": "Orlando Josu Huyke / Mario Andres Huyke def Chris Steinheiser / Yelandi Rivero",
       "detail": "15-8,15-4",
       "bracketHref": "/events/ocala-open/divisions/mens-doubles-open"
     },
@@ -119,7 +119,7 @@
       "divisionId": "mens-doubles-super-centurion",
       "divisionLabel": "Men's Doubles: Super Centurion (120+)",
       "matchId": "MSCD2",
-      "headline": "Tony Gutierrez / Gene Fry - W def Scott Swartz / Steven Lewis",
+      "headline": "Tony Gutierrez / Gene Fry def Scott Swartz / Steven Lewis",
       "detail": "15-4,15-7",
       "bracketHref": "/events/ocala-open/divisions/mens-doubles-super-centurion"
     },
@@ -190,24 +190,13 @@
       "bracketHref": "/events/ocala-open/divisions/mens-doubles-a"
     },
     {
-      "id": "2026-05-16T18:43:16.551Z-mens-doubles-b-MBD5",
-      "at": "2026-05-16T18:43:16.551Z",
-      "type": "result",
-      "divisionId": "mens-doubles-b",
-      "divisionLabel": "Men's Doubles: B",
-      "matchId": "MBD5",
-      "headline": "Matt Kern / Ryan Appleby def Don Strickland / Jonathan Estepan",
-      "detail": "609-1",
-      "bracketHref": "/events/ocala-open/divisions/mens-doubles-b"
-    },
-    {
       "id": "2026-05-16T18:36:32.315Z-mixed-doubles-MXOA4",
       "at": "2026-05-16T18:36:32.315Z",
       "type": "result",
       "divisionId": "mixed-doubles",
       "divisionLabel": "Mixed Doubles: Open/A",
       "matchId": "MXOA4",
-      "headline": "Jim Russell / Kelly Van Zant - Russell - W def Michelle Jennings / Ron Jennings",
+      "headline": "Jim Russell / Kelly Van Zant - Russell def Michelle Jennings / Ron Jennings",
       "detail": "WBF - No Show MXOA 4",
       "bracketHref": "/events/ocala-open/divisions/mixed-doubles"
     },
@@ -229,7 +218,7 @@
       "divisionId": "mens-singles-c",
       "divisionLabel": "Men's Singles: C",
       "matchId": "MC3",
-      "headline": "Michael Ammen - W def Ben Mordkovich",
+      "headline": "Michael Ammen def Ben Mordkovich",
       "detail": "11-15,15-6,11-1",
       "bracketHref": "/events/ocala-open/divisions/mens-singles-c"
     },
@@ -243,17 +232,6 @@
       "headline": "Michael Ammen def Gordon Kelly",
       "detail": "WBF - No Show MC 1",
       "bracketHref": "/events/ocala-open/divisions/mens-singles-c"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-doubles-a-MAD5",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-doubles-a",
-      "divisionLabel": "Men's Doubles: A",
-      "matchId": "MAD5",
-      "headline": "Paul Sotolongo / Andres Urzua def Jim Russell / Kelly Van Zant - Russell",
-      "detail": "5-15,15-14,11-8",
-      "bracketHref": "/events/ocala-open/divisions/mens-doubles-a"
     },
     {
       "id": "2026-05-16T20:30:00.000Z-mens-age-50-M50+4",

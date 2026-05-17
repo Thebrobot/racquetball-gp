@@ -116,7 +116,7 @@ const DIVISION_URLS = [
 async function extractSingleElimData(page) {
 	return page.evaluate(() => {
 		const cleanName = (s) =>
-			(s ?? '').replace(/\s*:\s*.*$/, '').replace(/\s+/g, ' ').trim();
+			(s ?? '').replace(/\s*:\s*.*$/, '').replace(/\s+-\s*W\s*$/, '').replace(/\s+/g, ' ').trim();
 
 		const isPlayerName = (s) => {
 			const t = (s ?? '').trim();

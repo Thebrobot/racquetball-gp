@@ -173,7 +173,7 @@
     },
     "mens-singles-c": {
       "MC3": {
-        "player1": "Michael Ammen - W",
+        "player1": "Michael Ammen",
         "player2": "Ben Mordkovich",
         "score": "11-15,15-6,11-1",
         "winner": 1
@@ -267,19 +267,19 @@
         "winner": 2
       },
       "MOD5": {
-        "player1": "Orlando Josu Huyke / Mario Andres Huyke - W",
+        "player1": "Orlando Josu Huyke / Mario Andres Huyke",
         "player2": "Chris Steinheiser / Yelandi Rivero",
         "score": "15-8,15-4",
         "winner": 1
       },
       "MOD4": {
-        "player1": "Jiovanni Garcia / Charles Nolan - W",
+        "player1": "Jiovanni Garcia / Charles Nolan",
         "player2": "Chris Steinheiser / Yelandi Rivero",
         "score": "15-10,10-15,11-10",
         "winner": 1
       },
       "MOD3": {
-        "player1": "Orlando Josu Huyke / Mario Andres Huyke - W",
+        "player1": "Orlando Josu Huyke / Mario Andres Huyke",
         "player2": "Darron Toston / Chad Beacher",
         "score": "15-7,15-5",
         "winner": 1
@@ -405,7 +405,7 @@
         "winner": 2
       },
       "MSCD2": {
-        "player1": "Tony Gutierrez / Gene Fry - W",
+        "player1": "Tony Gutierrez / Gene Fry",
         "player2": "Scott Swartz / Steven Lewis",
         "score": "15-4,15-7",
         "winner": 1
@@ -423,13 +423,13 @@
         "winner": 2
       },
       "MXOA4": {
-        "player1": "Jim Russell / Kelly Van Zant - Russell - W",
+        "player1": "Jim Russell / Kelly Van Zant - Russell",
         "player2": "Michelle Jennings / Ron Jennings",
         "score": "WBF - No Show MXOA 4",
         "winner": 1
       },
       "MXOA3": {
-        "player1": "Laura Brandt / Gordon Henry - W",
+        "player1": "Laura Brandt / Gordon Henry",
         "player2": "Brendan Anthony / Havan Artman",
         "score": "15-6,15-9",
         "winner": 1
