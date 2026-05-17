@@ -229,10 +229,7 @@ async function extractSingleElimData(page) {
 
 				if (ambiguous) continue;
 				const target = fullMatch ?? abbrMatch;
-				// Never apply an abbreviated advancer to an abbreviated slot — the last-name
-				// match alone is too weak when both sides are initials (e.g. "B Anthony" in an
-				// advancement cell matching "B Anthony" in the Finals slot before the QF is played).
-				if (!target || (!fullMatch && !isFullName(advancerName))) continue;
+				if (!target) continue;
 				results[target.matchId] = { ...target.data, winner: target.side, score };
 			}
 		}

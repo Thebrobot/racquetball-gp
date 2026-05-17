@@ -4,39 +4,55 @@
     "mens-singles-open": {
       "MO9": {
         "player1": "Mario Andres Huyke",
-        "player2": "Scott Haacke"
+        "player2": "Scott Haacke",
+        "winner": 2
       },
       "MO10": {
         "player1": "Orlando Josu Huyke",
-        "player2": "Amir Baig"
+        "player2": "Amir Baig",
+        "winner": 1
       },
       "MO5": {
         "player1": "C Steinheiser",
-        "player2": "J Deeney"
+        "player2": "J Deeney",
+        "winner": 2,
+        "score": "15-6,15-14"
       },
       "MO6": {
         "player1": "A Ramirez",
-        "player2": "S Schulze"
+        "player2": "S Schulze",
+        "winner": 1,
+        "score": "15-7,15-9"
       },
       "MO8": {
         "player1": "A Herrera",
-        "player2": "S Haacke"
+        "player2": "S Haacke",
+        "winner": 1,
+        "score": "15-4,2-15,11-3"
       },
       "MO7": {
         "player1": "O Huyke",
-        "player2": "D Pruitt"
+        "player2": "D Pruitt",
+        "winner": 2,
+        "score": "15-8,15-7"
       },
       "MO4": {
         "player1": "A Herrera",
-        "player2": "J Deeney"
+        "player2": "J Deeney",
+        "winner": 1,
+        "score": "15-4,15-0"
       },
       "MO3": {
         "player1": "A Ramirez",
-        "player2": "D Pruitt"
+        "player2": "D Pruitt",
+        "winner": 2,
+        "score": "15-4,15-11"
       },
       "MO1": {
         "player1": "A Herrera",
-        "player2": "D Pruitt"
+        "player2": "D Pruitt",
+        "winner": 1,
+        "score": "15-7,15-7"
       }
     },
     "mens-singles-elite": {
