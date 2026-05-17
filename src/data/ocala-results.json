@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-17T17:18:09.834Z",
+  "lastUpdated": "2026-05-17T17:46:18.603Z",
   "divisions": {
     "mens-singles-open": {
       "MO9": {
@@ -312,7 +312,9 @@
       },
       "MOD2": {
         "player1": "Chris Steinheiser / Yelandi Rivero",
-        "player2": "Darron Toston / Chad Beacher"
+        "player2": "Darron Toston / Chad Beacher",
+        "score": "15-12,9-15,11-0",
+        "winner": 2
       },
       "MOD1": {
         "player1": "Jiovanni Garcia / Charles Nolan",
