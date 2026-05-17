@@ -15,6 +15,41 @@ const allPlayers = getAllPlayers();
 const bracketTeamCtx = eventName ? { eventName, division: division.label } : undefined;
 const playerIndex = new Map(allPlayers.map((player) => [player.name.toLowerCase(), player]));
 
+const WINNER_PALETTE = [
+	'#2563eb', // blue
+	'#ea580c', // orange
+	'#7c3aed', // violet
+	'#0891b2', // cyan
+	'#dc2626', // red
+	'#ca8a04', // amber
+	'#db2777', // rose
+	'#16a34a', // green
+];
+
+function getMatchWinnerName(match: EventBracketMatch): string | null {
+	if (!match.winner) return null;
+	const name = match.winner === 1 ? match.player1 : match.player2;
+	const t = name.trim().toUpperCase();
+	return t === 'BYE' || t === 'TBD' || t === '' ? null : name;
+}
+
+const winnerColorMap = new Map<string, string>();
+let _colorIdx = 0;
+for (const round of rounds) {
+	for (const match of round.matches) {
+		const name = getMatchWinnerName(match);
+		if (name && !winnerColorMap.has(name)) {
+			winnerColorMap.set(name, WINNER_PALETTE[_colorIdx++ % WINNER_PALETTE.length]!);
+		}
+	}
+}
+
+function getMatchWinnerColor(match: EventBracketMatch | undefined): string | null {
+	if (!match) return null;
+	const name = getMatchWinnerName(match);
+	return name ? (winnerColorMap.get(name) ?? null) : null;
+}
+
 type Layout = {
 	cardWidth: number;
 	cardHeight: number;
@@ -27,7 +62,7 @@ type Layout = {
 
 type PathSegment = {
 	d: string;
-	won: boolean;
+	color: string;
 };
 
 type BoardView = {
@@ -39,7 +74,7 @@ type BoardView = {
 	championLeft: number;
 	championTop: number;
 	connectors: PathSegment[];
-	finalPathWon: boolean;
+	finalColor: string;
 	finalPath: string;
 };
 
@@ -54,6 +89,7 @@ type BracketSide = {
 	displayName: string;
 	location: string;
 	winner: boolean;
+	winnerColor: string | null;
 	bye: boolean;
 	segments: NameSegment[];
 };
@@ -123,6 +159,7 @@ function createBoardView(variant: BoardView['variant'], layout: Layout, compact:
 	const championTop = getCenterY(layout, lastRoundIndex, 0) - (compact ? 11 : 14);
 
 	const finalMatch = rounds[rounds.length - 1]?.matches[0];
+	const finalColor = getMatchWinnerColor(finalMatch) ?? '#1d4ed8';
 	return {
 		variant,
 		compact,
@@ -132,7 +169,7 @@ function createBoardView(variant: BoardView['variant'], layout: Layout, compact:
 		championLeft,
 		championTop,
 		connectors: connectorSegments(layout),
-		finalPathWon: !!(finalMatch?.winner),
+		finalColor,
 		finalPath: finalConnectorPath(layout, compact),
 	};
 }
@@ -149,6 +186,8 @@ function getY(layout: Layout, roundIndex: number, gameIndex: number) {
 function getCenterY(layout: Layout, roundIndex: number, gameIndex: number) {
 	return getY(layout, roundIndex, gameIndex) + layout.cardHeight / 2;
 }
+
+const CONNECTOR_NEUTRAL = '#cbd5e1';
 
 function connectorSegments(layout: Layout): PathSegment[] {
 	const segs: PathSegment[] = [];
@@ -171,21 +210,18 @@ function connectorSegments(layout: Layout): PathSegment[] {
 				: getCenterY(layout, fromRound, secondGame);
 			const y3 = getCenterY(layout, fromRound + 1, pairIndex);
 
-			const won1 = !!(rounds[fromRound]?.matches[firstGame]?.winner);
-			const won2 = !!(rounds[fromRound]?.matches[secondGame]?.winner);
-			const eitherWon = won1 || won2;
+			const color1 = getMatchWinnerColor(rounds[fromRound]?.matches[firstGame]) ?? CONNECTOR_NEUTRAL;
+			const color2 = getMatchWinnerColor(rounds[fromRound]?.matches[secondGame]) ?? CONNECTOR_NEUTRAL;
+			// Trunk carries the color of whoever WON the next-round match (the advancing player)
+			const trunkColor = getMatchWinnerColor(nextRound.matches[pairIndex]) ?? CONNECTOR_NEUTRAL;
 
 			if (y1 === y2) {
-				segs.push({ d: `M ${x1} ${y1} H ${x2}`, won: won1 });
+				segs.push({ d: `M ${x1} ${y1} H ${x2}`, color: color1 });
 			} else {
-				// top stub: right edge of match1 → midX
-				segs.push({ d: `M ${x1} ${y1} H ${midX}`, won: won1 });
-				// vertical stem: midX from y1 down to y2
-				segs.push({ d: `M ${midX} ${y1} V ${y2}`, won: eitherWon });
-				// bottom stub: midX → right edge of match2
-				segs.push({ d: `M ${midX} ${y2} H ${x1}`, won: won2 });
-				// trunk: midX at y3 → left edge of next match
-				segs.push({ d: `M ${midX} ${y3} H ${x2}`, won: eitherWon });
+				segs.push({ d: `M ${x1} ${y1} H ${midX}`, color: color1 });       // top stub
+				segs.push({ d: `M ${midX} ${y1} V ${y2}`, color: CONNECTOR_NEUTRAL }); // stem (neutral junction)
+				segs.push({ d: `M ${midX} ${y2} H ${x1}`, color: color2 });       // bottom stub
+				segs.push({ d: `M ${midX} ${y3} H ${x2}`, color: trunkColor });   // trunk
 			}
 		}
 	}
@@ -279,6 +315,7 @@ function buildSide(match: EventBracketMatch, roundIndex: number, gameIndex: numb
 	const displayName = displayNameFor(match, roundIndex, gameIndex, side);
 	const seed = side === 1 ? match.seed1 : match.seed2;
 	const winner = match.winner === side;
+	const winnerColor = winner ? (winnerColorMap.get(rawName) ?? null) : null;
 
 	return {
 		seed,
@@ -286,6 +323,7 @@ function buildSide(match: EventBracketMatch, roundIndex: number, gameIndex: numb
 		displayName,
 		location: playerLocation(rawName, roundIndex),
 		winner,
+		winnerColor,
 		bye: rawName.trim().toUpperCase() === 'BYE',
 		segments: nameSegments(rawName, displayName, match.scheduledTime),
 	};
@@ -336,12 +374,12 @@ function matchStatus(match: EventBracketMatch) {
 							<path
 								d={seg.d}
 								fill="none"
-								stroke={seg.won ? '#10b981' : '#94a3b8'}
-								stroke-width={seg.won ? '2.5' : '2'}
+								stroke={seg.color}
+								stroke-width={seg.color === CONNECTOR_NEUTRAL ? '2' : '2.5'}
 								stroke-linejoin="round"
 							/>
 						))}
-						<path d={view.finalPath} fill="none" stroke={view.finalPathWon ? '#10b981' : '#1d4ed8'} stroke-width="3" />
+						<path d={view.finalPath} fill="none" stroke={view.finalColor} stroke-width="3" />
 					</svg>
 
 					{rounds.map((round, roundIndex) => (
@@ -355,7 +393,7 @@ function matchStatus(match: EventBracketMatch) {
 
 					<div
 						class:list={['gp-draw-champion-label', view.compact && 'gp-draw-champion-label--compact']}
-						style={`left: ${view.championLeft}px; top: ${view.championTop}px; color: ${view.finalPathWon ? '#047857' : '#1d4ed8'};`}
+						style={`left: ${view.championLeft}px; top: ${view.championTop}px; color: ${view.finalColor};`}
 					>
 						Champion
 					</div>
@@ -392,6 +430,7 @@ function matchStatus(match: EventBracketMatch) {
 															side.winner && 'is-winner',
 															side.bye && 'is-bye',
 														]}
+														style={side.winnerColor ? `--wc:${side.winnerColor}` : undefined}
 													>
 														<span
 															class:list={[
@@ -636,9 +675,9 @@ function matchStatus(match: EventBracketMatch) {
 
 .gp-draw-player-row.is-winner {
 	color: #020617;
-	background: rgba(16, 185, 129, 0.07);
+	background: color-mix(in srgb, var(--wc, #10b981) 9%, white);
 	border-radius: 6px;
-	box-shadow: inset 3px 0 0 #10b981;
+	box-shadow: inset 3px 0 0 var(--wc, #10b981);
 }
 
 .gp-draw-player-row.is-bye {
@@ -669,9 +708,9 @@ function matchStatus(match: EventBracketMatch) {
 }
 
 .gp-draw-seed.is-winner {
-	border-color: #10b981;
-	background: #ecfdf5;
-	color: #047857;
+	border-color: var(--wc, #10b981);
+	background: color-mix(in srgb, var(--wc, #10b981) 12%, white);
+	color: var(--wc, #047857);
 }
 
 .gp-draw-player-copy {
@@ -744,7 +783,7 @@ function matchStatus(match: EventBracketMatch) {
 
 .gp-draw-winner-arrow {
 	align-items: center;
-	color: #0f172a;
+	color: var(--wc, #0f172a);
 	font-size: 22px;
 	font-weight: 900;
 	line-height: 1;
