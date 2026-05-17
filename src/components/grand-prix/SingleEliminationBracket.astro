@@ -94,6 +94,8 @@ type BracketSide = {
 	segments: NameSegment[];
 };
 
+const CONNECTOR_NEUTRAL = '#cbd5e1';
+
 const desktopLayout = createLayout(rounds, {
 	cardWidth: 220,
 	cardHeight: 110,
@@ -186,8 +188,6 @@ function getY(layout: Layout, roundIndex: number, gameIndex: number) {
 function getCenterY(layout: Layout, roundIndex: number, gameIndex: number) {
 	return getY(layout, roundIndex, gameIndex) + layout.cardHeight / 2;
 }
-
-const CONNECTOR_NEUTRAL = '#cbd5e1';
 
 function connectorSegments(layout: Layout): PathSegment[] {
 	const segs: PathSegment[] = [];
