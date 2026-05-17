@@ -315,14 +315,14 @@ const EVENTS_RAW: EventData[] = [
 				{
 					label: 'Semifinals',
 					matches: [
-						{ player1: 'Chad Beacher', player2: 'TBD', seed1: 1, scheduledTime: 'Sunday · 8:00 AM', court: 'Court 2' },
-						{ player1: 'TBD',          player2: 'TBD' },
+						{ player1: 'Chad Beacher', player2: 'TBD', seed1: 1, scheduledTime: 'Sunday · 8:00 AM', court: 'Court 2', matchId: 'M50+4' },
+						{ player1: 'TBD',          player2: 'TBD', matchId: 'M50+3' },
 					],
 				},
 				{
 					label: 'Finals',
 					matches: [
-						{ player1: 'TBD', player2: 'TBD' },
+						{ player1: 'TBD', player2: 'TBD', matchId: 'M50+1' },
 					],
 				},
 			],
@@ -344,14 +344,14 @@ const EVENTS_RAW: EventData[] = [
 				{
 					label: 'Semifinals',
 					matches: [
-						{ player1: 'Charles Cole',  player2: 'TBD',          seed1: 1, scheduledTime: 'Sunday · 8:00 AM', court: 'Court 3' },
-						{ player1: 'TBD',           player2: 'Gordon Henry', seed2: 2, scheduledTime: 'Sunday · 9:00 AM', court: 'Court 1' },
+						{ player1: 'Charles Cole',  player2: 'TBD',          seed1: 1, scheduledTime: 'Sunday · 8:00 AM', court: 'Court 3', matchId: 'M60+4' },
+						{ player1: 'TBD',           player2: 'Gordon Henry', seed2: 2, scheduledTime: 'Sunday · 9:00 AM', court: 'Court 1', matchId: 'M60+3' },
 					],
 				},
 				{
 					label: 'Finals',
 					matches: [
-						{ player1: 'TBD', player2: 'TBD' },
+						{ player1: 'TBD', player2: 'TBD', matchId: 'M60+1' },
 					],
 				},
 			],
@@ -373,14 +373,14 @@ const EVENTS_RAW: EventData[] = [
 				{
 					label: 'Semifinals',
 					matches: [
-						{ player1: 'Gene Fry',       player2: 'Michael Ammen', seed1: 1, seed2: 4, scheduledTime: 'Sunday · 2:00 PM', court: 'Court 2' },
+						{ player1: 'Gene Fry',       player2: 'Michael Ammen', seed1: 1, seed2: 4, scheduledTime: 'Sunday · 2:00 PM', court: 'Court 2', matchId: 'M70+4' },
 						{ player1: 'Philip Gaerlan', player2: 'Scott Gill',    seed1: 3, seed2: 2, scheduledTime: 'Saturday · 1:00 PM', court: 'Court 1', matchId: 'M70+3' },
 					],
 				},
 				{
 					label: 'Finals',
 					matches: [
-						{ player1: 'TBD', player2: 'TBD' },
+						{ player1: 'TBD', player2: 'TBD', matchId: 'M70+1' },
 					],
 				},
 			],
@@ -452,7 +452,7 @@ const EVENTS_RAW: EventData[] = [
 				{
 					label: 'Semifinals',
 					matches: [
-						{ player1: 'Haacke / Muriel', player2: 'TBD', seed1: 1, scheduledTime: 'Sunday · 9:00 AM', court: 'Court 2', matchId: 'MAD2' },
+						{ player1: 'Haacke / Muriel', player2: 'TBD', seed1: 1, scheduledTime: 'Sunday · 9:00 AM', court: 'Court 2', matchId: 'MAD4' },
 						{ player1: 'TBD',             player2: 'TBD',                                  scheduledTime: 'Sunday · 10:00 AM', court: 'Court 4', matchId: 'MAD3' },
 					],
 				},
@@ -481,7 +481,7 @@ const EVENTS_RAW: EventData[] = [
 				{
 					label: 'Semifinals',
 					matches: [
-						{ player1: 'Swartz / Hernandez',  player2: 'TBD',             seed1: 1,             scheduledTime: 'Sunday · 8:00 AM', court: 'Court 4' },
+						{ player1: 'Swartz / Hernandez',  player2: 'TBD',             seed1: 1,             scheduledTime: 'Sunday · 8:00 AM', court: 'Court 4', matchId: 'MBD4' },
 						{ player1: 'Manzano / Sotolongo', player2: 'Brice / Martinez', seed1: 3, seed2: 2,  scheduledTime: 'Sunday · 9:00 AM', court: 'Court 3', matchId: 'MBD3' },
 					],
 				},
@@ -528,12 +528,12 @@ const EVENTS_RAW: EventData[] = [
 				format: 'roundrobin',
 				roundRobinPlayers: [
 					'Fry / Gutierrez',
-					'Gaerlan / Lewis',
+					'Swartz / Lewis',
 					'Hernandez / Martinez',
 				],
 				roundRobinMatches: [
-					{ round: 'Round 1', team1: 'Hernandez / Martinez', team2: 'Gaerlan / Lewis', scheduledTime: 'Saturday · 10:00 AM', court: 'Court 4', matchId: 'MSCD3' },
-					{ round: 'Round 2', team1: 'Fry / Gutierrez', team2: 'Gaerlan / Lewis', scheduledTime: 'Saturday · 4:00 PM', matchId: 'MSCD2' },
+					{ round: 'Round 1', team1: 'Hernandez / Martinez', team2: 'Swartz / Lewis', scheduledTime: 'Saturday · 10:00 AM', court: 'Court 4', matchId: 'MSCD3' },
+					{ round: 'Round 2', team1: 'Fry / Gutierrez', team2: 'Swartz / Lewis', scheduledTime: 'Saturday · 4:00 PM', matchId: 'MSCD2' },
 					{ round: 'Round 3', team1: 'Fry / Gutierrez', team2: 'Hernandez / Martinez', scheduledTime: 'Sunday · 11:00 AM', court: 'Court 2', matchId: 'MSCD1' },
 				],
 			},
@@ -837,11 +837,18 @@ function applyResults(events: EventData[]): EventData[] {
 					}),
 				}));
 
-				// Propagate winner names into TBD slots in later rounds so the
-				// bracket display shows the advancing player instead of "TBD".
+				// Propagate winner names into TBD slots (and R2-abbreviated slots) in
+				// later rounds so the bracket display shows the advancing player instead
+				// of "TBD", and so the winnerColorMap key stays consistent across rounds
+				// for the same player (R2 fills TBD with abbreviated names like "A Herrera"
+				// which would otherwise get a different color entry than "Alejandro Herrera").
 				const isGhostSlot = (s: string) => {
 					const u = s.trim().toUpperCase();
 					return u === 'TBD' || u === '' || u === 'BYE';
+				};
+				const isAbbreviatedName = (s: string): boolean => {
+					const parts = s.trim().split(/\s+/);
+					return parts.length >= 2 && parts[0]!.length === 1;
 				};
 				const feederWinnerName = (feeder: EventBracketMatch | undefined): string | null => {
 					if (!feeder?.winner) return null;
@@ -853,11 +860,11 @@ function applyResults(events: EventData[]): EventData[] {
 						...updatedRounds[ri]!,
 						matches: updatedRounds[ri]!.matches.map((match, gi) => {
 							let { player1, player2 } = match;
-							if (isGhostSlot(player1)) {
+							if (isGhostSlot(player1) || isAbbreviatedName(player1)) {
 								const name = feederWinnerName(updatedRounds[ri - 1]?.matches[gi * 2]);
 								if (name) player1 = name;
 							}
-							if (isGhostSlot(player2)) {
+							if (isGhostSlot(player2) || isAbbreviatedName(player2)) {
 								const name = feederWinnerName(updatedRounds[ri - 1]?.matches[gi * 2 + 1]);
 								if (name) player2 = name;
 							}
