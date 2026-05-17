@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-16T23:13:50.826Z",
+  "lastUpdated": "2026-05-17T00:10:43.789Z",
   "divisions": {
     "mens-singles-open": {
       "MO9": {
@@ -111,6 +111,10 @@
         "player2": "K Oliveira",
         "winner": 2,
         "score": "WBF - No Show"
+      },
+      "MA4": {
+        "player1": "B Anthony",
+        "player2": "B Grantham"
       }
     },
     "mens-singles-b": {
@@ -157,6 +161,10 @@
       "MB4": {
         "player1": "M Brice",
         "player2": "E Martinez"
+      },
+      "MB1": {
+        "player1": "M Brice",
+        "player2": "M Kern"
       }
     },
     "mens-singles-c": {
