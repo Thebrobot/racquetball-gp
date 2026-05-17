@@ -25,6 +25,11 @@ type Layout = {
 	columnLefts?: number[];
 };
 
+type PathSegment = {
+	d: string;
+	won: boolean;
+};
+
 type BoardView = {
 	variant: 'desktop' | 'mobile';
 	compact: boolean;
@@ -33,7 +38,8 @@ type BoardView = {
 	height: number;
 	championLeft: number;
 	championTop: number;
-	paths: string[];
+	connectors: PathSegment[];
+	finalPathWon: boolean;
 	finalPath: string;
 };
 
@@ -116,6 +122,7 @@ function createBoardView(variant: BoardView['variant'], layout: Layout, compact:
 	const championLeft = getX(layout, lastRoundIndex) + layout.cardWidth + 54;
 	const championTop = getCenterY(layout, lastRoundIndex, 0) - (compact ? 11 : 14);
 
+	const finalMatch = rounds[rounds.length - 1]?.matches[0];
 	return {
 		variant,
 		compact,
@@ -124,7 +131,8 @@ function createBoardView(variant: BoardView['variant'], layout: Layout, compact:
 		height,
 		championLeft,
 		championTop,
-		paths: connectorPaths(layout),
+		connectors: connectorSegments(layout),
+		finalPathWon: !!(finalMatch?.winner),
 		finalPath: finalConnectorPath(layout, compact),
 	};
 }
@@ -142,8 +150,8 @@ function getCenterY(layout: Layout, roundIndex: number, gameIndex: number) {
 	return getY(layout, roundIndex, gameIndex) + layout.cardHeight / 2;
 }
 
-function connectorPaths(layout: Layout) {
-	const paths: string[] = [];
+function connectorSegments(layout: Layout): PathSegment[] {
+	const segs: PathSegment[] = [];
 
 	for (let fromRound = 0; fromRound < rounds.length - 1; fromRound++) {
 		const nextRound = rounds[fromRound + 1];
@@ -163,15 +171,26 @@ function connectorPaths(layout: Layout) {
 				: getCenterY(layout, fromRound, secondGame);
 			const y3 = getCenterY(layout, fromRound + 1, pairIndex);
 
+			const won1 = !!(rounds[fromRound]?.matches[firstGame]?.winner);
+			const won2 = !!(rounds[fromRound]?.matches[secondGame]?.winner);
+			const eitherWon = won1 || won2;
+
 			if (y1 === y2) {
-				paths.push(`M ${x1} ${y1} H ${x2}`);
+				segs.push({ d: `M ${x1} ${y1} H ${x2}`, won: won1 });
 			} else {
-				paths.push(`M ${x1} ${y1} H ${midX} V ${y2} H ${x1} M ${midX} ${y3} H ${x2}`);
+				// top stub: right edge of match1 → midX
+				segs.push({ d: `M ${x1} ${y1} H ${midX}`, won: won1 });
+				// vertical stem: midX from y1 down to y2
+				segs.push({ d: `M ${midX} ${y1} V ${y2}`, won: eitherWon });
+				// bottom stub: midX → right edge of match2
+				segs.push({ d: `M ${midX} ${y2} H ${x1}`, won: won2 });
+				// trunk: midX at y3 → left edge of next match
+				segs.push({ d: `M ${midX} ${y3} H ${x2}`, won: eitherWon });
 			}
 		}
 	}
 
-	return paths;
+	return segs;
 }
 
 function finalConnectorPath(layout: Layout, compact: boolean) {
@@ -313,10 +332,16 @@ function matchStatus(match: EventBracketMatch) {
 						viewBox={`0 0 ${view.width} ${view.height}`}
 						aria-hidden="true"
 					>
-						{view.paths.map((path) => (
-							<path d={path} fill="none" stroke="#94a3b8" stroke-width="2" stroke-linejoin="round" />
+						{view.connectors.map((seg) => (
+							<path
+								d={seg.d}
+								fill="none"
+								stroke={seg.won ? '#10b981' : '#94a3b8'}
+								stroke-width={seg.won ? '2.5' : '2'}
+								stroke-linejoin="round"
+							/>
 						))}
-						<path d={view.finalPath} fill="none" stroke="#1d4ed8" stroke-width="3" />
+						<path d={view.finalPath} fill="none" stroke={view.finalPathWon ? '#10b981' : '#1d4ed8'} stroke-width="3" />
 					</svg>
 
 					{rounds.map((round, roundIndex) => (
@@ -330,7 +355,7 @@ function matchStatus(match: EventBracketMatch) {
 
 					<div
 						class:list={['gp-draw-champion-label', view.compact && 'gp-draw-champion-label--compact']}
-						style={`left: ${view.championLeft}px; top: ${view.championTop}px;`}
+						style={`left: ${view.championLeft}px; top: ${view.championTop}px; color: ${view.finalPathWon ? '#047857' : '#1d4ed8'};`}
 					>
 						Champion
 					</div>
@@ -611,6 +636,9 @@ function matchStatus(match: EventBracketMatch) {
 
 .gp-draw-player-row.is-winner {
 	color: #020617;
+	background: rgba(16, 185, 129, 0.07);
+	border-radius: 6px;
+	box-shadow: inset 3px 0 0 #10b981;
 }
 
 .gp-draw-player-row.is-bye {
