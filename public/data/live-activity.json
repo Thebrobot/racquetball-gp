@@ -1,7 +1,29 @@
 {
-  "lastUpdated": "2026-05-17T11:47:34.614Z",
+  "lastUpdated": "2026-05-17T14:14:53.894Z",
   "eventSlug": "ocala-open",
   "events": [
+    {
+      "id": "2026-05-17T14:14:53.894Z-mens-doubles-open-MOD1",
+      "at": "2026-05-17T14:14:53.894Z",
+      "type": "result",
+      "divisionId": "mens-doubles-open",
+      "divisionLabel": "Men's Doubles: Open",
+      "matchId": "MOD1",
+      "headline": "Orlando Josu Huyke / Mario Andres Huyke def Jiovanni Garcia / Charles Nolan",
+      "detail": "WBF - No Show MOD 1",
+      "bracketHref": "/events/ocala-open/divisions/mens-doubles-open"
+    },
+    {
+      "id": "2026-05-17T14:14:53.894Z-mixed-doubles-MXOA2",
+      "at": "2026-05-17T14:14:53.894Z",
+      "type": "result",
+      "divisionId": "mixed-doubles",
+      "divisionLabel": "Mixed Doubles: Open/A",
+      "matchId": "MXOA2",
+      "headline": "Brendan Anthony / Havan Artman def Michelle Jennings / Ron Jennings",
+      "detail": "WBF - No Show MXOA 2",
+      "bracketHref": "/events/ocala-open/divisions/mixed-doubles"
+    },
     {
       "id": "2026-05-17T11:47:34.614Z-mens-doubles-open-MOD3",
       "at": "2026-05-17T11:47:34.614Z",

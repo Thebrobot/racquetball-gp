@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-17T11:47:34.614Z",
+  "lastUpdated": "2026-05-17T14:14:53.894Z",
   "divisions": {
     "mens-singles-open": {
       "MO9": {
@@ -213,6 +213,10 @@
       "M50+3": {
         "player1": "J Johnston",
         "player2": "K Oliveira"
+      },
+      "M50+1": {
+        "player1": "C Beacher",
+        "player2": "K Oliveira"
       }
     },
     "mens-age-60": {
@@ -231,6 +235,10 @@
       "M60+4": {
         "player1": "C Cole",
         "player2": "M Ammen"
+      },
+      "M60+1": {
+        "player1": "C Cole",
+        "player2": "G Henry"
       }
     },
     "mens-age-70": {
@@ -282,7 +290,9 @@
       },
       "MOD1": {
         "player1": "Jiovanni Garcia / Charles Nolan",
-        "player2": "Orlando Josu Huyke / Mario Andres Huyke"
+        "player2": "Orlando Josu Huyke / Mario Andres Huyke",
+        "score": "WBF - No Show MOD 1",
+        "winner": 2
       }
     },
     "mens-doubles-elite": {
@@ -420,7 +430,9 @@
       },
       "MXOA2": {
         "player1": "Michelle Jennings / Ron Jennings",
-        "player2": "Brendan Anthony / Havan Artman"
+        "player2": "Brendan Anthony / Havan Artman",
+        "score": "WBF - No Show MXOA 2",
+        "winner": 2
       },
       "MXOA1": {
         "player1": "Jim Russell / Kelly Van Zant - Russell",
