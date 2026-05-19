@@ -25,6 +25,7 @@ function registerCtaLabel(url: string): string {
 					: `Lap ${index + 1} of ${TOUR_STOP_COUNT}`;
 			const regClosed = stop.kind === 'done';
 			const regPending = stop.kind === 'upcoming';
+			const watchLiveDisabled = stop.kind === 'next' || stop.kind === 'upcoming';
 			return (
 				<div
 					class:list={[
@@ -81,7 +82,7 @@ function registerCtaLabel(url: string): string {
 								</a>
 							)}
 							{stop.watchLiveUrl && !isChamp && !regClosed ? (
-								regPending ? (
+								watchLiveDisabled ? (
 									<span class="btn-watch-live disabled" aria-disabled="true">Watch live</span>
 								) : (
 									<a

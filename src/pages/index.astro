@@ -6,6 +6,7 @@ import SeasonStopsBar from '../components/grand-prix/SeasonStopsBar.astro';
 import SeasonStopsBento from '../components/grand-prix/SeasonStopsBento.astro';
 import { HOME_SPOTLIGHT_TRACKS, getTopN } from '../data/leaderboard';
 import { getFeaturedEvent } from '../data/events';
+import { getNextSeasonStop } from '../data/season-stops';
 import { titleSponsor } from '../data/ocala-sponsors';
 import heroVideo from '../partials/grand-prix-hero-video.html?raw';
 
@@ -16,10 +17,10 @@ const spotlightSpots = HOME_SPOTLIGHT_TRACKS.map((t) => ({
 }));
 
 const featured = getFeaturedEvent();
-const featuredEvent = featured?.event;
-const featuredStatus = featured?.status ?? 'upcoming';
-const statusLabel = featuredStatus === 'live' ? 'Live now' : featuredStatus === 'recent' ? 'Most recent' : 'Upcoming';
-const eventPage = featuredEvent ? `/events/${featuredEvent.slug}` : '';
+const liveEvent = featured?.status === 'live' ? featured.event : null;
+const nextStop = getNextSeasonStop();
+const eventPage = liveEvent ? `/events/${liveEvent.slug}` : '';
+const spotlightImage = liveEvent?.spotlightImage ?? nextStop?.image;
 ---
 
 <GrandPrixLayout
@@ -30,7 +31,7 @@ const eventPage = featuredEvent ? `/events/${featuredEvent.slug}` : '';
 	spotlightBlurb={titleSponsor.blurb}
 	spotlightLogoUrl={titleSponsor.logoUrl}
 	imagePreloads={[
-		...(featuredEvent?.spotlightImage ? [featuredEvent.spotlightImage] : []),
+		...(spotlightImage ? [spotlightImage] : []),
 		'/images/website-logo.webp',
 		'/images/series-logo.webp',
 	]}
@@ -82,22 +83,22 @@ const eventPage = featuredEvent ? `/events/${featuredEvent.slug}` : '';
 
 	<TitleSponsorIntro />
 
-	{featuredEvent && (
+	{(liveEvent || nextStop) && (
 		<section
-			class:list={['event-spotlight', `event-spotlight--${featuredStatus}`]}
+			class:list={['event-spotlight', liveEvent ? 'event-spotlight--live' : 'event-spotlight--upcoming']}
 			aria-labelledby="event-spotlight-title"
 		>
 			<div
 				class:list={[
 					'event-spotlight-inner',
-					featuredEvent.spotlightImage && 'event-spotlight-inner--media',
+					spotlightImage && 'event-spotlight-inner--media',
 				]}
 			>
 				{
-					featuredEvent.spotlightImage && (
+					spotlightImage && (
 						<div
 							class="event-spotlight-visual"
-							style={{ '--es-img': `url("${featuredEvent.spotlightImage}")` }}
+							style={{ '--es-img': `url("${spotlightImage}")` }}
 							aria-hidden="true"
 						>
 							<div class="event-spotlight-media" />
@@ -105,36 +106,65 @@ const eventPage = featuredEvent ? `/events/${featuredEvent.slug}` : '';
 					)
 				}
 				<div class="event-spotlight-body">
-					<span class:list={['event-spotlight-pill', `event-spotlight-pill--${featuredStatus}`]}>
-						{statusLabel}
-					</span>
-					<h2 id="event-spotlight-title" class="event-spotlight-title">{featuredEvent.name}</h2>
-					<p class="event-spotlight-meta">
-						<span class="event-spotlight-meta-strong">{featuredEvent.dateRange}</span>
-						<span class="event-spotlight-meta-sep" aria-hidden="true"> · </span>
-						<span>{featuredEvent.cityLine}</span>
-					</p>
-					{featuredEvent.spotlightVenue && (
-						<p class="event-spotlight-venue">{featuredEvent.spotlightVenue}</p>
+					{liveEvent ? (
+						<>
+							<span class="event-spotlight-pill event-spotlight-pill--live">Live now</span>
+							<h2 id="event-spotlight-title" class="event-spotlight-title">{liveEvent.name}</h2>
+							<p class="event-spotlight-meta">
+								<span class="event-spotlight-meta-strong">{liveEvent.dateRange}</span>
+								<span class="event-spotlight-meta-sep" aria-hidden="true"> · </span>
+								<span>{liveEvent.cityLine}</span>
+							</p>
+							{liveEvent.spotlightVenue && (
+								<p class="event-spotlight-venue">{liveEvent.spotlightVenue}</p>
+							)}
+							<div class="event-spotlight-ctas">
+								<a class="event-spotlight-cta event-spotlight-cta--primary" href={`${eventPage}#brackets`}>
+									View brackets
+								</a>
+								<a class="event-spotlight-cta event-spotlight-cta--participants" href={`${eventPage}#participants`}>
+									View participants
+								</a>
+								{liveEvent.spotlightWatchLiveUrl && (
+									<a
+										class="event-spotlight-cta event-spotlight-cta--watch"
+										href={liveEvent.spotlightWatchLiveUrl}
+										target="_blank"
+										rel="noopener noreferrer"
+									>
+										Watch live
+									</a>
+								)}
+							</div>
+						</>
+					) : (
+						nextStop && (
+							<>
+								<span class="event-spotlight-pill event-spotlight-pill--upcoming">Next stop</span>
+								<h2 id="event-spotlight-title" class="event-spotlight-title">{nextStop.eventName}</h2>
+								<p class="event-spotlight-meta">
+									<span class="event-spotlight-meta-strong">{nextStop.dateHint}, 2026</span>
+									<span class="event-spotlight-meta-sep" aria-hidden="true"> · </span>
+									<span>{nextStop.cityLine}</span>
+								</p>
+								<p class="event-spotlight-venue">{nextStop.venue}</p>
+								{nextStop.teaser && <p class="event-spotlight-teaser">{nextStop.teaser}</p>}
+								<div class="event-spotlight-ctas">
+									<a
+										class="event-spotlight-cta event-spotlight-cta--primary"
+										href={nextStop.registerUrl}
+										target="_blank"
+										rel="noopener noreferrer"
+									>
+										Register on R2
+									</a>
+									<a class="event-spotlight-cta event-spotlight-cta--schedule" href="/tournaments">
+										See schedule
+									</a>
+								</div>
+							</>
+						)
 					)}
-					<div class="event-spotlight-ctas">
-						<a class="event-spotlight-cta event-spotlight-cta--primary" href={`${eventPage}#brackets`}>
-							View brackets
-						</a>
-						<a class="event-spotlight-cta event-spotlight-cta--participants" href={`${eventPage}#participants`}>
-							View participants
-						</a>
-						{featuredEvent.spotlightWatchLiveUrl && (
-							<a
-								class="event-spotlight-cta event-spotlight-cta--watch"
-								href={featuredEvent.spotlightWatchLiveUrl}
-								target="_blank"
-								rel="noopener noreferrer"
-							>
-								Watch live
-							</a>
-						)}
-					</div>
 				</div>
 			</div>
 		</section>

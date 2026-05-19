@@ -76,11 +76,12 @@ type BoardView = {
 	layout: Layout;
 	width: number;
 	height: number;
-	championLeft: number;
-	championTop: number;
+	flagLeft: number;
+	flagTop: number;
+	flagWidth: number;
+	showFlag: boolean;
 	connectors: PathSegment[];
 	finalColor: string;
-	finalPath: string;
 };
 
 type NameSegment = {
@@ -104,7 +105,7 @@ const desktopLayout = createLayout(rounds, {
 	cardHeight: 110,
 	columnGap: 42,
 	roundTop: 58,
-	boardPaddingRight: 132,
+	boardPaddingRight: 48,
 	firstRoundGap: 34,
 });
 
@@ -113,7 +114,7 @@ const mobileLayout = createLayout(rounds, {
 	cardHeight: 100,
 	columnGap: 18,
 	roundTop: 46,
-	boardPaddingRight: 120,
+	boardPaddingRight: 40,
 	firstRoundGap: 22,
 	columnLefts: [0, 250, 472, 666],
 });
@@ -159,23 +160,33 @@ function createBoardView(variant: BoardView['variant'], layout: Layout, compact:
 	const firstRoundTops = layout.cardTops[0] ?? [];
 	const lastFirstRoundTop = firstRoundTops[firstRoundTops.length - 1] ?? 0;
 	const width = getX(layout, lastRoundIndex) + layout.cardWidth + layout.boardPaddingRight;
-	const height = layout.roundTop + lastFirstRoundTop + layout.cardHeight + 44;
-	const championLeft = getX(layout, lastRoundIndex) + layout.cardWidth + 54;
-	const championTop = getCenterY(layout, lastRoundIndex, 0) - (compact ? 11 : 14);
 
 	const finalMatch = rounds[rounds.length - 1]?.matches[0];
 	const finalColor = getMatchWinnerColor(finalMatch) ?? '#1d4ed8';
+	const showFlag = !!getMatchWinnerName(finalMatch ?? { player1: '', player2: '' });
+
+	const flagWidth = compact ? 128 : 148;
+	const stringHeight = compact ? 14 : 18;
+	const finalLeft = getX(layout, lastRoundIndex);
+	const finalTop = getY(layout, lastRoundIndex, 0);
+	const flagLeft = finalLeft + (layout.cardWidth - flagWidth) / 2;
+	const flagTop = finalTop + layout.cardHeight;
+
+	const baseHeight = layout.roundTop + lastFirstRoundTop + layout.cardHeight + 44;
+	const height = showFlag ? flagTop + stringHeight + (compact ? 168 : 184) : baseHeight;
+
 	return {
 		variant,
 		compact,
 		layout,
 		width,
 		height,
-		championLeft,
-		championTop,
+		flagLeft,
+		flagTop,
+		flagWidth,
+		showFlag,
 		connectors: connectorSegments(layout),
 		finalColor,
-		finalPath: finalConnectorPath(layout, compact),
 	};
 }
 
@@ -238,13 +249,6 @@ function connectorSegments(layout: Layout): PathSegment[] {
 	return segs;
 }
 
-function finalConnectorPath(layout: Layout, compact: boolean) {
-	const lastRoundIndex = Math.max(rounds.length - 1, 0);
-	const finalX = getX(layout, lastRoundIndex) + layout.cardWidth;
-	const finalY = getCenterY(layout, lastRoundIndex, 0);
-	return `M ${finalX} ${finalY} H ${finalX + (compact ? 46 : 54)}`;
-}
-
 function roundLabel(round: EventBracketRound, roundIndex: number) {
 	if (roundIndex === 0 && round.matches.length === 8) return 'First Round';
 	if (roundIndex === rounds.length - 1) return 'Final';
@@ -275,6 +279,61 @@ function abbreviateNamePart(name: string) {
 	const parts = name.trim().replace(/\./g, '').split(/\s+/).filter(Boolean);
 	if (parts.length < 2) return name;
 	return `${parts[0]![0]} ${parts[parts.length - 1]}`;
+}
+
+function isAbbreviatedName(name: string): boolean {
+	const parts = name.trim().split(/\s+/);
+	return parts.length >= 2 && parts[0]!.length === 1;
+}
+
+function fullNamePart(name: string): string {
+	const trimmed = name.trim();
+	if (isGhostName(trimmed)) return trimmed;
+
+	const indexed = playerIndex.get(trimmed.toLowerCase());
+	if (indexed) return indexed.name;
+
+	if (isAbbreviatedName(trimmed)) {
+		const initial = trimmed[0]!.toLowerCase();
+		const last = trimmed.split(/\s+/).pop()!.toLowerCase();
+		const match = allPlayers.find((player) => {
+			const parts = player.name.trim().split(/\s+/);
+			return (
+				parts.length >= 2 &&
+				parts[0]![0]!.toLowerCase() === initial &&
+				parts[parts.length - 1]!.toLowerCase() === last
+			);
+		});
+		if (match) return match.name;
+	}
+
+	return trimmed;
+}
+
+function fullNameFor(rawName: string): string {
+	if (rawName.includes('/')) {
+		return rawName.split(/\s*\/\s*/).map(fullNamePart).join(' / ');
+	}
+	return fullNamePart(rawName);
+}
+
+function championNameSegments(rawName: string, scheduledTime?: string): NameSegment[] {
+	const fullName = fullNameFor(rawName);
+
+	if (rawName.includes('/')) {
+		const ctx =
+			bracketTeamCtx && scheduledTime
+				? { ...bracketTeamCtx, time: scheduledTime }
+				: bracketTeamCtx;
+		const members = resolveTeamMembers(rawName, allPlayers, ctx);
+		const fullParts = fullName.split(/\s*\/\s*/);
+		return members.map((member, index) => ({
+			text: member.name || fullParts[index] || rawName,
+			href: member.slug ? `/players/${member.slug}` : undefined,
+		}));
+	}
+
+	return nameSegments(rawName, fullName, scheduledTime);
 }
 
 function feederLabel(roundIndex: number, gameIndex: number, side: 1 | 2) {
@@ -361,6 +420,19 @@ function matchStatus(match: EventBracketMatch) {
 
 	return `${day} ${time}${court}`.trim();
 }
+
+const lastRoundIndex = Math.max(rounds.length - 1, 0);
+const finalMatch = rounds[lastRoundIndex]?.matches[0];
+const championSide =
+	finalMatch?.winner === 1
+		? buildSide(finalMatch, lastRoundIndex, 0, 1)
+		: finalMatch?.winner === 2
+			? buildSide(finalMatch, lastRoundIndex, 0, 2)
+			: null;
+const championColor = championSide?.winnerColor ?? getMatchWinnerColor(finalMatch) ?? '#1d4ed8';
+const championSegments = championSide
+	? championNameSegments(championSide.rawName, finalMatch?.scheduledTime)
+	: [];
 ---
 
 {rounds.length > 0 && (
@@ -388,7 +460,6 @@ function matchStatus(match: EventBracketMatch) {
 								stroke-linejoin="round"
 							/>
 						))}
-						<path d={view.finalPath} fill="none" stroke={view.finalColor} stroke-width="3" />
 					</svg>
 
 					{rounds.map((round, roundIndex) => (
@@ -400,12 +471,32 @@ function matchStatus(match: EventBracketMatch) {
 						</div>
 					))}
 
-					<div
-						class:list={['gp-draw-champion-label', view.compact && 'gp-draw-champion-label--compact']}
-						style={`left: ${view.championLeft}px; top: ${view.championTop}px; color: ${view.finalColor};`}
-					>
-						Champion
-					</div>
+					{view.showFlag && championSide && (
+						<div
+							class:list={['gp-draw-champion-flag', view.compact && 'gp-draw-champion-flag--compact']}
+							style={`left: ${view.flagLeft}px; top: ${view.flagTop}px; width: ${view.flagWidth}px; --flag-color: ${championColor};`}
+						>
+							<div class="gp-draw-flag-strings" aria-hidden="true">
+								<span></span>
+								<span></span>
+							</div>
+							<div class="gp-draw-flag-body">
+								<div class="gp-draw-flag-year">2026</div>
+								<svg class="gp-draw-flag-trophy" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+									<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+								</svg>
+								<div class="gp-draw-flag-name">
+									{championSegments.map((segment, segmentIndex) => (
+										<>
+											{segment.href ? <a href={segment.href}>{segment.text}</a> : segment.text}
+											{segmentIndex < championSegments.length - 1 && ' / '}
+										</>
+									))}
+								</div>
+								<div class="gp-draw-flag-label">Champion</div>
+							</div>
+						</div>
+					)}
 
 					{rounds.map((round, roundIndex) =>
 						round.matches.map((match, gameIndex) => {
@@ -499,9 +590,10 @@ function matchStatus(match: EventBracketMatch) {
 	left: 50%;
 	width: min(1440px, calc(100vw - 44px));
 	margin: 0;
-	padding: 32px 28px 40px;
+	padding: 32px 28px 48px;
 	transform: translateX(-50%);
-	overflow: hidden;
+	overflow-x: hidden;
+	overflow-y: visible;
 	border: 1px solid rgba(255, 255, 255, 0.72);
 	border-radius: 22px;
 	background: #e8eaee;
@@ -511,7 +603,8 @@ function matchStatus(match: EventBracketMatch) {
 
 .gp-draw-scroll {
 	overflow-x: auto;
-	padding-bottom: 32px;
+	overflow-y: visible;
+	padding-bottom: 48px;
 	-webkit-overflow-scrolling: touch;
 	scrollbar-width: thin;
 	scrollbar-color: #94a3b8 transparent;
@@ -519,6 +612,7 @@ function matchStatus(match: EventBracketMatch) {
 
 .gp-draw-scroll--desktop {
 	overflow-x: clip;
+	overflow-y: visible;
 }
 
 .gp-draw-scroll--mobile {
@@ -528,6 +622,7 @@ function matchStatus(match: EventBracketMatch) {
 .gp-draw-board {
 	position: relative;
 	margin: 0 auto;
+	overflow: visible;
 }
 
 .gp-draw-connectors {
@@ -540,7 +635,7 @@ function matchStatus(match: EventBracketMatch) {
 }
 
 .gp-draw-round-label,
-.gp-draw-champion-label,
+.gp-draw-champion-flag,
 .gp-draw-card-slot {
 	position: absolute;
 }
@@ -564,19 +659,134 @@ function matchStatus(match: EventBracketMatch) {
 	font-size: 10px;
 }
 
-.gp-draw-champion-label {
-	z-index: 2;
-	font-family: 'Barlow Condensed', sans-serif;
-	font-size: 18px;
-	font-weight: 900;
-	line-height: 1;
-	text-transform: uppercase;
-	color: #1d4ed8;
-	white-space: nowrap;
+.gp-draw-champion-flag {
+	z-index: 4;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	overflow: visible;
+	pointer-events: none;
+	animation: gpFlagDrop 0.45s ease both;
+	animation-delay: 0.2s;
 }
 
-.gp-draw-champion-label--compact {
-	font-size: 16px;
+.gp-draw-champion-flag--compact {
+	animation-delay: 0.15s;
+}
+
+@keyframes gpFlagDrop {
+	from {
+		opacity: 0;
+		transform: translateY(-8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.gp-draw-flag-strings {
+	display: flex;
+	justify-content: space-between;
+	width: 44%;
+	height: 18px;
+	margin: 0 auto;
+	flex-shrink: 0;
+}
+
+.gp-draw-champion-flag--compact .gp-draw-flag-strings {
+	height: 14px;
+}
+
+.gp-draw-flag-strings span {
+	display: block;
+	width: 2px;
+	height: 100%;
+	border-radius: 999px;
+	background: #0f172a;
+}
+
+.gp-draw-flag-body {
+	position: relative;
+	width: 100%;
+	padding: 10px 10px 20px;
+	background: var(--flag-color, #1d4ed8);
+	color: #fff;
+	text-align: center;
+	clip-path: polygon(0 0, 100% 0, 100% calc(100% - 16px), 50% 100%, 0 calc(100% - 16px));
+	filter:
+		drop-shadow(0 0 0 2px #0f172a)
+		drop-shadow(0 8px 16px rgba(15, 23, 42, 0.2));
+}
+
+.gp-draw-champion-flag--compact .gp-draw-flag-body {
+	padding: 8px 8px 18px;
+	clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), 50% 100%, 0 calc(100% - 14px));
+}
+
+.gp-draw-flag-year {
+	font-family: 'Barlow Condensed', sans-serif;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	line-height: 1;
+	opacity: 0.92;
+}
+
+.gp-draw-champion-flag--compact .gp-draw-flag-year {
+	font-size: 10px;
+}
+
+.gp-draw-flag-trophy {
+	width: 28px;
+	height: 28px;
+	margin: 6px auto 4px;
+	opacity: 0.95;
+}
+
+.gp-draw-champion-flag--compact .gp-draw-flag-trophy {
+	width: 24px;
+	height: 24px;
+	margin: 4px auto 2px;
+}
+
+.gp-draw-flag-name {
+	font-family: 'Barlow Condensed', sans-serif;
+	font-size: 13px;
+	font-weight: 800;
+	line-height: 1.15;
+	letter-spacing: 0.01em;
+	word-break: break-word;
+}
+
+.gp-draw-champion-flag--compact .gp-draw-flag-name {
+	font-size: 11px;
+}
+
+.gp-draw-flag-name a {
+	color: inherit;
+	text-decoration: none;
+	pointer-events: auto;
+}
+
+.gp-draw-flag-name a:hover {
+	opacity: 0.85;
+}
+
+.gp-draw-flag-label {
+	margin-top: 4px;
+	font-family: 'Barlow Condensed', sans-serif;
+	font-size: 9px;
+	font-weight: 800;
+	letter-spacing: 0.22em;
+	line-height: 1.2;
+	text-transform: uppercase;
+	opacity: 0.9;
+}
+
+.gp-draw-champion-flag--compact .gp-draw-flag-label {
+	font-size: 8px;
+	letter-spacing: 0.18em;
 }
 
 .gp-draw-card-slot {

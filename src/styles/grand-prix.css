@@ -630,12 +630,29 @@ html.nav-drawer-open .nav-drawer-backdrop {
   opacity: 0.45;
 }
 .event-spotlight-venue {
-  margin: 0 0 24px;
+  margin: 0 0 10px;
   font-size: 15px;
   color: rgba(255, 255, 255, 0.55);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   font-weight: 600;
+}
+.event-spotlight-teaser {
+  margin: 0 0 22px;
+  max-width: 52ch;
+  font-size: 16px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.68);
+}
+.event-spotlight-cta--schedule {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.92);
+}
+.event-spotlight-cta--schedule:hover {
+  border-color: rgba(255, 255, 255, 0.38);
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
 }
 .event-spotlight-ctas {
   display: flex;

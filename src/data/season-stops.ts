@@ -33,13 +33,17 @@ export interface SeasonStop {
 
 export const TOUR_STOP_COUNT = 4;
 
+export function getNextSeasonStop(): SeasonStop | undefined {
+	return SEASON_STOPS.find((s) => s.kind === 'next');
+}
+
 export const SEASON_STOPS: SeasonStop[] = [
 	{
 		id: 'stop-1',
 		label: 'Lap 1 · Season opener',
 		cityLine: 'Ocala, FL',
 		dateHint: 'May 14–17',
-		kind: 'next',
+		kind: 'done',
 		image: '/images/stops/ocala-spotlight.webp',
 		eventName: 'Ocala Open',
 		dateFull: 'May 14–17, 2026 · Ocala, FL',
@@ -56,7 +60,7 @@ export const SEASON_STOPS: SeasonStop[] = [
 		label: 'Lap 2',
 		cityLine: 'Sarasota, FL',
 		dateHint: 'Jul 10–12',
-		kind: 'upcoming',
+		kind: 'next',
 		image: '/images/stops/stop-sarasota.webp',
 		eventName: 'Sarasota Open',
 		dateFull: 'July 10–12, 2026 · Sarasota, FL',
