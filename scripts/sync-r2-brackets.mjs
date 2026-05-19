@@ -234,6 +234,131 @@ async function extractSingleElimData(page) {
 			}
 		}
 
+		// ── Pass 3: consolidated-bracket winner detection via colored borders ──
+		// In consolidated brackets, R2 draws thick colored borders (3pt solid,
+		// not black) on advancing winners inside every round's inner tables.
+		// Each winner's `<b>/<strong>` cell has their previous-match score in the
+		// immediately following <tr>. The nearest viewAppMatch link in the same
+		// table identifies the match they are advancing INTO (targetMatchId).
+		//
+		// Logic:
+		//   • Full name + colored border → direct winner of targetMatchId (no source lookup).
+		//   • Abbreviated name + colored border + score → player won a PREVIOUS match
+		//     to reach targetMatchId. Find source match: unresolved (or winner set but
+		//     score missing), player appears, smallest matchNum suffix > targetNum.
+		//     First-initial check prevents "O Huyke" from matching "M Huyke" entries.
+		//
+		// Example: "M Huyke" (red border, score "15-7,15-4") in ME4's table →
+		//   source = ME8 (num 8 > 4, initial M matches M Huyke) → ME8.winner=2 ✓
+
+		const matchNum = (matchId) => {
+			const m = matchId.match(/\d+$/);
+			return m ? parseInt(m[0], 10) : Infinity;
+		};
+
+		// 3pt solid colored border = advancing winner; 2pt solid black = seed/loser.
+		const isWinnerBorder = (style) => /3\.0?pt solid (?!black)/.test(style ?? '');
+
+		for (const nameEl of Array.from(document.querySelectorAll('b, strong'))) {
+			const advancerName = cleanName(nameEl.textContent);
+			if (!isPlayerName(advancerName)) continue;
+
+			const parentTd = nameEl.closest('td');
+			if (!parentTd || !isWinnerBorder(parentTd.getAttribute('style'))) continue;
+
+			// The nearest viewAppMatch link tells us which match this player advances into.
+			const parentTable = nameEl.closest('table');
+			const link = parentTable?.querySelector('a[href*="viewAppMatch"]');
+			const targetMatchId = (link?.textContent ?? '').trim();
+			if (!/^[A-Z][A-Z0-9+]{0,4}\d{1,3}$/.test(targetMatchId)) continue;
+			if (!matchMap[targetMatchId]) continue;
+			const targetNum = matchNum(targetMatchId);
+
+			// Score lives in the first <td> of the immediately following <tr>.
+			const winnerTr = parentTd.closest('tr');
+			const scoreTd = winnerTr?.nextElementSibling?.querySelector('td');
+			const score = scoreTd ? extractScore(scoreTd.textContent ?? '') : null;
+
+			const advLN = lastNames(advancerName);
+			if (!advLN.length) continue;
+
+			// First-initial of abbreviated advancer for disambiguation (e.g. "O" ≠ "M").
+			const advInitial = (() => {
+				const parts = advancerName.trim().split(/\s+/);
+				// Only singles abbreviated names (e.g. "O Huyke"); skip doubles/full names.
+				return !advancerName.includes('/') && parts[0].length === 1
+					? parts[0].toUpperCase()
+					: null;
+			})();
+
+			if (isFullName(advancerName)) {
+				// Direct winner: this full-name player won targetMatchId itself.
+				const data = results[targetMatchId];
+				if (!data || data.winner != null) continue;
+				const p1LN = lastNames(data.player1 ?? '');
+				const p2LN = lastNames(data.player2 ?? '');
+				const hitsP1 = advLN.every((ln) => p1LN.some((p) => p === ln || p.includes(ln) || ln.includes(p)));
+				const hitsP2 = advLN.every((ln) => p2LN.some((p) => p === ln || p.includes(ln) || ln.includes(p)));
+				if (hitsP1 && !hitsP2) results[targetMatchId] = { ...data, winner: 1 };
+				else if (hitsP2 && !hitsP1) results[targetMatchId] = { ...data, winner: 2 };
+				continue;
+			}
+
+			if (!score) continue; // abbreviated name but no adjacent score — skip
+
+			// Abbreviated name + score: find the source match they won to get here.
+			// Consider matches that have a winner but no score yet (score can be added).
+			let best = null;
+			let ambiguous = false;
+
+			for (const [matchId, data] of Object.entries(results)) {
+				if (matchId === targetMatchId) continue;
+				if (data.winner != null && data.score != null) continue; // fully resolved
+				const yNum = matchNum(matchId);
+				if (yNum <= targetNum) continue;
+
+				const p1LN = lastNames(data.player1 ?? '');
+				const p2LN = lastNames(data.player2 ?? '');
+
+				const hitsP1 = advLN.every((ln) => p1LN.some((p) => p === ln || p.includes(ln) || ln.includes(p)));
+				const hitsP2 = advLN.every((ln) => p2LN.some((p) => p === ln || p.includes(ln) || ln.includes(p)));
+
+				// Apply first-initial check when advancer is abbreviated.
+				const verifyInitial = (playerName, hits) => {
+					if (!hits || !advInitial) return hits;
+					const pFirst = (playerName ?? '').trim().split(/\s+/)[0];
+					return pFirst?.[0]?.toUpperCase() === advInitial;
+				};
+				const validP1 = verifyInitial(data.player1, hitsP1 && !hitsP2);
+				const validP2 = verifyInitial(data.player2, hitsP2 && !hitsP1);
+
+				if (validP1) {
+					if (best === null || yNum < best.num) {
+						best = { matchId, data, side: 1, num: yNum };
+						ambiguous = false;
+					} else if (yNum === best.num) {
+						ambiguous = true;
+					}
+				} else if (validP2) {
+					if (best === null || yNum < best.num) {
+						best = { matchId, data, side: 2, num: yNum };
+						ambiguous = false;
+					} else if (yNum === best.num) {
+						ambiguous = true;
+					}
+				}
+			}
+
+			if (ambiguous || !best) continue;
+			const existing = results[best.matchId];
+			if (existing.winner == null) {
+				results[best.matchId] = { ...existing, winner: best.side, score };
+			} else if (existing.score == null && existing.winner === best.side) {
+				// Winner already detected directly; just fill in the score.
+				results[best.matchId] = { ...existing, score };
+			}
+		}
+
 		return results;
 	});
 }
