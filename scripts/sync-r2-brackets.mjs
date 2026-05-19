@@ -32,6 +32,7 @@ import { dirname, resolve } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RESULTS_PATH = resolve(__dirname, '../src/data/ocala-results.json');
+const OVERRIDES_PATH = resolve(__dirname, 'match-result-overrides.json');
 const ACTIVITY_PATH = resolve(__dirname, '../public/data/live-activity.json');
 const EVENT_SLUG = 'ocala-open';
 const MAX_ACTIVITY_EVENTS = 80;
@@ -522,6 +523,30 @@ function writeActivityFeed(feed) {
 	writeFileSync(ACTIVITY_PATH, JSON.stringify(feed, null, 2) + '\n');
 }
 
+function loadMatchOverrides() {
+	if (!existsSync(OVERRIDES_PATH)) return {};
+	try {
+		return JSON.parse(readFileSync(OVERRIDES_PATH, 'utf-8'));
+	} catch {
+		return {};
+	}
+}
+
+/** Verified results the R2 scraper mis-read (e.g. WBF no-shows). Applied after each sync merge. */
+function applyMatchOverrides(divisions) {
+	const overrides = loadMatchOverrides();
+	for (const [motion, matches] of Object.entries(overrides)) {
+		const divId = motion;
+		if (!motion || typeof matches !== 'object') continue;
+		const div = { ...(divisions[divId] ?? {}) };
+		for (const [matchId, patch] of Object.entries(matches)) {
+			div[matchId] = { ...(div[matchId] ?? {}), ...patch };
+		}
+		divisions[divId] = div;
+	}
+	return divisions;
+}
+
 async function main() {
 	console.log('🎾  Syncing R2 Sports bracket results…');
 
@@ -594,6 +619,8 @@ async function main() {
 		}
 		mergedDivisions[divId] = mergedDiv;
 	}
+
+	applyMatchOverrides(mergedDivisions);
 
 	const mergedStr = JSON.stringify(mergedDivisions);
 	const existingStr = JSON.stringify(existing.divisions ?? {});
