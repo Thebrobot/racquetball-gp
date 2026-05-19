@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-19T15:48:52.574Z",
+  "lastUpdated": "2026-05-19T20:26:56.867Z",
   "divisions": {
     "mens-singles-open": {
       "MO9": {
@@ -172,7 +172,7 @@
       "MA1": {
         "player1": "B Anthony",
         "player2": "G Henry",
-        "winner": 2,
+        "winner": 1,
         "score": "WBF - No Show"
       }
     },
@@ -252,7 +252,7 @@
     },
     "mens-singles-c": {
       "MC3": {
-        "player1": "Michael Ammen",
+        "player1": "Michael Ammen - W",
         "player2": "Ben Mordkovich",
         "score": "11-15,15-6,11-1",
         "winner": 1
@@ -260,13 +260,13 @@
       "MC2": {
         "player1": "Gordon Kelly",
         "player2": "Ben Mordkovich",
-        "score": "WBF - No Show",
+        "score": "WBF - No Show MC 2",
         "winner": 2
       },
       "MC1": {
         "player1": "Gordon Kelly",
         "player2": "Michael Ammen",
-        "score": "WBF - No Show",
+        "score": "WBF - No Show MC 1",
         "winner": 2
       }
     },
@@ -374,19 +374,19 @@
         "winner": 2
       },
       "MOD5": {
-        "player1": "Orlando Josu Huyke / Mario Andres Huyke",
+        "player1": "Orlando Josu Huyke / Mario Andres Huyke - W",
         "player2": "Chris Steinheiser / Yelandi Rivero",
         "score": "15-8,15-4",
         "winner": 1
       },
       "MOD4": {
-        "player1": "Jiovanni Garcia / Charles Nolan",
+        "player1": "Jiovanni Garcia / Charles Nolan - W",
         "player2": "Chris Steinheiser / Yelandi Rivero",
         "score": "15-10,10-15,11-10",
         "winner": 1
       },
       "MOD3": {
-        "player1": "Orlando Josu Huyke / Mario Andres Huyke",
+        "player1": "Orlando Josu Huyke / Mario Andres Huyke - W",
         "player2": "Darron Toston / Chad Beacher",
         "score": "15-7,15-5",
         "winner": 1
@@ -400,7 +400,7 @@
       "MOD1": {
         "player1": "Jiovanni Garcia / Charles Nolan",
         "player2": "Orlando Josu Huyke / Mario Andres Huyke",
-        "score": "WBF - No Show",
+        "score": "WBF - No Show MOD 1",
         "winner": 2
       }
     },
@@ -578,13 +578,13 @@
         "winner": 1
       },
       "MXOA4": {
-        "player1": "Jim Russell / Kelly Van Zant - Russell",
+        "player1": "Jim Russell / Kelly Van Zant - Russell - W",
         "player2": "Michelle Jennings / Ron Jennings",
-        "score": "WBF - No Show",
+        "score": "WBF - No Show MXOA 4",
         "winner": 1
       },
       "MXOA3": {
-        "player1": "Laura Brandt / Gordon Henry",
+        "player1": "Laura Brandt / Gordon Henry - W",
         "player2": "Brendan Anthony / Havan Artman",
         "score": "15-6,15-9",
         "winner": 1
@@ -592,7 +592,7 @@
       "MXOA2": {
         "player1": "Michelle Jennings / Ron Jennings",
         "player2": "Brendan Anthony / Havan Artman",
-        "score": "WBF - No Show",
+        "score": "WBF - No Show MXOA 2",
         "winner": 2
       },
       "MXOA1": {
