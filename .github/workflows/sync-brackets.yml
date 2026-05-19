@@ -1,23 +1,12 @@
 name: Sync R2 Brackets
 
-# Runs every 10 minutes during the tournament weekend.
-# When bracket results change, commits the updated JSON and pushes, which
-# triggers Vercel to rebuild and redeploy the site automatically.
+# Automated sync is OFF (Ocala weekend complete). Results are maintained in-repo
+# with match-result-overrides.json for any corrections.
 #
-# You can also trigger a manual sync any time via the GitHub Actions UI
-# ("Run workflow" button on the Actions tab).
+# To pull fresh R2 data manually: Actions → Sync R2 Brackets → Run workflow.
 
 on:
-  schedule:
-    # Every 10 minutes, Thu–Mon covering May 14–18 2026 (tournament: May 15–17)
-    - cron: '*/10 * 14,15,16,17,18 5 *'
-  workflow_dispatch: # manual trigger
-  # Run once when the scraper or this workflow changes (push alone does not update JSON).
-  push:
-    branches: [main]
-    paths:
-      - 'scripts/sync-r2-brackets.mjs'
-      - '.github/workflows/sync-brackets.yml'
+  workflow_dispatch: # manual trigger only
 
 permissions:
   contents: write # needed to commit + push the results JSON
