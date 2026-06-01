@@ -1,21 +1,39 @@
 ---
-import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
+import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
 import {
 	LB_OVERVIEW_CATEGORY_ORDER,
 	LB_CATEGORY_HEADING,
 	LB_DIVISIONS_BY_CATEGORY,
+	DEFAULT_LEADERBOARD_CATEGORY,
+	DEFAULT_LEADERBOARD_DIVISION,
 	getDivisionLeaders,
 	getSortedRows,
+	getDivisionDisplayMeta,
+	leaderboardDivisionHref,
 	leaderboardTotal,
 	formatPlayerInitials,
 	isPendingPlaceholder,
 	type LbCategory,
-} from '../data/leaderboard';
-import { getPlayerImageForDisplay } from '../data/player-images';
-import { getPlayerSlug } from '../data/players';
-import { SEASON_STOPS } from '../data/season-stops';
-import { EVENTS } from '../data/events';
-import { titleSponsor } from '../data/ocala-sponsors';
+} from '../../data/leaderboard';
+import { getPlayerImageForDisplay } from '../../data/player-images';
+import { getPlayerSlug } from '../../data/players';
+import { SEASON_STOPS } from '../../data/season-stops';
+import { EVENTS } from '../../data/events';
+import { titleSponsor } from '../../data/ocala-sponsors';
+
+interface Props {
+	initialCategory?: LbCategory;
+	initialDivision?: string;
+	pageTitle?: string;
+	pageDescription?: string;
+}
+
+const {
+	initialCategory = DEFAULT_LEADERBOARD_CATEGORY,
+	initialDivision = DEFAULT_LEADERBOARD_DIVISION,
+	pageTitle = 'Leaderboard | Florida Racquetball Grand Prix 2026',
+	pageDescription = 'Live season standings for the Florida Racquetball Grand Prix, updated after every stop.',
+} = Astro.props;
 
 const stopsComplete = SEASON_STOPS.filter((s) => s.kind === 'done').length;
 const totalStops = SEASON_STOPS.filter((s) => s.kind !== 'champ').length;
@@ -23,24 +41,32 @@ const registeredCount = new Set(
 	EVENTS.flatMap((e) => (e.profiles ?? []).map((p) => p.name))
 ).size;
 
-const defaultRows = getSortedRows('singles', 'mens-singles-open', true);
-const defaultMaxPts = defaultRows.length ? leaderboardTotal(defaultRows[0]) : 1;
+const initialRows = getSortedRows(initialCategory, initialDivision, true);
+const initialMaxPts = initialRows.length ? leaderboardTotal(initialRows[0]) : 1;
+const initialMeta = getDivisionDisplayMeta(initialDivision);
+const initialContextLabel = initialMeta
+	? `${LB_CATEGORY_HEADING[initialMeta.category]} · ${initialMeta.divisionLabel}`
+	: `${LB_CATEGORY_HEADING[initialCategory]} · ${LB_DIVISIONS_BY_CATEGORY[initialCategory][0]?.label ?? 'Open'}`;
 
 const badgeLabel = { q: 'Qualified', pace: 'On Pace', chase: 'Chasing' } as const;
 const badgeMap = { q: 'badge-q', pace: 'badge-pace', chase: 'badge-chase' } as const;
 function badgeClass(status: keyof typeof badgeLabel): string {
 	return status === 'q' ? 'badge-q' : status === 'pace' ? 'badge-pace' : 'badge-chase';
 }
+
+const lbInitialState = JSON.stringify({ category: initialCategory, division: initialDivision });
 ---
 
 <GrandPrixLayout
-	title="Leaderboard | Florida Racquetball Grand Prix 2026"
-	description="Live season standings for the Florida Racquetball Grand Prix, updated after every stop."
+	title={pageTitle}
+	description={pageDescription}
 	spotlightLabel="Title sponsor"
 	spotlightName={titleSponsor.name}
 	spotlightBlurb={titleSponsor.blurb}
 	spotlightLogoUrl={titleSponsor.logoUrl}
 >
+	<script type="application/json" id="lb-initial-state" set:html={lbInitialState} />
+
 	<div class="lb-hero">
 		<img
 			class="lb-hero-series-img"
@@ -68,74 +94,6 @@ function badgeClass(status: keyof typeof badgeLabel): string {
 		</div>
 	</div>
 
-	<section class="lb-overview" id="lb-overview" aria-labelledby="lb-overview-heading">
-		<h2 id="lb-overview-heading" class="lb-overview-title">Leaders by division</h2>
-		<p class="lb-overview-lede">
-			Points are separate for singles, doubles, and mixed; each card highlights a player at the top of that bracket. Tap
-			to open full standings.
-		</p>
-		{
-			LB_OVERVIEW_CATEGORY_ORDER.map((cat: LbCategory) => (
-				<div class="lb-overview-block">
-					<h3 class="lb-overview-cat">{LB_CATEGORY_HEADING[cat]}</h3>
-					<div class="lb-overview-grid">
-						{LB_DIVISIONS_BY_CATEGORY[cat].flatMap((d) => {
-							const leaders = getDivisionLeaders(cat, d.id);
-							const label = `${LB_CATEGORY_HEADING[cat]} · ${d.label}`;
-							if (!leaders.length) {
-								return [{ division: d, leader: null as null, label }];
-							}
-							return leaders.map((leader) => ({ division: d, leader, label }));
-						}).map(({ division: d, leader, label }) => (
-								<article
-									class="lb-overview-card"
-									data-lb-event={cat}
-									data-lb-division={d.id}
-								>
-									<span class="lb-overview-div">{d.label}</span>
-									{leader ? (
-										<>
-											<div class="lb-overview-leader">
-												{getPlayerImageForDisplay(leader.name, 36) ? (
-													<img
-														class="lb-overview-avatar"
-														src={getPlayerImageForDisplay(leader.name, 36)}
-														alt=""
-														width="36"
-														height="36"
-														loading="lazy"
-														decoding="async"
-													/>
-												) : (
-													<span class="lb-overview-avatar lb-overview-avatar--fallback" aria-hidden="true">
-														{formatPlayerInitials(leader.name)}
-													</span>
-												)}
-												<a class="lb-overview-name lb-overview-name-link" href={`/players/${getPlayerSlug(leader.name)}`}>
-													{leader.name}
-												</a>
-											</div>
-											<span class="lb-overview-meta">
-												<span class="lb-overview-pts">
-													<strong>{leaderboardTotal(leader)}</strong> pts
-												</span>
-												<span class:list={['lb-badge', badgeClass(leader.status)]}>
-													{badgeLabel[leader.status]}
-												</span>
-											</span>
-										</>
-									) : (
-										<span class="lb-overview-empty">No results yet</span>
-									)}
-									<span class="lb-overview-hint">View standings →</span>
-								</article>
-						))}
-					</div>
-				</div>
-			))
-		}
-	</section>
-
 	<div id="lb-detail" class="lb-detail">
 		<div class="lb-standings-panel">
 			<header class="lb-panel-header">
@@ -145,11 +103,28 @@ function badgeClass(status: keyof typeof badgeLabel): string {
 
 			<div class="lb-detail-toolbar">
 				<div class="lb-tabs-row" role="tablist" aria-label="Standings category">
-					<button class="lb-tab active" type="button" data-lb-tab="singles" onclick="setLbTab('singles')">
+					<button
+						class:list={['lb-tab', { active: initialCategory === 'singles' }]}
+						type="button"
+						data-lb-tab="singles"
+						onclick="setLbTab('singles')"
+					>
 						Singles
 					</button>
-					<button class="lb-tab" type="button" data-lb-tab="doubles" onclick="setLbTab('doubles')">Doubles</button>
-					<button class="lb-tab" type="button" data-lb-tab="mixed" onclick="setLbTab('mixed')">
+					<button
+						class:list={['lb-tab', { active: initialCategory === 'doubles' }]}
+						type="button"
+						data-lb-tab="doubles"
+						onclick="setLbTab('doubles')"
+					>
+						Doubles
+					</button>
+					<button
+						class:list={['lb-tab', { active: initialCategory === 'mixed' }]}
+						type="button"
+						data-lb-tab="mixed"
+						onclick="setLbTab('mixed')"
+					>
 						Mixed Doubles
 					</button>
 				</div>
@@ -157,8 +132,8 @@ function badgeClass(status: keyof typeof badgeLabel): string {
 					<label class="lb-division-label" for="divSelect">Division</label>
 					<select class="lb-select" id="divSelect" onchange="onLbDivisionChange()">
 						{
-							LB_DIVISIONS_BY_CATEGORY.singles.map((d) => (
-								<option value={d.id}>{d.label}</option>
+							LB_DIVISIONS_BY_CATEGORY[initialCategory].map((d) => (
+								<option value={d.id} selected={d.id === initialDivision}>{d.label}</option>
 							))
 						}
 					</select>
@@ -166,7 +141,7 @@ function badgeClass(status: keyof typeof badgeLabel): string {
 			</div>
 
 			<p class="lb-context" id="lb-context-line" aria-live="polite">
-				{LB_CATEGORY_HEADING.singles} · {LB_DIVISIONS_BY_CATEGORY.singles[0]?.label ?? 'Open'}
+				{initialContextLabel}
 			</p>
 
 			<section class="lb-spotlight" aria-label="Top three in selected division" aria-live="polite">
@@ -192,9 +167,9 @@ function badgeClass(status: keyof typeof badgeLabel): string {
 					</tr>
 				</thead>
 				<tbody id="lb-tbody">
-					{defaultRows.map((r, i) => {
+					{initialRows.map((r, i) => {
 						const total = leaderboardTotal(r);
-						const pctFill = defaultMaxPts > 0 ? Math.round((total / defaultMaxPts) * 100) : 0;
+						const pctFill = initialMaxPts > 0 ? Math.round((total / initialMaxPts) * 100) : 0;
 						return (
 							<tr>
 								<td class="lb-rank-cell">
@@ -263,4 +238,78 @@ function badgeClass(status: keyof typeof badgeLabel): string {
 			</div>
 		</div>
 	</div>
+
+	<section class="lb-overview" id="lb-overview" aria-labelledby="lb-overview-heading">
+		<h2 id="lb-overview-heading" class="lb-overview-title">Leaders by division</h2>
+		<p class="lb-overview-lede">
+			Points are separate for singles, doubles, and mixed; each card highlights a player at the top of that bracket. Tap
+			a card to jump to that division's standings.
+		</p>
+		{
+			LB_OVERVIEW_CATEGORY_ORDER.map((cat: LbCategory) => (
+				<div class="lb-overview-block">
+					<h3 class="lb-overview-cat">{LB_CATEGORY_HEADING[cat]}</h3>
+					<div class="lb-overview-grid">
+						{LB_DIVISIONS_BY_CATEGORY[cat].flatMap((d) => {
+							const leaders = getDivisionLeaders(cat, d.id);
+							const label = `${LB_CATEGORY_HEADING[cat]} · ${d.label}`;
+							if (!leaders.length) {
+								return [{ division: d, leader: null as null, label }];
+							}
+							return leaders.map((leader) => ({ division: d, leader, label }));
+						}).map(({ division: d, leader, label }) => (
+								<a
+									class="lb-overview-card"
+									href={leaderboardDivisionHref(d.id)}
+									data-lb-event={cat}
+									data-lb-division={d.id}
+								>
+									<span class="lb-overview-div">{d.label}</span>
+									{leader ? (
+										<>
+											<div class="lb-overview-leader">
+												{getPlayerImageForDisplay(leader.name, 36) ? (
+													<img
+														class="lb-overview-avatar"
+														src={getPlayerImageForDisplay(leader.name, 36)}
+														alt=""
+														width="36"
+														height="36"
+														loading="lazy"
+														decoding="async"
+													/>
+												) : (
+													<span class="lb-overview-avatar lb-overview-avatar--fallback" aria-hidden="true">
+														{formatPlayerInitials(leader.name)}
+													</span>
+												)}
+												<span
+													class="lb-overview-name lb-overview-name-link"
+													onclick={`event.preventDefault(); event.stopPropagation(); window.location.href='/players/${getPlayerSlug(leader.name)}';`}
+													role="link"
+													tabindex="0"
+												>
+													{leader.name}
+												</span>
+											</div>
+											<span class="lb-overview-meta">
+												<span class="lb-overview-pts">
+													<strong>{leaderboardTotal(leader)}</strong> pts
+												</span>
+												<span class:list={['lb-badge', badgeClass(leader.status)]}>
+													{badgeLabel[leader.status]}
+												</span>
+											</span>
+										</>
+									) : (
+										<span class="lb-overview-empty">No results yet</span>
+									)}
+									<span class="lb-overview-hint">View standings →</span>
+								</a>
+						))}
+					</div>
+				</div>
+			))
+		}
+	</section>
 </GrandPrixLayout>

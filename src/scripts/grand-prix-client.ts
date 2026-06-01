@@ -4,6 +4,9 @@ import {
 	LB_CATEGORY_HEADING,
 	isDivisionInCategory,
 	isValidLbCategory,
+	isValidDivisionId,
+	getCategoryForDivision,
+	leaderboardDivisionHref,
 	type LbCategory,
 	PENDING_ROW,
 	leaderboardTotal,
@@ -61,13 +64,21 @@ function rebuildDivisionSelect() {
 	sel.value = pick;
 }
 
+function parseDivisionFromPath(): string | null {
+	const match = window.location.pathname.match(/^\/leaderboard\/([^/]+)\/?$/);
+	const id = match?.[1];
+	if (!id || !isValidDivisionId(id)) return null;
+	return id;
+}
+
 function syncUrl() {
 	const sel = document.getElementById('divSelect') as HTMLSelectElement | null;
 	if (!sel) return;
-	const params = new URLSearchParams(window.location.search);
-	params.set('event', currentTab);
-	params.set('division', sel.value);
-	window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+	const href = leaderboardDivisionHref(sel.value);
+	const current = window.location.pathname.replace(/\/$/, '') || '/';
+	if (current !== href) {
+		window.history.replaceState({ lbDivision: sel.value }, '', href);
+	}
 }
 
 type LiveWeekendEntry = {
@@ -290,28 +301,55 @@ function initLeaderboardPage() {
 	const ev = params.get('event');
 	const div = params.get('division');
 	if (ev && div && isValidLbCategory(ev) && isDivisionInCategory(ev, div)) {
-		currentTab = ev;
-		document.querySelectorAll('.lb-tab[data-lb-tab]').forEach((b) => {
-			b.classList.toggle('active', (b as HTMLElement).dataset.lbTab === ev);
-		});
-		rebuildDivisionSelect();
-		sel.value = div;
-		writeDivisionForCurrentTab(div);
-		syncUrl();
-		renderLb();
+		window.history.replaceState(null, '', leaderboardDivisionHref(div));
+		goToStandings(ev, div, false);
+		return;
+	}
+
+	const pathDivision = parseDivisionFromPath();
+	if (pathDivision) {
+		const cat = getCategoryForDivision(pathDivision);
+		if (cat) {
+			goToStandings(cat, pathDivision, false);
+		} else {
+			rebuildDivisionSelect();
+			renderLb();
+		}
 	} else {
-		rebuildDivisionSelect();
+		const stateEl = document.getElementById('lb-initial-state');
+		if (stateEl?.textContent) {
+			try {
+				const initial = JSON.parse(stateEl.textContent) as { category: LbCategory; division: string };
+				currentTab = initial.category;
+				document.querySelectorAll('.lb-tab[data-lb-tab]').forEach((b) => {
+					b.classList.toggle('active', (b as HTMLElement).dataset.lbTab === initial.category);
+				});
+				rebuildDivisionSelect();
+				sel.value = initial.division;
+				writeDivisionForCurrentTab(initial.division);
+			} catch {
+				rebuildDivisionSelect();
+			}
+		} else {
+			rebuildDivisionSelect();
+		}
 		renderLb();
 	}
 
-	document.getElementById('lb-overview')?.addEventListener('click', (e) => {
-		if ((e.target as HTMLElement).closest('a.lb-overview-name-link')) return;
-		const card = (e.target as HTMLElement).closest<HTMLElement>('[data-lb-event][data-lb-division]');
-		if (!card) return;
-		const cat = card.dataset.lbEvent;
-		const division = card.dataset.lbDivision;
-		if (cat && division && isValidLbCategory(cat) && isDivisionInCategory(cat, division)) {
-			goToStandings(cat, division, true);
+	window.addEventListener('popstate', () => {
+		const divId = parseDivisionFromPath();
+		if (divId) {
+			const cat = getCategoryForDivision(divId);
+			if (cat) goToStandings(cat, divId, false);
+			return;
+		}
+		const stateEl = document.getElementById('lb-initial-state');
+		if (!stateEl?.textContent) return;
+		try {
+			const initial = JSON.parse(stateEl.textContent) as { category: LbCategory; division: string };
+			goToStandings(initial.category, initial.division, false);
+		} catch {
+			/* ignore */
 		}
 	});
 }

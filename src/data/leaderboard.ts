@@ -2,6 +2,7 @@
 
 import gpPoints from './gp-points.json';
 import { getPlayerImageForDisplay } from './player-images';
+import { countPlayerWinsInDivision } from './match-wins';
 
 export type LbCategory = 'singles' | 'doubles' | 'mixed';
 export type LbStatus = 'q' | 'pace' | 'chase';
@@ -85,6 +86,34 @@ export function isDivisionInCategory(category: LbCategory, divisionId: string): 
 	return LB_DIVISIONS_BY_CATEGORY[category].some((d) => d.id === divisionId);
 }
 
+export const DEFAULT_LEADERBOARD_CATEGORY: LbCategory = 'singles';
+export const DEFAULT_LEADERBOARD_DIVISION = 'mens-singles-open';
+
+/** Resolve category tab from a division id (ids are unique site-wide). */
+export function getCategoryForDivision(divisionId: string): LbCategory | null {
+	for (const [category, list] of Object.entries(LB_DIVISIONS_BY_CATEGORY) as [LbCategory, LbDivisionMeta[]][]) {
+		if (list.some((d) => d.id === divisionId)) return category;
+	}
+	return null;
+}
+
+export function isValidDivisionId(divisionId: string): boolean {
+	return getCategoryForDivision(divisionId) !== null;
+}
+
+/** Path-based deep link, e.g. `/leaderboard/mixed-doubles`. */
+export function leaderboardDivisionHref(divisionId: string): string {
+	return `/leaderboard/${divisionId}`;
+}
+
+export function getDivisionDisplayMeta(divisionId: string): { category: LbCategory; divisionLabel: string } | null {
+	const category = getCategoryForDivision(divisionId);
+	if (!category) return null;
+	const meta = LB_DIVISIONS_BY_CATEGORY[category].find((d) => d.id === divisionId);
+	if (!meta) return null;
+	return { category, divisionLabel: meta.label };
+}
+
 export interface LbRow {
 	name: string;
 	city: string;
@@ -127,13 +156,14 @@ const emptyMixed = {
 	'mixed-doubles': [],
 } as const;
 
-function enrichRow(row: LbRow): LbRow {
+function enrichRow(row: LbRow, divisionId: string): LbRow {
+	const wins = countPlayerWinsInDivision(row.name, divisionId);
 	const image = getPlayerImageForDisplay(row.name, 128);
-	return image ? { ...row, image } : row;
+	return image ? { ...row, wins, image } : { ...row, wins };
 }
 
-function enrichDivisionRows(rows: LbRow[]): LbRow[] {
-	const enriched = rows.map(enrichRow);
+function enrichDivisionRows(rows: LbRow[], divisionId: string): LbRow[] {
+	const enriched = rows.map((row) => enrichRow(row, divisionId));
 	const max = Math.max(...enriched.map((r) => leaderboardTotal(r)), 0);
 	if (max <= 0) return enriched;
 	return enriched.map((r) => ({
@@ -145,7 +175,7 @@ function enrichDivisionRows(rows: LbRow[]): LbRow[] {
 function buildLbData(): LbData {
 	const synced = gpPoints.standings as LbData;
 	const enrichCategory = (cat: Record<string, LbRow[]>) =>
-		Object.fromEntries(Object.entries(cat).map(([id, rows]) => [id, enrichDivisionRows(rows)]));
+		Object.fromEntries(Object.entries(cat).map(([id, rows]) => [id, enrichDivisionRows(rows, id)]));
 
 	return {
 		singles: { ...emptySingles, ...enrichCategory(synced.singles ?? {}) },

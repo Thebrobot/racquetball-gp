@@ -4,8 +4,11 @@ const path = raw === '' ? '/' : raw;
 
 function active(href: string): string {
 	const isHome = href === '/';
-	const match = isHome ? path === '/' : path === href;
-	return match ? 'active' : '';
+	if (isHome) return path === '/' ? 'active' : '';
+	if (href === '/leaderboard') {
+		return path === '/leaderboard' || path.startsWith('/leaderboard/') ? 'active' : '';
+	}
+	return path === href ? 'active' : '';
 }
 
 function bottomActive(href: string): string {
@@ -88,7 +91,7 @@ function bottomActive(href: string): string {
 		</svg>
 		<span>Schedule</span>
 	</a>
-	<a href="/leaderboard" class:list={['gp-bottom-nav-item', bottomActive('/leaderboard')]} aria-current={path === '/leaderboard' ? 'page' : undefined}>
+	<a href="/leaderboard" class:list={['gp-bottom-nav-item', bottomActive('/leaderboard')]} aria-current={path === '/leaderboard' || path.startsWith('/leaderboard/') ? 'page' : undefined}>
 		<svg viewBox="0 0 24 24" aria-hidden="true">
 			<line x1="18" y1="20" x2="18" y2="10"/>
 			<line x1="12" y1="20" x2="12" y2="4"/>

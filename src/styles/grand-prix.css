@@ -10,6 +10,8 @@
   --muted: rgba(255,255,255,0.55);
   --card-bg: rgba(255,255,255,0.04);
   --card-border: rgba(255,255,255,0.08);
+  /* Match floating nav pill width site-wide */
+  --gp-shell-max: min(1400px, calc(100vw - 20px));
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
@@ -23,6 +25,9 @@ body {
   min-height: 100vh;
 }
 @media (max-width: 640px) {
+  :root {
+    --gp-shell-max: calc(100vw - 16px);
+  }
   body {
     font-size: 18px;
     line-height: 1.65;
@@ -61,7 +66,7 @@ html.nav-drawer-open {
   flex-wrap: nowrap;
   justify-content: center;
   gap: 16px 24px;
-  max-width: min(1400px, calc(100vw - 20px));
+  max-width: var(--gp-shell-max);
   min-height: 56px;
   padding: 14px 32px 14px 28px;
   background: rgba(10, 22, 40, 0.92);
@@ -3582,10 +3587,10 @@ a.sponsor-slot.sponsor-slot-title:hover {
 .lb-stat-label { font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
 
 .lb-overview {
-  max-width: 1000px;
+  max-width: var(--gp-shell-max);
   margin: 0 auto;
-  padding: 36px 24px 40px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 36px 0 40px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 .lb-overview-title {
   font-family: 'Barlow Condensed', sans-serif;
@@ -3633,6 +3638,7 @@ a.sponsor-slot.sponsor-slot-title:hover {
   align-items: flex-start;
   gap: 6px;
   text-align: left;
+  text-decoration: none;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 10px;
@@ -3704,12 +3710,16 @@ a.sponsor-slot.sponsor-slot-title:hover {
 }
 .lb-detail {
   scroll-margin-top: 24px;
+  max-width: var(--gp-shell-max);
+  margin: 0 auto;
+  padding: 36px 0 0;
 }
 
 .lb-standings-panel {
-  max-width: 1000px;
-  margin: 0 auto 80px;
-  padding: 28px 24px 32px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 28px clamp(16px, 2.5vw, 32px) 32px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--card-border);
   border-radius: 20px;
@@ -4044,7 +4054,7 @@ footer {
   .nav-pill {
     padding: 10px 14px 10px 12px;
     gap: 10px 12px;
-    max-width: calc(100vw - 16px);
+    max-width: var(--gp-shell-max);
     min-height: 0;
     justify-content: flex-start;
     /* Fixed drawer must not be clipped (Safari + overflow-x: clip on parent). */

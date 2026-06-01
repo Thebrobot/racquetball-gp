@@ -4,7 +4,7 @@ import TitleSponsorIntro from '../components/grand-prix/TitleSponsorIntro.astro'
 import PlayerSpotlight from '../components/grand-prix/PlayerSpotlight.astro';
 import SeasonStopsBar from '../components/grand-prix/SeasonStopsBar.astro';
 import SeasonStopsBento from '../components/grand-prix/SeasonStopsBento.astro';
-import { HOME_SPOTLIGHT_TRACKS, getTopN } from '../data/leaderboard';
+import { HOME_SPOTLIGHT_TRACKS, getTopN, leaderboardDivisionHref } from '../data/leaderboard';
 import { getFeaturedEvent } from '../data/events';
 import { getNextSeasonStop } from '../data/season-stops';
 import { titleSponsor } from '../data/ocala-sponsors';
@@ -13,7 +13,7 @@ import heroVideo from '../partials/grand-prix-hero-video.html?raw';
 const spotlightSpots = HOME_SPOTLIGHT_TRACKS.map((t) => ({
 	trackLabel: t.label,
 	leader: getTopN(t.category, t.division, 1)[0],
-	standingsHref: `/leaderboard?event=${t.category}&division=${encodeURIComponent(t.division)}`,
+	standingsHref: leaderboardDivisionHref(t.division),
 }));
 
 const featured = getFeaturedEvent();

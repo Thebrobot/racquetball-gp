@@ -1,0 +1,26 @@
+---
+import LeaderboardPage from '../../components/grand-prix/LeaderboardPage.astro';
+import {
+	LB_DIVISIONS_BY_CATEGORY,
+	LB_CATEGORY_HEADING,
+	getCategoryForDivision,
+	getDivisionDisplayMeta,
+} from '../../data/leaderboard';
+
+export function getStaticPaths() {
+	return Object.values(LB_DIVISIONS_BY_CATEGORY).flatMap((list) =>
+		list.map((d) => ({ params: { division: d.id } }))
+	);
+}
+
+const { division } = Astro.params;
+const category = getCategoryForDivision(division!)!;
+const meta = getDivisionDisplayMeta(division!)!;
+---
+
+<LeaderboardPage
+	initialCategory={category}
+	initialDivision={division!}
+	pageTitle={`${LB_CATEGORY_HEADING[meta.category]} · ${meta.divisionLabel} | Leaderboard | Florida Racquetball Grand Prix 2026`}
+	pageDescription={`${LB_CATEGORY_HEADING[meta.category]} ${meta.divisionLabel} standings for the Florida Racquetball Grand Prix 2026 season.`}
+/>
