@@ -1,6 +1,6 @@
 ---
 import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
-import { getAllPlayers, getPlayerMatchHistory, getPlayerScheduleEntries, GP_SERIES_POSTS, PLAYER_IMAGES } from '../../data/players';
+import { getAllPlayers, getPlayerMatchHistory, getPlayerScheduleEntries, getPlayerGrandPrixStandings, GP_SERIES_POSTS, getPlayerImageForDisplay, getPlayerImageSrcSet } from '../../data/players';
 import { resolveTeamMembers, type TeamResolveCtx } from '../../lib/resolve-team-members';
 import { titleSponsor } from '../../data/ocala-sponsors';
 
@@ -8,16 +8,19 @@ export async function getStaticPaths() {
 	return getAllPlayers().map((player) => ({ params: { slug: player.slug }, props: { player } }));
 }
 
-const { player } = Astro.props;
+const { player: routePlayer } = Astro.props;
 
-// Build a lookup so doubles team strings ("Artman / Jennings", "M. Huyke / O. Huyke")
-// can be resolved to full names + profile slugs.
+// Resolve fresh profile data on each render (props from getStaticPaths can be stale in dev).
 const allPlayers = getAllPlayers();
+const player = allPlayers.find((p) => p.slug === routePlayer.slug) ?? routePlayer;
+
 const bio =
 	player.bio ||
 	`Grand Prix competitor from ${player.city ?? 'Florida'}. Focused on steady finishes and building points across every stop.`;
 const matchHistory = getPlayerMatchHistory(player.name);
+const gpStandings = getPlayerGrandPrixStandings(player.name);
 const scheduleEntries = getPlayerScheduleEntries(player.name, player.events ?? []);
+const profilePhoto = getPlayerImageSrcSet(player.name, 140);
 
 const wins = matchHistory.filter((m) => m.result === 'win').length;
 const losses = matchHistory.filter((m) => m.result === 'loss').length;
@@ -56,10 +59,12 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 	<section class="event-hero player-hero">
 		<div class="section-label">Player profile</div>
 		<div class="player-hero-media">
-	{(PLAYER_IMAGES[player.name] || player.imageUrl) ? (
+	{profilePhoto ? (
 			<img
 				class="player-avatar"
-				src={PLAYER_IMAGES[player.name] ?? player.imageUrl}
+				src={profilePhoto.src}
+				srcset={profilePhoto.srcSet}
+				sizes="140px"
 				alt={`${player.name} profile photo`}
 				width="140"
 				height="140"
@@ -114,6 +119,36 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 		</div>
 
 	</section>
+
+	<!-- ── GRAND PRIX POINTS ── -->
+	{gpStandings.length > 0 && (
+		<section class="event-section player-gp-points-section" aria-labelledby="player-gp-points-title">
+			<header class="event-section-header">
+				<h2 id="player-gp-points-title">Grand Prix points</h2>
+			</header>
+			<div class="player-gp-points-grid">
+				{gpStandings.map((entry) => (
+					<article class="player-gp-points-card">
+						<div class="player-gp-points-division">{entry.divisionLabel}</div>
+						<dl class="player-gp-points-stats">
+							<div class="player-gp-points-stat">
+								<dt>Finish</dt>
+								<dd>#{entry.place}</dd>
+							</div>
+							<div class="player-gp-points-stat">
+								<dt>Lap 1</dt>
+								<dd>{entry.s1}</dd>
+							</div>
+							<div class="player-gp-points-stat player-gp-points-stat--total">
+								<dt>Total</dt>
+								<dd>{entry.total}</dd>
+							</div>
+						</dl>
+					</article>
+				))}
+			</div>
+		</section>
+	)}
 
 	<!-- ── SCHEDULE ── -->
 	<section class="event-section player-schedule-section" aria-labelledby="player-events-title">
@@ -282,8 +317,15 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 									row.result === 'loss' ? 'player-history-badge--loss' : '',
 									row.result === 'pending' ? 'player-history-badge--pending' : '',
 									row.result === 'bye' ? 'player-history-badge--bye' : '',
+									row.result === 'walkover' ? 'player-history-badge--walkover' : '',
 								]}
-								title={row.result === 'bye' ? 'Bye (does not count as a match win)' : undefined}
+								title={
+									row.result === 'bye'
+										? 'Bye (does not count as a match win)'
+										: row.result === 'walkover'
+											? 'Opponent no-show (does not count as a match win)'
+											: undefined
+								}
 							>
 								{row.result === 'win'
 									? 'W'
@@ -291,9 +333,11 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 										? 'L'
 										: row.result === 'bye'
 											? 'Bye'
-											: row.result === 'pending'
-												? 'P'
-												: 'TBD'}
+											: row.result === 'walkover'
+												? 'WBF'
+												: row.result === 'pending'
+													? 'P'
+													: 'TBD'}
 							</div>
 						</article>
 					))}

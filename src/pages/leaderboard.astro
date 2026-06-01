@@ -4,11 +4,15 @@ import {
 	LB_OVERVIEW_CATEGORY_ORDER,
 	LB_CATEGORY_HEADING,
 	LB_DIVISIONS_BY_CATEGORY,
-	getDivisionLeader,
+	getDivisionLeaders,
 	getSortedRows,
 	leaderboardTotal,
+	formatPlayerInitials,
+	isPendingPlaceholder,
 	type LbCategory,
 } from '../data/leaderboard';
+import { getPlayerImageForDisplay } from '../data/player-images';
+import { getPlayerSlug } from '../data/players';
 import { SEASON_STOPS } from '../data/season-stops';
 import { EVENTS } from '../data/events';
 import { titleSponsor } from '../data/ocala-sponsors';
@@ -67,29 +71,50 @@ function badgeClass(status: keyof typeof badgeLabel): string {
 	<section class="lb-overview" id="lb-overview" aria-labelledby="lb-overview-heading">
 		<h2 id="lb-overview-heading" class="lb-overview-title">Leaders by division</h2>
 		<p class="lb-overview-lede">
-			Points are separate for singles, doubles, and mixed; each card is the current #1 in that bracket. Tap to open
-			full standings.
+			Points are separate for singles, doubles, and mixed; each card highlights a player at the top of that bracket. Tap
+			to open full standings.
 		</p>
 		{
 			LB_OVERVIEW_CATEGORY_ORDER.map((cat: LbCategory) => (
 				<div class="lb-overview-block">
 					<h3 class="lb-overview-cat">{LB_CATEGORY_HEADING[cat]}</h3>
 					<div class="lb-overview-grid">
-						{LB_DIVISIONS_BY_CATEGORY[cat].map((d) => {
-							const leader = getDivisionLeader(cat, d.id);
+						{LB_DIVISIONS_BY_CATEGORY[cat].flatMap((d) => {
+							const leaders = getDivisionLeaders(cat, d.id);
 							const label = `${LB_CATEGORY_HEADING[cat]} · ${d.label}`;
-							return (
-								<button
-									type="button"
+							if (!leaders.length) {
+								return [{ division: d, leader: null as null, label }];
+							}
+							return leaders.map((leader) => ({ division: d, leader, label }));
+						}).map(({ division: d, leader, label }) => (
+								<article
 									class="lb-overview-card"
 									data-lb-event={cat}
 									data-lb-division={d.id}
-									aria-label={`View ${label} standings`}
 								>
 									<span class="lb-overview-div">{d.label}</span>
 									{leader ? (
 										<>
-											<span class="lb-overview-name">{leader.name}</span>
+											<div class="lb-overview-leader">
+												{getPlayerImageForDisplay(leader.name, 36) ? (
+													<img
+														class="lb-overview-avatar"
+														src={getPlayerImageForDisplay(leader.name, 36)}
+														alt=""
+														width="36"
+														height="36"
+														loading="lazy"
+														decoding="async"
+													/>
+												) : (
+													<span class="lb-overview-avatar lb-overview-avatar--fallback" aria-hidden="true">
+														{formatPlayerInitials(leader.name)}
+													</span>
+												)}
+												<a class="lb-overview-name lb-overview-name-link" href={`/players/${getPlayerSlug(leader.name)}`}>
+													{leader.name}
+												</a>
+											</div>
 											<span class="lb-overview-meta">
 												<span class="lb-overview-pts">
 													<strong>{leaderboardTotal(leader)}</strong> pts
@@ -103,9 +128,8 @@ function badgeClass(status: keyof typeof badgeLabel): string {
 										<span class="lb-overview-empty">No results yet</span>
 									)}
 									<span class="lb-overview-hint">View standings →</span>
-								</button>
-							);
-						})}
+								</article>
+						))}
 					</div>
 				</div>
 			))
@@ -185,10 +209,33 @@ function badgeClass(status: keyof typeof badgeLabel): string {
 									)}
 								</td>
 								<td>
-									<span class="lb-player-name">{r.name}</span>
-									<span class="lb-player-city">{r.city}</span>
-									{r.note && <span style="font-size:13px;color:var(--green);display:block;">{r.note}</span>}
-									<div class="lb-progress-bar"><div class="lb-progress-fill" style={`width:${pctFill}%`}></div></div>
+									<div class="lb-player-cell">
+										{getPlayerImageForDisplay(r.name, 40) ? (
+											<img
+												class="lb-player-avatar"
+												src={getPlayerImageForDisplay(r.name, 40)}
+												alt=""
+												width="40"
+												height="40"
+												loading="lazy"
+												decoding="async"
+											/>
+										) : (
+											<span class="lb-player-avatar lb-player-avatar--fallback" aria-hidden="true">
+												{formatPlayerInitials(r.name)}
+											</span>
+										)}
+										<div class="lb-player-text">
+											{isPendingPlaceholder(r) ? (
+												<span class="lb-player-name">{r.name}</span>
+											) : (
+												<a class="lb-player-name lb-player-name-link" href={`/players/${getPlayerSlug(r.name)}`}>{r.name}</a>
+											)}
+											{r.city && <span class="lb-player-city">{r.city}</span>}
+											{r.note && <span style="font-size:13px;color:var(--green);display:block;">{r.note}</span>}
+											<div class="lb-progress-bar"><div class="lb-progress-fill" style={`width:${pctFill}%`}></div></div>
+										</div>
+									</div>
 								</td>
 								<td class="lb-stops right hide-mobile">{r.s1 || '-'}</td>
 								<td class="lb-stops right hide-mobile">{r.s2 || '-'}</td>

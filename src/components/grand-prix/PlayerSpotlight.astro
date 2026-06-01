@@ -1,6 +1,8 @@
 ---
 import type { LbRow } from '../../data/leaderboard';
 import { formatPlayerInitials, isPendingPlaceholder } from '../../data/leaderboard';
+import { getPlayerImageForDisplay } from '../../data/player-images';
+import { getPlayerSlug } from '../../data/players';
 
 interface Spot {
 	trackLabel: string;
@@ -24,18 +26,20 @@ const { spots } = Astro.props;
 		</h2>
 		<div class="player-spotlight-grid">
 			{
-				spots.map(({ trackLabel, leader, standingsHref }) => (
+				spots.map(({ trackLabel, leader, standingsHref }) => {
+					const photo = getPlayerImageForDisplay(leader.name, 160);
+					return (
 					<article
 						class:list={['player-spot-card', { 'player-spot-card--pending': isPendingPlaceholder(leader) }]}
 					>
-						<div class:list={['player-spot-media', { 'player-spot-media--fallback': !leader.image }]}>
-							{leader.image ? (
+						<div class:list={['player-spot-media', { 'player-spot-media--fallback': !photo }]}>
+							{photo ? (
 								<img
 									class="player-spot-media-img"
-									src={leader.image}
+									src={photo}
 									alt=""
-									width="400"
-									height="500"
+									width="160"
+									height="200"
 									loading="lazy"
 									decoding="async"
 								/>
@@ -47,8 +51,16 @@ const { spots } = Astro.props;
 						</div>
 						<div class="player-spot-card-body">
 							<p class="player-spot-kicker">{trackLabel}</p>
-							<h3 class="player-spot-name">{leader.name}</h3>
-							<p class="player-spot-city">{leader.city}</p>
+							<h3 class="player-spot-name">
+								{isPendingPlaceholder(leader) ? (
+									leader.name
+								) : (
+									<a class="player-spot-name-link" href={`/players/${getPlayerSlug(leader.name)}`}>
+										{leader.name}
+									</a>
+								)}
+							</h3>
+							{leader.city && <p class="player-spot-city">{leader.city}</p>}
 							{leader.tagline && <p class="player-spot-tagline">{leader.tagline}</p>}
 							<p class="player-spot-pts">
 								<strong>{leader.s1 + leader.s2}</strong> pts
@@ -60,7 +72,8 @@ const { spots } = Astro.props;
 							)}
 						</div>
 					</article>
-				))
+					);
+				})
 			}
 		</div>
 		<a class="player-spotlight-cta" href="/leaderboard">All divisions & season overview →</a>

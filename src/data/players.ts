@@ -1,8 +1,13 @@
-import { LB_CATEGORY_HEADING, LB_DIVISIONS_BY_CATEGORY, lbData } from './leaderboard';
+import { LB_CATEGORY_HEADING, LB_DIVISIONS_BY_CATEGORY, LB_OVERVIEW_CATEGORY_ORDER, lbData, leaderboardTotal, type LbCategory, type LbRow } from './leaderboard';
 import { EVENTS } from './events';
 import type { EventBracketMatch, EventBracketRound } from './events';
-import { PLAYER_IMAGES } from './player-images';
-export { PLAYER_IMAGES };
+import { getPlayerImageForDisplay } from './player-images';
+export {
+	PLAYER_IMAGES,
+	getPlayerImageForDisplay,
+	getPlayerImageSrcSet,
+	resolvePlayerImage,
+} from './player-images';
 
 export interface PlayerEventCall {
 	eventName: string;
@@ -167,17 +172,58 @@ function isIndividual(name: string): boolean {
 	return !name.includes('/');
 }
 
+/** Canonical labels like "Singles · A" — one per division id. */
+const DIVISION_DISPLAY_LABELS = Object.fromEntries(
+	Object.entries(LB_DIVISIONS_BY_CATEGORY).flatMap(([category, list]) =>
+		list.map((div) => [`${category}:${div.id}`, `${LB_CATEGORY_HEADING[category as LbCategory]} · ${div.label}`]),
+	),
+) as Record<string, string>;
+
+/** Map event bracket labels ("Men's Singles: A") → canonical display labels. */
+const EVENT_DIVISION_DISPLAY = new Map<string, string>();
+for (const event of EVENTS) {
+	for (const div of event.divisionDetails ?? []) {
+		for (const [category, list] of Object.entries(LB_DIVISIONS_BY_CATEGORY)) {
+			const meta = list.find((d) => d.id === div.id);
+			if (meta) {
+				EVENT_DIVISION_DISPLAY.set(div.label, `${LB_CATEGORY_HEADING[category as LbCategory]} · ${meta.label}`);
+				break;
+			}
+		}
+	}
+}
+
+function canonicalDivisionLabel(label: string): string {
+	return EVENT_DIVISION_DISPLAY.get(label) ?? label;
+}
+
+const DIVISION_LABEL_SORT_ORDER = new Map<string, number>(
+	Object.entries(LB_DIVISIONS_BY_CATEGORY).flatMap(([category, list]) => {
+		const catIndex = LB_OVERVIEW_CATEGORY_ORDER.indexOf(category as LbCategory);
+		return list.map((div, divIndex) => [
+			`${LB_CATEGORY_HEADING[category as LbCategory]} · ${div.label}`,
+			catIndex * 100 + divIndex,
+		] as [string, number]);
+	}),
+);
+
+function sortDivisionLabels(labels: string[]): string[] {
+	return [...labels].sort(
+		(a, b) => (DIVISION_LABEL_SORT_ORDER.get(a) ?? 999) - (DIVISION_LABEL_SORT_ORDER.get(b) ?? 999),
+	);
+}
+
+function addPlayerDivision(divisions: string[], label: string): void {
+	const canon = canonicalDivisionLabel(label);
+	if (!divisions.includes(canon)) divisions.push(canon);
+}
+
 export function getAllPlayers(): PlayerProfile[] {
 	const map = new Map<string, PlayerProfile>();
-	const divisionLabels = Object.fromEntries(
-		Object.entries(LB_DIVISIONS_BY_CATEGORY).flatMap(([category, list]) =>
-			list.map((div) => [`${category}:${div.id}`, `${LB_CATEGORY_HEADING[category as keyof typeof LB_CATEGORY_HEADING]} · ${div.label}`]),
-		),
-	);
 
 	Object.entries(lbData).forEach(([category, divisions]) => {
 		Object.entries(divisions).forEach(([divisionId, rows]) => {
-			const label = divisionLabels[`${category}:${divisionId}`] ?? divisionId;
+			const label = DIVISION_DISPLAY_LABELS[`${category}:${divisionId}`] ?? divisionId;
 			rows.forEach((row) => {
 				if (!isIndividual(row.name)) return;
 				const slug = getPlayerSlug(row.name);
@@ -185,7 +231,7 @@ export function getAllPlayers(): PlayerProfile[] {
 				name: row.name,
 				slug,
 				city: row.city,
-				imageUrl: PLAYER_IMAGES[row.name] ?? row.image,
+				imageUrl: getPlayerImageForDisplay(row.name, 64) ?? row.image,
 				bio: row.tagline,
 				divisions: [],
 				events: [],
@@ -193,9 +239,7 @@ export function getAllPlayers(): PlayerProfile[] {
 				if (!existing.bio && row.tagline) {
 					existing.bio = row.tagline;
 				}
-				if (!existing.divisions.includes(label)) {
-					existing.divisions.push(label);
-				}
+				addPlayerDivision(existing.divisions, label);
 				if (!existing.city && row.city) {
 					existing.city = row.city;
 				}
@@ -211,13 +255,14 @@ export function getAllPlayers(): PlayerProfile[] {
 			const existing = map.get(slug) ?? {
 				name: profile.name,
 				slug,
-				imageUrl: PLAYER_IMAGES[profile.name],
+				imageUrl: getPlayerImageForDisplay(profile.name, 64),
 				divisions: [],
 				events: [],
 			};
 			// Apply image from lookup if not already set
-			if (!existing.imageUrl && PLAYER_IMAGES[profile.name]) {
-				existing.imageUrl = PLAYER_IMAGES[profile.name];
+			if (!existing.imageUrl) {
+				const img = getPlayerImageForDisplay(profile.name, 64);
+				if (img) existing.imageUrl = img;
 			}
 			const eventEntry: PlayerEventCall = {
 				eventName: event.name,
@@ -226,14 +271,13 @@ export function getAllPlayers(): PlayerProfile[] {
 				note: profile.note,
 			};
 			existing.events.push(eventEntry);
-			if (!existing.divisions.includes(profile.division)) {
-				existing.divisions.push(profile.division);
-			}
+			addPlayerDivision(existing.divisions, profile.division);
 			map.set(slug, existing);
 		});
 	});
 
 	return Array.from(map.values())
+		.map((player) => ({ ...player, divisions: sortDivisionLabels(player.divisions) }))
 		.sort((a, b) => a.name.localeCompare(b.name));
 }
 
@@ -246,7 +290,7 @@ export interface PlayerMatchRecord {
 	opponent: string;
 	score?: string;
 	/** Bye advances are not match wins and are excluded from W–L on profiles. */
-	result: 'win' | 'loss' | 'pending' | 'bye';
+	result: 'win' | 'loss' | 'pending' | 'bye' | 'walkover';
 }
 
 function isGhostOpponent(name: string): boolean {
@@ -254,34 +298,41 @@ function isGhostOpponent(name: string): boolean {
 	return u === 'BYE' || u === 'TBD' || u === '';
 }
 
-/** Matches from published event brackets where this player appears (singles elim only in data). */
+/** Opponent no-show / forfeit — winner does not get a counted match win. */
+function isNoShowOrForfeit(score: string | undefined): boolean {
+	if (!score) return false;
+	return /\bWBF\b|No[\s-]?Show|Forfeit|Walkover/i.test(score);
+}
+
+function resultForSide(
+	side: 1 | 2,
+	winner: 1 | 2 | undefined,
+	opponent: string,
+	score?: string,
+): PlayerMatchRecord['result'] {
+	if (winner !== 1 && winner !== 2) return 'pending';
+	const oppGhost = isGhostOpponent(opponent);
+	if (winner === side) {
+		if (oppGhost) return 'bye';
+		if (isNoShowOrForfeit(score)) return 'walkover';
+		return 'win';
+	}
+	if (oppGhost) return 'pending';
+	return 'loss';
+}
+
+/** Matches from published event brackets (singles elim + round robin). */
 export function getPlayerMatchHistory(playerName: string): PlayerMatchRecord[] {
-	const normalized = playerName.trim().toLowerCase();
 	const out: PlayerMatchRecord[] = [];
 	for (const event of EVENTS) {
 		for (const div of event.divisionDetails ?? []) {
-			if (div.format !== 'single') continue;
 			for (const round of div.rounds ?? []) {
 				for (const m of round.matches ?? []) {
 					const p1 = (m.player1 ?? '').trim();
 					const p2 = (m.player2 ?? '').trim();
-					const p1n = p1.toLowerCase();
-					const p2n = p2.toLowerCase();
-					const side = p1n === normalized ? 1 : p2n === normalized ? 2 : null;
+					const side = playerMatchesEntry(playerName, p1) ? 1 : playerMatchesEntry(playerName, p2) ? 2 : null;
 					if (side === null) continue;
 					const opp = side === 1 ? p2 : p1;
-					let result: PlayerMatchRecord['result'] = 'pending';
-					if (m.winner === 1 || m.winner === 2) {
-						const oppGhost = isGhostOpponent(opp);
-						if (m.winner === side) {
-							result = oppGhost ? 'bye' : 'win';
-						} else if (oppGhost) {
-							// Inconsistent bracket data (opponent is not a real player but they are marked the winner).
-							result = 'pending';
-						} else {
-							result = 'loss';
-						}
-					}
 					out.push({
 						eventSlug: event.slug,
 						eventName: event.name,
@@ -290,13 +341,66 @@ export function getPlayerMatchHistory(playerName: string): PlayerMatchRecord[] {
 						roundLabel: round.label,
 						opponent: opp || 'TBD',
 						score: m.score,
-						result,
+						result: resultForSide(side, m.winner, opp, m.score),
 					});
 				}
+			}
+
+			for (const m of div.roundRobinMatches ?? []) {
+				const side = playerMatchesEntry(playerName, m.team1) ? 1 : playerMatchesEntry(playerName, m.team2) ? 2 : null;
+				if (side === null) continue;
+				const opp = side === 1 ? m.team2 : m.team1;
+				out.push({
+					eventSlug: event.slug,
+					eventName: event.name,
+					divisionId: div.id,
+					divisionLabel: div.label,
+					roundLabel: m.round,
+					opponent: opp || 'TBD',
+					score: m.score,
+					result: resultForSide(side, m.winner, opp, m.score),
+				});
 			}
 		}
 	}
 	return out;
+}
+
+export interface PlayerGrandPrixStanding {
+	category: LbCategory;
+	divisionId: string;
+	divisionLabel: string;
+	place: number;
+	s1: number;
+	s2: number;
+	total: number;
+}
+
+/** Season GP points per division for this player (from synced sheet standings). */
+export function getPlayerGrandPrixStandings(playerName: string): PlayerGrandPrixStanding[] {
+	const out: PlayerGrandPrixStanding[] = [];
+
+	for (const [category, divisions] of Object.entries(lbData) as [LbCategory, Record<string, LbRow[]>][]) {
+		const catHeading = LB_CATEGORY_HEADING[category];
+		for (const [divisionId, rows] of Object.entries(divisions)) {
+			const meta = LB_DIVISIONS_BY_CATEGORY[category].find((d) => d.id === divisionId);
+			const divisionLabel = meta ? `${catHeading} · ${meta.label}` : divisionId;
+			for (const row of rows) {
+				if (!playerMatchesEntry(playerName, row.name)) continue;
+				out.push({
+					category,
+					divisionId,
+					divisionLabel,
+					place: row.place,
+					s1: row.s1,
+					s2: row.s2,
+					total: leaderboardTotal(row),
+				});
+			}
+		}
+	}
+
+	return out.sort((a, b) => b.total - a.total || a.divisionLabel.localeCompare(b.divisionLabel));
 }
 
 export interface SeriesPost {

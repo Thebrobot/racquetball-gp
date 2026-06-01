@@ -9,7 +9,10 @@ import {
 	leaderboardTotal,
 	getSortedRows,
 	formatPlayerInitials,
+	isPendingPlaceholder,
 } from '../data/leaderboard';
+import { getPlayerImageForDisplay } from '../data/player-images';
+import { getPlayerSlug } from '../data/players';
 
 function esc(s: string): string {
 	return String(s)
@@ -302,14 +305,23 @@ function initLeaderboardPage() {
 	}
 
 	document.getElementById('lb-overview')?.addEventListener('click', (e) => {
-		const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-lb-event][data-lb-division]');
-		if (!btn) return;
-		const cat = btn.dataset.lbEvent;
-		const division = btn.dataset.lbDivision;
+		if ((e.target as HTMLElement).closest('a.lb-overview-name-link')) return;
+		const card = (e.target as HTMLElement).closest<HTMLElement>('[data-lb-event][data-lb-division]');
+		if (!card) return;
+		const cat = card.dataset.lbEvent;
+		const division = card.dataset.lbDivision;
 		if (cat && division && isValidLbCategory(cat) && isDivisionInCategory(cat, division)) {
 			goToStandings(cat, division, true);
 		}
 	});
+}
+
+function renderLbPlayerAvatar(r: { name: string; image?: string }, cssPx = 40): string {
+	const src = getPlayerImageForDisplay(r.name, cssPx) ?? r.image;
+	if (src) {
+		return `<img class="lb-player-avatar" src="${escAttr(src)}" alt="" width="${cssPx}" height="${cssPx}" loading="lazy" decoding="async" />`;
+	}
+	return `<span class="lb-player-avatar lb-player-avatar--fallback" aria-hidden="true">${esc(formatPlayerInitials(r.name))}</span>`;
 }
 
 function renderLb() {
@@ -338,13 +350,21 @@ function renderLb() {
 			const noteHtml = r.note
 				? `<span style="font-size:13px;color:var(--green);display:block;">${esc(r.note)}</span>`
 				: '';
+			const nameHtml = isPendingPlaceholder(r)
+				? `<span class="lb-player-name">${esc(r.name)}</span>`
+				: `<a class="lb-player-name lb-player-name-link" href="/players/${escAttr(getPlayerSlug(r.name))}">${esc(r.name)}</a>`;
 			return `<tr>
       <td class="lb-rank-cell">${rankDisp}</td>
       <td>
-        <span class="lb-player-name">${esc(r.name)}</span>
-        <span class="lb-player-city">${esc(r.city)}</span>
-        ${noteHtml}
-        <div class="lb-progress-bar"><div class="lb-progress-fill" style="width:${pctFill}%"></div></div>
+        <div class="lb-player-cell">
+          ${renderLbPlayerAvatar(r)}
+          <div class="lb-player-text">
+            ${nameHtml}
+            <span class="lb-player-city">${esc(r.city)}</span>
+            ${noteHtml}
+            <div class="lb-progress-bar"><div class="lb-progress-fill" style="width:${pctFill}%"></div></div>
+          </div>
+        </div>
       </td>
       <td class="lb-stops right hide-mobile">${r.s1 || '-'}</td>
       <td class="lb-stops right hide-mobile">${r.s2 || '-'}</td>
@@ -384,19 +404,29 @@ function renderLbSpotlight() {
 			const medal = SPOTLIGHT_MEDALS[i] ?? '';
 			const badgeMap = { q: 'badge-q', pace: 'badge-pace', chase: 'badge-chase' };
 			const badgeLabel = { q: 'Qualified', pace: 'On Pace', chase: 'Chasing' };
-			const mediaInner = r.image
-				? `<img class="lb-spot-media-img" src="${esc(r.image)}" alt="" width="320" height="400" loading="lazy" decoding="async" />`
-				: `<span class="lb-spot-media-initials" aria-hidden="true">${esc(formatPlayerInitials(r.name))}</span>`;
-			const mediaClass = r.image ? 'lb-spot-media' : 'lb-spot-media lb-spot-media--fallback';
+			const mediaInner = (() => {
+				const src = getPlayerImageForDisplay(r.name, 120) ?? r.image;
+				if (src) {
+					return `<img class="lb-spot-media-img" src="${escAttr(src)}" alt="" width="120" height="120" loading="lazy" decoding="async" />`;
+				}
+				return `<span class="lb-spot-media-initials" aria-hidden="true">${esc(formatPlayerInitials(r.name))}</span>`;
+			})();
+			const mediaClass =
+				getPlayerImageForDisplay(r.name, 120) ?? r.image
+					? 'lb-spot-media'
+					: 'lb-spot-media lb-spot-media--fallback';
 			const taglineHtml = r.tagline ? `<p class="lb-spot-tagline">${esc(r.tagline)}</p>` : '';
 			const noteHtml = r.note ? `<p class="lb-spot-note">${esc(r.note)}</p>` : '';
+			const nameHtml = isPendingPlaceholder(r)
+				? `<h3 class="lb-spot-name">${esc(r.name)}</h3>`
+				: `<h3 class="lb-spot-name"><a class="lb-spot-name-link" href="/players/${escAttr(getPlayerSlug(r.name))}">${esc(r.name)}</a></h3>`;
 			return `<article class="lb-spot-card">
         <div class="${mediaClass}">
           <span class="lb-spot-rank-badge">${medal}</span>
           ${mediaInner}
         </div>
         <div class="lb-spot-card-body">
-          <h3 class="lb-spot-name">${esc(r.name)}</h3>
+          ${nameHtml}
           <p class="lb-spot-city">${esc(r.city)}</p>
           ${taglineHtml}
           ${noteHtml}

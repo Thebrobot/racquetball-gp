@@ -1,5 +1,8 @@
 /** Standings categories and row shape: single source for Astro pages and client script. */
 
+import gpPoints from './gp-points.json';
+import { getPlayerImageForDisplay } from './player-images';
+
 export type LbCategory = 'singles' | 'doubles' | 'mixed';
 export type LbStatus = 'q' | 'pace' | 'chase';
 
@@ -124,11 +127,34 @@ const emptyMixed = {
 	'mixed-doubles': [],
 } as const;
 
-export const lbData: LbData = {
-	singles: { ...emptySingles },
-	doubles: { ...emptyDoubles },
-	mixed: { ...emptyMixed },
-};
+function enrichRow(row: LbRow): LbRow {
+	const image = getPlayerImageForDisplay(row.name, 128);
+	return image ? { ...row, image } : row;
+}
+
+function enrichDivisionRows(rows: LbRow[]): LbRow[] {
+	const enriched = rows.map(enrichRow);
+	const max = Math.max(...enriched.map((r) => leaderboardTotal(r)), 0);
+	if (max <= 0) return enriched;
+	return enriched.map((r) => ({
+		...r,
+		status: leaderboardTotal(r) === max ? 'q' : r.status,
+	}));
+}
+
+function buildLbData(): LbData {
+	const synced = gpPoints.standings as LbData;
+	const enrichCategory = (cat: Record<string, LbRow[]>) =>
+		Object.fromEntries(Object.entries(cat).map(([id, rows]) => [id, enrichDivisionRows(rows)]));
+
+	return {
+		singles: { ...emptySingles, ...enrichCategory(synced.singles ?? {}) },
+		doubles: { ...emptyDoubles, ...enrichCategory(synced.doubles ?? {}) },
+		mixed: { ...emptyMixed, ...enrichCategory(synced.mixed ?? {}) },
+	};
+}
+
+export const lbData: LbData = buildLbData();
 
 export const PENDING_ROW: LbRow = {
 	name: 'Data Pending',
@@ -183,9 +209,17 @@ export function getTopN(category: LbCategory, division: string, n: number, usePl
 	return getSortedRows(category, division, usePlaceholder).slice(0, n);
 }
 
+/** All players tied for the division lead (same season point total). */
+export function getDivisionLeaders(category: LbCategory, division: string): LbRow[] {
+	const rows = getSortedRows(category, division, false);
+	if (!rows.length) return [];
+	const top = leaderboardTotal(rows[0]);
+	return rows.filter((r) => leaderboardTotal(r) === top);
+}
+
 /** Top finisher for overview cards; `null` when there is no real data for that bracket yet. */
 export function getDivisionLeader(category: LbCategory, division: string): LbRow | null {
-	const rows = getSortedRows(category, division, false);
+	const rows = getDivisionLeaders(category, division);
 	return rows.length ? rows[0] : null;
 }
 

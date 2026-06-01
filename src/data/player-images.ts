@@ -1,8 +1,10 @@
 /**
- * R2 Sports headshot URLs keyed by player full name (exact match).
- * Players not listed here (or listed as "No photo") fall back to initials avatar.
+ * Player headshots: R2 source URLs + locally cached WebP variants (see sync-player-photos.mjs).
+ * Prefer cached images — they are sharpened and sized for each display context.
  */
-export const PLAYER_IMAGES: Record<string, string> = {
+import playerPhotos from './player-photos.json';
+
+export const PLAYER_IMAGES_R2: Record<string, string> = {
 	'Michael Ammen':           'https://www.r2sports.com/tourney/imageGallery/gallery/player/21349_large.jpg',
 	'Brendan Anthony':         'https://www.r2sports.com/tourney/imageGallery/gallery/player/506818_bcf9_sm.png',
 	'Kyle Artman':             'https://www.r2sports.com/tourney/imageGallery/gallery/player/497001_85e20c36f3_sm.jpg',
@@ -40,5 +42,112 @@ export const PLAYER_IMAGES: Record<string, string> = {
 	'Paul Sotolongo':          'https://www.r2sports.com/tourney/imageGallery/gallery/player/632924_bcb6980e01_sm.jpg',
 	'Chris Steinheiser':       'https://www.r2sports.com/tourney/imageGallery/gallery/player/131153_56c067f08c_sm.jpg',
 	'Wade Stubanas':           'https://www.r2sports.com/tourney/imageGallery/gallery/player/160212_bac9bfb2af_sm.jpg',
-	// Kelly Van Zant-Russell: R2 image is broken; falls back to initials avatar
 };
+
+/** @deprecated Prefer resolvePlayerImage / getPlayerImageForDisplay */
+export const PLAYER_IMAGES: Record<string, string> = PLAYER_IMAGES_R2;
+
+export interface PlayerPhotoEntry {
+	slug: string;
+	sourceUrl: string;
+	sourceWidth: number;
+	sourceHeight: number;
+	sizes: Record<string, string>;
+	default: string;
+}
+
+function normalizeNameForMatch(name: string): string {
+	return name
+		.toLowerCase()
+		.replace(/[^a-z\s]/g, ' ')
+		.replace(/\s+/g, ' ')
+		.trim();
+}
+
+function findManifestEntry(name: string): PlayerPhotoEntry | undefined {
+	const map = playerPhotos.players as Record<string, PlayerPhotoEntry>;
+	if (map[name]) return map[name];
+
+	const norm = normalizeNameForMatch(name);
+	for (const [key, entry] of Object.entries(map)) {
+		if (normalizeNameForMatch(key) === norm) return entry;
+	}
+
+	const parts = norm.split(' ').filter(Boolean);
+	if (parts.length >= 2) {
+		const first = parts[0];
+		const last = parts[parts.length - 1];
+		for (const [key, entry] of Object.entries(map)) {
+			const kp = normalizeNameForMatch(key).split(' ').filter(Boolean);
+			if (kp.length >= 2 && kp[0] === first && kp[kp.length - 1] === last) return entry;
+		}
+	}
+
+	return undefined;
+}
+
+function resolveR2Image(name: string): string | undefined {
+	if (PLAYER_IMAGES_R2[name]) return PLAYER_IMAGES_R2[name];
+
+	const norm = normalizeNameForMatch(name);
+	for (const [key, url] of Object.entries(PLAYER_IMAGES_R2)) {
+		if (normalizeNameForMatch(key) === norm) return url;
+	}
+
+	const parts = norm.split(' ').filter(Boolean);
+	if (parts.length >= 2) {
+		const first = parts[0];
+		const last = parts[parts.length - 1];
+		for (const [key, url] of Object.entries(PLAYER_IMAGES_R2)) {
+			const kp = normalizeNameForMatch(key).split(' ').filter(Boolean);
+			if (kp.length >= 2 && kp[0] === first && kp[kp.length - 1] === last) return url;
+		}
+	}
+
+	return undefined;
+}
+
+/** Best image URL for a CSS display size (px). Uses cached WebP when available. */
+export function getPlayerImageForDisplay(name: string, cssPx: number): string | undefined {
+	const entry = findManifestEntry(name);
+	if (entry) {
+		const need = Math.ceil(cssPx * 2);
+		const tiers: { w: number; src: string }[] = [64, 128, 256]
+			.filter((w) => entry.sizes[String(w)])
+			.map((w) => ({ w, src: entry.sizes[String(w)] }));
+		if (entry.sizes.full) {
+			tiers.push({ w: entry.sourceWidth, src: entry.sizes.full });
+		}
+		tiers.sort((a, b) => a.w - b.w);
+		const pick = tiers.find((t) => t.w >= need) ?? tiers[tiers.length - 1];
+		return pick?.src;
+	}
+	return resolveR2Image(name);
+}
+
+/** Default image (128px tier when cached). */
+export function resolvePlayerImage(name: string): string | undefined {
+	return getPlayerImageForDisplay(name, 64);
+}
+
+/** src + srcset for responsive player photos. */
+export function getPlayerImageSrcSet(name: string, cssPx: number): { src: string; srcSet?: string } | undefined {
+	const entry = findManifestEntry(name);
+	if (!entry) {
+		const r2 = resolveR2Image(name);
+		return r2 ? { src: r2 } : undefined;
+	}
+
+	const tiers: { w: number; src: string }[] = [64, 128, 256]
+		.filter((w) => entry.sizes[String(w)])
+		.map((w) => ({ w, src: entry.sizes[String(w)] }));
+	if (entry.sizes.full) {
+		tiers.push({ w: entry.sourceWidth, src: entry.sizes.full });
+	}
+	tiers.sort((a, b) => a.w - b.w);
+	if (!tiers.length) return undefined;
+
+	const srcSet = tiers.map((t) => `${t.src} ${t.w}w`).join(', ');
+	const src = getPlayerImageForDisplay(name, cssPx) ?? entry.default;
+	return src ? { src, srcSet } : undefined;
+}

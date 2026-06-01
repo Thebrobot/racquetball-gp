@@ -2,7 +2,7 @@
 import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
 import OfficialBallChip from '../../components/grand-prix/OfficialBallChip.astro';
 import { EVENTS } from '../../data/events';
-import { getPlayerSlug, PLAYER_IMAGES } from '../../data/players';
+import { getPlayerSlug, getPlayerImageForDisplay } from '../../data/players';
 import { formatPlayerInitials } from '../../data/leaderboard';
 import { titleSponsor } from '../../data/ocala-sponsors';
 
@@ -150,7 +150,7 @@ for (const d of event.divisionDetails ?? []) {
 					<span>Court</span>
 				</div>
 				{allParticipants.map((p) => {
-					const imgUrl = PLAYER_IMAGES[p.name];
+					const imgUrl = getPlayerImageForDisplay(p.name, 40);
 					const initials = formatPlayerInitials(p.name);
 					return (
 						<div class="participants-player-group">

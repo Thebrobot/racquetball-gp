@@ -1,0 +1,1449 @@
+{
+  "lastUpdated": "2026-06-01T14:44:43.385Z",
+  "sourceSheetId": "1twUWpgQmx5p7qQE5UAd9ynlWfbjWP9RZTjwP9LtqYbc",
+  "events": [
+    {
+      "id": "event-1",
+      "label": "Event #1 (Ocala)",
+      "stopKey": "s1"
+    }
+  ],
+  "standings": {
+    "singles": {
+      "mens-singles-open": [
+        {
+          "place": 1,
+          "name": "Alejandro Herrera",
+          "s1": 100,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "q",
+          "city": ""
+        },
+        {
+          "place": 2,
+          "name": "Dylan Pruitt",
+          "s1": 75,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 3,
+          "name": "Jordan Deeney",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 4,
+          "name": "Andres Ramirez",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 5,
+          "name": "Amir Baig",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 6,
+          "name": "Scott Haacke",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 7,
+          "name": "Mario A. Huyke",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 8,
+          "name": "Orlando J. Huyke",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 9,
+          "name": "Sam Schulze",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 10,
+          "name": "Chris Steinheiser",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        }
+      ],
+      "mens-singles-elite": [
+        {
+          "place": 1,
+          "name": "Orlando J. Huyke",
+          "s1": 100,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "q",
+          "city": ""
+        },
+        {
+          "place": 2,
+          "name": "Mario A. Huyke",
+          "s1": 75,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 3,
+          "name": "Trace Gunsch",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 4,
+          "name": "Isac Taylor",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 5,
+          "name": "Darron Toston",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 6,
+          "name": "Jordan Deeney",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 7,
+          "name": "Jiovanni Garcia",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 8,
+          "name": "Scott Haacke",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 9,
+          "name": "Jorge Moreno",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 10,
+          "name": "Timothy Schnellenberger",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 11,
+          "name": "Sam Schulze",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        }
+      ],
+      "mens-singles-a": [
+        {
+          "place": 1,
+          "name": "Gordon Henry",
+          "s1": 100,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "q",
+          "city": ""
+        },
+        {
+          "place": 2,
+          "name": "Brendan Anthony",
+          "s1": 75,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 3,
+          "name": "Brian Grantham",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 4,
+          "name": "Ron Jennings",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 5,
+          "name": "Kyle Artman",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 6,
+          "name": "Jorge Moreno",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 7,
+          "name": "Mauricio Muriel",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 8,
+          "name": "Russel O'Neal",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 9,
+          "name": "Kleber Oliveira",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 10,
+          "name": "Wade Stubanas",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 11,
+          "name": "Robert Yanchis",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        }
+      ],
+      "mens-singles-b": [
+        {
+          "place": 1,
+          "name": "Mathew Brice",
+          "s1": 100,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "q",
+          "city": ""
+        },
+        {
+          "place": 2,
+          "name": "Matt Kern",
+          "s1": 75,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 3,
+          "name": "Kyle Artman",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 4,
+          "name": "Edgar Martinez",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 5,
+          "name": "Ryan Appleby",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 6,
+          "name": "Haven Artman",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 7,
+          "name": "Daniel Bray",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 8,
+          "name": "Mike Caldwell",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 9,
+          "name": "Jonathan Estepan",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 10,
+          "name": "Scott Gill",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 11,
+          "name": "Mark Manzano",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 12,
+          "name": "Ashley Medlock",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 13,
+          "name": "Ben Mordkovich",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        }
+      ],
+      "mens-singles-c": [
+        {
+          "place": 1,
+          "name": "Michael Ammen",
+          "s1": 100,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "q",
+          "city": ""
+        },
+        {
+          "place": 2,
+          "name": "Ben Mordkovich",
+          "s1": 75,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 3,
+          "name": "Gordon Kelley",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        }
+      ],
+      "mens-age-50": [
+        {
+          "place": 1,
+          "name": "Chad Beacher",
+          "s1": 100,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "q",
+          "city": ""
+        },
+        {
+          "place": 2,
+          "name": "Kleber Oliveira",
+          "s1": 75,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 3,
+          "name": "John Johnston",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 4,
+          "name": "Chris Steinheiser",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 5,
+          "name": "Charles Cole",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 6,
+          "name": "Trace Gunsch",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 7,
+          "name": "Timothy Schnellenberger",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        }
+      ],
+      "mens-age-60": [
+        {
+          "place": 1,
+          "name": "Gordon Henry",
+          "s1": 100,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "q",
+          "city": ""
+        },
+        {
+          "place": 2,
+          "name": "Charles Cole",
+          "s1": 75,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 3,
+          "name": "Michael Ammen",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 4,
+          "name": "Eric Foley",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 5,
+          "name": "Laura Brandt",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 6,
+          "name": "Russel O'Neal",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        }
+      ],
+      "mens-age-70": [
+        {
+          "place": 1,
+          "name": "Gene Fry",
+          "s1": 100,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "q",
+          "city": ""
+        },
+        {
+          "place": 2,
+          "name": "Scott Gill",
+          "s1": 75,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 3,
+          "name": "Michael Ammen",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 4,
+          "name": "Philip Gaerlan",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 5,
+          "name": "Gordon Kelley",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        }
+      ]
+    },
+    "doubles": {
+      "mens-doubles-open": [
+        {
+          "place": 1,
+          "name": "Mario A. Huyke",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "q",
+          "city": ""
+        },
+        {
+          "place": 2,
+          "name": "Orlando J. Huyke",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 3,
+          "name": "Chad Beacher",
+          "s1": 37.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 4,
+          "name": "Darron Toston",
+          "s1": 37.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 5,
+          "name": "Jiovanni Garcia",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 6,
+          "name": "Charles Nolan",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 7,
+          "name": "Yelandi Rivero",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 8,
+          "name": "Chris Steinheiser",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        }
+      ],
+      "mens-doubles-elite": [
+        {
+          "place": 1,
+          "name": "Alexis Fajardo",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "q",
+          "city": ""
+        },
+        {
+          "place": 2,
+          "name": "Jim Russell",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 3,
+          "name": "Bryon Haacke",
+          "s1": 37.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 4,
+          "name": "Scott Haacke",
+          "s1": 37.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 5,
+          "name": "Brendan Anthony",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 6,
+          "name": "John Johnston",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 7,
+          "name": "Frank Lopez",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 8,
+          "name": "Sam Schulze",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 9,
+          "name": "Kyle Artman",
+          "s1": 12.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 10,
+          "name": "Chad Beacher",
+          "s1": 12.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 11,
+          "name": "Jordan Deeney",
+          "s1": 12.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 12,
+          "name": "Jiovanni Garcia",
+          "s1": 12.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 13,
+          "name": "Charles Nolan",
+          "s1": 12.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 14,
+          "name": "Kleber Oliveira",
+          "s1": 12.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 15,
+          "name": "Elijah Saunders",
+          "s1": 12.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 16,
+          "name": "Darron Toston",
+          "s1": 12.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        }
+      ],
+      "mens-doubles-a": [
+        {
+          "place": 1,
+          "name": "Brian Grantham",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "q",
+          "city": ""
+        },
+        {
+          "place": 2,
+          "name": "Wade Stubanas",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 3,
+          "name": "Bryon Haacke",
+          "s1": 37.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 4,
+          "name": "Mauricio Muriel",
+          "s1": 37.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 5,
+          "name": "Hector Hernandez",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 6,
+          "name": "Jorge Moreno",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 7,
+          "name": "Paul Sotolongo",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 8,
+          "name": "Andres Urzua",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 9,
+          "name": "Kyle Artman",
+          "s1": 12.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 10,
+          "name": "Ron Jennings",
+          "s1": 12.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 11,
+          "name": "Ashley Medlock",
+          "s1": 12.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 12,
+          "name": "Jim Russell",
+          "s1": 12.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 13,
+          "name": "Kelly V.Z. Russell",
+          "s1": 12.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 14,
+          "name": "Robert Yanchis",
+          "s1": 12.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        }
+      ],
+      "mens-doubles-b": [
+        {
+          "place": 1,
+          "name": "Ryan Appleby",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "q",
+          "city": ""
+        },
+        {
+          "place": 2,
+          "name": "Matt Kern",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 3,
+          "name": "Mark Manzano",
+          "s1": 37.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 4,
+          "name": "Paul Sotolongo",
+          "s1": 37.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 5,
+          "name": "Mathew Brice",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 6,
+          "name": "Hector Hernandez",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 7,
+          "name": "Edgar Martinez",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 8,
+          "name": "Scott Swartz",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 9,
+          "name": "Jonathan Estepan",
+          "s1": 12.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 10,
+          "name": "Don Strickland",
+          "s1": 12.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        }
+      ],
+      "mens-doubles-centurion": [
+        {
+          "place": 1,
+          "name": "Felix Hernandez",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "q",
+          "city": ""
+        },
+        {
+          "place": 2,
+          "name": "Alejandro Herrera",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 3,
+          "name": "Tony Gutierrez",
+          "s1": 37.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 4,
+          "name": "Andres Ramirez",
+          "s1": 37.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 5,
+          "name": "Eric Foley",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 6,
+          "name": "John Johnston",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 7,
+          "name": "Frank Lopez",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 8,
+          "name": "Charles Nolan",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 9,
+          "name": "Amir Baig",
+          "s1": 12.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 10,
+          "name": "Bryon Haacke",
+          "s1": 12.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 11,
+          "name": "Yelandi Rivero",
+          "s1": 12.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 12,
+          "name": "Andres Urzua",
+          "s1": 12.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        }
+      ],
+      "mens-doubles-super-centurion": [
+        {
+          "place": 1,
+          "name": "Gene Fry",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "q",
+          "city": ""
+        },
+        {
+          "place": 2,
+          "name": "Tony Gutierrez",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 3,
+          "name": "Hector Hernandez",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 4,
+          "name": "Edgar Martinez",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 5,
+          "name": "Steven Lewis",
+          "s1": 37.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 6,
+          "name": "Scott Swartz",
+          "s1": 37.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        }
+      ]
+    },
+    "mixed": {
+      "mixed-doubles": [
+        {
+          "place": 1,
+          "name": "Laura Brandt",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "q",
+          "city": ""
+        },
+        {
+          "place": 2,
+          "name": "Gordon Henry",
+          "s1": 50,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 3,
+          "name": "Brendan Anthony",
+          "s1": 37.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 4,
+          "name": "Haven Artman",
+          "s1": 37.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 5,
+          "name": "Michelle Jennings",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 6,
+          "name": "Ron Jennings",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 7,
+          "name": "Jim Russell",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 8,
+          "name": "Kelly V.Z. Russell",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        }
+      ]
+    }
+  }
+}

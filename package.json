@@ -10,6 +10,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "lint": "eslint .",
+    "sync:points": "node scripts/sync-gp-points.mjs",
+    "sync:photos": "node scripts/sync-player-photos.mjs",
     "optimize:images": "node scripts/optimize-site-images.mjs",
     "favicon:ico": "node scripts/generate-favicon-ico.mjs",
     "astro": "astro"
