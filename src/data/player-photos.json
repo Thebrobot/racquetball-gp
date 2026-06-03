@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-06-01T14:49:11.626Z",
+  "lastUpdated": "2026-06-03T02:54:32.318Z",
   "players": {
     "Michael Ammen": {
       "slug": "michael-ammen",
@@ -15,113 +15,132 @@
     },
     "Brendan Anthony": {
       "slug": "brendan-anthony",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/506818_bcf9_sm.png",
-      "sourceWidth": 75,
-      "sourceHeight": 42,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/506818_bcf9_lg.png",
+      "sourceWidth": 356,
+      "sourceHeight": 200,
       "sizes": {
         "64": "/images/players/brendan-anthony-64.webp",
+        "128": "/images/players/brendan-anthony-128.webp",
+        "256": "/images/players/brendan-anthony-256.webp",
         "full": "/images/players/brendan-anthony.webp"
       },
-      "default": "/images/players/brendan-anthony-64.webp"
+      "default": "/images/players/brendan-anthony-128.webp"
     },
     "Kyle Artman": {
       "slug": "kyle-artman",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/497001_85e20c36f3_sm.jpg",
-      "sourceWidth": 125,
-      "sourceHeight": 156,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/497001_85e20c36f3_lg.jpg",
+      "sourceWidth": 480,
+      "sourceHeight": 600,
       "sizes": {
         "64": "/images/players/kyle-artman-64.webp",
+        "128": "/images/players/kyle-artman-128.webp",
+        "256": "/images/players/kyle-artman-256.webp",
         "full": "/images/players/kyle-artman.webp"
       },
-      "default": "/images/players/kyle-artman-64.webp"
+      "default": "/images/players/kyle-artman-128.webp"
     },
     "Chad Beacher": {
       "slug": "chad-beacher",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/281288_648f065f38_sm.jpg",
-      "sourceWidth": 125,
-      "sourceHeight": 83,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/281288_648f065f38_lg.jpg",
+      "sourceWidth": 600,
+      "sourceHeight": 400,
       "sizes": {
         "64": "/images/players/chad-beacher-64.webp",
+        "128": "/images/players/chad-beacher-128.webp",
+        "256": "/images/players/chad-beacher-256.webp",
         "full": "/images/players/chad-beacher.webp"
       },
-      "default": "/images/players/chad-beacher-64.webp"
+      "default": "/images/players/chad-beacher-128.webp"
     },
     "Laura Brandt": {
       "slug": "laura-brandt",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/9155_ca66e7f493_sm.jpg",
-      "sourceWidth": 125,
-      "sourceHeight": 163,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/9155_ca66e7f493_lg.jpg",
+      "sourceWidth": 461,
+      "sourceHeight": 600,
       "sizes": {
         "64": "/images/players/laura-brandt-64.webp",
+        "128": "/images/players/laura-brandt-128.webp",
+        "256": "/images/players/laura-brandt-256.webp",
         "full": "/images/players/laura-brandt.webp"
       },
-      "default": "/images/players/laura-brandt-64.webp"
+      "default": "/images/players/laura-brandt-128.webp"
     },
     "Daniel Bray": {
       "slug": "daniel-bray",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/79649_760f42c6b2_sm.jpg",
-      "sourceWidth": 125,
-      "sourceHeight": 167,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/79649_760f42c6b2_lg.jpg",
+      "sourceWidth": 450,
+      "sourceHeight": 600,
       "sizes": {
         "64": "/images/players/daniel-bray-64.webp",
+        "128": "/images/players/daniel-bray-128.webp",
+        "256": "/images/players/daniel-bray-256.webp",
         "full": "/images/players/daniel-bray.webp"
       },
-      "default": "/images/players/daniel-bray-64.webp"
+      "default": "/images/players/daniel-bray-128.webp"
     },
     "Matthew Brice": {
       "slug": "matthew-brice",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/615893_ecbfc78fb8_sm.jpg",
-      "sourceWidth": 125,
-      "sourceHeight": 120,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/615893_ecbfc78fb8_lg.jpg",
+      "sourceWidth": 600,
+      "sourceHeight": 576,
       "sizes": {
         "64": "/images/players/matthew-brice-64.webp",
+        "128": "/images/players/matthew-brice-128.webp",
+        "256": "/images/players/matthew-brice-256.webp",
         "full": "/images/players/matthew-brice.webp"
       },
-      "default": "/images/players/matthew-brice-64.webp"
+      "default": "/images/players/matthew-brice-128.webp"
     },
     "Charles Cole": {
       "slug": "charles-cole",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/12924_f9d302f00a_sm.jpg",
-      "sourceWidth": 125,
-      "sourceHeight": 341,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/12924_f9d302f00a_lg.jpg",
+      "sourceWidth": 220,
+      "sourceHeight": 600,
       "sizes": {
         "64": "/images/players/charles-cole-64.webp",
+        "128": "/images/players/charles-cole-128.webp",
         "full": "/images/players/charles-cole.webp"
       },
-      "default": "/images/players/charles-cole-64.webp"
+      "default": "/images/players/charles-cole-128.webp"
     },
     "Jordan Deeney": {
       "slug": "jordan-deeney",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/161654_96ffb09ab6_sm.jpg",
-      "sourceWidth": 125,
-      "sourceHeight": 70,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/161654_96ffb09ab6_lg.jpg",
+      "sourceWidth": 600,
+      "sourceHeight": 338,
       "sizes": {
         "64": "/images/players/jordan-deeney-64.webp",
+        "128": "/images/players/jordan-deeney-128.webp",
+        "256": "/images/players/jordan-deeney-256.webp",
         "full": "/images/players/jordan-deeney.webp"
       },
-      "default": "/images/players/jordan-deeney-64.webp"
+      "default": "/images/players/jordan-deeney-128.webp"
     },
     "Jonathan Estepan": {
       "slug": "jonathan-estepan",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/635542_6575a01d5d_sm.png",
-      "sourceWidth": 125,
-      "sourceHeight": 146,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/635542_6575a01d5d_lg.png",
+      "sourceWidth": 515,
+      "sourceHeight": 600,
       "sizes": {
         "64": "/images/players/jonathan-estepan-64.webp",
+        "128": "/images/players/jonathan-estepan-128.webp",
+        "256": "/images/players/jonathan-estepan-256.webp",
         "full": "/images/players/jonathan-estepan.webp"
       },
-      "default": "/images/players/jonathan-estepan-64.webp"
+      "default": "/images/players/jonathan-estepan-128.webp"
     },
     "Alexis Fajardo": {
       "slug": "alexis-fajardo",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/611588_c1b1da20ea_sm.jpg",
-      "sourceWidth": 125,
-      "sourceHeight": 94,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/611588_c1b1da20ea_lg.jpg",
+      "sourceWidth": 600,
+      "sourceHeight": 450,
       "sizes": {
         "64": "/images/players/alexis-fajardo-64.webp",
+        "128": "/images/players/alexis-fajardo-128.webp",
+        "256": "/images/players/alexis-fajardo-256.webp",
         "full": "/images/players/alexis-fajardo.webp"
       },
-      "default": "/images/players/alexis-fajardo-64.webp"
+      "default": "/images/players/alexis-fajardo-128.webp"
     },
     "Philip Gaerlan": {
       "slug": "philip-gaerlan",
@@ -137,48 +156,55 @@
     },
     "Trace Gunsch": {
       "slug": "trace-gunsch",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/619991_3b38d92c21_sm.jpg",
-      "sourceWidth": 125,
-      "sourceHeight": 94,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/619991_3b38d92c21_lg.jpg",
+      "sourceWidth": 600,
+      "sourceHeight": 450,
       "sizes": {
         "64": "/images/players/trace-gunsch-64.webp",
+        "128": "/images/players/trace-gunsch-128.webp",
+        "256": "/images/players/trace-gunsch-256.webp",
         "full": "/images/players/trace-gunsch.webp"
       },
-      "default": "/images/players/trace-gunsch-64.webp"
+      "default": "/images/players/trace-gunsch-128.webp"
     },
     "Scott Haacke": {
       "slug": "scott-haacke",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/621714_446eceb8b6_sm.jpg",
-      "sourceWidth": 125,
-      "sourceHeight": 70,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/621714_446eceb8b6_lg.jpg",
+      "sourceWidth": 600,
+      "sourceHeight": 338,
       "sizes": {
         "64": "/images/players/scott-haacke-64.webp",
+        "128": "/images/players/scott-haacke-128.webp",
+        "256": "/images/players/scott-haacke-256.webp",
         "full": "/images/players/scott-haacke.webp"
       },
-      "default": "/images/players/scott-haacke-64.webp"
+      "default": "/images/players/scott-haacke-128.webp"
     },
     "Felix Hernandez": {
       "slug": "felix-hernandez",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/42578_large.jpg",
-      "sourceWidth": 200,
-      "sourceHeight": 246,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/42578_997c31ed4b_lg.jpg",
+      "sourceWidth": 600,
+      "sourceHeight": 504,
       "sizes": {
         "64": "/images/players/felix-hernandez-64.webp",
         "128": "/images/players/felix-hernandez-128.webp",
+        "256": "/images/players/felix-hernandez-256.webp",
         "full": "/images/players/felix-hernandez.webp"
       },
       "default": "/images/players/felix-hernandez-128.webp"
     },
     "Alejandro Herrera": {
       "slug": "alejandro-herrera",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/29542_25d823c745_sm.jpg",
-      "sourceWidth": 125,
-      "sourceHeight": 188,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/29542_25d823c745_lg.jpg",
+      "sourceWidth": 400,
+      "sourceHeight": 600,
       "sizes": {
         "64": "/images/players/alejandro-herrera-64.webp",
+        "128": "/images/players/alejandro-herrera-128.webp",
+        "256": "/images/players/alejandro-herrera-256.webp",
         "full": "/images/players/alejandro-herrera.webp"
       },
-      "default": "/images/players/alejandro-herrera-64.webp"
+      "default": "/images/players/alejandro-herrera-128.webp"
     },
     "John Johnston": {
       "slug": "john-johnston",
@@ -194,125 +220,146 @@
     },
     "Gordon Kelly": {
       "slug": "gordon-kelly",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/31436_b78f_sm.png",
-      "sourceWidth": 75,
-      "sourceHeight": 56,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/31436_b78f_lg.png",
+      "sourceWidth": 267,
+      "sourceHeight": 200,
       "sizes": {
         "64": "/images/players/gordon-kelly-64.webp",
+        "128": "/images/players/gordon-kelly-128.webp",
+        "256": "/images/players/gordon-kelly-256.webp",
         "full": "/images/players/gordon-kelly.webp"
       },
-      "default": "/images/players/gordon-kelly-64.webp"
+      "default": "/images/players/gordon-kelly-128.webp"
     },
     "Matt Kern": {
       "slug": "matt-kern",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/589800_5981f55b41_sm.jpg",
-      "sourceWidth": 125,
-      "sourceHeight": 94,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/589800_5981f55b41_lg.jpg",
+      "sourceWidth": 600,
+      "sourceHeight": 450,
       "sizes": {
         "64": "/images/players/matt-kern-64.webp",
+        "128": "/images/players/matt-kern-128.webp",
+        "256": "/images/players/matt-kern-256.webp",
         "full": "/images/players/matt-kern.webp"
       },
-      "default": "/images/players/matt-kern-64.webp"
+      "default": "/images/players/matt-kern-128.webp"
     },
     "Frank Lopez": {
       "slug": "frank-lopez",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/0_116076db16_sm.png",
-      "sourceWidth": 125,
-      "sourceHeight": 92,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/0_116076db16_lg.png",
+      "sourceWidth": 600,
+      "sourceHeight": 441,
       "sizes": {
         "64": "/images/players/frank-lopez-64.webp",
+        "128": "/images/players/frank-lopez-128.webp",
+        "256": "/images/players/frank-lopez-256.webp",
         "full": "/images/players/frank-lopez.webp"
       },
-      "default": "/images/players/frank-lopez-64.webp"
+      "default": "/images/players/frank-lopez-128.webp"
     },
     "Mark Manzano": {
       "slug": "mark-manzano",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/271047_e9c92ce348_sm.jpg",
-      "sourceWidth": 125,
-      "sourceHeight": 222,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/271047_e9c92ce348_lg.jpg",
+      "sourceWidth": 338,
+      "sourceHeight": 600,
       "sizes": {
         "64": "/images/players/mark-manzano-64.webp",
+        "128": "/images/players/mark-manzano-128.webp",
+        "256": "/images/players/mark-manzano-256.webp",
         "full": "/images/players/mark-manzano.webp"
       },
-      "default": "/images/players/mark-manzano-64.webp"
+      "default": "/images/players/mark-manzano-128.webp"
     },
     "Edgar Martinez": {
       "slug": "edgar-martinez",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/594572_dc533458b0_sm.jpg",
-      "sourceWidth": 125,
-      "sourceHeight": 167,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/594572_dc533458b0_lg.jpg",
+      "sourceWidth": 450,
+      "sourceHeight": 600,
       "sizes": {
         "64": "/images/players/edgar-martinez-64.webp",
+        "128": "/images/players/edgar-martinez-128.webp",
+        "256": "/images/players/edgar-martinez-256.webp",
         "full": "/images/players/edgar-martinez.webp"
       },
-      "default": "/images/players/edgar-martinez-64.webp"
+      "default": "/images/players/edgar-martinez-128.webp"
     },
     "Jorge Moreno": {
       "slug": "jorge-moreno",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/99798_a9c0f8345c_sm.jpg",
-      "sourceWidth": 125,
-      "sourceHeight": 167,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/99798_a9c0f8345c_lg.jpg",
+      "sourceWidth": 450,
+      "sourceHeight": 600,
       "sizes": {
         "64": "/images/players/jorge-moreno-64.webp",
+        "128": "/images/players/jorge-moreno-128.webp",
+        "256": "/images/players/jorge-moreno-256.webp",
         "full": "/images/players/jorge-moreno.webp"
       },
-      "default": "/images/players/jorge-moreno-64.webp"
+      "default": "/images/players/jorge-moreno-128.webp"
     },
     "Mauricio Muriel": {
       "slug": "mauricio-muriel",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/54218_large.jpg",
-      "sourceWidth": 200,
-      "sourceHeight": 364,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/54218_315c01963e_lg.jpg",
+      "sourceWidth": 400,
+      "sourceHeight": 600,
       "sizes": {
         "64": "/images/players/mauricio-muriel-64.webp",
         "128": "/images/players/mauricio-muriel-128.webp",
+        "256": "/images/players/mauricio-muriel-256.webp",
         "full": "/images/players/mauricio-muriel.webp"
       },
       "default": "/images/players/mauricio-muriel-128.webp"
     },
     "Charles Nolan": {
       "slug": "charles-nolan",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/507854_75bc6ebdba_sm.jpg",
-      "sourceWidth": 125,
-      "sourceHeight": 166,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/507854_75bc6ebdba_lg.jpg",
+      "sourceWidth": 451,
+      "sourceHeight": 600,
       "sizes": {
         "64": "/images/players/charles-nolan-64.webp",
+        "128": "/images/players/charles-nolan-128.webp",
+        "256": "/images/players/charles-nolan-256.webp",
         "full": "/images/players/charles-nolan.webp"
       },
-      "default": "/images/players/charles-nolan-64.webp"
+      "default": "/images/players/charles-nolan-128.webp"
     },
     "Kleber Oliveira": {
       "slug": "kleber-oliveira",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/278088_1f2326f396_sm.jpg",
-      "sourceWidth": 125,
-      "sourceHeight": 167,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/278088_1f2326f396_lg.jpg",
+      "sourceWidth": 450,
+      "sourceHeight": 600,
       "sizes": {
         "64": "/images/players/kleber-oliveira-64.webp",
+        "128": "/images/players/kleber-oliveira-128.webp",
+        "256": "/images/players/kleber-oliveira-256.webp",
         "full": "/images/players/kleber-oliveira.webp"
       },
-      "default": "/images/players/kleber-oliveira-64.webp"
+      "default": "/images/players/kleber-oliveira-128.webp"
     },
     "Russell O'Neal": {
       "slug": "russell-o-neal",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/620873_627eb9ed8f_sm.png",
-      "sourceWidth": 125,
-      "sourceHeight": 70,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/620873_627eb9ed8f_lg.png",
+      "sourceWidth": 600,
+      "sourceHeight": 338,
       "sizes": {
         "64": "/images/players/russell-o-neal-64.webp",
+        "128": "/images/players/russell-o-neal-128.webp",
+        "256": "/images/players/russell-o-neal-256.webp",
         "full": "/images/players/russell-o-neal.webp"
       },
-      "default": "/images/players/russell-o-neal-64.webp"
+      "default": "/images/players/russell-o-neal-128.webp"
     },
     "Dylan Pruitt": {
       "slug": "dylan-pruitt",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/155203_a1b79150ed_sm.jpg",
-      "sourceWidth": 125,
-      "sourceHeight": 125,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/155203_a1b79150ed_lg.jpg",
+      "sourceWidth": 600,
+      "sourceHeight": 600,
       "sizes": {
         "64": "/images/players/dylan-pruitt-64.webp",
+        "128": "/images/players/dylan-pruitt-128.webp",
+        "256": "/images/players/dylan-pruitt-256.webp",
         "full": "/images/players/dylan-pruitt.webp"
       },
-      "default": "/images/players/dylan-pruitt-64.webp"
+      "default": "/images/players/dylan-pruitt-128.webp"
     },
     "Andres Ramirez": {
       "slug": "andres-ramirez",
@@ -340,9 +387,9 @@
     },
     "Timothy Schnellenberger": {
       "slug": "timothy-schnellenberger",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/243897_e7fc_sm.png",
-      "sourceWidth": 75,
-      "sourceHeight": 146,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/243897_e7fc_lg.png",
+      "sourceWidth": 103,
+      "sourceHeight": 200,
       "sizes": {
         "64": "/images/players/timothy-schnellenberger-64.webp",
         "full": "/images/players/timothy-schnellenberger.webp"
@@ -351,37 +398,42 @@
     },
     "Paul Sotolongo": {
       "slug": "paul-sotolongo",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/632924_bcb6980e01_sm.jpg",
-      "sourceWidth": 125,
-      "sourceHeight": 125,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/632924_bcb6980e01_lg.jpg",
+      "sourceWidth": 600,
+      "sourceHeight": 600,
       "sizes": {
         "64": "/images/players/paul-sotolongo-64.webp",
+        "128": "/images/players/paul-sotolongo-128.webp",
+        "256": "/images/players/paul-sotolongo-256.webp",
         "full": "/images/players/paul-sotolongo.webp"
       },
-      "default": "/images/players/paul-sotolongo-64.webp"
+      "default": "/images/players/paul-sotolongo-128.webp"
     },
     "Chris Steinheiser": {
       "slug": "chris-steinheiser",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/131153_large.jpg",
-      "sourceWidth": 160,
-      "sourceHeight": 160,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/131153_56c067f08c_lg.jpg",
+      "sourceWidth": 600,
+      "sourceHeight": 600,
       "sizes": {
         "64": "/images/players/chris-steinheiser-64.webp",
         "128": "/images/players/chris-steinheiser-128.webp",
+        "256": "/images/players/chris-steinheiser-256.webp",
         "full": "/images/players/chris-steinheiser.webp"
       },
       "default": "/images/players/chris-steinheiser-128.webp"
     },
     "Wade Stubanas": {
       "slug": "wade-stubanas",
-      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/160212_bac9bfb2af_sm.jpg",
-      "sourceWidth": 125,
-      "sourceHeight": 125,
+      "sourceUrl": "https://www.r2sports.com/tourney/imageGallery/gallery/player/160212_bac9bfb2af_lg.jpg",
+      "sourceWidth": 600,
+      "sourceHeight": 600,
       "sizes": {
         "64": "/images/players/wade-stubanas-64.webp",
+        "128": "/images/players/wade-stubanas-128.webp",
+        "256": "/images/players/wade-stubanas-256.webp",
         "full": "/images/players/wade-stubanas.webp"
       },
-      "default": "/images/players/wade-stubanas-64.webp"
+      "default": "/images/players/wade-stubanas-128.webp"
     }
   }
 }

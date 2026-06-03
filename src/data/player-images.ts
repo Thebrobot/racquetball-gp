@@ -20,7 +20,7 @@ export const PLAYER_IMAGES_R2: Record<string, string> = {
 	'Philip Gaerlan':          'https://www.r2sports.com/tourney/imageGallery/gallery/player/17965_large.jpg',
 	'Trace Gunsch':            'https://www.r2sports.com/tourney/imageGallery/gallery/player/619991_3b38d92c21_sm.jpg',
 	'Scott Haacke':            'https://www.r2sports.com/tourney/imageGallery/gallery/player/621714_446eceb8b6_sm.jpg',
-	'Felix Hernandez':         'https://www.r2sports.com/tourney/imageGallery/gallery/player/42578_997c31ed4b_sm.jpg',
+	'Felix Hernandez':         'https://www.r2sports.com/tourney/imageGallery/gallery/player/42578_997c31ed4b_lg.jpg',
 	'Alejandro Herrera':       'https://www.r2sports.com/tourney/imageGallery/gallery/player/29542_25d823c745_sm.jpg',
 	'John Johnston':           'https://www.r2sports.com/tourney/imageGallery/gallery/player/20910_large.jpg',
 	'Gordon Kelly':            'https://www.r2sports.com/tourney/imageGallery/gallery/player/31436_b78f_sm.png',
