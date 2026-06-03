@@ -5,6 +5,9 @@ export function playerMatchesEntry(playerName: string, entryName: string): boole
 	const norm = playerName.trim().toLowerCase();
 	const entryNorm = entryName.trim().toLowerCase();
 	if (entryNorm === norm) return true;
+	// Only doubles teams (stored as "LastA / LastB") use last-name matching.
+	// Singles entries must match exactly so same-surname players aren't conflated.
+	if (!entryNorm.includes('/')) return false;
 	const lastName = norm.split(' ').pop() ?? '';
 	if (lastName.length > 1) {
 		const parts = entryNorm.split(/\s*\/\s*/);
@@ -18,25 +21,19 @@ function isGhostOpponent(name: string): boolean {
 	return u === 'BYE' || u === 'TBD' || u === '';
 }
 
-function isNoShowOrForfeit(score: string | undefined): boolean {
-	if (!score) return false;
-	return /\bWBF\b|No[\s-]?Show|Forfeit|Walkover/i.test(score);
-}
-
 function matchResult(
 	side: 1 | 2,
 	winner: 1 | 2 | undefined,
 	opponent: string,
-	score?: string,
-): 'win' | 'loss' | 'pending' | 'bye' | 'walkover' {
+): 'win' | 'loss' | 'pending' | 'bye' {
 	if (winner !== 1 && winner !== 2) return 'pending';
 	const oppGhost = isGhostOpponent(opponent);
 	if (winner === side) {
-		if (oppGhost) return 'bye';
-		if (isNoShowOrForfeit(score)) return 'walkover';
-		return 'win';
+		// A win by forfeit / no-show (WBF) still advances the player: counts as a win.
+		return oppGhost ? 'bye' : 'win';
 	}
 	if (oppGhost) return 'pending';
+	// The no-show player takes the loss.
 	return 'loss';
 }
 
@@ -59,7 +56,7 @@ export function countPlayerWinsInDivision(playerName: string, divisionId: string
 							: null;
 					if (side === null) continue;
 					const opp = side === 1 ? p2 : p1;
-					if (matchResult(side, m.winner, opp, m.score) === 'win') wins++;
+					if (matchResult(side, m.winner, opp) === 'win') wins++;
 				}
 			}
 
@@ -71,7 +68,7 @@ export function countPlayerWinsInDivision(playerName: string, divisionId: string
 						: null;
 				if (side === null) continue;
 				const opp = side === 1 ? m.team2 : m.team1;
-				if (matchResult(side, m.winner, opp, m.score) === 'win') wins++;
+				if (matchResult(side, m.winner, opp) === 'win') wins++;
 			}
 		}
 	}

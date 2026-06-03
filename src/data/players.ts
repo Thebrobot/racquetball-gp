@@ -43,7 +43,9 @@ function playerMatchesEntry(playerName: string, entryName: string): boolean {
 	const norm = playerName.trim().toLowerCase();
 	const entryNorm = entryName.trim().toLowerCase();
 	if (entryNorm === norm) return true;
-	// Doubles teams are stored as "LastA / LastB"; match by last name.
+	// Only doubles teams (stored as "LastA / LastB") use last-name matching.
+	// Singles entries must match exactly so same-surname players aren't conflated.
+	if (!entryNorm.includes('/')) return false;
 	// Use endsWith to handle compound last names like "Van Zant-Russell".
 	const lastName = norm.split(' ').pop() ?? '';
 	if (lastName.length > 1) {
@@ -298,26 +300,19 @@ function isGhostOpponent(name: string): boolean {
 	return u === 'BYE' || u === 'TBD' || u === '';
 }
 
-/** Opponent no-show / forfeit — winner does not get a counted match win. */
-function isNoShowOrForfeit(score: string | undefined): boolean {
-	if (!score) return false;
-	return /\bWBF\b|No[\s-]?Show|Forfeit|Walkover/i.test(score);
-}
-
 function resultForSide(
 	side: 1 | 2,
 	winner: 1 | 2 | undefined,
 	opponent: string,
-	score?: string,
 ): PlayerMatchRecord['result'] {
 	if (winner !== 1 && winner !== 2) return 'pending';
 	const oppGhost = isGhostOpponent(opponent);
 	if (winner === side) {
-		if (oppGhost) return 'bye';
-		if (isNoShowOrForfeit(score)) return 'walkover';
-		return 'win';
+		// A win by forfeit / no-show (WBF) still advances the player: counts as a win.
+		return oppGhost ? 'bye' : 'win';
 	}
 	if (oppGhost) return 'pending';
+	// The no-show player takes the loss.
 	return 'loss';
 }
 
@@ -341,7 +336,7 @@ export function getPlayerMatchHistory(playerName: string): PlayerMatchRecord[] {
 						roundLabel: round.label,
 						opponent: opp || 'TBD',
 						score: m.score,
-						result: resultForSide(side, m.winner, opp, m.score),
+						result: resultForSide(side, m.winner, opp),
 					});
 				}
 			}
@@ -358,7 +353,7 @@ export function getPlayerMatchHistory(playerName: string): PlayerMatchRecord[] {
 					roundLabel: m.round,
 					opponent: opp || 'TBD',
 					score: m.score,
-					result: resultForSide(side, m.winner, opp, m.score),
+					result: resultForSide(side, m.winner, opp),
 				});
 			}
 		}
