@@ -7,13 +7,56 @@ import { dlrSpotlight } from '../../data/guest-spotlight/dlr';
 import { heroVideoCredit } from '../../data/hero-video-credit';
 
 const guest = dlrSpotlight;
+const siteOrigin = 'https://www.racquetballgp.com';
+const pageUrl = `${siteOrigin}${guest.pageHref}`;
+const eventDescription = `${guest.name} (${guest.nickname}) joins the ${guest.eventName} ${guest.eventDates} at ${guest.venue} — competition, clinics, private lessons, and autographs.`;
+
+const sportsEventJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'SportsEvent',
+	name: `${guest.eventName} — ${guest.name} Special Appearance`,
+	description: eventDescription,
+	startDate: guest.eventStartDate,
+	endDate: guest.eventEndDate,
+	eventStatus: 'https://schema.org/EventScheduled',
+	eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+	image: `${siteOrigin}${guest.ogImage}`,
+	url: pageUrl,
+	location: {
+		'@type': 'Place',
+		name: guest.venue,
+		address: {
+			'@type': 'PostalAddress',
+			addressLocality: guest.eventCity,
+			addressRegion: guest.eventRegion,
+			addressCountry: 'US',
+		},
+	},
+	performer: {
+		'@type': 'Person',
+		name: guest.name,
+		alternateName: guest.nickname,
+	},
+	organizer: {
+		'@type': 'Organization',
+		name: 'Florida Racquetball Grand Prix',
+		url: siteOrigin,
+	},
+	offers: {
+		'@type': 'Offer',
+		url: guest.registerUrl,
+		availability: 'https://schema.org/InStock',
+	},
+};
 ---
 
 <GrandPrixLayout
 	title="Daniel De La Rosa | Sarasota Open 2026"
-	description="Daniel De La Rosa (DLR) joins the Sarasota Open July 10–12, 2026 at the Sarasota YMCA — competition, clinics, private lessons, and autographs."
+	description={eventDescription}
 	hideSponsorSpotlight={true}
-	ogImage={guest.heroImage}
+	ogImage={guest.ogImage}
+	ogImageWidth={1200}
+	ogImageHeight={630}
 	imagePreloads={[guest.heroImage]}
 >
 	<article class="dlr-page">
@@ -103,4 +146,6 @@ const guest = dlrSpotlight;
 			</div>
 		</main>
 	</article>
+
+	<script type="application/ld+json" set:html={JSON.stringify(sportsEventJsonLd)} />
 </GrandPrixLayout>

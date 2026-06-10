@@ -53,6 +53,13 @@ export interface GuestSpotlight {
 	venue: string;
 	registerUrl: string;
 	pageHref: string;
+	/** ISO 8601 dates for structured data */
+	eventStartDate: string;
+	eventEndDate: string;
+	eventCity: string;
+	eventRegion: string;
+	/** 1200×630 social share image */
+	ogImage: string;
 	heroImage: string;
 	heroImageAlt: string;
 	heroVideo?: string;
@@ -91,6 +98,11 @@ export const dlrSpotlight: GuestSpotlight = {
 	venue: 'Sarasota YMCA',
 	registerUrl: 'https://www.r2sports.com/tourney/home.asp?TID=54249',
 	pageHref: '/spotlight/daniel-de-la-rosa',
+	eventStartDate: '2026-07-10',
+	eventEndDate: '2026-07-12',
+	eventCity: 'Sarasota',
+	eventRegion: 'FL',
+	ogImage: '/images/spotlight/dlr-og.webp',
 	heroImage: '/images/spotlight/dlr-action.webp',
 	heroImageAlt: 'Daniel De La Rosa celebrating during a professional racquetball match',
 	heroVideo: '/videos/dlr-hero.mp4',

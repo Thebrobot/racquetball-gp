@@ -39,6 +39,17 @@ const jobs = [
 	{ rel: 'images/spotlight/dlr-action.png', maxWidth: 1200, quality: 85 },
 ];
 
+/** Fixed-size social / Open Graph crops (width × height, cover fit). */
+const ogJobs = [
+	{
+		rel: 'images/spotlight/dlr-action.png',
+		outRel: 'images/spotlight/dlr-og.webp',
+		width: 1200,
+		height: 630,
+		quality: 86,
+	},
+];
+
 async function main() {
 	for (const { rel, maxWidth, quality = 85 } of jobs) {
 		const input = path.join(publicDir, rel);
@@ -52,6 +63,17 @@ async function main() {
 		const inStat = await fs.stat(input);
 		const outStat = await fs.stat(output);
 		console.log(`${outRel}  (${Math.round(inStat.size / 1024)}KB → ${Math.round(outStat.size / 1024)}KB)`);
+	}
+	for (const { rel, outRel, width, height, quality = 86 } of ogJobs) {
+		const input = path.join(publicDir, rel);
+		const output = path.join(publicDir, outRel);
+		await fs.mkdir(path.dirname(output), { recursive: true });
+		await sharp(input)
+			.resize(width, height, { fit: 'cover', position: 'centre' })
+			.webp({ quality, effort: 6 })
+			.toFile(output);
+		const outStat = await fs.stat(output);
+		console.log(`${outRel}  (${width}×${height}, ${Math.round(outStat.size / 1024)}KB)`);
 	}
 	console.log('Done.');
 }

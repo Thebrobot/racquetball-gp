@@ -11,6 +11,8 @@ interface Props {
 	description: string;
 	siteName?: string;
 	ogImage?: string;
+	ogImageWidth?: number;
+	ogImageHeight?: number;
 	spotlightName?: string;
 	spotlightBlurb?: string;
 	spotlightLabel?: string;
@@ -24,6 +26,8 @@ const {
 	description,
 	siteName = 'Florida Racquetball Grand Prix',
 	ogImage = '/images/og-default.webp',
+	ogImageWidth = 1200,
+	ogImageHeight = 630,
 	spotlightName,
 	spotlightBlurb,
 	spotlightLabel,
@@ -33,7 +37,7 @@ const {
 } = Astro.props;
 ---
 
-<BaseLayout {title} {description} {siteName} {ogImage} fullBleed imagePreloads={imagePreloads}>
+<BaseLayout {title} {description} {siteName} {ogImage} {ogImageWidth} {ogImageHeight} fullBleed imagePreloads={imagePreloads}>
 	<div class="gp-site">
 		<GrandPrixNav />
 		<TournamentWeekendPromo />
