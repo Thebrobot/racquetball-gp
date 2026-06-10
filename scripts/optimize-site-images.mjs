@@ -36,6 +36,7 @@ const jobs = [
 		maxWidth: 720,
 		quality: 85,
 	})),
+	{ rel: 'images/spotlight/dlr-action.png', maxWidth: 1200, quality: 85 },
 ];
 
 async function main() {

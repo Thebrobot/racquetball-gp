@@ -1,0 +1,60 @@
+---
+import type { GuestSpotlight } from '../../data/guest-spotlight/dlr';
+import { dlrSpotlight } from '../../data/guest-spotlight/dlr';
+
+interface Props {
+	guest?: GuestSpotlight;
+}
+
+const guest = Astro.props.guest ?? dlrSpotlight;
+---
+
+<section class="guest-pro-spotlight" aria-labelledby="guest-pro-spotlight-heading">
+	<div class="guest-pro-spotlight-bg" aria-hidden="true">
+		<div class="guest-pro-spotlight-glow"></div>
+	</div>
+
+	<div class="guest-pro-spotlight-inner">
+		<span class="guest-pro-spotlight-pill">Pro Guest · {guest.eventName}</span>
+
+		<div class="guest-pro-spotlight-photo-wrap">
+			<img
+				class="guest-pro-spotlight-photo"
+				src={guest.heroImage}
+				alt={guest.heroImageAlt}
+				width="800"
+				height="1000"
+				loading="lazy"
+				decoding="async"
+			/>
+		</div>
+
+		<h2 id="guest-pro-spotlight-heading" class="guest-pro-spotlight-title">
+			{guest.name}
+		</h2>
+		<p class="guest-pro-spotlight-teaser">
+			Train with a world champion at the Sarasota Open — clinics, private lessons, and a full weekend
+			of pro racquetball.
+		</p>
+		<div class="guest-pro-spotlight-stats" aria-label="Career highlights">
+			{
+				guest.quickStats.map((stat) => (
+					<span class="guest-pro-spotlight-stat">{stat}</span>
+				))
+			}
+		</div>
+		<div class="guest-pro-spotlight-ctas">
+			<a class="guest-pro-spotlight-cta guest-pro-spotlight-cta--primary" href={guest.pageHref}>
+				Meet {guest.nickname} →
+			</a>
+			<a
+				class="guest-pro-spotlight-cta guest-pro-spotlight-cta--secondary"
+				href={guest.registerUrl}
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				Register on R2
+			</a>
+		</div>
+	</div>
+</section>

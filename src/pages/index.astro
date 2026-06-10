@@ -1,13 +1,17 @@
 ---
 import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
 import TitleSponsorIntro from '../components/grand-prix/TitleSponsorIntro.astro';
+import GuestProSpotlight from '../components/grand-prix/GuestProSpotlight.astro';
 import PlayerSpotlight from '../components/grand-prix/PlayerSpotlight.astro';
 import SeasonStopsBar from '../components/grand-prix/SeasonStopsBar.astro';
 import SeasonStopsBento from '../components/grand-prix/SeasonStopsBento.astro';
 import { HOME_SPOTLIGHT_TRACKS, getTopN, leaderboardDivisionHref } from '../data/leaderboard';
 import { getFeaturedEvent } from '../data/events';
 import { getNextSeasonStop } from '../data/season-stops';
+import { dlrSpotlight } from '../data/guest-spotlight/dlr';
 import { titleSponsor } from '../data/ocala-sponsors';
+import HeroMediaCredit from '../components/grand-prix/HeroMediaCredit.astro';
+import { heroVideoCredit } from '../data/hero-video-credit';
 import heroVideo from '../partials/grand-prix-hero-video.html?raw';
 
 const spotlightSpots = HOME_SPOTLIGHT_TRACKS.map((t) => ({
@@ -34,6 +38,7 @@ const spotlightImage = liveEvent?.spotlightImage ?? nextStop?.image;
 		...(spotlightImage ? [spotlightImage] : []),
 		'/images/website-logo.webp',
 		'/images/series-logo.webp',
+		'/images/spotlight/dlr-action.webp',
 	]}
 >
 	<div class="hero-viewport">
@@ -45,6 +50,7 @@ const spotlightImage = liveEvent?.spotlightImage ?? nextStop?.image;
 			>
 			</div>
 			<div class="hero-grid" style="z-index:2;" aria-hidden="true"></div>
+			<HeroMediaCredit credit={heroVideoCredit} />
 			<div class="hero-layout" style="z-index:3;">
 				<div class="hero-copy">
 					<div class="hero-eyebrow">Season 1 · Florida Statewide Series</div>
@@ -62,6 +68,7 @@ const spotlightImage = liveEvent?.spotlightImage ?? nextStop?.image;
 					<div class="hero-ctas">
 						<a class="btn-main" href="/leaderboard">View Standings</a>
 						<a class="btn-ghost" href="/tournaments">See Schedule</a>
+						<a class="btn-guest" href={dlrSpotlight.pageHref}>See special guest</a>
 					</div>
 				</div>
 				<div class="hero-series">
@@ -149,6 +156,14 @@ const spotlightImage = liveEvent?.spotlightImage ?? nextStop?.image;
 								</p>
 								<p class="event-spotlight-venue">{nextStop.venue}</p>
 								{nextStop.teaser && <p class="event-spotlight-teaser">{nextStop.teaser}</p>}
+								{nextStop.id === 'stop-2' && (
+									<p class="event-spotlight-teaser">
+										Featuring pro guest{' '}
+										<a class="event-spotlight-guest-link" href={dlrSpotlight.pageHref}>
+											{dlrSpotlight.name} ({dlrSpotlight.nickname}) →
+										</a>
+									</p>
+								)}
 								<div class="event-spotlight-ctas">
 									<a
 										class="event-spotlight-cta event-spotlight-cta--primary"
@@ -169,6 +184,8 @@ const spotlightImage = liveEvent?.spotlightImage ?? nextStop?.image;
 			</div>
 		</section>
 	)}
+
+	<GuestProSpotlight />
 
 	<div class="home-bento-shell">
 		<div class="home-bento-shell-inner">

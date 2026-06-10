@@ -11,11 +11,12 @@ interface Props {
 	description: string;
 	siteName?: string;
 	ogImage?: string;
-	spotlightName: string;
-	spotlightBlurb: string;
+	spotlightName?: string;
+	spotlightBlurb?: string;
 	spotlightLabel?: string;
 	spotlightLogoUrl?: string;
 	imagePreloads?: string[];
+	hideSponsorSpotlight?: boolean;
 }
 
 const {
@@ -28,6 +29,7 @@ const {
 	spotlightLabel,
 	spotlightLogoUrl,
 	imagePreloads,
+	hideSponsorSpotlight = false,
 } = Astro.props;
 ---
 
@@ -36,12 +38,16 @@ const {
 		<GrandPrixNav />
 		<TournamentWeekendPromo />
 		<slot />
-		<SponsorSpotlight
-			label={spotlightLabel}
-			name={spotlightName}
-			blurb={spotlightBlurb}
-			logoUrl={spotlightLogoUrl}
-		/>
+		{
+			!hideSponsorSpotlight && spotlightName && spotlightBlurb && (
+				<SponsorSpotlight
+					label={spotlightLabel}
+					name={spotlightName}
+					blurb={spotlightBlurb}
+					logoUrl={spotlightLogoUrl}
+				/>
+			)
+		}
 		<GrandPrixFooter />
 	</div>
 </BaseLayout>

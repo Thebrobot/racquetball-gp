@@ -1,0 +1,127 @@
+---
+import type { GuestSpotlight } from '../../data/guest-spotlight/dlr';
+import DlrStatCards from './DlrStatCards.astro';
+
+interface Props {
+	guest: GuestSpotlight;
+}
+
+const { guest } = Astro.props;
+---
+
+<DlrStatCards statCards={guest.statCards} class="dlr-page-main-stats" />
+
+<section class="dlr-page-section" id="about" aria-labelledby="dlr-about-heading">
+	<div class="dlr-page-split">
+		<div class="dlr-page-photo-card">
+			<img
+				src={guest.heroImage}
+				alt={guest.heroImageAlt}
+				width="800"
+				height="1000"
+				loading="lazy"
+				decoding="async"
+			/>
+		</div>
+		<div class="dlr-page-copy-card">
+			<div class="dlr-page-eyebrow">
+				<span class="dlr-page-eyebrow-dot" aria-hidden="true"></span>
+				Player Spotlight
+			</div>
+			<h2 id="dlr-about-heading" class="dlr-page-section-heading">{guest.aboutHeadline}</h2>
+			{
+				guest.aboutParagraphs.map((paragraph) => (
+					<p class="dlr-page-copy-text">{paragraph}</p>
+				))
+			}
+			<div class="dlr-page-highlight-list">
+				{
+					guest.aboutHighlights.map((item) => (
+						<div>{item}</div>
+					))
+				}
+			</div>
+		</div>
+	</div>
+</section>
+
+<section class="dlr-page-section" id="learn" aria-labelledby="dlr-learn-heading">
+	<div class="dlr-page-section-intro">
+		<div class="dlr-page-eyebrow">
+			<span class="dlr-page-eyebrow-dot" aria-hidden="true"></span>
+			What You'll Learn
+		</div>
+		<h2 id="dlr-learn-heading" class="dlr-page-section-heading">
+			Instruction from a player who has competed at the very top.
+		</h2>
+		<p class="dlr-page-section-lead">
+			This clinic is built for players who want more than a fun appearance. Learn strategy, movement,
+			and decision-making from a world champion.
+		</p>
+	</div>
+	<div class="dlr-page-learn-grid">
+		{
+			guest.learnTopics.map((topic) => (
+				<article class="dlr-page-learn-card">
+					<div class="dlr-page-learn-icon" aria-hidden="true">
+						{topic.icon}
+					</div>
+					<b>{topic.title}</b>
+					<p>{topic.description}</p>
+				</article>
+			))
+		}
+	</div>
+</section>
+
+<section class="dlr-page-section" id="schedule" aria-labelledby="dlr-schedule-heading">
+	<div class="dlr-page-section-intro">
+		<div class="dlr-page-eyebrow">
+			<span class="dlr-page-eyebrow-dot" aria-hidden="true"></span>
+			Clinics &amp; Private Lessons
+		</div>
+		<h2 id="dlr-schedule-heading" class="dlr-page-section-heading">Weekend Schedule</h2>
+		<p class="dlr-page-section-lead">
+			Spots for clinics and private lessons are limited. Register early to secure your time with Daniel.
+		</p>
+	</div>
+	<div class="dlr-page-schedule">
+		{
+			guest.scheduleSessions.map((session) => (
+				<article
+					class:list={[
+						'dlr-page-session',
+						session.featured && 'dlr-page-session--featured',
+					]}
+				>
+					<div class="dlr-page-session-day">{session.day}</div>
+					<div class="dlr-page-session-body">
+						<h3>{session.title}</h3>
+						<p>{session.description}</p>
+					</div>
+					<div
+						class:list={[
+							'dlr-page-session-price',
+							session.featured && 'dlr-page-session-price--free',
+						]}
+					>
+						{session.price}
+					</div>
+				</article>
+			))
+		}
+	</div>
+
+	<div class="dlr-page-final-cta" id="register">
+		<h2 class="dlr-page-section-heading">{guest.finalCtaHeadline}</h2>
+		<p>{guest.finalCtaCopy}</p>
+		<a
+			class="dlr-page-cta dlr-page-cta--primary"
+			href={guest.registerUrl}
+			target="_blank"
+			rel="noopener noreferrer"
+		>
+			Register on R2
+		</a>
+	</div>
+</section>

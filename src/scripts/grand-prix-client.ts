@@ -910,18 +910,26 @@ function initBracketTabs() {
 }
 
 function initHeroVideo() {
-	const v = document.getElementById('hero-video') as HTMLVideoElement | null;
-	if (!v) return;
-	const reveal = () => {
-		v.style.opacity = '1';
-	};
-	if (v.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-		reveal();
-	} else {
-		v.addEventListener('canplay', reveal, { once: true });
-	}
-	void v.play().catch(() => {
-		/* autoplay may be blocked; still show first frame when data loads */
+	const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const videos = document.querySelectorAll<HTMLVideoElement>('#hero-video, .gp-autoplay-hero-video');
+	videos.forEach((v) => {
+		if (prefersReducedMotion) {
+			v.removeAttribute('autoplay');
+			v.pause();
+			v.style.opacity = '1';
+			return;
+		}
+		const reveal = () => {
+			v.style.opacity = '1';
+		};
+		if (v.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+			reveal();
+		} else {
+			v.addEventListener('canplay', reveal, { once: true });
+		}
+		void v.play().catch(() => {
+			/* autoplay may be blocked; still show first frame when data loads */
+		});
 	});
 }
 

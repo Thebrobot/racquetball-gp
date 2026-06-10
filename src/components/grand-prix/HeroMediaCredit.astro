@@ -1,0 +1,30 @@
+---
+import type { HeroVideoCredit } from '../../data/hero-video-credit';
+import { hasHeroVideoCredit, heroVideoCreditInstagramUrl } from '../../data/hero-video-credit';
+
+interface Props {
+	credit: HeroVideoCredit;
+	class?: string;
+}
+
+const { credit, class: className } = Astro.props;
+
+if (!hasHeroVideoCredit(credit)) {
+	return null;
+}
+
+const instagramUrl = heroVideoCreditInstagramUrl(credit);
+const handle = credit.instagram.replace(/^@/, '').trim();
+---
+
+<p class:list={['hero-media-credit', className]}>
+	Video:{' '}
+	<a
+		href={instagramUrl}
+		target="_blank"
+		rel="noopener noreferrer"
+		aria-label={`${credit.name} on Instagram (@${handle})`}
+	>
+		{credit.name}
+	</a>
+</p>

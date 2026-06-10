@@ -1,0 +1,21 @@
+---
+import type { GuestStatCard } from '../../data/guest-spotlight/dlr';
+
+interface Props {
+	statCards: GuestStatCard[];
+	class?: string;
+}
+
+const { statCards, class: className } = Astro.props;
+---
+
+<div class:list={['dlr-page-stats', className]} aria-label="Daniel De La Rosa career highlights">
+	{
+		statCards.map((stat) => (
+			<div class="dlr-page-stat">
+				<strong>{stat.value}</strong>
+				<span>{stat.label}</span>
+			</div>
+		))
+	}
+</div>

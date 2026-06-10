@@ -1,0 +1,106 @@
+---
+import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
+import DlrSpotlightSections from '../../components/grand-prix/DlrSpotlightSections.astro';
+import DlrStatCards from '../../components/grand-prix/DlrStatCards.astro';
+import HeroMediaCredit from '../../components/grand-prix/HeroMediaCredit.astro';
+import { dlrSpotlight } from '../../data/guest-spotlight/dlr';
+import { heroVideoCredit } from '../../data/hero-video-credit';
+
+const guest = dlrSpotlight;
+---
+
+<GrandPrixLayout
+	title="Daniel De La Rosa | Sarasota Open 2026"
+	description="Daniel De La Rosa (DLR) joins the Sarasota Open July 10–12, 2026 at the Sarasota YMCA — competition, clinics, private lessons, and autographs."
+	hideSponsorSpotlight={true}
+	ogImage={guest.heroImage}
+	imagePreloads={[guest.heroImage]}
+>
+	<article class="dlr-page">
+		<header class="dlr-page-hero">
+			<div class="dlr-page-hero-media" aria-hidden="true">
+				{
+					guest.heroVideo ? (
+						<video
+							class="dlr-page-hero-video gp-autoplay-hero-video"
+							id="dlr-hero-video"
+							autoplay
+							muted
+							loop
+							playsinline
+							preload="metadata"
+							poster={guest.heroVideoPoster ?? guest.heroImage}
+							width="532"
+							height="902"
+						>
+							<source src={guest.heroVideo} type="video/mp4" />
+						</video>
+					) : (
+						<img
+							class="dlr-page-hero-video dlr-page-hero-video--fallback"
+							src={guest.heroImage}
+							alt=""
+							width="532"
+							height="902"
+							fetchpriority="high"
+							decoding="async"
+						/>
+					)
+				}
+				<div class="dlr-page-hero-scrim"></div>
+				<div class="dlr-page-hero-streak dlr-page-hero-streak--1"></div>
+				<div class="dlr-page-hero-streak dlr-page-hero-streak--2"></div>
+				<div class="dlr-page-hero-glow" aria-hidden="true"></div>
+				<HeroMediaCredit credit={heroVideoCredit} class="hero-media-credit--dlr" />
+			</div>
+
+			<div class="dlr-page-hero-content">
+				<div class="dlr-page-hero-head">
+					<div class="dlr-page-eyebrow">
+						<span class="dlr-page-eyebrow-dot" aria-hidden="true"></span>
+						{guest.heroEyebrow}
+					</div>
+					<h1 class="dlr-page-hero-title">{guest.heroHeadline}</h1>
+				</div>
+				<p class="dlr-page-hero-copy">{guest.heroCopy}</p>
+				<DlrStatCards statCards={guest.statCards} class="dlr-page-hero-stats" />
+				<div class="dlr-page-hero-actions">
+					<a
+						class="dlr-page-cta dlr-page-cta--primary"
+						href={guest.registerUrl}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						Register on R2
+					</a>
+					<a class="dlr-page-cta dlr-page-cta--secondary" href="#schedule">
+						View Schedule
+					</a>
+				</div>
+
+				<div class="dlr-page-hero-meta">
+					<div class="dlr-page-event-card">
+						<div>
+							<span class="dlr-page-event-label">Date</span>
+							<span class="dlr-page-event-value">{guest.eventDates}</span>
+						</div>
+						<div>
+							<span class="dlr-page-event-label">Location</span>
+							<span class="dlr-page-event-value">{guest.venue}</span>
+						</div>
+						<div>
+							<span class="dlr-page-event-label">Presented By</span>
+							<span class="dlr-page-event-value">{guest.presentedBy}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</header>
+
+		<main class="dlr-page-main">
+			<div class="dlr-page-container">
+				<DlrSpotlightSections guest={guest} />
+			</div>
+		</main>
+	</article>
+</GrandPrixLayout>
