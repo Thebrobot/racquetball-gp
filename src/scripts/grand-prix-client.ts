@@ -190,6 +190,80 @@ function initLiveWeekendPromo() {
 	}, delayMs);
 }
 
+function registerPromoDismissKey(stopId: string): string {
+	return `gp:registerPromoDismissed:${stopId}`;
+}
+
+function wouldShowLiveWeekendPromo(): boolean {
+	const dataEl = document.getElementById('gp-live-weekend-data');
+	if (!dataEl) return false;
+	try {
+		const entries = JSON.parse(dataEl.textContent || '[]') as LiveWeekendEntry[];
+		const liveEvent = findLiveWeekendEvent(entries);
+		if (!liveEvent) return false;
+		return localStorage.getItem(livePromoDismissKey(liveEvent)) !== '1';
+	} catch {
+		return false;
+	}
+}
+
+function initTournamentRegisterPromo() {
+	if (wouldShowLiveWeekendPromo()) return;
+
+	const dataEl = document.getElementById('gp-register-promo-data');
+	const root = document.getElementById('gp-register-promo');
+	const closeBtn = document.getElementById('gp-register-promo-close');
+	if (!dataEl || !root || !closeBtn) return;
+
+	let stopId: string;
+	try {
+		const payload = JSON.parse(dataEl.textContent || '{}') as { id?: string };
+		if (!payload.id) return;
+		stopId = payload.id;
+	} catch {
+		return;
+	}
+
+	const dismissStorageKey = registerPromoDismissKey(stopId);
+	try {
+		if (localStorage.getItem(dismissStorageKey) === '1') return;
+	} catch {
+		/* ignore */
+	}
+
+	const panel = root;
+	const close = closeBtn;
+
+	function dismiss() {
+		try {
+			localStorage.setItem(dismissStorageKey, '1');
+		} catch {
+			/* ignore */
+		}
+		panel.classList.remove('gp-register-promo--visible');
+		panel.setAttribute('aria-hidden', 'true');
+		panel.setAttribute('hidden', '');
+		document.removeEventListener('keydown', onDocKey);
+	}
+
+	function onDocKey(e: KeyboardEvent) {
+		if (e.key === 'Escape') dismiss();
+	}
+
+	close.addEventListener('click', dismiss);
+
+	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const delayMs = reducedMotion ? 0 : 2500;
+
+	window.setTimeout(() => {
+		panel.removeAttribute('hidden');
+		panel.setAttribute('aria-hidden', 'false');
+		void panel.offsetWidth;
+		panel.classList.add('gp-register-promo--visible');
+		document.addEventListener('keydown', onDocKey);
+	}, delayMs);
+}
+
 function initNavDrawer() {
 	const btn = document.getElementById('gp-nav-menu-btn') as HTMLButtonElement | null;
 	const backdrop = document.querySelector<HTMLElement>('.nav-drawer-backdrop');
@@ -1122,6 +1196,7 @@ function initLiveActivity() {
 
 initNavDrawer();
 initLiveWeekendPromo();
+initTournamentRegisterPromo();
 initLeaderboardPage();
 initHeroVideo();
 initBracketTabs();

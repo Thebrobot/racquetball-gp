@@ -1,0 +1,68 @@
+---
+import { getNextSeasonStop } from '../../data/season-stops';
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const showOnPage =
+	!path.startsWith('/spotlight') &&
+	(path === '/' ||
+		path === '/tournaments' ||
+		path === '/points' ||
+		path === '/leaderboard' ||
+		path.startsWith('/leaderboard/'));
+
+const nextStop = getNextSeasonStop();
+const showPromo =
+	showOnPage &&
+	nextStop &&
+	nextStop.kind === 'next' &&
+	nextStop.registerUrl.startsWith('http');
+
+const promoCopy =
+	nextStop?.teaser ??
+	'Earn Grand Prix points at the next stop in the Florida statewide series.';
+---
+
+{
+	showPromo && nextStop && (
+		<>
+			<script type="application/json" id="gp-register-promo-data" set:html={JSON.stringify({ id: nextStop.id })} />
+			<aside
+				class="gp-register-promo"
+				id="gp-register-promo"
+				aria-labelledby="gp-register-promo-title"
+				aria-hidden="true"
+				hidden
+			>
+				<div class="gp-register-promo__inner">
+					<button
+						type="button"
+						class="gp-register-promo__close"
+						id="gp-register-promo-close"
+						aria-label="Dismiss registration reminder"
+					>
+						<span aria-hidden="true">×</span>
+					</button>
+					<p class="gp-register-promo__eyebrow">Next Grand Prix stop · {nextStop.label}</p>
+					<h2 class="gp-register-promo__title" id="gp-register-promo-title">{nextStop.eventName}</h2>
+					<p class="gp-register-promo__sub">
+						{nextStop.dateFull} · {nextStop.venue}
+					</p>
+					<p class="gp-register-promo__copy">{promoCopy}</p>
+					<div class="gp-register-promo__actions">
+						<a
+							class="gp-register-promo__btn gp-register-promo__btn--primary"
+							href={nextStop.registerUrl}
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							Register for the tournament on R2
+						</a>
+						<a class="gp-register-promo__btn gp-register-promo__btn--ghost" href="/tournaments">
+							See full schedule
+						</a>
+					</div>
+				</div>
+			</aside>
+		</>
+	)
+}
