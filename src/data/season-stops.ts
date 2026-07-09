@@ -69,6 +69,8 @@ export const SEASON_STOPS: SeasonStop[] = [
 		registerUrl: 'https://www.r2sports.com/tourney/home.asp?TID=54249',
 		bentoGridArea: 'c1',
 		watchLiveUrl: GRAND_PRIX_FACEBOOK_URL,
+		bracketsHref: '/events/sarasota-open#brackets',
+		participantsHref: '/events/sarasota-open#participants',
 	},
 	{
 		id: 'stop-3',

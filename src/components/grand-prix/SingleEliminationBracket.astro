@@ -278,7 +278,10 @@ function abbreviateName(name: string) {
 function abbreviateNamePart(name: string) {
 	const parts = name.trim().replace(/\./g, '').split(/\s+/).filter(Boolean);
 	if (parts.length < 2) return name;
-	return `${parts[0]![0]} ${parts[parts.length - 1]}`;
+	// Keep all words after the first as the surname so compound last names
+	// like "Portillo Torres" or "De La Rosa" are not truncated to just the last word.
+	const surname = parts.slice(1).join(' ');
+	return `${parts[0]![0]} ${surname}`;
 }
 
 function isAbbreviatedName(name: string): boolean {
@@ -348,7 +351,8 @@ function displayNameFor(match: EventBracketMatch, roundIndex: number, gameIndex:
 	if (rawName.trim().toUpperCase() === 'TBD' || rawName.trim() === '') {
 		return feederLabel(roundIndex, gameIndex, side) || rawName;
 	}
-	if (roundIndex > 0 && !isGhostName(rawName)) return abbreviateName(rawName);
+	// Team tokens already use last-name form (e.g. "De La Rosa / Schulze") — don't abbreviate them further
+	if (roundIndex > 0 && !isGhostName(rawName) && !rawName.includes('/')) return abbreviateName(rawName);
 	return rawName;
 }
 

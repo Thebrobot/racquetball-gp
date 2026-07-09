@@ -17,7 +17,9 @@ export async function getStaticPaths() {
 	);
 }
 
-const { event, division } = Astro.props;
+const { event: routeEvent, division: routeDivision } = Astro.props;
+const event = EVENTS.find((e) => e.slug === routeEvent.slug) ?? routeEvent;
+const division = event.divisionDetails.find((d) => d.id === routeDivision.id) ?? routeDivision;
 const players = division.roundRobinPlayers ?? [];
 const rrMatches = division.roundRobinMatches ?? [];
 

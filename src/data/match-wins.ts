@@ -9,9 +9,20 @@ export function playerMatchesEntry(playerName: string, entryName: string): boole
 	// Singles entries must match exactly so same-surname players aren't conflated.
 	if (!entryNorm.includes('/')) return false;
 	const lastName = norm.split(' ').pop() ?? '';
+	const firstInitial = norm[0] ?? '';
 	if (lastName.length > 1) {
 		const parts = entryNorm.split(/\s*\/\s*/);
-		if (parts.some((p) => p.trim() === lastName || p.trim().endsWith(lastName))) return true;
+		if (
+			parts.some((p) => {
+				const part = p.trim();
+				if (part === lastName) return true;
+				if (!part.endsWith(lastName)) return false;
+				// Initial-prefixed team parts ("K. Artman") must match the player's
+				// first initial so K. Artman and H. Artman aren't conflated.
+				const init = part.match(/^([a-z])\.?\s/);
+				return !init || init[1] === firstInitial;
+			})
+		) return true;
 	}
 	return false;
 }

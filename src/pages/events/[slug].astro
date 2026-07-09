@@ -10,7 +10,9 @@ export async function getStaticPaths() {
 	return EVENTS.map((event) => ({ params: { slug: event.slug }, props: { event } }));
 }
 
-const { event } = Astro.props;
+const { event: routeEvent } = Astro.props;
+// Re-resolve from EVENTS so props stale in dev mode don't mask updated data.
+const event = EVENTS.find((e) => e.slug === routeEvent.slug) ?? routeEvent;
 const divisionBase = `/events/${event.slug}/divisions`;
 
 // ── Participants data (build-time) ────────────────────────────────────────────
@@ -80,6 +82,16 @@ for (const d of event.divisionDetails ?? []) {
 					<span class="event-tab-count">{totalParticipants}</span>
 				</button>
 			)}
+			<a
+				class="event-tab event-tab--watch-live"
+				href={event.spotlightWatchLiveUrl ?? '/live'}
+				target={event.spotlightWatchLiveUrl ? '_blank' : undefined}
+				rel={event.spotlightWatchLiveUrl ? 'noopener noreferrer' : undefined}
+				aria-label="Watch live on Facebook"
+			>
+				<span class="event-tab-live-dot" aria-hidden="true"></span>
+				Watch Live
+			</a>
 		</div>
 	</section>
 

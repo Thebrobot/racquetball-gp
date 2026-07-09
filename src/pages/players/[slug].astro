@@ -26,6 +26,27 @@ const wins = matchHistory.filter((m) => m.result === 'win').length;
 const losses = matchHistory.filter((m) => m.result === 'loss').length;
 const pending = matchHistory.filter((m) => m.result === 'pending').length;
 
+// ── Hierarchy split ──────────────────────────────────────────────────────────
+// Upcoming/live entries → full ticket cards (current stop)
+const upcomingEntries = scheduleEntries.filter(
+	(e) => e.eventStatus === 'live' || e.eventStatus === 'upcoming',
+);
+// Group past match history by event for the Tournament History section
+type HistoryGroup = { eventName: string; eventSlug: string; eventDateRange: string; records: typeof matchHistory };
+const historyGroupMap = new Map<string, HistoryGroup>();
+for (const row of matchHistory) {
+	if (!historyGroupMap.has(row.eventSlug)) {
+		historyGroupMap.set(row.eventSlug, {
+			eventName: row.eventName,
+			eventSlug: row.eventSlug,
+			eventDateRange: row.eventDateRange,
+			records: [],
+		});
+	}
+	historyGroupMap.get(row.eventSlug)!.records.push(row);
+}
+const historyGroups = Array.from(historyGroupMap.values());
+
 const primaryDivision = player.divisions?.[0] ?? null;
 const recordStr = matchHistory.length > 0 ? ` · ${wins}W–${losses}L` : '';
 const metaDescription = [
@@ -150,14 +171,20 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 		</section>
 	)}
 
-	<!-- ── SCHEDULE ── -->
+	<!-- ── UPCOMING SCHEDULE ── -->
+	{upcomingEntries.length > 0 && (
 	<section class="event-section player-schedule-section" aria-labelledby="player-events-title">
 		<header class="event-section-header">
-			<h2 id="player-events-title">My schedule</h2>
+			<h2 id="player-events-title">
+				{upcomingEntries[0]?.eventName ?? 'Upcoming'}
+			</h2>
+			{upcomingEntries[0]?.eventDateRange && (
+				<p class="player-schedule-daterange">{upcomingEntries[0].eventDateRange}</p>
+			)}
 		</header>
-		{scheduleEntries.length ? (
+		{upcomingEntries.length ? (
 			<div class="player-ticket-grid">
-				{scheduleEntries.map((entry) => {
+				{upcomingEntries.map((entry) => {
 					const { court, rest } = parseCourtFromNote(entry.note);
 					const bracketHref = entry.eventSlug && entry.divisionId
 						? `/events/${entry.eventSlug}/divisions/${entry.divisionId}`
@@ -270,38 +297,43 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 				})}
 			</div>
 		) : (
-			<p class="player-section-empty">No published call times yet. Check the event brackets hub as the draw is released.</p>
+			<p class="player-section-empty">No call times published yet for this stop. Check back as the schedule is released.</p>
 		)}
 	</section>
+	)}
 
-	<!-- ── MATCH HISTORY ── -->
+	<!-- ── TOURNAMENT HISTORY ── -->
+	{historyGroups.length > 0 && (
 	<section class="event-section player-matches-section" aria-labelledby="player-matches-title">
 		<header class="event-section-header">
-			<h2 id="player-matches-title">Match history</h2>
+			<h2 id="player-matches-title">Tournament history</h2>
+			{(wins > 0 || losses > 0) && (
+				<span class="player-record-summary-inline">
+					<strong class="player-record-summary-w">{wins}W</strong>
+					{' – '}
+					<strong class="player-record-summary-l">{losses}L</strong>
+					{pending > 0 && <span class="player-record-summary-p"> · {pending} pending</span>}
+				</span>
+			)}
 		</header>
-		{matchHistory.length ? (
-			<>
-				<div class="player-record-summary">
-					<span class="player-record-summary-label">Season record</span>
-					<span class="player-record-summary-value">
-						<strong class="player-record-summary-w">{wins}W</strong>
-						{' – '}
-						<strong class="player-record-summary-l">{losses}L</strong>
-						{pending > 0 && (
-							<span class="player-record-summary-p"> · {pending} pending</span>
-						)}
-					</span>
+		{historyGroups.map((group) => (
+			<div class="player-history-event-group">
+				<div class="player-history-event-group-header">
+					<a class="player-history-event-link" href={`/events/${group.eventSlug}`}>
+						{group.eventName}
+					</a>
+					{group.eventDateRange && (
+						<span class="player-history-event-date">· {group.eventDateRange}</span>
+					)}
 				</div>
 				<div class="player-history-stack">
-					{matchHistory.map((row) => (
+					{group.records.map((row) => (
 						<article class="player-history-row">
 							<div class="player-history-content">
 								<div class="player-history-meta">
-									<a class="player-history-event-link" href={`/events/${row.eventSlug}/divisions/${row.divisionId}`}>
-										{row.eventName}
+									<a class="player-history-division-link" href={`/events/${row.eventSlug}/divisions/${row.divisionId}`}>
+										{row.divisionLabel}
 									</a>
-									<span class="player-history-meta-sep">·</span>
-									<span>{row.divisionLabel}</span>
 									<span class="player-history-meta-sep">·</span>
 									<span>{row.roundLabel}</span>
 								</div>
@@ -342,11 +374,10 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 						</article>
 					))}
 				</div>
-			</>
-		) : (
-			<p class="player-section-empty">No bracket matches on file yet for this player.</p>
-		)}
+			</div>
+		))}
 	</section>
+	)}
 
 	<!-- ── SERIES WIRE ── -->
 	<section class="event-section player-news-section" aria-labelledby="player-series-title">

@@ -2087,6 +2087,31 @@ html.nav-drawer-open .nav-drawer-backdrop {
 .event-tab--active .event-tab-count {
   background: rgba(240, 90, 26, 0.4);
 }
+.event-tab--watch-live {
+  text-decoration: none;
+  border-color: var(--orange);
+  background: var(--orange);
+  color: #fff;
+  box-shadow: 0 0 18px rgba(240, 90, 26, 0.35);
+}
+.event-tab--watch-live:hover {
+  background: #e04d0a;
+  border-color: #e04d0a;
+  color: #fff;
+  box-shadow: 0 0 26px rgba(240, 90, 26, 0.5);
+}
+.event-tab-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  flex-shrink: 0;
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.75); }
+}
 .event-brackets-actions {
   display: flex;
   flex-wrap: wrap;
@@ -2774,10 +2799,12 @@ html.nav-drawer-open .nav-drawer-backdrop {
 }
 
 
-/* ───── MATCH HISTORY SECTION CENTERED ───── */
+/* ───── TOURNAMENT HISTORY SECTION HEADER ───── */
 .player-matches-section .event-section-header {
-  align-items: center;
-  text-align: center;
+  flex-direction: row;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 /* ───── SERIES NEWS SECTION CENTERED ───── */
@@ -2791,6 +2818,58 @@ html.nav-drawer-open .nav-drawer-backdrop {
   max-width: 760px;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* ── Schedule section date range sub-label ── */
+.player-schedule-daterange {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 2px;
+}
+
+/* ── Tournament history: record inline in section header ── */
+.player-record-summary-inline {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  margin-left: auto;
+}
+
+/* ── Tournament history: per-event group ── */
+.player-history-event-group {
+  max-width: 760px;
+  margin: 0 auto 28px;
+}
+.player-history-event-group:last-child {
+  margin-bottom: 0;
+}
+.player-history-event-group-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 0 4px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 4px;
+}
+.player-history-event-group-header .player-history-event-link {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.player-history-event-date {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+.player-history-division-link {
+  color: var(--orange2);
+  text-decoration: none;
+  font-weight: 600;
+}
+.player-history-division-link:hover {
+  text-decoration: underline;
 }
 
 /* ───── NEWS SECTION DIVIDER ───── */

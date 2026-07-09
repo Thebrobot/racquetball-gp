@@ -767,6 +767,508 @@ const EVENTS_RAW: EventData[] = [
 			{ name: 'Robert Yanchis', division: "Men's Doubles: A",               time: 'Saturday · 1:00 PM',  note: 'Court 4' },
 		],
 	},
+	// ── Stop 2: Sarasota Open ─────────────────────────────────────────────────
+	{
+		slug: 'sarasota-open',
+		name: 'Sarasota Open',
+		cityLine: 'Sarasota, FL',
+		dateRange: 'July 10–12, 2026',
+		startDate: '2026-07-10',
+		endDate: '2026-07-12',
+		spotlightImage: '/images/stops/stop-sarasota.webp',
+		spotlightVenue: 'Sarasota YMCA',
+		spotlightWatchLiveUrl: 'https://www.facebook.com/profile.php?id=61579420510625',
+		drawBlocks: [],
+		divisions: [
+			"Men's Singles: Open",
+			"Men's Singles: Elite",
+			"Men's Singles: A",
+			"Men's Singles: B",
+			"Men's Singles: C",
+			"Men's Age Singles: 30/40+",
+			"Men's Age Singles: 50+",
+			"Men's Age Singles: 60+",
+			"Men's Age Singles: 70+",
+			"Men's Doubles: Open",
+			"Men's Doubles: Elite",
+			"Men's Doubles: A",
+			"Men's Doubles: B",
+			"Men's Doubles: Centurion/",
+		],
+		divisionDetails: [
+			// ── Singles ──────────────────────────────────────────────────────────
+		{
+			id: 'mens-singles-open',
+			label: "Men's Singles: Open",
+			format: 'single',
+			// 7 players → 8-slot bracket; Portillo Torres (1) has a bye and auto-advances to Semifinals
+			rounds: [
+				{
+					label: 'Quarterfinals',
+					matches: [
+						{ player1: 'Eduardo Portillo Torres', player2: 'BYE',               seed1: 1,             winner: 1, matchId: 'MO8' },
+						{ player1: 'Chris Steinheiser',       player2: 'Andres Ramirez',    seed1: 5, seed2: 4,  scheduledTime: 'Saturday · 1:00 PM',  court: 'Court 5', matchId: 'MO5' },
+						{ player1: 'Dylan Pruitt',            player2: 'Joseph Boyette',    seed1: 3, seed2: 6,  scheduledTime: 'Saturday · 12:00 PM', court: 'Court 1', matchId: 'MO6' },
+						{ player1: 'Amir Baig',               player2: 'Daniel De La Rosa', seed1: 7, seed2: 2,  scheduledTime: 'Saturday · 1:00 PM',  court: 'Court 1', matchId: 'MO7' },
+					],
+				},
+				{
+					label: 'Semifinals',
+					matches: [
+						{ player1: 'Eduardo Portillo Torres', player2: 'TBD', seed1: 1, scheduledTime: 'Saturday · 6:00 PM', court: 'Court 1', matchId: 'MO4' },
+						{ player1: 'TBD',                     player2: 'TBD',           scheduledTime: 'Saturday · 7:00 PM', court: 'Court 1', matchId: 'MO3' },
+					],
+				},
+				{
+					label: 'Final',
+					matches: [
+						{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Sunday · 12:00 PM', court: 'Court 3', matchId: 'MO1' },
+					],
+				},
+			],
+		},
+			{
+				id: 'mens-singles-elite',
+				label: "Men's Singles: Elite",
+				format: 'roundrobin',
+				roundRobinPlayers: ['Samuel Schulze', 'Luis Macias', 'Richard Unzueta'],
+				// 3-player RR: C(3,2) = 3 matches. Round/pairing/time data straight from R2.
+				roundRobinMatches: [
+					{ round: 'Round 1', team1: 'Luis Macias',    team2: 'Richard Unzueta', scheduledTime: 'Saturday · 5:00 PM',  court: 'Court 2', matchId: 'ME3' },
+					{ round: 'Round 2', team1: 'Samuel Schulze', team2: 'Richard Unzueta', scheduledTime: 'Saturday · 10:00 AM', court: 'Court 1', matchId: 'ME2' },
+					{ round: 'Round 3', team1: 'Samuel Schulze', team2: 'Luis Macias',     scheduledTime: 'Sunday · 11:00 AM',   court: 'Court 1', matchId: 'ME1' },
+				],
+			},
+			{
+				id: 'mens-singles-a',
+				label: "Men's Singles: A",
+				format: 'single',
+				// 8 players, clean bracket
+				rounds: [
+					{
+						label: 'Quarterfinals',
+						matches: [
+							{ player1: 'Brendan Anthony',   player2: 'Oscar Sanchez',  seed1: 1, seed2: 8,  scheduledTime: 'Saturday · 11:00 AM', court: 'Court 2', matchId: 'MA8' },
+							{ player1: 'Bailey Lewis',      player2: 'Wade Stubanas',  seed1: 5, seed2: 4,  scheduledTime: 'Saturday · 9:00 AM',  court: 'Court 3', matchId: 'MA5' },
+							{ player1: 'David Wilmore Jr.', player2: 'Van Soles',      seed1: 3, seed2: 6,  scheduledTime: 'Saturday · 10:00 AM', court: 'Court 3', matchId: 'MA6' },
+							{ player1: 'Mike Caldwell',     player2: 'Brian Grantham', seed1: 7, seed2: 2,  scheduledTime: 'Saturday · 1:00 PM',  court: 'Court 2', matchId: 'MA7' },
+						],
+					},
+					{
+						label: 'Semifinals',
+						matches: [
+							{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Saturday · 6:00 PM', court: 'Court 2', matchId: 'MA4' },
+							{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Saturday · 7:00 PM', court: 'Court 2', matchId: 'MA3' },
+						],
+					},
+					{
+						label: 'Final',
+						matches: [
+							{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Sunday · 12:00 PM', court: 'Court 4', matchId: 'MA1' },
+						],
+					},
+				],
+			},
+			{
+				id: 'mens-singles-b',
+				label: "Men's Singles: B",
+				format: 'single',
+				// 9 players → 16-slot bracket; Appleby/Manzano is the only played Round-of-16 match
+				rounds: [
+					{
+						label: 'Round of 16',
+						matches: [
+							{ player1: 'Ivars Blums',  player2: 'BYE',            seed1: 1,             winner: 1, matchId: 'MB16' },
+							{ player1: 'Ryan Appleby', player2: 'Mark Manzano',   seed1: 9, seed2: 8,   scheduledTime: 'Friday · 8:30 PM', court: 'Court 1', matchId: 'MB9' },
+							{ player1: 'Alan Schiebe', player2: 'BYE',            seed1: 5,             winner: 1, matchId: 'MB12' },
+							{ player1: 'BYE',          player2: 'Matt Kern',                seed2: 4,   winner: 2, matchId: 'MB13' },
+							{ player1: 'Kyle Artman',  player2: 'BYE',            seed1: 3,             winner: 1, matchId: 'MB14' },
+							{ player1: 'BYE',          player2: 'Edgar Martinez',           seed2: 6,   winner: 2, matchId: 'MB11' },
+							{ player1: 'Daniel Bray',  player2: 'BYE',            seed1: 7,             winner: 1, matchId: 'MB10' },
+							{ player1: 'BYE',          player2: 'Scott Gill',               seed2: 2,   winner: 2, matchId: 'MB15' },
+						],
+					},
+					{
+						label: 'Quarterfinals',
+						matches: [
+							{ player1: 'Ivars Blums',  player2: 'TBD',            seed1: 1,             scheduledTime: 'Saturday · 11:00 AM', court: 'Court 3', matchId: 'MB8' },
+							{ player1: 'Alan Schiebe', player2: 'Matt Kern',      seed1: 5, seed2: 4,   scheduledTime: 'Saturday · 9:00 AM',  court: 'Court 5', matchId: 'MB5' },
+							{ player1: 'Kyle Artman',  player2: 'Edgar Martinez', seed1: 3, seed2: 6,   scheduledTime: 'Saturday · 9:00 AM',  court: 'Court 4', matchId: 'MB6' },
+							{ player1: 'Daniel Bray',  player2: 'Scott Gill',     seed1: 7, seed2: 2,   scheduledTime: 'Saturday · 10:00 AM', court: 'Court 4', matchId: 'MB7' },
+						],
+					},
+					{
+						label: 'Semifinals',
+						matches: [
+							{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Sunday · 10:00 AM', court: 'Court 2', matchId: 'MB4' },
+							{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Sunday · 11:00 AM', court: 'Court 2', matchId: 'MB3' },
+						],
+					},
+					{
+						label: 'Final',
+						matches: [
+							{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Sunday · 3:00 PM', court: 'Court 2', matchId: 'MB1' },
+						],
+					},
+				],
+			},
+			{
+				id: 'mens-singles-c',
+				label: "Men's Singles: C",
+				format: 'roundrobin',
+				roundRobinPlayers: ['Marco Port', 'Ben Mordkovich', 'Chris Cournoyer', 'Havan Artman'],
+				// 4-player RR: C(4,2) = 6 matches. Pairings/times straight from R2.
+				roundRobinMatches: [
+					{ round: 'Round 1', team1: 'Marco Port',      team2: 'Havan Artman',    scheduledTime: 'Friday · 6:30 PM',    court: 'Court 1', matchId: 'MC6' },
+					{ round: 'Round 1', team1: 'Ben Mordkovich',  team2: 'Chris Cournoyer', scheduledTime: 'Saturday · 9:00 AM',  court: 'Court 2', matchId: 'MC5' },
+					{ round: 'Round 2', team1: 'Marco Port',      team2: 'Chris Cournoyer', scheduledTime: 'Saturday · 11:00 AM', court: 'Court 4', matchId: 'MC4' },
+					{ round: 'Round 2', team1: 'Ben Mordkovich',  team2: 'Havan Artman',    scheduledTime: 'Saturday · 11:00 AM', court: 'Court 5', matchId: 'MC3' },
+					{ round: 'Round 3', team1: 'Chris Cournoyer', team2: 'Havan Artman',    scheduledTime: 'Sunday · 12:00 PM',   court: 'Court 2', matchId: 'MC2' },
+					{ round: 'Round 3', team1: 'Marco Port',      team2: 'Ben Mordkovich',  scheduledTime: 'Sunday · 12:00 PM',   court: 'Court 1', matchId: 'MC1' },
+				],
+			},
+			// ── Age Singles ──────────────────────────────────────────────────────
+			{
+				// R2 combines 30+ and 40+ into one division (M3040)
+				id: 'mens-age-3040',
+				label: "Men's Age Singles: 30/40+",
+				format: 'roundrobin',
+				roundRobinPlayers: ['Kyle Artman', 'Marco Port', 'Van Soles', 'Oscar Sanchez'],
+				// 4-player RR: C(4,2) = 6 matches. Pairings/times straight from R2.
+				roundRobinMatches: [
+					{ round: 'Round 1', team1: 'Kyle Artman',   team2: 'Oscar Sanchez', scheduledTime: 'Friday · 5:30 PM',    court: 'Court 4', matchId: 'M30406' },
+					{ round: 'Round 1', team1: 'Marco Port',    team2: 'Van Soles',     scheduledTime: 'Friday · 8:30 PM',    court: 'Court 2', matchId: 'M30405' },
+					{ round: 'Round 2', team1: 'Kyle Artman',   team2: 'Van Soles',     scheduledTime: 'Saturday · 12:00 PM', court: 'Court 5', matchId: 'M30404' },
+					{ round: 'Round 2', team1: 'Marco Port',    team2: 'Oscar Sanchez', scheduledTime: 'Saturday · 2:00 PM',  court: 'Court 1', matchId: 'M30403' },
+					{ round: 'Round 3', team1: 'Van Soles',     team2: 'Oscar Sanchez', scheduledTime: 'Sunday · 1:00 PM',    court: 'Court 5', matchId: 'M30402' },
+					{ round: 'Round 3', team1: 'Kyle Artman',   team2: 'Marco Port',    scheduledTime: 'Sunday · 3:00 PM',    court: 'Court 5', matchId: 'M30401' },
+				],
+			},
+			{
+				id: 'mens-age-50',
+				label: "Men's Age Singles: 50+",
+				format: 'single',
+				// 8 players, clean bracket
+				rounds: [
+					{
+						label: 'Quarterfinals',
+						matches: [
+							{ player1: 'John Johnston',         player2: 'Robert Voor',     seed1: 1, seed2: 8,  scheduledTime: 'Saturday · 2:00 PM',  court: 'Court 5', matchId: 'M50+8' },
+							{ player1: 'Heriberto Cruz-Anaya',  player2: 'Richard Unzueta', seed1: 5, seed2: 4,  scheduledTime: 'Saturday · 10:00 AM', court: 'Court 5', matchId: 'M50+5' },
+							{ player1: 'David Wilmore Jr.',     player2: 'Amir Baig',       seed1: 3, seed2: 6,  scheduledTime: 'Saturday · 4:00 PM',  court: 'Court 5', matchId: 'M50+6' },
+							{ player1: 'Miguel Angel Gonzalez', player2: 'Luis Macias',     seed1: 7, seed2: 2,  scheduledTime: 'Saturday · 2:00 PM',  court: 'Court 2', matchId: 'M50+7' },
+						],
+					},
+					{
+						label: 'Semifinals',
+						matches: [
+							{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Sunday · 10:00 AM', court: 'Court 3', matchId: 'M50+4' },
+							{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Sunday · 9:00 AM',  court: 'Court 4', matchId: 'M50+3' },
+						],
+					},
+					{
+						label: 'Final',
+						matches: [
+							{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Sunday · 2:00 PM', court: 'Court 5', matchId: 'M50+1' },
+						],
+					},
+				],
+			},
+			{
+				id: 'mens-age-60',
+				label: "Men's Age Singles: 60+",
+				format: 'roundrobin',
+				roundRobinPlayers: ['Joe Alonso', 'Charles Cole', 'Ivars Blums', 'Oscar Urquidi'],
+				// 4-player RR: C(4,2) = 6 matches. Pairings/times straight from R2.
+				roundRobinMatches: [
+					{ round: 'Round 1', team1: 'Joe Alonso',   team2: 'Oscar Urquidi', scheduledTime: 'Saturday · 9:00 AM', court: 'Court 1', matchId: 'M60+6' },
+					{ round: 'Round 1', team1: 'Charles Cole', team2: 'Ivars Blums',   scheduledTime: 'Friday · 6:30 PM',   court: 'Court 3', matchId: 'M60+5' },
+					{ round: 'Round 2', team1: 'Joe Alonso',   team2: 'Ivars Blums',   scheduledTime: 'Saturday · 1:00 PM', court: 'Court 3', matchId: 'M60+4' },
+					{ round: 'Round 2', team1: 'Charles Cole', team2: 'Oscar Urquidi', scheduledTime: 'Saturday · 4:00 PM', court: 'Court 2', matchId: 'M60+3' },
+					{ round: 'Round 3', team1: 'Ivars Blums',  team2: 'Oscar Urquidi', scheduledTime: 'Sunday · 1:00 PM',   court: 'Court 4', matchId: 'M60+2' },
+					{ round: 'Round 3', team1: 'Joe Alonso',   team2: 'Charles Cole',  scheduledTime: 'Sunday · 2:00 PM',   court: 'Court 4', matchId: 'M60+1' },
+				],
+			},
+			{
+				id: 'mens-age-70',
+				label: "Men's Age Singles: 70+",
+				format: 'roundrobin',
+				roundRobinPlayers: ['Gene Fry', 'Oscar Urquidi', 'Scott Gill'],
+				// 3-player RR: C(3,2) = 3 matches. Fry has bye in Round 1.
+				roundRobinMatches: [
+					{ round: 'Round 1', team1: 'Oscar Urquidi', team2: 'Scott Gill',    scheduledTime: 'Friday · 7:30 PM',    court: 'Court 3', matchId: 'M70+3' },
+					{ round: 'Round 2', team1: 'Gene Fry',      team2: 'Scott Gill',    scheduledTime: 'Saturday · 12:00 PM', court: 'Court 4', matchId: 'M70+2' },
+					{ round: 'Round 3', team1: 'Gene Fry',      team2: 'Oscar Urquidi', scheduledTime: 'Sunday · 11:00 AM',   court: 'Court 3', matchId: 'M70+1' },
+				],
+			},
+			// ── Doubles ──────────────────────────────────────────────────────────
+		{
+			// R2: Single Elimination, 6 teams → 8-slot bracket; De La Rosa/Schulze and Morales/Nolan have byes
+			id: 'mens-doubles-open',
+			label: "Men's Doubles: Open",
+			format: 'single',
+			rounds: [
+				{
+					label: 'Quarterfinals',
+					matches: [
+						{ player1: 'De La Rosa / Schulze',       player2: 'BYE',              seed1: 1,             winner: 1, matchId: 'MOD8' },
+						{ player1: 'Pruitt / Ramos',             player2: 'Gutierrez / Ramirez', seed1: 5, seed2: 4, scheduledTime: 'Saturday · 10:00 AM', court: 'Court 2', matchId: 'MOD5' },
+						{ player1: 'Kinkin / Portillo Torres',   player2: 'Harmon / Rivero',  seed1: 3, seed2: 6,   scheduledTime: 'Saturday · 12:00 PM', court: 'Court 2', matchId: 'MOD6' },
+						{ player1: 'BYE',                        player2: 'Morales / Nolan',            seed2: 2,   winner: 2, matchId: 'MOD7' },
+					],
+				},
+				{
+					label: 'Semifinals',
+					matches: [
+						{ player1: 'De La Rosa / Schulze', player2: 'TBD',             seed1: 1,  scheduledTime: 'Saturday · 4:00 PM', court: 'Court 1', matchId: 'MOD4' },
+						{ player1: 'TBD',                  player2: 'Morales / Nolan',  seed2: 2,  scheduledTime: 'Saturday · 3:00 PM', court: 'Court 1', matchId: 'MOD3' },
+					],
+				},
+				{
+					label: 'Final',
+					matches: [
+						{ player1: 'TBD', player2: 'TBD', scheduledTime: 'Sunday · 2:00 PM', court: 'Court 1', matchId: 'MOD1' },
+					],
+				},
+			],
+		},
+		{
+			id: 'mens-doubles-elite',
+			label: "Men's Doubles: Elite",
+			format: 'roundrobin',
+				roundRobinPlayers: [
+					'Schulze / Anthony',
+					'Steinheiser / Johnston',
+					'Rivero / Baig',
+					'Ayers / Burke',
+				],
+				// 4-team RR: C(4,2) = 6 matches. Pairings/times straight from R2.
+				roundRobinMatches: [
+					{ round: 'Round 1', team1: 'Schulze / Anthony',      team2: 'Ayers / Burke',          scheduledTime: 'Saturday · 12:00 PM', court: 'Court 3', matchId: 'MED6' },
+					{ round: 'Round 1', team1: 'Steinheiser / Johnston', team2: 'Rivero / Baig',          scheduledTime: 'Saturday · 11:00 AM', court: 'Court 1', matchId: 'MED5' },
+					{ round: 'Round 2', team1: 'Schulze / Anthony',      team2: 'Rivero / Baig',          scheduledTime: 'Saturday · 3:00 PM',  court: 'Court 2', matchId: 'MED4' },
+					{ round: 'Round 2', team1: 'Steinheiser / Johnston', team2: 'Ayers / Burke',          scheduledTime: 'Saturday · 3:00 PM',  court: 'Court 3', matchId: 'MED3' },
+					{ round: 'Round 3', team1: 'Rivero / Baig',          team2: 'Ayers / Burke',          scheduledTime: 'Sunday · 9:00 AM',    court: 'Court 1', matchId: 'MED2' },
+					{ round: 'Round 3', team1: 'Schulze / Anthony',      team2: 'Steinheiser / Johnston', scheduledTime: 'Sunday · 10:00 AM',   court: 'Court 1', matchId: 'MED1' },
+				],
+			},
+			{
+			// R2: Round Robin, 5 teams
+			id: 'mens-doubles-a',
+				label: "Men's Doubles: A",
+				format: 'roundrobin',
+				roundRobinPlayers: [
+					'Fry / Gutierrez',
+					'Grantham / Stubanas',
+					'Cruz-Anaya / Lewis',
+					'Anthony / H. Artman',
+					'K. Artman / Sotolongo',
+				],
+				// 5-team RR: C(5,2) = 10 matches. Pairings/times straight from R2.
+				roundRobinMatches: [
+					{ round: 'Round 1', team1: 'Cruz-Anaya / Lewis',    team2: 'Anthony / H. Artman',   scheduledTime: 'Saturday · 2:00 PM', court: 'Court 3', matchId: 'MAD10' },
+					{ round: 'Round 1', team1: 'Grantham / Stubanas',  team2: 'K. Artman / Sotolongo', scheduledTime: 'Friday · 7:30 PM',   court: 'Court 1', matchId: 'MAD9' },
+					{ round: 'Round 2', team1: 'Grantham / Stubanas',  team2: 'Cruz-Anaya / Lewis',    scheduledTime: 'Saturday · 3:00 PM', court: 'Court 4', matchId: 'MAD8' },
+					{ round: 'Round 2', team1: 'Fry / Gutierrez',      team2: 'K. Artman / Sotolongo', scheduledTime: 'Saturday · 3:00 PM', court: 'Court 5', matchId: 'MAD7' },
+					{ round: 'Round 3', team1: 'Cruz-Anaya / Lewis',   team2: 'K. Artman / Sotolongo', scheduledTime: 'Saturday · 1:00 PM',                   matchId: 'MAD6' },
+					{ round: 'Round 3', team1: 'Fry / Gutierrez',      team2: 'Anthony / H. Artman',   scheduledTime: 'Saturday · 5:00 PM', court: 'Court 4', matchId: 'MAD5' },
+					{ round: 'Round 4', team1: 'Anthony / H. Artman',  team2: 'Grantham / Stubanas',   scheduledTime: 'Sunday · 9:00 AM',   court: 'Court 2', matchId: 'MAD4' },
+					{ round: 'Round 4', team1: 'Fry / Gutierrez',      team2: 'Cruz-Anaya / Lewis',    scheduledTime: 'Sunday · 9:00 AM',   court: 'Court 3', matchId: 'MAD3' },
+					{ round: 'Round 5', team1: 'Anthony / H. Artman',  team2: 'K. Artman / Sotolongo', scheduledTime: 'Sunday · 1:00 PM',   court: 'Court 3', matchId: 'MAD2' },
+					{ round: 'Round 5', team1: 'Fry / Gutierrez',      team2: 'Grantham / Stubanas',   scheduledTime: 'Sunday · 3:00 PM',   court: 'Court 4', matchId: 'MAD1' },
+				],
+			},
+			{
+				id: 'mens-doubles-b',
+				label: "Men's Doubles: B",
+				format: 'roundrobin',
+				roundRobinPlayers: [
+					'Kern / Appleby',
+					'Manzano / Sotolongo',
+					'Martinez / Schiebe',
+					'Caldwell / Bray',
+				],
+				// 4-team RR: C(4,2) = 6 matches. Pairings/times straight from R2.
+				roundRobinMatches: [
+					{ round: 'Round 1', team1: 'Kern / Appleby',      team2: 'Caldwell / Bray',     scheduledTime: 'Friday · 5:30 PM',   court: 'Court 5', matchId: 'MBD6' },
+					{ round: 'Round 1', team1: 'Manzano / Sotolongo', team2: 'Martinez / Schiebe',  scheduledTime: 'Friday · 5:30 PM',   court: 'Court 3', matchId: 'MBD5' },
+					{ round: 'Round 2', team1: 'Kern / Appleby',      team2: 'Martinez / Schiebe',  scheduledTime: 'Saturday · 4:00 PM', court: 'Court 3', matchId: 'MBD4' },
+					{ round: 'Round 2', team1: 'Manzano / Sotolongo', team2: 'Caldwell / Bray',     scheduledTime: 'Saturday · 5:00 PM', court: 'Court 1', matchId: 'MBD3' },
+					{ round: 'Round 3', team1: 'Martinez / Schiebe',  team2: 'Caldwell / Bray',     scheduledTime: 'Sunday · 1:00 PM',   court: 'Court 2', matchId: 'MBD2' },
+					{ round: 'Round 3', team1: 'Kern / Appleby',      team2: 'Manzano / Sotolongo', scheduledTime: 'Sunday · 2:00 PM',   court: 'Court 2', matchId: 'MBD1' },
+				],
+			},
+			{
+			// R2: Combines Centurion+ Open and Super Centurion into one 4-team division (MDS)
+			id: 'mens-doubles-centurion',
+				label: "Men's Doubles: Centurion/",
+				format: 'roundrobin',
+				roundRobinPlayers: [
+					'Morales / Nolan',
+					'Gutierrez / Ramirez',
+					'Steinheiser / Johnston',
+					'Burke / Ayers',
+				],
+				// 4-team RR: C(4,2) = 6 matches. Pairings/times straight from R2.
+				roundRobinMatches: [
+					{ round: 'Round 1', team1: 'Morales / Nolan',        team2: 'Burke / Ayers',          scheduledTime: 'Saturday · 1:00 PM', court: 'Court 4', matchId: 'MDS6' },
+					{ round: 'Round 1', team1: 'Gutierrez / Ramirez',    team2: 'Steinheiser / Johnston', scheduledTime: 'Saturday · 4:00 PM', court: 'Court 4', matchId: 'MDS5' },
+					{ round: 'Round 2', team1: 'Morales / Nolan',        team2: 'Steinheiser / Johnston', scheduledTime: 'Saturday · 7:00 PM', court: 'Court 3', matchId: 'MDS4' },
+					{ round: 'Round 2', team1: 'Gutierrez / Ramirez',    team2: 'Burke / Ayers',          scheduledTime: 'Saturday · 7:00 PM', court: 'Court 4', matchId: 'MDS3' },
+					{ round: 'Round 3', team1: 'Steinheiser / Johnston', team2: 'Burke / Ayers',          scheduledTime: 'Sunday · 3:00 PM',   court: 'Court 3', matchId: 'MDS2' },
+					{ round: 'Round 3', team1: 'Morales / Nolan',        team2: 'Gutierrez / Ramirez',    scheduledTime: 'Sunday · 2:00 PM',   court: 'Court 3', matchId: 'MDS1' },
+				],
+			},
+		],
+		// ── Player profiles: all participants · times from R2 start times (updated 7/9/2026) ──
+		profiles: [
+			// Joe Alonso
+			{ name: 'Joe Alonso',             division: "Men's Age Singles: 60+",        time: 'Saturday · 9:00 AM',  note: 'Court 1' },
+			// Brendan Anthony
+			{ name: 'Brendan Anthony',        division: "Men's Singles: A",              time: 'Saturday · 11:00 AM', note: 'Court 2' },
+			{ name: 'Brendan Anthony',        division: "Men's Doubles: Elite",          time: 'Saturday · 12:00 PM', note: 'Court 3' },
+			{ name: 'Brendan Anthony',        division: "Men's Doubles: A",              time: 'Saturday · 2:00 PM',  note: 'Court 3' },
+			// Ryan Appleby
+			{ name: 'Ryan Appleby',           division: "Men's Singles: B",              time: 'Friday · 8:30 PM',    note: 'Court 1' },
+			{ name: 'Ryan Appleby',           division: "Men's Doubles: B",              time: 'Friday · 5:30 PM',    note: 'Court 5' },
+			// Havan Artman
+			{ name: 'Havan Artman',           division: "Men's Singles: C",              time: 'Friday · 6:30 PM',    note: 'Court 1' },
+			{ name: 'Havan Artman',           division: "Men's Doubles: A",              time: 'Saturday · 2:00 PM',  note: 'Court 3' },
+			// Kyle Artman
+			{ name: 'Kyle Artman',            division: "Men's Singles: B",              time: 'Saturday · 9:00 AM',  note: 'Court 4' },
+			{ name: 'Kyle Artman',            division: "Men's Age Singles: 30/40+",     time: 'Friday · 5:30 PM',    note: 'Court 4' },
+			{ name: 'Kyle Artman',            division: "Men's Doubles: A",              time: 'Friday · 7:30 PM',    note: 'Court 1' },
+			// Troy Ayers
+			{ name: 'Troy Ayers',             division: "Men's Doubles: Elite",          time: 'Saturday · 12:00 PM', note: 'Court 3' },
+			{ name: 'Troy Ayers',             division: "Men's Doubles: Centurion/",     time: 'Saturday · 1:00 PM',  note: 'Court 4' },
+			// Amir Baig
+			{ name: 'Amir Baig',              division: "Men's Singles: Open",           time: 'Saturday · 1:00 PM',  note: 'Court 1' },
+			{ name: 'Amir Baig',              division: "Men's Age Singles: 50+",        time: 'Saturday · 4:00 PM',  note: 'Court 5' },
+			{ name: 'Amir Baig',              division: "Men's Doubles: Elite",          time: 'Saturday · 11:00 AM', note: 'Court 1' },
+			// Ivars Blums
+			{ name: 'Ivars Blums',            division: "Men's Singles: B",              time: 'Saturday · 11:00 AM', note: 'Court 3' },
+			{ name: 'Ivars Blums',            division: "Men's Age Singles: 60+",        time: 'Friday · 6:30 PM',    note: 'Court 3' },
+			// Joseph Boyette
+			{ name: 'Joseph Boyette',         division: "Men's Singles: Open",           time: 'Saturday · 12:00 PM', note: 'Court 1' },
+			// Daniel Bray
+			{ name: 'Daniel Bray',            division: "Men's Singles: B",              time: 'Saturday · 10:00 AM', note: 'Court 4' },
+			{ name: 'Daniel Bray',            division: "Men's Doubles: B",              time: 'Friday · 5:30 PM',    note: 'Court 5' },
+			// Timothy Burke
+			{ name: 'Timothy Burke',          division: "Men's Doubles: Elite",          time: 'Saturday · 12:00 PM', note: 'Court 3' },
+			{ name: 'Timothy Burke',          division: "Men's Doubles: Centurion/",     time: 'Saturday · 1:00 PM',  note: 'Court 4' },
+			// Mike Caldwell
+			{ name: 'Mike Caldwell',          division: "Men's Singles: A",              time: 'Saturday · 1:00 PM',  note: 'Court 2' },
+			{ name: 'Mike Caldwell',          division: "Men's Doubles: B",              time: 'Friday · 5:30 PM',    note: 'Court 5' },
+			// Charles Cole
+			{ name: 'Charles Cole',           division: "Men's Age Singles: 60+",        time: 'Friday · 6:30 PM',    note: 'Court 3' },
+			// Chris Cournoyer
+			{ name: 'Chris Cournoyer',        division: "Men's Singles: C",              time: 'Saturday · 9:00 AM',  note: 'Court 2' },
+			// Heriberto Cruz-Anaya
+			{ name: 'Heriberto Cruz-Anaya',   division: "Men's Age Singles: 50+",        time: 'Saturday · 10:00 AM', note: 'Court 5' },
+			{ name: 'Heriberto Cruz-Anaya',   division: "Men's Doubles: A",              time: 'Saturday · 1:00 PM' },
+			// Daniel De La Rosa
+			{ name: 'Daniel De La Rosa',      division: "Men's Singles: Open",           time: 'Saturday · 1:00 PM',  note: 'Court 1' },
+			{ name: 'Daniel De La Rosa',      division: "Men's Doubles: Open",           time: 'Saturday · 4:00 PM',  note: 'Court 1' },
+			// Gene Fry
+			{ name: 'Gene Fry',               division: "Men's Age Singles: 70+",        time: 'Saturday · 12:00 PM', note: 'Court 4' },
+			{ name: 'Gene Fry',               division: "Men's Doubles: A",              time: 'Saturday · 3:00 PM',  note: 'Court 5' },
+			// Scott Gill
+			{ name: 'Scott Gill',             division: "Men's Singles: B",              time: 'Saturday · 10:00 AM', note: 'Court 4' },
+			{ name: 'Scott Gill',             division: "Men's Age Singles: 70+",        time: 'Friday · 7:30 PM',    note: 'Court 3' },
+			// Miguel Angel Gonzalez
+			{ name: 'Miguel Angel Gonzalez',  division: "Men's Age Singles: 50+",        time: 'Saturday · 2:00 PM',  note: 'Court 2' },
+			// Brian Grantham
+			{ name: 'Brian Grantham',         division: "Men's Singles: A",              time: 'Saturday · 1:00 PM',  note: 'Court 2' },
+			{ name: 'Brian Grantham',         division: "Men's Doubles: A",              time: 'Friday · 7:30 PM',    note: 'Court 1' },
+			// Tony Gutierrez
+			{ name: 'Tony Gutierrez',         division: "Men's Doubles: Open",           time: 'Saturday · 10:00 AM', note: 'Court 2' },
+			{ name: 'Tony Gutierrez',         division: "Men's Doubles: A",              time: 'Saturday · 3:00 PM',  note: 'Court 5' },
+			{ name: 'Tony Gutierrez',         division: "Men's Doubles: Centurion/",     time: 'Saturday · 4:00 PM',  note: 'Court 4' },
+			// Mike Harmon
+			{ name: 'Mike Harmon',            division: "Men's Doubles: Open",           time: 'Saturday · 12:00 PM', note: 'Court 2' },
+			// John Johnston
+			{ name: 'John Johnston',          division: "Men's Doubles: Elite",          time: 'Saturday · 11:00 AM', note: 'Court 1' },
+			{ name: 'John Johnston',          division: "Men's Age Singles: 50+",        time: 'Saturday · 2:00 PM',  note: 'Court 5' },
+			{ name: 'John Johnston',          division: "Men's Doubles: Centurion/",     time: 'Saturday · 4:00 PM',  note: 'Court 4' },
+			// Matt Kern
+			{ name: 'Matt Kern',              division: "Men's Singles: B",              time: 'Saturday · 9:00 AM',  note: 'Court 5' },
+			{ name: 'Matt Kern',              division: "Men's Doubles: B",              time: 'Friday · 5:30 PM',    note: 'Court 5' },
+			// Mike Kinkin
+			{ name: 'Mike Kinkin',            division: "Men's Doubles: Open",           time: 'Saturday · 12:00 PM', note: 'Court 2' },
+			// Bailey Lewis
+			{ name: 'Bailey Lewis',           division: "Men's Singles: A",              time: 'Saturday · 9:00 AM',  note: 'Court 3' },
+			{ name: 'Bailey Lewis',           division: "Men's Doubles: A",              time: 'Saturday · 1:00 PM' },
+			// Luis Macias
+			{ name: 'Luis Macias',            division: "Men's Singles: Elite",          time: 'Saturday · 5:00 PM',  note: 'Court 2' },
+			{ name: 'Luis Macias',            division: "Men's Age Singles: 50+",        time: 'Saturday · 2:00 PM',  note: 'Court 2' },
+			// Mark Manzano
+			{ name: 'Mark Manzano',           division: "Men's Singles: B",              time: 'Friday · 8:30 PM',    note: 'Court 1' },
+			{ name: 'Mark Manzano',           division: "Men's Doubles: B",              time: 'Friday · 5:30 PM',    note: 'Court 3' },
+			// Edgar Martinez
+			{ name: 'Edgar Martinez',         division: "Men's Singles: B",              time: 'Saturday · 9:00 AM',  note: 'Court 4' },
+			{ name: 'Edgar Martinez',         division: "Men's Doubles: B",              time: 'Friday · 5:30 PM',    note: 'Court 3' },
+			// Bobby Morales
+			{ name: 'Bobby Morales',          division: "Men's Doubles: Open",           time: 'Saturday · 3:00 PM',  note: 'Court 1' },
+			{ name: 'Bobby Morales',          division: "Men's Doubles: Centurion/",     time: 'Saturday · 1:00 PM',  note: 'Court 4' },
+			// Ben Mordkovich
+			{ name: 'Ben Mordkovich',         division: "Men's Singles: C",              time: 'Saturday · 9:00 AM',  note: 'Court 2' },
+			// Charles Nolan
+			{ name: 'Charles Nolan',          division: "Men's Doubles: Open",           time: 'Saturday · 3:00 PM',  note: 'Court 1' },
+			{ name: 'Charles Nolan',          division: "Men's Doubles: Centurion/",     time: 'Saturday · 1:00 PM',  note: 'Court 4' },
+			// Marco Port
+			{ name: 'Marco Port',             division: "Men's Singles: C",              time: 'Friday · 6:30 PM',    note: 'Court 1' },
+			{ name: 'Marco Port',             division: "Men's Age Singles: 30/40+",     time: 'Friday · 8:30 PM',    note: 'Court 2' },
+			// Eduardo Portillo Torres
+			{ name: 'Eduardo Portillo Torres', division: "Men's Singles: Open",          time: 'Saturday · 6:00 PM',  note: 'Court 1' },
+			{ name: 'Eduardo Portillo Torres', division: "Men's Doubles: Open",          time: 'Saturday · 12:00 PM', note: 'Court 2' },
+			// Dylan Pruitt
+			{ name: 'Dylan Pruitt',           division: "Men's Singles: Open",           time: 'Saturday · 12:00 PM', note: 'Court 1' },
+			{ name: 'Dylan Pruitt',           division: "Men's Doubles: Open",           time: 'Saturday · 10:00 AM', note: 'Court 2' },
+			// Andres Ramirez
+			{ name: 'Andres Ramirez',         division: "Men's Singles: Open",           time: 'Saturday · 1:00 PM',  note: 'Court 5' },
+			{ name: 'Andres Ramirez',         division: "Men's Doubles: Open",           time: 'Saturday · 10:00 AM', note: 'Court 2' },
+			{ name: 'Andres Ramirez',         division: "Men's Doubles: Centurion/",     time: 'Saturday · 4:00 PM',  note: 'Court 4' },
+			// Nicholas Ramos
+			{ name: 'Nicholas Ramos',         division: "Men's Doubles: Open",           time: 'Saturday · 10:00 AM', note: 'Court 2' },
+			// Yelandi Rivero
+			{ name: 'Yelandi Rivero',         division: "Men's Doubles: Open",           time: 'Saturday · 12:00 PM', note: 'Court 2' },
+			{ name: 'Yelandi Rivero',         division: "Men's Doubles: Elite",          time: 'Saturday · 11:00 AM', note: 'Court 1' },
+			// Oscar Sanchez
+			{ name: 'Oscar Sanchez',          division: "Men's Singles: A",              time: 'Saturday · 11:00 AM', note: 'Court 2' },
+			{ name: 'Oscar Sanchez',          division: "Men's Age Singles: 30/40+",     time: 'Friday · 5:30 PM',    note: 'Court 4' },
+			// Alan Schiebe
+			{ name: 'Alan Schiebe',           division: "Men's Singles: B",              time: 'Saturday · 9:00 AM',  note: 'Court 5' },
+			{ name: 'Alan Schiebe',           division: "Men's Doubles: B",              time: 'Friday · 5:30 PM',    note: 'Court 3' },
+			// Samuel Schulze
+			{ name: 'Samuel Schulze',         division: "Men's Singles: Elite",          time: 'Saturday · 10:00 AM', note: 'Court 1' },
+			{ name: 'Samuel Schulze',         division: "Men's Doubles: Open",           time: 'Saturday · 4:00 PM',  note: 'Court 1' },
+			{ name: 'Samuel Schulze',         division: "Men's Doubles: Elite",          time: 'Saturday · 12:00 PM', note: 'Court 3' },
+			// Van Soles
+			{ name: 'Van Soles',              division: "Men's Singles: A",              time: 'Saturday · 10:00 AM', note: 'Court 3' },
+			{ name: 'Van Soles',              division: "Men's Age Singles: 30/40+",     time: 'Friday · 8:30 PM',    note: 'Court 2' },
+			// Paul Sotolongo
+			{ name: 'Paul Sotolongo',         division: "Men's Doubles: A",              time: 'Friday · 7:30 PM',    note: 'Court 1' },
+			{ name: 'Paul Sotolongo',         division: "Men's Doubles: B",              time: 'Friday · 5:30 PM',    note: 'Court 3' },
+			// Chris Steinheiser
+			{ name: 'Chris Steinheiser',      division: "Men's Singles: Open",           time: 'Saturday · 1:00 PM',  note: 'Court 5' },
+			{ name: 'Chris Steinheiser',      division: "Men's Doubles: Elite",          time: 'Saturday · 11:00 AM', note: 'Court 1' },
+			{ name: 'Chris Steinheiser',      division: "Men's Doubles: Centurion/",     time: 'Saturday · 4:00 PM',  note: 'Court 4' },
+			// Wade Stubanas
+			{ name: 'Wade Stubanas',          division: "Men's Singles: A",              time: 'Saturday · 9:00 AM',  note: 'Court 3' },
+			{ name: 'Wade Stubanas',          division: "Men's Doubles: A",              time: 'Friday · 7:30 PM',    note: 'Court 1' },
+			// Richard Unzueta
+			{ name: 'Richard Unzueta',        division: "Men's Singles: Elite",          time: 'Saturday · 10:00 AM', note: 'Court 1' },
+			{ name: 'Richard Unzueta',        division: "Men's Age Singles: 50+",        time: 'Saturday · 10:00 AM', note: 'Court 5' },
+			// Oscar Urquidi
+			{ name: 'Oscar Urquidi',          division: "Men's Age Singles: 60+",        time: 'Saturday · 9:00 AM',  note: 'Court 1' },
+			{ name: 'Oscar Urquidi',          division: "Men's Age Singles: 70+",        time: 'Friday · 7:30 PM',    note: 'Court 3' },
+			// Robert Voor
+			{ name: 'Robert Voor',            division: "Men's Age Singles: 50+",        time: 'Saturday · 2:00 PM',  note: 'Court 5' },
+			// David Wilmore Jr.
+			{ name: 'David Wilmore Jr.',      division: "Men's Singles: A",              time: 'Saturday · 10:00 AM', note: 'Court 3' },
+			{ name: 'David Wilmore Jr.',      division: "Men's Age Singles: 50+",        time: 'Saturday · 4:00 PM',  note: 'Court 5' },
+		],
+	},
 ];
 
 // ── Live-results merge ─────────────────────────────────────────────────────
@@ -782,6 +1284,11 @@ interface MatchResult {
 }
 
 type DivisionResult = Record<string, MatchResult>;
+
+/** ocala-results.json only carries Ocala Open data; division ids repeat across
+ *  events (e.g. both stops have "mens-singles-open"), so the merge must be
+ *  scoped to this slug or Ocala scores would leak into other stops' brackets. */
+const RESULTS_EVENT_SLUG = 'ocala-open';
 
 function applyResults(events: EventData[]): EventData[] {
 	const divResults = (resultsData as { divisions?: Record<string, DivisionResult> }).divisions ?? {};
@@ -810,7 +1317,9 @@ function applyResults(events: EventData[]): EventData[] {
 		});
 	};
 
-	return events.map((event) => ({
+	return events.map((event) => {
+		if (event.slug !== RESULTS_EVENT_SLUG) return event;
+		return {
 		...event,
 		divisionDetails: event.divisionDetails.map((div) => {
 			const matchMap = divResults[div.id];
@@ -896,7 +1405,8 @@ function applyResults(events: EventData[]): EventData[] {
 
 			return div;
 		}),
-	}));
+		};
+	});
 }
 
 export const EVENTS: EventData[] = applyResults(EVENTS_RAW);

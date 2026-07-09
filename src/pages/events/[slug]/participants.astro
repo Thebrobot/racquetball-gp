@@ -10,7 +10,8 @@ export async function getStaticPaths() {
 	return EVENTS.map((event) => ({ params: { slug: event.slug }, props: { event } }));
 }
 
-const { event } = Astro.props;
+const { event: routeEvent } = Astro.props;
+const event = EVENTS.find((e) => e.slug === routeEvent.slug) ?? routeEvent;
 
 // Build a map: division label → sorted list of unique participants
 const divisionOrder = event.divisions; // preserves intended display order

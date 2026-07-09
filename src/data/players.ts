@@ -1,5 +1,5 @@
 import { LB_CATEGORY_HEADING, LB_DIVISIONS_BY_CATEGORY, LB_OVERVIEW_CATEGORY_ORDER, lbData, leaderboardTotal, type LbCategory, type LbRow } from './leaderboard';
-import { EVENTS } from './events';
+import { EVENTS, getEventStatus, type EventStatus } from './events';
 import type { EventBracketMatch, EventBracketRound } from './events';
 import { getPlayerImageForDisplay } from './player-images';
 export {
@@ -8,6 +8,33 @@ export {
 	getPlayerImageSrcSet,
 	resolvePlayerImage,
 } from './player-images';
+
+/** City overrides for players who appear in events but not yet in the leaderboard sheet. */
+const PLAYER_CITIES: Record<string, string> = {
+	'joe-alonso':              'Miami, FL',
+	'troy-ayers':              'Gainesville, FL',
+	'ivars-blums':             'Palmetto, FL',
+	'joseph-boyette':          'Sarasota, FL',
+	'timothy-burke':           'Easley, SC',
+	'chris-cournoyer':         'Sarasota, FL',
+	'heriberto-cruz-anaya':    'Orlando, FL',
+	'miguel-angel-gonzalez':   'Zacatecas, Mexico',
+	'mike-harmon':             'Sarasota, FL',
+	'mike-kinkin':             'North Port, FL',
+	'bailey-lewis':            'Fort Pierce, FL',
+	'luis-macias':             'Cape Coral, FL',
+	'bobby-morales':           'Bonita Springs, FL',
+	'marco-port':              'Cape Coral, FL',
+	'eduardo-portillo-torres': 'San Luis Potosí, Mexico',
+	'nicholas-ramos':          'Tampa, FL',
+	'oscar-sanchez':           'Miami, FL',
+	'alan-schiebe':            'Venice, FL',
+	'van-soles':               'Osprey, FL',
+	'richard-unzueta':         'Miami, FL',
+	'oscar-urquidi':           'St. Petersburg, FL',
+	'robert-voor':             'Brandon, FL',
+	'david-wilmore-jr':        'Lakeland, FL',
+};
 
 export interface PlayerEventCall {
 	eventName: string;
@@ -33,6 +60,10 @@ export interface PlayerScheduleEntry extends PlayerEventCall {
 	eventSlug?: string;
 	/** Division detail ID (for bracket deep-link) */
 	divisionId?: string;
+	/** Whether the event is live, upcoming, or completed */
+	eventStatus?: EventStatus;
+	/** Human-readable date range for the event, e.g. "July 10–12, 2026" */
+	eventDateRange?: string;
 }
 
 /**
@@ -48,9 +79,20 @@ function playerMatchesEntry(playerName: string, entryName: string): boolean {
 	if (!entryNorm.includes('/')) return false;
 	// Use endsWith to handle compound last names like "Van Zant-Russell".
 	const lastName = norm.split(' ').pop() ?? '';
+	const firstInitial = norm[0] ?? '';
 	if (lastName.length > 1) {
 		const parts = entryNorm.split(/\s*\/\s*/);
-		if (parts.some((p) => p.trim() === lastName || p.trim().endsWith(lastName))) return true;
+		if (
+			parts.some((p) => {
+				const part = p.trim();
+				if (part === lastName) return true;
+				if (!part.endsWith(lastName)) return false;
+				// Initial-prefixed team parts ("K. Artman") must match the player's
+				// first initial so K. Artman and H. Artman aren't conflated.
+				const init = part.match(/^([a-z])\.?\s/);
+				return !init || init[1] === firstInitial;
+			})
+		) return true;
 	}
 	return false;
 }
@@ -78,6 +120,8 @@ export function getPlayerScheduleEntries(
 			...entry,
 			eventSlug: event.slug,
 			divisionId: div?.id,
+			eventStatus: getEventStatus(event),
+			eventDateRange: event.dateRange,
 		};
 
 		// ── Round robin WITH per-match schedule → one ticket per match ──────────
@@ -257,6 +301,7 @@ export function getAllPlayers(): PlayerProfile[] {
 			const existing = map.get(slug) ?? {
 				name: profile.name,
 				slug,
+				city: PLAYER_CITIES[slug],
 				imageUrl: getPlayerImageForDisplay(profile.name, 64),
 				divisions: [],
 				events: [],
@@ -265,6 +310,10 @@ export function getAllPlayers(): PlayerProfile[] {
 			if (!existing.imageUrl) {
 				const img = getPlayerImageForDisplay(profile.name, 64);
 				if (img) existing.imageUrl = img;
+			}
+			// Apply city from lookup if not already set
+			if (!existing.city && PLAYER_CITIES[slug]) {
+				existing.city = PLAYER_CITIES[slug];
 			}
 			const eventEntry: PlayerEventCall = {
 				eventName: event.name,
@@ -286,6 +335,7 @@ export function getAllPlayers(): PlayerProfile[] {
 export interface PlayerMatchRecord {
 	eventSlug: string;
 	eventName: string;
+	eventDateRange: string;
 	divisionId: string;
 	divisionLabel: string;
 	roundLabel: string;
@@ -331,6 +381,7 @@ export function getPlayerMatchHistory(playerName: string): PlayerMatchRecord[] {
 					out.push({
 						eventSlug: event.slug,
 						eventName: event.name,
+						eventDateRange: event.dateRange,
 						divisionId: div.id,
 						divisionLabel: div.label,
 						roundLabel: round.label,
@@ -348,6 +399,7 @@ export function getPlayerMatchHistory(playerName: string): PlayerMatchRecord[] {
 				out.push({
 					eventSlug: event.slug,
 					eventName: event.name,
+					eventDateRange: event.dateRange,
 					divisionId: div.id,
 					divisionLabel: div.label,
 					roundLabel: m.round,
