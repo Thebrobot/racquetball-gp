@@ -102,6 +102,32 @@ function isGhostName(name: string): boolean {
 	return u === 'BYE' || u === 'TBD' || u === '';
 }
 
+/** Day order for schedule sorting, starting with Friday to match the event weekend. */
+const SCHEDULE_DAY_ORDER: Record<string, number> = {
+	friday: 0,
+	saturday: 1,
+	sunday: 2,
+	monday: 3,
+	tuesday: 4,
+	wednesday: 5,
+	thursday: 6,
+};
+
+/** Parses a schedule time string like "Friday · 6:30 PM" into a sortable value
+ *  (day-of-week, starting Friday, combined with minutes-since-midnight).
+ *  Unrecognized formats sort last so they don't disrupt the rest of the order. */
+function scheduleSortKey(time: string | undefined): number {
+	if (!time) return Number.MAX_SAFE_INTEGER;
+	const m = time.match(/([a-z]+)\D*(\d{1,2}):(\d{2})\s*(am|pm)/i);
+	if (!m) return Number.MAX_SAFE_INTEGER;
+	const dayIdx = SCHEDULE_DAY_ORDER[m[1].toLowerCase()];
+	if (dayIdx === undefined) return Number.MAX_SAFE_INTEGER;
+	let hour = parseInt(m[2], 10) % 12;
+	if (m[4].toLowerCase() === 'pm') hour += 12;
+	const minutes = hour * 60 + parseInt(m[3], 10);
+	return dayIdx * 24 * 60 + minutes;
+}
+
 /** Enriches a player's event list with opponent and bracket-link data from live bracket.
  *  Round-robin divisions with per-match data expand into one entry per match.
  */
@@ -194,7 +220,7 @@ export function getPlayerScheduleEntries(
 		out.push(base);
 	}
 
-	return out;
+	return out.sort((a, b) => scheduleSortKey(a.time) - scheduleSortKey(b.time));
 }
 
 export interface PlayerProfile {
