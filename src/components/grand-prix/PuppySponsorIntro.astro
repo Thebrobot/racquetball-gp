@@ -1,0 +1,135 @@
+---
+// TEMPORARY sponsor takeover of the title-sponsor slot for a few weeks.
+// Rapha International's TitleSponsorIntro.astro is untouched — swap back in
+// src/pages/index.astro when this promo period ends.
+const puppySponsor = {
+	name: 'Rogue Ranch K9',
+	litterUrl: 'https://rogueranchk9.com/belgian-malinois-parents-sire-dam-litter-forsale',
+	homeUrl: 'https://rogueranchk9.com/',
+};
+---
+
+<section class="title-sponsor-intro" aria-labelledby="title-sponsor-heading">
+	<div class="title-sponsor-intro-shell">
+		<div class="title-sponsor-intro-media title-sponsor-intro-media--banner">
+			<div class="puppy-collage" role="img" aria-label="A collage of Rogue Ranch K9's Belgian Malinois puppies">
+				<img
+					class="puppy-collage-tile puppy-collage-tile--big"
+					src="/images/rogue-ranch/puppy-1.jpg"
+					alt=""
+					width="1000"
+					height="1000"
+					loading="lazy"
+					decoding="async"
+				/>
+				<img
+					class="puppy-collage-tile"
+					src="/images/rogue-ranch/puppy-2.jpg"
+					alt=""
+					width="1000"
+					height="1000"
+					loading="lazy"
+					decoding="async"
+				/>
+				<img
+					class="puppy-collage-tile"
+					src="/images/rogue-ranch/puppy-3.jpg"
+					alt=""
+					width="1000"
+					height="1000"
+					loading="lazy"
+					decoding="async"
+				/>
+				<img
+					class="puppy-collage-tile"
+					src="/images/rogue-ranch/puppy-4.jpg"
+					alt=""
+					width="1000"
+					height="1000"
+					loading="lazy"
+					decoding="async"
+				/>
+				<img
+					class="puppy-collage-tile"
+					src="/images/rogue-ranch/puppy-5.jpg"
+					alt=""
+					width="1000"
+					height="1000"
+					loading="lazy"
+					decoding="async"
+				/>
+			</div>
+			<div class="title-sponsor-banner-scrim" aria-hidden="true"></div>
+			<span class="puppy-counter-badge">🐾 8 puppies left!</span>
+			<div class="title-sponsor-banner-content">
+				<div class="title-sponsor-hero-row title-sponsor-hero-row--overlay">
+					<a
+						class="title-sponsor-logo-link"
+						href={puppySponsor.homeUrl}
+						target="_blank"
+						rel="noopener noreferrer"
+						aria-label={`${puppySponsor.name}, visit rogueranchk9.com`}
+					>
+						<img
+							class="title-sponsor-logo"
+							src="/images/rogue-ranch/logo.png"
+							alt=""
+							width="256"
+							height="256"
+							decoding="async"
+						/>
+					</a>
+					<div class="title-sponsor-hero-text">
+						<p class="title-sponsor-kicker">Featured sponsor</p>
+						<h2 id="title-sponsor-heading" class="title-sponsor-name">
+							Rogue Ranch <span class="title-sponsor-name-light">K9</span>
+						</h2>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="title-sponsor-intro-body">
+			<p class="title-sponsor-thanks">
+				For the next few weeks we're spotlighting <strong>Rogue Ranch K9</strong> of Ocklawaha, Florida.
+				They're raising an exceptional litter of Belgian Malinois puppies from proven European working
+				bloodlines &mdash; bred for intelligence, loyalty, athleticism, and versatility. Only
+				<strong>8 puppies</strong> are still available, so reach out soon if you're looking for your next
+				family companion or working partner. Rapha International will be back in this spot shortly.
+			</p>
+
+			<div class="title-sponsor-mv-grid">
+				<div class="title-sponsor-mv-card">
+					<h3 class="title-sponsor-mv-label">Meet Zulu &amp; Axe</h3>
+					<p class="title-sponsor-mv-text">
+						Zulu carries generations of imported Belgian NVBK working heritage, prized for drive,
+						trainability, and loyalty. Axe contributes a distinguished pedigree of respected Belgian,
+						Czech, Dutch, and German bloodlines known for intelligence and sound structure.
+					</p>
+				</div>
+				<div class="title-sponsor-mv-card">
+					<h3 class="title-sponsor-mv-label">The Litter</h3>
+					<p class="title-sponsor-mv-text">
+						AKC-registered Belgian Malinois puppies, raised inside the family home from day one and
+						suited for active family companions, sport dogs, or working partners.
+						<em>Only 8 puppies left</em> &mdash; by appointment only, Ocklawaha, FL.
+					</p>
+				</div>
+			</div>
+
+			<div class="title-sponsor-actions">
+				<a
+					class="title-sponsor-cta title-sponsor-cta-primary"
+					href={puppySponsor.litterUrl}
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					Meet Zulu &amp; Axe →
+				</a>
+				<a class="title-sponsor-cta" href={puppySponsor.homeUrl} target="_blank" rel="noopener noreferrer">
+					Visit Rogue Ranch K9 →
+				</a>
+			</div>
+		</div>
+	</div>
+</section>

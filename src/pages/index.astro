@@ -1,6 +1,7 @@
 ---
 import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
 import TitleSponsorIntro from '../components/grand-prix/TitleSponsorIntro.astro';
+import PuppySponsorIntro from '../components/grand-prix/PuppySponsorIntro.astro';
 import GuestProSpotlight from '../components/grand-prix/GuestProSpotlight.astro';
 import PlayerSpotlight from '../components/grand-prix/PlayerSpotlight.astro';
 import SeasonStopsBar from '../components/grand-prix/SeasonStopsBar.astro';
@@ -88,7 +89,12 @@ const spotlightImage = liveEvent?.spotlightImage ?? nextStop?.image;
 		<SeasonStopsBar />
 	</div>
 
-	<TitleSponsorIntro />
+	{
+		/* TEMPORARY: Rogue Ranch K9 is filling the title-sponsor slot for a few weeks
+		   while Rapha International's placement is paused. To revert, swap
+		   <PuppySponsorIntro /> back to <TitleSponsorIntro />. */
+	}
+	<PuppySponsorIntro />
 
 	{(liveEvent || nextStop) && (
 		<section

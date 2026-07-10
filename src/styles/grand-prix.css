@@ -4822,6 +4822,70 @@ footer {
 .title-sponsor-cta-primary:hover {
   color: var(--orange2);
 }
+.puppy-collage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 3px;
+  background: var(--navy);
+}
+.puppy-collage-tile {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  grid-row: span 1;
+}
+.puppy-collage-tile--big {
+  grid-row: 1 / 3;
+}
+@media (max-width: 640px) {
+  .puppy-collage {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1.2fr 1fr 1fr;
+  }
+  .puppy-collage-tile--big {
+    grid-column: 1 / 3;
+    grid-row: 1 / 2;
+  }
+}
+.puppy-counter-badge {
+  position: absolute;
+  z-index: 3;
+  top: clamp(14px, 2.5vw, 22px);
+  right: clamp(14px, 2.5vw, 22px);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--orange);
+  color: var(--navy);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+  animation: puppy-badge-pulse 2.4s ease-in-out infinite;
+}
+@keyframes puppy-badge-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+@media (max-width: 540px) {
+  .puppy-counter-badge {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+}
 
 .site-explore {
   padding: 80px 24px 100px;
