@@ -1,7 +1,29 @@
 {
-  "lastUpdated": "2026-07-11T23:07:18.056Z",
+  "lastUpdated": "2026-07-11T23:55:34.492Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-11T23:55:34.492Z-mens-singles-a-MA4",
+      "at": "2026-07-11T23:55:34.492Z",
+      "type": "result",
+      "divisionId": "mens-singles-a",
+      "divisionLabel": "Men's Singles: A",
+      "matchId": "MA4",
+      "headline": "W Stubanas def B Anthony",
+      "detail": "15-3,15-1",
+      "bracketHref": "/events/sarasota-open/divisions/mens-singles-a"
+    },
+    {
+      "id": "2026-07-11T23:55:34.492Z-mens-singles-a-MA3",
+      "at": "2026-07-11T23:55:34.492Z",
+      "type": "result",
+      "divisionId": "mens-singles-a",
+      "divisionLabel": "Men's Singles: A",
+      "matchId": "MA3",
+      "headline": "D Wilmore Jr. def B Grantham",
+      "detail": "15-13,15-12",
+      "bracketHref": "/events/sarasota-open/divisions/mens-singles-a"
+    },
     {
       "id": "2026-07-11T23:07:18.056Z-mens-doubles-a-MAD5",
       "at": "2026-07-11T23:07:18.056Z",
@@ -854,28 +876,6 @@
       "headline": "Foley / Nolan def Haacke / Urzua",
       "detail": "15-11,15-9",
       "bracketHref": "/events/ocala-open/divisions/mens-doubles-centurion"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-doubles-b-MBD1",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-doubles-b",
-      "divisionLabel": "Men's Doubles: B",
-      "matchId": "MBD1",
-      "headline": "Kern / Appleby def Manzano / Sotolongo",
-      "detail": "15-2,15-4",
-      "bracketHref": "/events/ocala-open/divisions/mens-doubles-b"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-doubles-b-MBD4",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-doubles-b",
-      "divisionLabel": "Men's Doubles: B",
-      "matchId": "MBD4",
-      "headline": "Kern / Appleby def Swartz / Hernandez",
-      "detail": "15-2,15-4",
-      "bracketHref": "/events/ocala-open/divisions/mens-doubles-b"
     }
   ]
 }
