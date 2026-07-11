@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-11T04:59:35.394Z",
+  "lastUpdated": "2026-07-11T14:02:42.828Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -22,7 +22,8 @@
       },
       "MA5": {
         "player1": "Bailey Lewis",
-        "player2": "Wade Stubanas"
+        "player2": "Wade Stubanas",
+        "winner": 2
       },
       "MA6": {
         "player1": "David Wilmore Jr.",
@@ -66,7 +67,9 @@
       },
       "MC5": {
         "player1": "Ben Mordkovich",
-        "player2": "Chris Cournoyer"
+        "player2": "Chris Cournoyer",
+        "score": "15-8,15-4",
+        "winner": 2
       },
       "MC4": {
         "player1": "Marco Port",
@@ -136,7 +139,9 @@
     "mens-age-60": {
       "M60+6": {
         "player1": "Joe Alonso",
-        "player2": "Oscar Urquidi"
+        "player2": "Oscar Urquidi",
+        "score": "15-11,15-12",
+        "winner": 1
       },
       "M60+5": {
         "player1": "Charles Cole",
