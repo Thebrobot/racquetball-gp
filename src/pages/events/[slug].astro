@@ -1,8 +1,8 @@
 ---
 import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
 import OfficialBallChip from '../../components/grand-prix/OfficialBallChip.astro';
-import { EVENTS } from '../../data/events';
-import { getPlayerSlug, getPlayerImageForDisplay } from '../../data/players';
+import { EVENTS, getEventStatus } from '../../data/events';
+import { getPlayerSlug, getPlayerImageForDisplay, getPlayerScheduleEntries } from '../../data/players';
 import { formatPlayerInitials } from '../../data/leaderboard';
 import { titleSponsor } from '../../data/ocala-sponsors';
 
@@ -20,18 +20,35 @@ const divisionOrder = event.divisions;
 const uniqueNames = new Set((event.profiles ?? []).map((p) => p.name));
 const totalParticipants = uniqueNames.size;
 
-// One row per unique player, with all their division entries grouped
-type DivEntry = { division: string; time: string; court: string | null };
+// One row per unique player, with all their division entries grouped.
+// Live/upcoming events advance each entry to the player's next pending match
+// as results come in ("Complete" once their division run is over); past
+// events keep their original call times.
+const isPastEvent = getEventStatus(event) === 'recent';
+
+type DivEntry = { division: string; time: string; court: string | null; done: boolean };
 type PlayerRow = { name: string; slug: string; entries: DivEntry[] };
 const playerMap = new Map<string, PlayerRow>();
 for (const profile of event.profiles ?? []) {
+	const liveEntries = isPastEvent
+		? [profile]
+		: getPlayerScheduleEntries(profile.name, [{ ...profile, eventName: event.name }]);
+	const next = liveEntries[0];
+	const done = liveEntries.length === 0;
+	const time = next?.time ?? profile.time;
+	const note = next?.note ?? profile.note ?? '';
 	let court: string | null = null;
-	const courtMatch = (profile.note ?? '').match(/court\s*#?\s*(\w+)/i);
+	const courtMatch = note.match(/court\s*#?\s*(\w+)/i);
 	if (courtMatch) court = courtMatch[1];
 	if (!playerMap.has(profile.name)) {
 		playerMap.set(profile.name, { name: profile.name, slug: getPlayerSlug(profile.name), entries: [] });
 	}
-	playerMap.get(profile.name)!.entries.push({ division: profile.division, time: profile.time, court });
+	playerMap.get(profile.name)!.entries.push({
+		division: profile.division,
+		time: done ? 'Complete' : time,
+		court: done ? null : court,
+		done,
+	});
 }
 const allParticipants = Array.from(playerMap.values()).sort((a, b) => {
 	const lastA = a.name.trim().split(' ').pop()!.toLowerCase();
@@ -158,7 +175,7 @@ for (const d of event.divisionDetails ?? []) {
 			<div class="participants-table">
 				<div class="participants-thead">
 					<span>Division</span>
-					<span>First Call</span>
+					<span>Next Call</span>
 					<span>Court</span>
 				</div>
 				{allParticipants.map((p) => {
@@ -183,8 +200,8 @@ for (const d of event.divisionDetails ?? []) {
 								return (
 									<a class="participants-div-row" href={href}>
 										<span class="participants-td--division">{e.division}</span>
-										<span class="participants-td--time">{e.time || 'TBD'}</span>
-										<span class="participants-td--court">{e.court ? `Court ${e.court}` : 'TBD'}</span>
+										<span class={`participants-td--time${e.done ? ' participants-td--time-done' : ''}`}>{e.time || 'TBD'}</span>
+										<span class="participants-td--court">{e.done ? '—' : e.court ? `Court ${e.court}` : 'TBD'}</span>
 									</a>
 								);
 							})}
@@ -504,6 +521,10 @@ for (const d of event.divisionDetails ?? []) {
 .participants-td--time {
 	font-size: 0.875rem;
 	color: #fff;
+}
+.participants-td--time-done {
+	color: rgba(255,255,255,0.4);
+	font-style: italic;
 }
 .participants-td--court {
 	font-size: 0.875rem;
