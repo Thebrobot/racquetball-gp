@@ -1,10 +1,12 @@
 {
-  "lastUpdated": "2026-07-11T16:44:36.391Z",
+  "lastUpdated": "2026-07-11T16:58:27.141Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
         "player1": "Chris Steinheiser",
-        "player2": "Andres Ramirez"
+        "player2": "Andres Ramirez",
+        "winner": 2,
+        "score": "15-12,15-4"
       },
       "MO6": {
         "player1": "Dylan Pruitt",
@@ -14,6 +16,10 @@
       "MO7": {
         "player1": "Amir Baig",
         "player2": "Daniel De La Rosa"
+      },
+      "MO4": {
+        "player1": "E Portillo Torres",
+        "player2": "A Ramirez"
       }
     },
     "mens-singles-a": {

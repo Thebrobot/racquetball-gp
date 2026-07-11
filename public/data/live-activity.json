@@ -1,7 +1,18 @@
 {
-  "lastUpdated": "2026-07-11T16:44:36.391Z",
+  "lastUpdated": "2026-07-11T16:58:27.141Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-11T16:58:27.141Z-mens-singles-open-MO5",
+      "at": "2026-07-11T16:58:27.141Z",
+      "type": "result",
+      "divisionId": "mens-singles-open",
+      "divisionLabel": "Men's Singles: Open",
+      "matchId": "MO5",
+      "headline": "Andres Ramirez def Chris Steinheiser",
+      "detail": "15-12,15-4",
+      "bracketHref": "/events/sarasota-open/divisions/mens-singles-open"
+    },
     {
       "id": "2026-07-11T16:44:36.391Z-mens-doubles-centurion-MDS6",
       "at": "2026-07-11T16:44:36.391Z",
@@ -865,17 +876,6 @@
       "matchId": "MB4",
       "headline": "M Brice def E Martinez",
       "detail": "15-3,15-3",
-      "bracketHref": "/events/ocala-open/divisions/mens-singles-b"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-singles-b-MB3",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-singles-b",
-      "divisionLabel": "Men's Singles: B",
-      "matchId": "MB3",
-      "headline": "M Kern def K Artman",
-      "detail": "15-12,10-15,11-4",
       "bracketHref": "/events/ocala-open/divisions/mens-singles-b"
     }
   ]
