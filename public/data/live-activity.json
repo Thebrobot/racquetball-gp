@@ -1,7 +1,18 @@
 {
-  "lastUpdated": "2026-07-11T23:06:09.042Z",
+  "lastUpdated": "2026-07-11T23:07:18.056Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-11T23:07:18.056Z-mens-doubles-a-MAD5",
+      "at": "2026-07-11T23:07:18.056Z",
+      "type": "result",
+      "divisionId": "mens-doubles-a",
+      "divisionLabel": "Men's Doubles: A",
+      "matchId": "MAD5",
+      "headline": "Brendan Anthony / Havan Artman def Gene Fry / Tony Gutierrez",
+      "detail": "6-15,15-4,11-10",
+      "bracketHref": "/events/sarasota-open/divisions/mens-doubles-a"
+    },
     {
       "id": "2026-07-11T23:06:09.042Z-mens-singles-open-MO4",
       "at": "2026-07-11T23:06:09.042Z",
@@ -863,17 +874,6 @@
       "divisionLabel": "Men's Doubles: B",
       "matchId": "MBD4",
       "headline": "Kern / Appleby def Swartz / Hernandez",
-      "detail": "15-2,15-4",
-      "bracketHref": "/events/ocala-open/divisions/mens-doubles-b"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-doubles-b-MBD3",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-doubles-b",
-      "divisionLabel": "Men's Doubles: B",
-      "matchId": "MBD3",
-      "headline": "Brice / Martinez def Manzano / Sotolongo",
       "detail": "15-2,15-4",
       "bracketHref": "/events/ocala-open/divisions/mens-doubles-b"
     }

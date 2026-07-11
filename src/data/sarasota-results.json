@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-11T23:06:09.042Z",
+  "lastUpdated": "2026-07-11T23:07:18.056Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -448,7 +448,9 @@
       },
       "MAD5": {
         "player1": "Gene Fry / Tony Gutierrez",
-        "player2": "Brendan Anthony / Havan Artman"
+        "player2": "Brendan Anthony / Havan Artman",
+        "score": "6-15,15-4,11-10",
+        "winner": 2
       },
       "MAD4": {
         "player1": "Brendan Anthony / Havan Artman",
