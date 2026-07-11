@@ -1,7 +1,18 @@
 {
-  "lastUpdated": "2026-07-11T15:10:57.348Z",
+  "lastUpdated": "2026-07-11T15:17:54.121Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-11T15:17:54.121Z-mens-singles-c-MC4",
+      "at": "2026-07-11T15:17:54.121Z",
+      "type": "result",
+      "divisionId": "mens-singles-c",
+      "divisionLabel": "Men's Singles: C",
+      "matchId": "MC4",
+      "headline": "Marco Port def Chris Cournoyer",
+      "detail": "15-3,15-6",
+      "bracketHref": "/events/sarasota-open/divisions/mens-singles-c"
+    },
     {
       "id": "2026-07-11T15:10:57.348Z-mens-singles-a-MA6",
       "at": "2026-07-11T15:10:57.348Z",
@@ -865,17 +876,6 @@
       "divisionLabel": "Men's Singles: A",
       "matchId": "MA7",
       "headline": "K Oliveira def R Jennings",
-      "detail": "WBF - No Show",
-      "bracketHref": "/events/ocala-open/divisions/mens-singles-a"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-singles-a-MA5",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-singles-a",
-      "divisionLabel": "Men's Singles: A",
-      "matchId": "MA5",
-      "headline": "Brian Grantham def Mauricio Muriel",
       "detail": "WBF - No Show",
       "bracketHref": "/events/ocala-open/divisions/mens-singles-a"
     }
