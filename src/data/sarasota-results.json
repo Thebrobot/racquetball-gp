@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-11T18:14:22.266Z",
+  "lastUpdated": "2026-07-11T19:29:22.275Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -158,7 +158,9 @@
       },
       "M30403": {
         "player1": "Marco Port",
-        "player2": "Oscar Sanchez"
+        "player2": "Oscar Sanchez",
+        "score": "15-7,15-6",
+        "winner": 2
       },
       "M30402": {
         "player1": "Van Soles",
@@ -332,7 +334,9 @@
       },
       "ME2": {
         "player1": "Samuel Schulze",
-        "player2": "Richard Unzueta"
+        "player2": "Richard Unzueta",
+        "score": "15-4,15-6",
+        "winner": 1
       },
       "ME1": {
         "player1": "Samuel Schulze",
@@ -358,7 +362,9 @@
       },
       "MED3": {
         "player1": "Chris Steinheiser / John Johnston",
-        "player2": "Troy Ayers / Timothy Burke"
+        "player2": "Troy Ayers / Timothy Burke",
+        "score": "15-12,15-9",
+        "winner": 1
       },
       "MED2": {
         "player1": "Yelandi Rivero / Amir Baig",
@@ -372,7 +378,9 @@
     "mens-doubles-a": {
       "MAD10": {
         "player1": "Heriberto Cruz-Anaya / Bailey Lewis",
-        "player2": "Brendan Anthony / Havan Artman"
+        "player2": "Brendan Anthony / Havan Artman",
+        "score": "15-11,12-15,11-6",
+        "winner": 1
       },
       "MAD9": {
         "player1": "Brian Grantham / Wade Stubanas",
