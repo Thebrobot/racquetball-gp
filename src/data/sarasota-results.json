@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-11T15:17:54.121Z",
+  "lastUpdated": "2026-07-11T15:39:35.361Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -44,11 +44,15 @@
       },
       "MB8": {
         "player1": "I Blums",
-        "player2": "R Appleby"
+        "player2": "R Appleby",
+        "winner": 2,
+        "score": "15-7,15-10"
       },
       "MB5": {
         "player1": "A Schiebe",
-        "player2": "M Kern"
+        "player2": "M Kern",
+        "winner": 2,
+        "score": "15-4,15-7"
       },
       "MB6": {
         "player1": "K Artman",
@@ -65,6 +69,10 @@
       "MB3": {
         "player1": "K Artman",
         "player2": "S Gill"
+      },
+      "MB4": {
+        "player1": "R Appleby",
+        "player2": "M Kern"
       }
     },
     "mens-singles-c": {
@@ -289,7 +297,9 @@
       },
       "MED5": {
         "player1": "Chris Steinheiser / John Johnston",
-        "player2": "Yelandi Rivero / Amir Baig"
+        "player2": "Yelandi Rivero / Amir Baig",
+        "score": "15-8,15-8",
+        "winner": 2
       },
       "MED4": {
         "player1": "Samuel Schulze / Brendan Anthony",

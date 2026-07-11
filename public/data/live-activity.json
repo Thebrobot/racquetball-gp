@@ -1,7 +1,40 @@
 {
-  "lastUpdated": "2026-07-11T15:17:54.121Z",
+  "lastUpdated": "2026-07-11T15:39:35.361Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-11T15:39:35.361Z-mens-singles-b-MB8",
+      "at": "2026-07-11T15:39:35.361Z",
+      "type": "result",
+      "divisionId": "mens-singles-b",
+      "divisionLabel": "Men's Singles: B",
+      "matchId": "MB8",
+      "headline": "R Appleby def I Blums",
+      "detail": "15-7,15-10",
+      "bracketHref": "/events/sarasota-open/divisions/mens-singles-b"
+    },
+    {
+      "id": "2026-07-11T15:39:35.361Z-mens-singles-b-MB5",
+      "at": "2026-07-11T15:39:35.361Z",
+      "type": "result",
+      "divisionId": "mens-singles-b",
+      "divisionLabel": "Men's Singles: B",
+      "matchId": "MB5",
+      "headline": "M Kern def A Schiebe",
+      "detail": "15-4,15-7",
+      "bracketHref": "/events/sarasota-open/divisions/mens-singles-b"
+    },
+    {
+      "id": "2026-07-11T15:39:35.361Z-mens-doubles-elite-MED5",
+      "at": "2026-07-11T15:39:35.361Z",
+      "type": "result",
+      "divisionId": "mens-doubles-elite",
+      "divisionLabel": "Men's Doubles: Elite",
+      "matchId": "MED5",
+      "headline": "Yelandi Rivero / Amir Baig def Chris Steinheiser / John Johnston",
+      "detail": "15-8,15-8",
+      "bracketHref": "/events/sarasota-open/divisions/mens-doubles-elite"
+    },
     {
       "id": "2026-07-11T15:17:54.121Z-mens-singles-c-MC4",
       "at": "2026-07-11T15:17:54.121Z",
@@ -843,39 +876,6 @@
       "divisionLabel": "Men's Singles: A",
       "matchId": "MA1",
       "headline": "G Henry def B Anthony",
-      "detail": "WBF - No Show",
-      "bracketHref": "/events/ocala-open/divisions/mens-singles-a"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-singles-a-MA3",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-singles-a",
-      "divisionLabel": "Men's Singles: A",
-      "matchId": "MA3",
-      "headline": "G Henry def R Jennings",
-      "detail": "15-12,10-15,11-1",
-      "bracketHref": "/events/ocala-open/divisions/mens-singles-a"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-singles-a-MA4",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-singles-a",
-      "divisionLabel": "Men's Singles: A",
-      "matchId": "MA4",
-      "headline": "B Anthony def B Grantham",
-      "detail": "15-12,15-11",
-      "bracketHref": "/events/ocala-open/divisions/mens-singles-a"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-singles-a-MA7",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-singles-a",
-      "divisionLabel": "Men's Singles: A",
-      "matchId": "MA7",
-      "headline": "K Oliveira def R Jennings",
       "detail": "WBF - No Show",
       "bracketHref": "/events/ocala-open/divisions/mens-singles-a"
     }
