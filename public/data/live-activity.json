@@ -1,7 +1,29 @@
 {
-  "lastUpdated": "2026-07-11T17:57:52.018Z",
+  "lastUpdated": "2026-07-11T18:14:22.266Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-11T18:14:22.266Z-mens-singles-open-MO6",
+      "at": "2026-07-11T18:14:22.266Z",
+      "type": "result",
+      "divisionId": "mens-singles-open",
+      "divisionLabel": "Men's Singles: Open",
+      "matchId": "MO6",
+      "headline": "Dylan Pruitt def Joseph Boyette",
+      "detail": "15-0,15-7",
+      "bracketHref": "/events/sarasota-open/divisions/mens-singles-open"
+    },
+    {
+      "id": "2026-07-11T18:14:22.266Z-mens-singles-open-MO7",
+      "at": "2026-07-11T18:14:22.266Z",
+      "type": "result",
+      "divisionId": "mens-singles-open",
+      "divisionLabel": "Men's Singles: Open",
+      "matchId": "MO7",
+      "headline": "Daniel De La Rosa def Amir Baig",
+      "detail": "15-1,15-1",
+      "bracketHref": "/events/sarasota-open/divisions/mens-singles-open"
+    },
     {
       "id": "2026-07-11T17:57:52.018Z-mens-age-50-M50+8",
       "at": "2026-07-11T17:57:52.018Z",
@@ -855,28 +877,6 @@
       "headline": "Michael Ammen def Russell O'Neal",
       "detail": "WBF - No Show",
       "bracketHref": "/events/ocala-open/divisions/mens-age-60"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-age-50-M50+1",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-age-50",
-      "divisionLabel": "Men's Age Singles: 50+",
-      "matchId": "M50+1",
-      "headline": "C Beacher def K Oliveira",
-      "detail": "12-15,15-7,11-1",
-      "bracketHref": "/events/ocala-open/divisions/mens-age-50"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-age-50-M50+3",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-age-50",
-      "divisionLabel": "Men's Age Singles: 50+",
-      "matchId": "M50+3",
-      "headline": "K Oliveira def J Johnston",
-      "detail": "15-3,14-15,11-10",
-      "bracketHref": "/events/ocala-open/divisions/mens-age-50"
     }
   ]
 }
