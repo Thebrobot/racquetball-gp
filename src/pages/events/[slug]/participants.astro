@@ -1,8 +1,8 @@
 ---
 import GrandPrixLayout from '../../../layouts/GrandPrixLayout.astro';
 import OfficialBallChip from '../../../components/grand-prix/OfficialBallChip.astro';
-import { EVENTS } from '../../../data/events';
-import { getPlayerSlug, getPlayerImageForDisplay } from '../../../data/players';
+import { EVENTS, getEventStatus } from '../../../data/events';
+import { getPlayerSlug, getPlayerImageForDisplay, getPlayerScheduleEntries } from '../../../data/players';
 import { formatPlayerInitials } from '../../../data/leaderboard';
 import { titleSponsor } from '../../../data/ocala-sponsors';
 
@@ -15,24 +15,36 @@ const event = EVENTS.find((e) => e.slug === routeEvent.slug) ?? routeEvent;
 
 // Build a map: division label → sorted list of unique participants
 const divisionOrder = event.divisions; // preserves intended display order
-const byDivision = new Map<string, { name: string; time: string; court: string | null }[]>();
+const byDivision = new Map<string, { name: string; time: string; court: string | null; done: boolean }[]>();
 
 for (const div of divisionOrder) {
 	byDivision.set(div, []);
 }
 
+// Past events keep their original call times; live/upcoming events advance
+// each row to the player's next pending match as results come in.
+const isPastEvent = getEventStatus(event) === 'recent';
+
 for (const profile of event.profiles ?? []) {
 	const list = byDivision.get(profile.division);
 	if (!list) continue;
+	// Pull the live-enriched schedule for this player+division: it advances to
+	// the next pending match as results come in, and returns no entries once
+	// every match in the division is decided.
+	const liveEntries = isPastEvent
+		? [profile]
+		: getPlayerScheduleEntries(profile.name, [{ ...profile, eventName: event.name }]);
+	const next = liveEntries[0];
+	const done = liveEntries.length === 0;
+	const time = next?.time ?? profile.time;
+	const note = next?.note ?? profile.note ?? '';
 	// Extract court from note (e.g. "Court 2")
 	let court: string | null = null;
-	let restNote = profile.note ?? '';
-	const courtMatch = restNote.match(/court\s*#?\s*(\w+)/i);
+	const courtMatch = note.match(/court\s*#?\s*(\w+)/i);
 	if (courtMatch) {
 		court = courtMatch[1];
-		restNote = restNote.replace(courtMatch[0], '').replace(/^[,;\s]+|[,;\s]+$/g, '').trim();
 	}
-	list.push({ name: profile.name, time: profile.time, court });
+	list.push({ name: profile.name, time: done ? 'Complete' : time, court: done ? null : court, done });
 }
 
 // Sort each division alphabetically by last name
@@ -53,7 +65,7 @@ const bracketsHref = `/events/${event.slug}#brackets`;
 
 <GrandPrixLayout
 	title={`${event.name} Participants | Florida Racquetball Grand Prix 2026`}
-	description={`Full participant list for the ${event.name}. See who is competing, which divisions they entered, and their first call times.`}
+	description={`Full participant list for the ${event.name}. See who is competing, which divisions they entered, and their next call times.`}
 	spotlightLabel="Title sponsor"
 	spotlightName={titleSponsor.name}
 	spotlightBlurb={titleSponsor.blurb}
@@ -96,7 +108,7 @@ const bracketsHref = `/events/${event.slug}#brackets`;
 				<div class="participants-table">
 					<div class="participants-table-head">
 						<span>Name</span>
-						<span>First call</span>
+						<span>Next call</span>
 						<span>Court</span>
 					</div>
 					{players.map((p) => {
@@ -122,8 +134,8 @@ const bracketsHref = `/events/${event.slug}#brackets`;
 									)}
 									<span class="participants-row-name">{p.name}</span>
 								</span>
-								<span class="participants-row-time">{p.time}</span>
-								<span class="participants-row-court">{p.court ? `Court ${p.court}` : 'TBD'}</span>
+								<span class={`participants-row-time${p.done ? ' participants-row-time--done' : ''}`}>{p.time}</span>
+								<span class="participants-row-court">{p.done ? '—' : p.court ? `Court ${p.court}` : 'TBD'}</span>
 							</a>
 						);
 					})}
@@ -243,6 +255,10 @@ const bracketsHref = `/events/${event.slug}#brackets`;
 .participants-row-time {
 	font-size: 0.85rem;
 	color: rgba(255,255,255,0.65);
+}
+.participants-row-time--done {
+	color: rgba(255,255,255,0.35);
+	font-style: italic;
 }
 .participants-row-court {
 	font-size: 0.85rem;
