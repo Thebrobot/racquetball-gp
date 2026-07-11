@@ -1,7 +1,18 @@
 {
-  "lastUpdated": "2026-07-11T21:06:53.760Z",
+  "lastUpdated": "2026-07-11T21:14:37.014Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-11T21:14:37.014Z-mens-doubles-b-MBD3",
+      "at": "2026-07-11T21:14:37.014Z",
+      "type": "result",
+      "divisionId": "mens-doubles-b",
+      "divisionLabel": "Men's Doubles: B",
+      "matchId": "MBD3",
+      "headline": "Mike Caldwell / Daniel Bray def Mark Manzano / Paul Sotolongo",
+      "detail": "12-15,15-9,11-5",
+      "bracketHref": "/events/sarasota-open/divisions/mens-doubles-b"
+    },
     {
       "id": "2026-07-11T21:06:53.760Z-mens-age-50-M50+6",
       "at": "2026-07-11T21:06:53.760Z",
@@ -864,17 +875,6 @@
       "matchId": "MOD2",
       "headline": "Beacher / Toston def Rivero / Steinheiser",
       "detail": "15-12,9-15,11-0",
-      "bracketHref": "/events/ocala-open/divisions/mens-doubles-open"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-doubles-open-MOD3",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-doubles-open",
-      "divisionLabel": "Men's Doubles: Open",
-      "matchId": "MOD3",
-      "headline": "M. Huyke / O. Huyke def Beacher / Toston",
-      "detail": "15-7,15-5",
       "bracketHref": "/events/ocala-open/divisions/mens-doubles-open"
     }
   ]

@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-11T21:06:53.760Z",
+  "lastUpdated": "2026-07-11T21:14:37.014Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -300,7 +300,9 @@
       },
       "MBD3": {
         "player1": "Mark Manzano / Paul Sotolongo",
-        "player2": "Mike Caldwell / Daniel Bray"
+        "player2": "Mike Caldwell / Daniel Bray",
+        "score": "12-15,15-9,11-5",
+        "winner": 2
       },
       "MBD2": {
         "player1": "Edgar Martinez / Alan Schiebe",
