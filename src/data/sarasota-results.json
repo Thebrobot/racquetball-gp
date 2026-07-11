@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-11T20:58:40.682Z",
+  "lastUpdated": "2026-07-11T21:06:53.760Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -186,16 +186,23 @@
       },
       "M50+6": {
         "player1": "David Wilmore Jr.",
-        "player2": "Amir Baig"
+        "player2": "Amir Baig",
+        "winner": 2,
+        "score": "15-5,15-1"
       },
       "M50+7": {
         "player1": "Miguel Angel Gonzalez",
         "player2": "Luis Macias",
-        "winner": 1
+        "winner": 1,
+        "score": "6-15,15-5,11-6"
       },
       "M50+4": {
         "player1": "J Johnston",
         "player2": "H Cruz-Anaya"
+      },
+      "M50+3": {
+        "player1": "A Baig",
+        "player2": "M Gonzalez"
       }
     },
     "mens-age-60": {
