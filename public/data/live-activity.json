@@ -1,7 +1,29 @@
 {
-  "lastUpdated": "2026-07-11T17:07:13.253Z",
+  "lastUpdated": "2026-07-11T17:21:33.433Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-11T17:21:33.433Z-mens-singles-a-MA6",
+      "at": "2026-07-11T17:21:33.433Z",
+      "type": "result",
+      "divisionId": "mens-singles-a",
+      "divisionLabel": "Men's Singles: A",
+      "matchId": "MA6",
+      "headline": "David Wilmore Jr. def Van Soles",
+      "detail": "15-10,15-12",
+      "bracketHref": "/events/sarasota-open/divisions/mens-singles-a"
+    },
+    {
+      "id": "2026-07-11T17:21:33.433Z-mens-singles-a-MA7",
+      "at": "2026-07-11T17:21:33.433Z",
+      "type": "result",
+      "divisionId": "mens-singles-a",
+      "divisionLabel": "Men's Singles: A",
+      "matchId": "MA7",
+      "headline": "Brian Grantham def Mike Caldwell",
+      "detail": "15-4,15-7",
+      "bracketHref": "/events/sarasota-open/divisions/mens-singles-a"
+    },
     {
       "id": "2026-07-11T17:07:13.253Z-mens-age-70-M70+2",
       "at": "2026-07-11T17:07:13.253Z",
@@ -855,28 +877,6 @@
       "headline": "Michael Ammen def Gordon Kelly",
       "detail": "WBF - No Show MC 1",
       "bracketHref": "/events/ocala-open/divisions/mens-singles-c"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-singles-c-MC3",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-singles-c",
-      "divisionLabel": "Men's Singles: C",
-      "matchId": "MC3",
-      "headline": "Michael Ammen def Ben Mordkovich",
-      "detail": "11-15,15-6,11-1",
-      "bracketHref": "/events/ocala-open/divisions/mens-singles-c"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-singles-b-MB1",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-singles-b",
-      "divisionLabel": "Men's Singles: B",
-      "matchId": "MB1",
-      "headline": "M Brice def M Kern",
-      "detail": "15-8,12-15,11-2",
-      "bracketHref": "/events/ocala-open/divisions/mens-singles-b"
     }
   ]
 }
