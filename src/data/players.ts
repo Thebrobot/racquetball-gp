@@ -151,9 +151,13 @@ export function getPlayerScheduleEntries(
 		};
 
 		// ── Round robin WITH per-match schedule → one ticket per match ──────────
+		// Completed matches (winner decided) drop off the schedule; they show in
+		// Match History instead.
 		if (div?.format === 'roundrobin' && div.roundRobinMatches?.length) {
 			const myMatches = div.roundRobinMatches.filter(
-				(m) => playerMatchesEntry(playerName, m.team1) || playerMatchesEntry(playerName, m.team2),
+				(m) =>
+					m.winner == null &&
+					(playerMatchesEntry(playerName, m.team1) || playerMatchesEntry(playerName, m.team2)),
 			);
 			for (const m of myMatches) {
 				const oppTeam = playerMatchesEntry(playerName, m.team1) ? m.team2 : m.team1;
@@ -184,19 +188,29 @@ export function getPlayerScheduleEntries(
 		}
 
 		// ── Single elimination: attach opponent + times from bracket data ───────
-		// Prefer a match whose scheduledTime matches the profile row; otherwise
-		// the first match in draw order with a real opponent (skips early BYEs).
+		// Only pending matches count — once a match has a winner it moves to
+		// Match History, so the ticket should advance to the player's next match
+		// (or disappear if they have none left).
 		if (div?.rounds) {
 			const cands: { round: EventBracketRound; match: EventBracketMatch; side: 1 | 2 }[] = [];
+			let hadCompleted = false;
 			for (const round of div.rounds) {
 				for (const match of round.matches) {
 					const p1 = (match.player1 ?? '').trim();
 					const p2 = (match.player2 ?? '').trim();
 					const side = playerMatchesEntry(playerName, p1) ? 1 : playerMatchesEntry(playerName, p2) ? 2 : null;
 					if (side === null) continue;
+					if (match.winner != null) {
+						hadCompleted = true;
+						continue;
+					}
 					cands.push({ round, match, side });
 				}
 			}
+
+			// Player appeared in the bracket but every one of their matches is
+			// decided → nothing upcoming, drop the ticket entirely.
+			if (!cands.length && hadCompleted) continue;
 
 			let pick = cands.find((c) => c.match.scheduledTime && c.match.scheduledTime === entry.time);
 			if (!pick) {
