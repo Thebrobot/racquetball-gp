@@ -4,14 +4,15 @@ name: Sync R2 Brackets
 # Runs every 10 minutes, scraping R2 brackets + refreshing GP points, and
 # commits any changes (which triggers a site redeploy).
 #
-# The cron only matches Jul 11–13 (UTC) and the window guard below stops all
-# scheduled runs after Mon Jul 13 2026 06:00 UTC, so it self-disables once the
-# weekend is over. Manual runs (Run workflow button) always work.
+# The window guard below skips all scheduled syncs after Mon Jul 13 2026
+# 06:00 UTC (Sunday midnight ET), so no data changes happen once the weekend
+# is over — though the cron itself keeps ticking until this file is edited.
+# Manual runs (Run workflow button) always work.
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/10 * 11-13 7 *' # every 10 min, Jul 11–13 UTC only
+    - cron: '*/10 * * * *' # every 10 minutes
 
 permissions:
   contents: write # needed to commit + push the results JSON
