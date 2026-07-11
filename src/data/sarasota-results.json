@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-11T16:07:25.345Z",
+  "lastUpdated": "2026-07-11T16:08:53.466Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -19,12 +19,15 @@
     "mens-singles-a": {
       "MA8": {
         "player1": "Brendan Anthony",
-        "player2": "Oscar Sanchez"
+        "player2": "Oscar Sanchez",
+        "winner": 1,
+        "score": "11-15,15-13,11-1"
       },
       "MA5": {
         "player1": "Bailey Lewis",
         "player2": "Wade Stubanas",
-        "winner": 2
+        "winner": 2,
+        "score": "15-4,15-2"
       },
       "MA6": {
         "player1": "David Wilmore Jr.",
@@ -34,6 +37,10 @@
       "MA7": {
         "player1": "Mike Caldwell",
         "player2": "Brian Grantham"
+      },
+      "MA4": {
+        "player1": "B Anthony",
+        "player2": "W Stubanas"
       }
     },
     "mens-singles-b": {

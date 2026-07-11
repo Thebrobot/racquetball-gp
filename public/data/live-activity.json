@@ -1,7 +1,29 @@
 {
-  "lastUpdated": "2026-07-11T16:07:25.345Z",
+  "lastUpdated": "2026-07-11T16:08:53.466Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-11T16:08:53.466Z-mens-singles-a-MA8",
+      "at": "2026-07-11T16:08:53.466Z",
+      "type": "result",
+      "divisionId": "mens-singles-a",
+      "divisionLabel": "Men's Singles: A",
+      "matchId": "MA8",
+      "headline": "Brendan Anthony def Oscar Sanchez",
+      "detail": "11-15,15-13,11-1",
+      "bracketHref": "/events/sarasota-open/divisions/mens-singles-a"
+    },
+    {
+      "id": "2026-07-11T16:08:53.466Z-mens-singles-a-MA5",
+      "at": "2026-07-11T16:08:53.466Z",
+      "type": "result",
+      "divisionId": "mens-singles-a",
+      "divisionLabel": "Men's Singles: A",
+      "matchId": "MA5",
+      "headline": "Wade Stubanas def Bailey Lewis",
+      "detail": "15-4,15-2",
+      "bracketHref": "/events/sarasota-open/divisions/mens-singles-a"
+    },
     {
       "id": "2026-07-11T16:07:25.345Z-mens-age-3040-M30404",
       "at": "2026-07-11T16:07:25.345Z",
@@ -854,28 +876,6 @@
       "matchId": "MB7",
       "headline": "Kyle Artman def Ryan Appleby",
       "detail": "15-13,15-13",
-      "bracketHref": "/events/ocala-open/divisions/mens-singles-b"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-singles-b-MB6",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-singles-b",
-      "divisionLabel": "Men's Singles: B",
-      "matchId": "MB6",
-      "headline": "M Kern def A Medlock",
-      "detail": "15-14,15-5",
-      "bracketHref": "/events/ocala-open/divisions/mens-singles-b"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-singles-b-MB8",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-singles-b",
-      "divisionLabel": "Men's Singles: B",
-      "matchId": "MB8",
-      "headline": "M Brice def S Gill",
-      "detail": "15-2,15-2",
       "bracketHref": "/events/ocala-open/divisions/mens-singles-b"
     }
   ]
