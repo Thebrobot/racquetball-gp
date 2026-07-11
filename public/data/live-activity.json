@@ -1,7 +1,18 @@
 {
-  "lastUpdated": "2026-07-11T17:28:25.372Z",
+  "lastUpdated": "2026-07-11T17:41:39.167Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-11T17:41:39.167Z-mens-doubles-a-MAD6",
+      "at": "2026-07-11T17:41:39.167Z",
+      "type": "result",
+      "divisionId": "mens-doubles-a",
+      "divisionLabel": "Men's Doubles: A",
+      "matchId": "MAD6",
+      "headline": "Heriberto Cruz-Anaya / Bailey Lewis def Kyle Artman / Paul Sotolongo",
+      "detail": "15-1,15-12",
+      "bracketHref": "/events/sarasota-open/divisions/mens-doubles-a"
+    },
     {
       "id": "2026-07-11T17:28:25.372Z-mens-doubles-elite-MED6",
       "at": "2026-07-11T17:28:25.372Z",
@@ -865,17 +876,6 @@
       "matchId": "M50+6",
       "headline": "John Johnston def Charles Cole",
       "detail": "15-11,15-7",
-      "bracketHref": "/events/ocala-open/divisions/mens-age-50"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-age-50-M50+5",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-age-50",
-      "divisionLabel": "Men's Age Singles: 50+",
-      "matchId": "M50+5",
-      "headline": "Chris Steinheiser def Trace Gunsch",
-      "detail": "11-15,15-11,11-6",
       "bracketHref": "/events/ocala-open/divisions/mens-age-50"
     }
   ]
