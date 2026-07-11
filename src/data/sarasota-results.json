@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-11T14:02:42.828Z",
+  "lastUpdated": "2026-07-11T14:51:41.273Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -51,10 +51,18 @@
       },
       "MB6": {
         "player1": "K Artman",
-        "player2": "E Martinez"
+        "player2": "E Martinez",
+        "winner": 1,
+        "score": "WBF - No Show"
       },
       "MB7": {
         "player1": "D Bray",
+        "player2": "S Gill",
+        "winner": 2,
+        "score": "15-3,8-15,11-3"
+      },
+      "MB3": {
+        "player1": "K Artman",
         "player2": "S Gill"
       }
     },
@@ -77,7 +85,9 @@
       },
       "MC3": {
         "player1": "Ben Mordkovich",
-        "player2": "Havan Artman"
+        "player2": "Havan Artman",
+        "score": "15-3,15-1",
+        "winner": 2
       },
       "MC2": {
         "player1": "Chris Cournoyer",
@@ -125,7 +135,8 @@
       },
       "M50+5": {
         "player1": "Heriberto Cruz-Anaya",
-        "player2": "Richard Unzueta"
+        "player2": "Richard Unzueta",
+        "winner": 1
       },
       "M50+6": {
         "player1": "David Wilmore Jr.",
@@ -185,11 +196,17 @@
     "mens-doubles-open": {
       "MOD5": {
         "player1": "Dylan Pruitt / Nicholas Ramos",
-        "player2": "Tony Gutierrez / Andres Ramirez"
+        "player2": "Tony Gutierrez / Andres Ramirez",
+        "winner": 1,
+        "score": "15-10,15-7"
       },
       "MOD6": {
         "player1": "Mike Kinkin / Eduardo Portillo Torres",
         "player2": "Mike Harmon / Yelandi Rivero"
+      },
+      "MOD4": {
+        "player1": "De La Rosa / Schulze",
+        "player2": "Pruitt / Ramos"
       }
     },
     "mens-doubles-b": {
