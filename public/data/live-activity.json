@@ -1,7 +1,18 @@
 {
-  "lastUpdated": "2026-07-11T16:29:03.744Z",
+  "lastUpdated": "2026-07-11T16:44:36.391Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-11T16:44:36.391Z-mens-doubles-centurion-MDS6",
+      "at": "2026-07-11T16:44:36.391Z",
+      "type": "result",
+      "divisionId": "mens-doubles-centurion",
+      "divisionLabel": "Men's Doubles: Centurion/",
+      "matchId": "MDS6",
+      "headline": "Bobby Morales / Charles Nolan def Timothy Burke / Troy Ayers",
+      "detail": "15-5,15-6",
+      "bracketHref": "/events/sarasota-open/divisions/mens-doubles-centurion"
+    },
     {
       "id": "2026-07-11T16:29:03.744Z-mens-doubles-open-MOD6",
       "at": "2026-07-11T16:29:03.744Z",
@@ -865,17 +876,6 @@
       "matchId": "MB3",
       "headline": "M Kern def K Artman",
       "detail": "15-12,10-15,11-4",
-      "bracketHref": "/events/ocala-open/divisions/mens-singles-b"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-singles-b-MB5",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-singles-b",
-      "divisionLabel": "Men's Singles: B",
-      "matchId": "MB5",
-      "headline": "E Martinez def H Artman",
-      "detail": "15-3,15-3",
       "bracketHref": "/events/ocala-open/divisions/mens-singles-b"
     }
   ]

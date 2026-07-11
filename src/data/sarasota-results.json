@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-11T16:29:03.744Z",
+  "lastUpdated": "2026-07-11T16:44:36.391Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -269,7 +269,9 @@
     "mens-doubles-centurion": {
       "MDS6": {
         "player1": "Bobby Morales / Charles Nolan",
-        "player2": "Timothy Burke / Troy Ayers"
+        "player2": "Timothy Burke / Troy Ayers",
+        "score": "15-5,15-6",
+        "winner": 1
       },
       "MDS5": {
         "player1": "Tony Gutierrez / Andres Ramirez",
