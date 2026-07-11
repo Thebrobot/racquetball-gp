@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-11T19:29:22.275Z",
+  "lastUpdated": "2026-07-11T20:25:07.791Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -190,7 +190,8 @@
       },
       "M50+7": {
         "player1": "Miguel Angel Gonzalez",
-        "player2": "Luis Macias"
+        "player2": "Luis Macias",
+        "winner": 1
       },
       "M50+4": {
         "player1": "J Johnston",
@@ -284,7 +285,9 @@
       },
       "MBD4": {
         "player1": "Matt Kern / Ryan Appleby",
-        "player2": "Edgar Martinez / Alan Schiebe"
+        "player2": "Edgar Martinez / Alan Schiebe",
+        "score": "WBF - No Show MBD 4",
+        "winner": 1
       },
       "MBD3": {
         "player1": "Mark Manzano / Paul Sotolongo",
@@ -358,7 +361,9 @@
       },
       "MED4": {
         "player1": "Samuel Schulze / Brendan Anthony",
-        "player2": "Yelandi Rivero / Amir Baig"
+        "player2": "Yelandi Rivero / Amir Baig",
+        "score": "15-13,15-7",
+        "winner": 1
       },
       "MED3": {
         "player1": "Chris Steinheiser / John Johnston",
@@ -390,11 +395,15 @@
       },
       "MAD8": {
         "player1": "Brian Grantham / Wade Stubanas",
-        "player2": "Heriberto Cruz-Anaya / Bailey Lewis"
+        "player2": "Heriberto Cruz-Anaya / Bailey Lewis",
+        "score": "15-8,15-9",
+        "winner": 1
       },
       "MAD7": {
         "player1": "Gene Fry / Tony Gutierrez",
-        "player2": "Kyle Artman / Paul Sotolongo"
+        "player2": "Kyle Artman / Paul Sotolongo",
+        "score": "15-11,15-6",
+        "winner": 1
       },
       "MAD6": {
         "player1": "Heriberto Cruz-Anaya / Bailey Lewis",
