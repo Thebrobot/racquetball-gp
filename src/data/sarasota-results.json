@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-11T20:25:07.791Z",
+  "lastUpdated": "2026-07-11T20:58:40.682Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -219,7 +219,9 @@
       },
       "M60+3": {
         "player1": "Charles Cole",
-        "player2": "Oscar Urquidi"
+        "player2": "Oscar Urquidi",
+        "score": "10-15,15-8,11-6",
+        "winner": 1
       },
       "M60+2": {
         "player1": "Ivars Blums",

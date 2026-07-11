@@ -1,7 +1,18 @@
 {
-  "lastUpdated": "2026-07-11T20:25:07.791Z",
+  "lastUpdated": "2026-07-11T20:58:40.682Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-11T20:58:40.682Z-mens-age-60-M60+3",
+      "at": "2026-07-11T20:58:40.682Z",
+      "type": "result",
+      "divisionId": "mens-age-60",
+      "divisionLabel": "Men's Age Singles: 60+",
+      "matchId": "M60+3",
+      "headline": "Charles Cole def Oscar Urquidi",
+      "detail": "10-15,15-8,11-6",
+      "bracketHref": "/events/sarasota-open/divisions/mens-age-60"
+    },
     {
       "id": "2026-07-11T20:25:07.791Z-mens-age-50-M50+7",
       "at": "2026-07-11T20:25:07.791Z",
@@ -864,17 +875,6 @@
       "matchId": "MOD5",
       "headline": "M. Huyke / O. Huyke def Rivero / Steinheiser",
       "detail": "15-8,15-4",
-      "bracketHref": "/events/ocala-open/divisions/mens-doubles-open"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-doubles-open-MOD6",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-doubles-open",
-      "divisionLabel": "Men's Doubles: Open",
-      "matchId": "MOD6",
-      "headline": "Beacher / Toston def Garcia / Nolan",
-      "detail": "15-11,15-13",
       "bracketHref": "/events/ocala-open/divisions/mens-doubles-open"
     }
   ]
