@@ -1,12 +1,14 @@
 {
-  "mens-singles-a": {
-    "MA6": {
-      "winner": 1,
-      "score": "WBF - No Show"
-    },
-    "MA1": {
-      "winner": 2,
-      "score": "WBF - No Show"
+  "ocala-open": {
+    "mens-singles-a": {
+      "MA6": {
+        "winner": 1,
+        "score": "WBF - No Show"
+      },
+      "MA1": {
+        "winner": 2,
+        "score": "WBF - No Show"
+      }
     }
   }
 }

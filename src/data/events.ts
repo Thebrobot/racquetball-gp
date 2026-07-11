@@ -1,4 +1,5 @@
-import resultsData from './ocala-results.json';
+import ocalaResultsData from './ocala-results.json';
+import sarasotaResultsData from './sarasota-results.json';
 import { GRAND_PRIX_FACEBOOK_URL } from './social';
 
 export type EventStatus = 'live' | 'recent' | 'upcoming';
@@ -835,7 +836,7 @@ const EVENTS_RAW: EventData[] = [
 				// 3-player RR: C(3,2) = 3 matches. Round/pairing/time data straight from R2.
 				roundRobinMatches: [
 					{ round: 'Round 1', team1: 'Luis Macias',    team2: 'Richard Unzueta', scheduledTime: 'Saturday · 5:00 PM',  court: 'Court 2', matchId: 'ME3' },
-					{ round: 'Round 2', team1: 'Samuel Schulze', team2: 'Richard Unzueta', scheduledTime: 'Saturday · 10:00 AM', court: 'Court 1', matchId: 'ME2' },
+					{ round: 'Round 2', team1: 'Samuel Schulze', team2: 'Richard Unzueta', scheduledTime: 'Saturday · 2:00 PM',  court: 'Court 4', matchId: 'ME2' },
 					{ round: 'Round 3', team1: 'Samuel Schulze', team2: 'Luis Macias',     scheduledTime: 'Sunday · 11:00 AM',   court: 'Court 1', matchId: 'ME1' },
 				],
 			},
@@ -924,7 +925,7 @@ const EVENTS_RAW: EventData[] = [
 					{ round: 'Round 2', team1: 'Marco Port',      team2: 'Chris Cournoyer', scheduledTime: 'Saturday · 11:00 AM', court: 'Court 4', matchId: 'MC4' },
 					{ round: 'Round 2', team1: 'Ben Mordkovich',  team2: 'Havan Artman',    scheduledTime: 'Saturday · 11:00 AM', court: 'Court 5', matchId: 'MC3' },
 					{ round: 'Round 3', team1: 'Chris Cournoyer', team2: 'Havan Artman',    scheduledTime: 'Sunday · 12:00 PM',   court: 'Court 2', matchId: 'MC2' },
-					{ round: 'Round 3', team1: 'Marco Port',      team2: 'Ben Mordkovich',  scheduledTime: 'Sunday · 12:00 PM',   court: 'Court 1', matchId: 'MC1' },
+					{ round: 'Round 3', team1: 'Marco Port',      team2: 'Ben Mordkovich',  scheduledTime: 'Sunday · 2:00 PM',                     matchId: 'MC1' },
 				],
 			},
 			// ── Age Singles ──────────────────────────────────────────────────────
@@ -1240,7 +1241,7 @@ const EVENTS_RAW: EventData[] = [
 			{ name: 'Alan Schiebe',           division: "Men's Singles: B",              time: 'Saturday · 9:00 AM',  note: 'Court 5' },
 			{ name: 'Alan Schiebe',           division: "Men's Doubles: B",              time: 'Friday · 5:30 PM',    note: 'Court 3' },
 			// Samuel Schulze
-			{ name: 'Samuel Schulze',         division: "Men's Singles: Elite",          time: 'Saturday · 10:00 AM', note: 'Court 1' },
+			{ name: 'Samuel Schulze',         division: "Men's Singles: Elite",          time: 'Saturday · 2:00 PM',  note: 'Court 4' },
 			{ name: 'Samuel Schulze',         division: "Men's Doubles: Open",           time: 'Saturday · 4:00 PM',  note: 'Court 1' },
 			{ name: 'Samuel Schulze',         division: "Men's Doubles: Elite",          time: 'Saturday · 12:00 PM', note: 'Court 3' },
 			// Van Soles
@@ -1257,7 +1258,7 @@ const EVENTS_RAW: EventData[] = [
 			{ name: 'Wade Stubanas',          division: "Men's Singles: A",              time: 'Saturday · 9:00 AM',  note: 'Court 3' },
 			{ name: 'Wade Stubanas',          division: "Men's Doubles: A",              time: 'Friday · 7:30 PM',    note: 'Court 1' },
 			// Richard Unzueta
-			{ name: 'Richard Unzueta',        division: "Men's Singles: Elite",          time: 'Saturday · 10:00 AM', note: 'Court 1' },
+			{ name: 'Richard Unzueta',        division: "Men's Singles: Elite",          time: 'Saturday · 2:00 PM',  note: 'Court 4' },
 			{ name: 'Richard Unzueta',        division: "Men's Age Singles: 50+",        time: 'Saturday · 10:00 AM', note: 'Court 5' },
 			// Oscar Urquidi
 			{ name: 'Oscar Urquidi',          division: "Men's Age Singles: 60+",        time: 'Saturday · 9:00 AM',  note: 'Court 1' },
@@ -1272,9 +1273,10 @@ const EVENTS_RAW: EventData[] = [
 ];
 
 // ── Live-results merge ─────────────────────────────────────────────────────
-// ocala-results.json is written by scripts/sync-r2-brackets.mjs (GitHub Actions
-// cron).  It carries live match scores/winners keyed by match ID (e.g. "MO9").
-// We merge at build-time so the static site always reflects the latest snapshot.
+// <event>-results.json files are written by scripts/sync-r2-brackets.mjs
+// (GitHub Actions cron).  They carry live match scores/winners keyed by match
+// ID (e.g. "MO9").  We merge at build-time so the static site always reflects
+// the latest snapshot.
 
 interface MatchResult {
 	score?: string | null;
@@ -1285,14 +1287,15 @@ interface MatchResult {
 
 type DivisionResult = Record<string, MatchResult>;
 
-/** ocala-results.json only carries Ocala Open data; division ids repeat across
- *  events (e.g. both stops have "mens-singles-open"), so the merge must be
- *  scoped to this slug or Ocala scores would leak into other stops' brackets. */
-const RESULTS_EVENT_SLUG = 'ocala-open';
+/** Results are scoped per event slug: division ids repeat across events
+ *  (e.g. both stops have "mens-singles-open"), so each stop merges only its
+ *  own results file or scores would leak into other stops' brackets. */
+const RESULTS_BY_EVENT: Record<string, { divisions?: Record<string, DivisionResult> }> = {
+	'ocala-open': ocalaResultsData as { divisions?: Record<string, DivisionResult> },
+	'sarasota-open': sarasotaResultsData as { divisions?: Record<string, DivisionResult> },
+};
 
-function applyResults(events: EventData[]): EventData[] {
-	const divResults = (resultsData as { divisions?: Record<string, DivisionResult> }).divisions ?? {};
-	if (!Object.keys(divResults).length) return events;
+function applyResultsToEvent(event: EventData, divResults: Record<string, DivisionResult>): EventData {
 
 	/** Never promote R2 scrape noise (e.g. "BYE") into a real TBD slot on our bracket. */
 	const fillFromResult = (slot: string, name: string | null | undefined): string | null => {
@@ -1317,9 +1320,7 @@ function applyResults(events: EventData[]): EventData[] {
 		});
 	};
 
-	return events.map((event) => {
-		if (event.slug !== RESULTS_EVENT_SLUG) return event;
-		return {
+	return {
 		...event,
 		divisionDetails: event.divisionDetails.map((div) => {
 			const matchMap = divResults[div.id];
@@ -1405,11 +1406,13 @@ function applyResults(events: EventData[]): EventData[] {
 
 			return div;
 		}),
-		};
-	});
+	};
 }
 
-export const EVENTS: EventData[] = applyResults(EVENTS_RAW);
+export const EVENTS: EventData[] = EVENTS_RAW.map((event) => {
+	const divResults = RESULTS_BY_EVENT[event.slug]?.divisions ?? {};
+	return Object.keys(divResults).length ? applyResultsToEvent(event, divResults) : event;
+});
 
 function parseDate(dateStr: string, isEnd = false): Date {
 	return new Date(`${dateStr}T${isEnd ? '23:59:59' : '00:00:00'}`);

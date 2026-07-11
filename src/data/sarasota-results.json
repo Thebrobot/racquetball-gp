@@ -1,0 +1,331 @@
+{
+  "lastUpdated": "2026-07-11T04:59:35.394Z",
+  "divisions": {
+    "mens-singles-open": {
+      "MO5": {
+        "player1": "Chris Steinheiser",
+        "player2": "Andres Ramirez"
+      },
+      "MO6": {
+        "player1": "Dylan Pruitt",
+        "player2": "Joseph Boyette"
+      },
+      "MO7": {
+        "player1": "Amir Baig",
+        "player2": "Daniel De La Rosa"
+      }
+    },
+    "mens-singles-a": {
+      "MA8": {
+        "player1": "Brendan Anthony",
+        "player2": "Oscar Sanchez"
+      },
+      "MA5": {
+        "player1": "Bailey Lewis",
+        "player2": "Wade Stubanas"
+      },
+      "MA6": {
+        "player1": "David Wilmore Jr.",
+        "player2": "Van Soles"
+      },
+      "MA7": {
+        "player1": "Mike Caldwell",
+        "player2": "Brian Grantham"
+      }
+    },
+    "mens-singles-b": {
+      "MB9": {
+        "player1": "Ryan Appleby",
+        "player2": "Mark Manzano",
+        "winner": 1,
+        "score": "15-9,15-1"
+      },
+      "MB8": {
+        "player1": "I Blums",
+        "player2": "R Appleby"
+      },
+      "MB5": {
+        "player1": "A Schiebe",
+        "player2": "M Kern"
+      },
+      "MB6": {
+        "player1": "K Artman",
+        "player2": "E Martinez"
+      },
+      "MB7": {
+        "player1": "D Bray",
+        "player2": "S Gill"
+      }
+    },
+    "mens-singles-c": {
+      "MC6": {
+        "player1": "Marco Port",
+        "player2": "Havan Artman",
+        "score": "15-13,15-9",
+        "winner": 1
+      },
+      "MC5": {
+        "player1": "Ben Mordkovich",
+        "player2": "Chris Cournoyer"
+      },
+      "MC4": {
+        "player1": "Marco Port",
+        "player2": "Chris Cournoyer"
+      },
+      "MC3": {
+        "player1": "Ben Mordkovich",
+        "player2": "Havan Artman"
+      },
+      "MC2": {
+        "player1": "Chris Cournoyer",
+        "player2": "Havan Artman"
+      },
+      "MC1": {
+        "player1": "Marco Port",
+        "player2": "Ben Mordkovich"
+      }
+    },
+    "mens-age-3040": {
+      "M30406": {
+        "player1": "Kyle Artman",
+        "player2": "Oscar Sanchez",
+        "score": "15-11,14-15,11-1",
+        "winner": 2
+      },
+      "M30405": {
+        "player1": "Marco Port",
+        "player2": "Van Soles",
+        "score": "15-14,15-14",
+        "winner": 1
+      },
+      "M30404": {
+        "player1": "Kyle Artman",
+        "player2": "Van Soles"
+      },
+      "M30403": {
+        "player1": "Marco Port",
+        "player2": "Oscar Sanchez"
+      },
+      "M30402": {
+        "player1": "Van Soles",
+        "player2": "Oscar Sanchez"
+      },
+      "M30401": {
+        "player1": "Kyle Artman",
+        "player2": "Marco Port"
+      }
+    },
+    "mens-age-50": {
+      "M50+8": {
+        "player1": "John Johnston",
+        "player2": "Robert Voor"
+      },
+      "M50+5": {
+        "player1": "Heriberto Cruz-Anaya",
+        "player2": "Richard Unzueta"
+      },
+      "M50+6": {
+        "player1": "David Wilmore Jr.",
+        "player2": "Amir Baig"
+      },
+      "M50+7": {
+        "player1": "Miguel Angel Gonzalez",
+        "player2": "Luis Macias"
+      }
+    },
+    "mens-age-60": {
+      "M60+6": {
+        "player1": "Joe Alonso",
+        "player2": "Oscar Urquidi"
+      },
+      "M60+5": {
+        "player1": "Charles Cole",
+        "player2": "Ivars Blums",
+        "score": "15-12,15-8",
+        "winner": 1
+      },
+      "M60+4": {
+        "player1": "Joe Alonso",
+        "player2": "Ivars Blums"
+      },
+      "M60+3": {
+        "player1": "Charles Cole",
+        "player2": "Oscar Urquidi"
+      },
+      "M60+2": {
+        "player1": "Ivars Blums",
+        "player2": "Oscar Urquidi"
+      },
+      "M60+1": {
+        "player1": "Joe Alonso",
+        "player2": "Charles Cole"
+      }
+    },
+    "mens-age-70": {
+      "M70+3": {
+        "player1": "Oscar Urquidi",
+        "player2": "Scott Gill",
+        "score": "15-11,11-15,11-2",
+        "winner": 2
+      },
+      "M70+2": {
+        "player1": "Gene Fry",
+        "player2": "Scott Gill"
+      },
+      "M70+1": {
+        "player1": "Gene Fry",
+        "player2": "Oscar Urquidi"
+      }
+    },
+    "mens-doubles-open": {
+      "MOD5": {
+        "player1": "Dylan Pruitt / Nicholas Ramos",
+        "player2": "Tony Gutierrez / Andres Ramirez"
+      },
+      "MOD6": {
+        "player1": "Mike Kinkin / Eduardo Portillo Torres",
+        "player2": "Mike Harmon / Yelandi Rivero"
+      }
+    },
+    "mens-doubles-b": {
+      "MBD6": {
+        "player1": "Matt Kern / Ryan Appleby",
+        "player2": "Mike Caldwell / Daniel Bray",
+        "score": "10-15,15-6,11-6",
+        "winner": 1
+      },
+      "MBD5": {
+        "player1": "Mark Manzano / Paul Sotolongo",
+        "player2": "Edgar Martinez / Alan Schiebe",
+        "score": "15-14,15-10",
+        "winner": 2
+      },
+      "MBD4": {
+        "player1": "Matt Kern / Ryan Appleby",
+        "player2": "Edgar Martinez / Alan Schiebe"
+      },
+      "MBD3": {
+        "player1": "Mark Manzano / Paul Sotolongo",
+        "player2": "Mike Caldwell / Daniel Bray"
+      },
+      "MBD2": {
+        "player1": "Edgar Martinez / Alan Schiebe",
+        "player2": "Mike Caldwell / Daniel Bray"
+      },
+      "MBD1": {
+        "player1": "Matt Kern / Ryan Appleby",
+        "player2": "Mark Manzano / Paul Sotolongo"
+      }
+    },
+    "mens-doubles-centurion": {
+      "MDS6": {
+        "player1": "Bobby Morales / Charles Nolan",
+        "player2": "Timothy Burke / Troy Ayers"
+      },
+      "MDS5": {
+        "player1": "Tony Gutierrez / Andres Ramirez",
+        "player2": "Chris Steinheiser / John Johnston"
+      },
+      "MDS4": {
+        "player1": "Bobby Morales / Charles Nolan",
+        "player2": "Chris Steinheiser / John Johnston"
+      },
+      "MDS3": {
+        "player1": "Tony Gutierrez / Andres Ramirez",
+        "player2": "Timothy Burke / Troy Ayers"
+      },
+      "MDS2": {
+        "player1": "Chris Steinheiser / John Johnston",
+        "player2": "Timothy Burke / Troy Ayers"
+      },
+      "MDS1": {
+        "player1": "Bobby Morales / Charles Nolan",
+        "player2": "Tony Gutierrez / Andres Ramirez"
+      }
+    },
+    "mens-singles-elite": {
+      "ME3": {
+        "player1": "Luis Macias",
+        "player2": "Richard Unzueta"
+      },
+      "ME2": {
+        "player1": "Samuel Schulze",
+        "player2": "Richard Unzueta"
+      },
+      "ME1": {
+        "player1": "Samuel Schulze",
+        "player2": "Luis Macias"
+      }
+    },
+    "mens-doubles-elite": {
+      "MED6": {
+        "player1": "Samuel Schulze / Brendan Anthony",
+        "player2": "Troy Ayers / Timothy Burke"
+      },
+      "MED5": {
+        "player1": "Chris Steinheiser / John Johnston",
+        "player2": "Yelandi Rivero / Amir Baig"
+      },
+      "MED4": {
+        "player1": "Samuel Schulze / Brendan Anthony",
+        "player2": "Yelandi Rivero / Amir Baig"
+      },
+      "MED3": {
+        "player1": "Chris Steinheiser / John Johnston",
+        "player2": "Troy Ayers / Timothy Burke"
+      },
+      "MED2": {
+        "player1": "Yelandi Rivero / Amir Baig",
+        "player2": "Troy Ayers / Timothy Burke"
+      },
+      "MED1": {
+        "player1": "Samuel Schulze / Brendan Anthony",
+        "player2": "Chris Steinheiser / John Johnston"
+      }
+    },
+    "mens-doubles-a": {
+      "MAD10": {
+        "player1": "Heriberto Cruz-Anaya / Bailey Lewis",
+        "player2": "Brendan Anthony / Havan Artman"
+      },
+      "MAD9": {
+        "player1": "Brian Grantham / Wade Stubanas",
+        "player2": "Kyle Artman / Paul Sotolongo",
+        "score": "15-1,15-7",
+        "winner": 1
+      },
+      "MAD8": {
+        "player1": "Brian Grantham / Wade Stubanas",
+        "player2": "Heriberto Cruz-Anaya / Bailey Lewis"
+      },
+      "MAD7": {
+        "player1": "Gene Fry / Tony Gutierrez",
+        "player2": "Kyle Artman / Paul Sotolongo"
+      },
+      "MAD6": {
+        "player1": "Heriberto Cruz-Anaya / Bailey Lewis",
+        "player2": "Kyle Artman / Paul Sotolongo"
+      },
+      "MAD5": {
+        "player1": "Gene Fry / Tony Gutierrez",
+        "player2": "Brendan Anthony / Havan Artman"
+      },
+      "MAD4": {
+        "player1": "Brendan Anthony / Havan Artman",
+        "player2": "Brian Grantham / Wade Stubanas"
+      },
+      "MAD3": {
+        "player1": "Gene Fry / Tony Gutierrez",
+        "player2": "Heriberto Cruz-Anaya / Bailey Lewis"
+      },
+      "MAD2": {
+        "player1": "Brendan Anthony / Havan Artman",
+        "player2": "Kyle Artman / Paul Sotolongo"
+      },
+      "MAD1": {
+        "player1": "Gene Fry / Tony Gutierrez",
+        "player2": "Brian Grantham / Wade Stubanas"
+      }
+    }
+  }
+}

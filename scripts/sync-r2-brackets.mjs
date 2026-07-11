@@ -2,8 +2,12 @@
  * sync-r2-brackets.mjs
  *
  * Scrapes live bracket results from R2 Sports and writes them to
- * src/data/ocala-results.json.  Called automatically by the GitHub Actions
+ * src/data/<event>-results.json.  Called automatically by the GitHub Actions
  * cron workflow every 10 minutes during the tournament weekend.
+ *
+ * Select the event with a CLI arg (defaults to sarasota):
+ *   node scripts/sync-r2-brackets.mjs sarasota
+ *   node scripts/sync-r2-brackets.mjs ocala
  *
  * R2 Sports HTML structure (discovered from live pages):
  *
@@ -31,70 +35,141 @@ import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const RESULTS_PATH = resolve(__dirname, '../src/data/ocala-results.json');
 const OVERRIDES_PATH = resolve(__dirname, 'match-result-overrides.json');
 const ACTIVITY_PATH = resolve(__dirname, '../public/data/live-activity.json');
-const EVENT_SLUG = 'ocala-open';
 const MAX_ACTIVITY_EVENTS = 80;
 
-const DIVISION_LABELS = {
-	'mens-singles-open': "Men's Singles: Open",
-	'mens-singles-elite': "Men's Singles: Elite",
-	'mens-singles-a': "Men's Singles: A",
-	'mens-singles-b': "Men's Singles: B",
-	'mens-singles-c': "Men's Singles: C",
-	'mens-age-50': "Men's Age Singles: 50+",
-	'mens-age-60': "Men's Age Singles: 60+",
-	'mens-age-70': "Men's Age Singles: 70+",
-	'mens-doubles-open': "Men's Doubles: Open",
-	'mens-doubles-elite': "Men's Doubles: Elite",
-	'mens-doubles-a': "Men's Doubles: A",
-	'mens-doubles-b': "Men's Doubles: B",
-	'mens-doubles-centurion': "Men's Doubles: Centurion+ Open",
-	'mens-doubles-super-centurion': "Men's Doubles: Super Centurion (120+)",
-	'mixed-doubles': 'Mixed Doubles: Open/A',
-};
-const TID = '53697';
-const DRAWOUT_BASE = `https://www.r2sports.com/tourney/drawsOut/drawOut.asp?TID=${TID}`;
+// ── Per-event configuration ─────────────────────────────────────────────────
+// Select with CLI arg: `node scripts/sync-r2-brackets.mjs sarasota` (default: sarasota)
 
-// Division short-code → our internal ID
-const CODE_ID_MAP = {
-	MO:   'mens-singles-open',
-	ME:   'mens-singles-elite',
-	MA:   'mens-singles-a',
-	MB:   'mens-singles-b',
-	MC:   'mens-singles-c',
-	'M50+': 'mens-age-50',
-	'M60+': 'mens-age-60',
-	'M70+': 'mens-age-70',
-	MOD:  'mens-doubles-open',
-	MED:  'mens-doubles-elite',
-	MAD:  'mens-doubles-a',
-	MBD:  'mens-doubles-b',
-	MCOD: 'mens-doubles-centurion',
-	MSCD: 'mens-doubles-super-centurion',
-	MXOA: 'mixed-doubles',
+const EVENT_CONFIGS = {
+	ocala: {
+		slug: 'ocala-open',
+		tid: '53697',
+		resultsPath: resolve(__dirname, '../src/data/ocala-results.json'),
+		divisionLabels: {
+			'mens-singles-open': "Men's Singles: Open",
+			'mens-singles-elite': "Men's Singles: Elite",
+			'mens-singles-a': "Men's Singles: A",
+			'mens-singles-b': "Men's Singles: B",
+			'mens-singles-c': "Men's Singles: C",
+			'mens-age-50': "Men's Age Singles: 50+",
+			'mens-age-60': "Men's Age Singles: 60+",
+			'mens-age-70': "Men's Age Singles: 70+",
+			'mens-doubles-open': "Men's Doubles: Open",
+			'mens-doubles-elite': "Men's Doubles: Elite",
+			'mens-doubles-a': "Men's Doubles: A",
+			'mens-doubles-b': "Men's Doubles: B",
+			'mens-doubles-centurion': "Men's Doubles: Centurion+ Open",
+			'mens-doubles-super-centurion': "Men's Doubles: Super Centurion (120+)",
+			'mixed-doubles': 'Mixed Doubles: Open/A',
+		},
+		// Division short-code → our internal ID
+		codeIdMap: {
+			MO:   'mens-singles-open',
+			ME:   'mens-singles-elite',
+			MA:   'mens-singles-a',
+			MB:   'mens-singles-b',
+			MC:   'mens-singles-c',
+			'M50+': 'mens-age-50',
+			'M60+': 'mens-age-60',
+			'M70+': 'mens-age-70',
+			MOD:  'mens-doubles-open',
+			MED:  'mens-doubles-elite',
+			MAD:  'mens-doubles-a',
+			MBD:  'mens-doubles-b',
+			MCOD: 'mens-doubles-centurion',
+			MSCD: 'mens-doubles-super-centurion',
+			MXOA: 'mixed-doubles',
+		},
+		// Discovered divIDs from the bracket page nav bar (javascript:viewBracket(divID, combinedID))
+		divisionUrls: [
+			{ code: 'MO',   divID: 2,     combinedID: 0 },
+			{ code: 'ME',   divID: 753,   combinedID: 0 },
+			{ code: 'MA',   divID: 3,     combinedID: 0 },
+			{ code: 'MB',   divID: 4,     combinedID: 0 },
+			{ code: 'MC',   divID: 5,     combinedID: 0 },
+			{ code: 'M50+', divID: 22,    combinedID: 0 },
+			{ code: 'M60+', divID: 26,    combinedID: 0 },
+			{ code: 'M70+', divID: 30,    combinedID: 0 },
+			{ code: 'MOD',  divID: 68,    combinedID: 0 },
+			{ code: 'MED',  divID: 756,   combinedID: 0 },
+			{ code: 'MAD',  divID: 69,    combinedID: 0 },
+			{ code: 'MBD',  divID: 70,    combinedID: 0 },
+			{ code: 'MCOD', divID: 10146, combinedID: 0 },
+			{ code: 'MSCD', divID: 28003, combinedID: 0 },
+			{ code: 'MXOA', divID: 0,     combinedID: 236959 },
+		],
+	},
+	sarasota: {
+		slug: 'sarasota-open',
+		tid: '54249',
+		resultsPath: resolve(__dirname, '../src/data/sarasota-results.json'),
+		divisionLabels: {
+			'mens-singles-open': "Men's Singles: Open",
+			'mens-singles-elite': "Men's Singles: Elite",
+			'mens-singles-a': "Men's Singles: A",
+			'mens-singles-b': "Men's Singles: B",
+			'mens-singles-c': "Men's Singles: C",
+			'mens-age-3040': "Men's Age Singles: 30/40+",
+			'mens-age-50': "Men's Age Singles: 50+",
+			'mens-age-60': "Men's Age Singles: 60+",
+			'mens-age-70': "Men's Age Singles: 70+",
+			'mens-doubles-open': "Men's Doubles: Open",
+			'mens-doubles-elite': "Men's Doubles: Elite",
+			'mens-doubles-a': "Men's Doubles: A",
+			'mens-doubles-b': "Men's Doubles: B",
+			'mens-doubles-centurion': "Men's Doubles: Centurion/",
+		},
+		codeIdMap: {
+			MO:    'mens-singles-open',
+			ME:    'mens-singles-elite',
+			MA:    'mens-singles-a',
+			MB:    'mens-singles-b',
+			MC:    'mens-singles-c',
+			M3040: 'mens-age-3040',
+			'M50+': 'mens-age-50',
+			'M60+': 'mens-age-60',
+			'M70+': 'mens-age-70',
+			MOD:   'mens-doubles-open',
+			MED:   'mens-doubles-elite',
+			MAD:   'mens-doubles-a',
+			MBD:   'mens-doubles-b',
+			MDS:   'mens-doubles-centurion',
+		},
+		// From listAllDivs.asp?TID=54249 viewBracket(divID, combinedID) links
+		divisionUrls: [
+			{ code: 'MO',    divID: 2,   combinedID: 0 },
+			{ code: 'ME',    divID: 753, combinedID: 0 },
+			{ code: 'MA',    divID: 3,   combinedID: 0 },
+			{ code: 'MB',    divID: 4,   combinedID: 0 },
+			{ code: 'MC',    divID: 5,   combinedID: 0 },
+			{ code: 'M3040', divID: 0,   combinedID: 237435 },
+			{ code: 'M50+',  divID: 22,  combinedID: 0 },
+			{ code: 'M60+',  divID: 26,  combinedID: 0 },
+			{ code: 'M70+',  divID: 30,  combinedID: 0 },
+			{ code: 'MOD',   divID: 68,  combinedID: 0 },
+			{ code: 'MED',   divID: 756, combinedID: 0 },
+			{ code: 'MAD',   divID: 69,  combinedID: 0 },
+			{ code: 'MBD',   divID: 70,  combinedID: 0 },
+			{ code: 'MDS',   divID: 0,   combinedID: 237436 },
+		],
+	},
 };
 
-// Discovered divIDs from the bracket page nav bar (javascript:viewBracket(divID, combinedID))
-// Used to build direct URLs without needing to scrape the divisions list.
-const DIVISION_URLS = [
-	{ code: 'MO',   divID: 2,     combinedID: 0 },
-	{ code: 'ME',   divID: 753,   combinedID: 0 },
-	{ code: 'MA',   divID: 3,     combinedID: 0 },
-	{ code: 'MB',   divID: 4,     combinedID: 0 },
-	{ code: 'MC',   divID: 5,     combinedID: 0 },
-	{ code: 'M50+', divID: 22,    combinedID: 0 },
-	{ code: 'M60+', divID: 26,    combinedID: 0 },
-	{ code: 'M70+', divID: 30,    combinedID: 0 },
-	{ code: 'MOD',  divID: 68,    combinedID: 0 },
-	{ code: 'MED',  divID: 756,   combinedID: 0 },
-	{ code: 'MAD',  divID: 69,    combinedID: 0 },
-	{ code: 'MBD',  divID: 70,    combinedID: 0 },
-	{ code: 'MCOD', divID: 10146, combinedID: 0 },
-	{ code: 'MSCD', divID: 28003, combinedID: 0 },
-	{ code: 'MXOA', divID: 0,     combinedID: 236959 },
-];
+const eventKey = process.argv[2] ?? 'sarasota';
+const EVENT = EVENT_CONFIGS[eventKey];
+if (!EVENT) {
+	console.error(`Unknown event "${eventKey}". Valid: ${Object.keys(EVENT_CONFIGS).join(', ')}`);
+	process.exit(1);
+}
+
+const RESULTS_PATH = EVENT.resultsPath;
+const EVENT_SLUG = EVENT.slug;
+const DIVISION_LABELS = EVENT.divisionLabels;
+const CODE_ID_MAP = EVENT.codeIdMap;
+const DIVISION_URLS = EVENT.divisionUrls;
+const DRAWOUT_BASE = `https://www.r2sports.com/tourney/drawsOut/drawOut.asp?TID=${EVENT.tid}`;
 
 /**
  * Single-elimination bracket extractor.
@@ -179,9 +254,16 @@ async function extractSingleElimData(page) {
 		// Full names in match boxes are safe to process (early-round results).
 		const results = { ...matchMap };
 
-		for (const box of allTables) {
-			const isMatchBox = !!box.querySelector('a[href*="viewAppMatch"]');
-			for (const cell of Array.from(box.querySelectorAll('td'))) {
+		// Leaf cells only: wrapper-table tds concatenate the whole bracket's text
+		// (names + unrelated scores + even analytics script ids like "…609-1"),
+		// which caused scores from one match to be attributed to another.
+		{
+			const cells = Array.from(document.querySelectorAll('td')).filter(
+				(td) => !td.querySelector('table'),
+			);
+			for (const cell of cells) {
+				const closestTable = cell.closest('table');
+				const isMatchBox = !!closestTable?.querySelector('a[href*="viewAppMatch"]');
 				const strong = cell.querySelector('strong, b');
 				if (!strong) continue;
 				const advancerName = cleanName(strong.textContent);
@@ -265,7 +347,14 @@ async function extractSingleElimData(page) {
 			if (!isPlayerName(advancerName)) continue;
 
 			const parentTd = nameEl.closest('td');
-			if (!parentTd || !isWinnerBorder(parentTd.getAttribute('style'))) continue;
+			if (!parentTd) continue;
+			// Full names require the colored winner border. Abbreviated advancement
+			// cells are processed border-or-not: newer view-bracket.asp layouts do
+			// not draw borders, but a score under an abbreviated name still means
+			// this player won the feeder match to advance here (losers never
+			// appear in advancement slots).
+			const hasWinnerBorder = isWinnerBorder(parentTd.getAttribute('style'));
+			if (isFullName(advancerName) && !hasWinnerBorder) continue;
 
 			// The nearest viewAppMatch link tells us which match this player advances into.
 			const parentTable = nameEl.closest('table');
@@ -397,19 +486,22 @@ async function extractRoundRobinData(page) {
 			if (!row) continue;
 			const rowText = (row.innerText ?? '').replace(/\s+/g, ' ').trim();
 
-			// Match "Team1 vs Team2" pattern before a day-of-week abbreviation
+			// Match "Team1 vs Team2" pattern before a day-of-week abbreviation.
+			// R2 uses both two-letter (Sa/Su/Fr) and one-letter (F/M/W) day codes.
 			const versus = rowText.match(
-				/([A-Z][A-Za-z .'\-\/]+?)\s+vs\.?\s+([A-Z][A-Za-z .'\-\/]+?)(?:\s+-\s+W)?\s+(?:Sa|Su|Mo|Tu|We|Th|Fr)\b/,
+				/([A-Z][A-Za-z .'\-\/]+?)\s+vs\.?\s+([A-Z][A-Za-z .'\-\/]+?)(?:\s+-\s+W)?\s+(?:Sa|Su|Mo|Tu|We|Th|Fr|F|M|W)\s+\d{1,2}:\d{2}/,
 			);
 			if (!versus) continue;
 
-			const player1 = versus[1].trim();
-			const player2 = versus[2].trim();
+			// "- W" winner marker is part of the free-text name capture; strip it.
+			const stripW = (s) => s.replace(/\s+-\s+W$/, '').trim();
+			const player1 = stripW(versus[1]);
+			const player2 = stripW(versus[2]);
 			const score = extractScore(rowText);
 
 			// "W" marker: "Team2 - W Sa …" means team2 won (default WBF style)
 			let winner;
-			if (/vs\.?\s+[A-Z][\w .'\-/]+?\s+-\s+W\s+(?:Sa|Su|Mo|Tu|We|Th|Fr)/.test(rowText)) {
+			if (/vs\.?\s+[A-Z][\w .'\-/]+?\s+-\s+W\s+(?:Sa|Su|Mo|Tu|We|Th|Fr|F|M|W)\s+\d/.test(rowText)) {
 				winner = 2;
 			} else if (/-\s+W\s+vs\.?/.test(rowText)) {
 				winner = 1;
@@ -532,9 +624,10 @@ function loadMatchOverrides() {
 	}
 }
 
-/** Verified results the R2 scraper mis-read (e.g. WBF no-shows). Applied after each sync merge. */
+/** Verified results the R2 scraper mis-read (e.g. WBF no-shows). Applied after each sync merge.
+ *  File is keyed by event slug so Ocala corrections never leak into other stops. */
 function applyMatchOverrides(divisions) {
-	const overrides = loadMatchOverrides();
+	const overrides = loadMatchOverrides()[EVENT_SLUG] ?? {};
 	for (const [motion, matches] of Object.entries(overrides)) {
 		const divId = motion;
 		if (!motion || typeof matches !== 'object') continue;
@@ -577,25 +670,39 @@ async function main() {
 		const page = await context.newPage();
 		page.setDefaultTimeout(30000);
 
+		// R2 page loads are flaky under load — retry each division a few times
+		// so one slow response doesn't drop a division from the snapshot.
+		const MAX_ATTEMPTS = 3;
 		for (const { code, divID, combinedID } of DIVISION_URLS) {
-			try {
-				const { divCode, divId, data } = await processDivision(page, divID, combinedID);
-				if (!divId) {
-					console.log(`  ⚠  ${code}: could not resolve division (got "${divCode}")`);
-					continue;
+			let lastErr = null;
+			let succeeded = false;
+			for (let attempt = 1; attempt <= MAX_ATTEMPTS && !succeeded; attempt++) {
+				try {
+					const { divCode, divId, data } = await processDivision(page, divID, combinedID);
+					succeeded = true;
+					if (!divId) {
+						console.log(`  ⚠  ${code}: could not resolve division (got "${divCode}")`);
+						break;
+					}
+					const matchCount = Object.keys(data).length;
+					const withResults = Object.values(data).filter((d) => d.winner != null).length;
+					if (matchCount > 0) {
+						divisions[divId] = data;
+						scraped++;
+						totalMatches += withResults;
+						console.log(`  ✓ ${code}: ${matchCount} match(es), ${withResults} with results → ${divId}`);
+					} else {
+						console.log(`  – ${code}: no data extracted yet`);
+					}
+				} catch (err) {
+					lastErr = err;
+					if (attempt < MAX_ATTEMPTS) {
+						console.log(`  ↻ ${code}: attempt ${attempt} failed, retrying…`);
+					}
 				}
-				const matchCount = Object.keys(data).length;
-				const withResults = Object.values(data).filter((d) => d.winner != null).length;
-				if (matchCount > 0) {
-					divisions[divId] = data;
-					scraped++;
-					totalMatches += withResults;
-					console.log(`  ✓ ${code}: ${matchCount} match(es), ${withResults} with results → ${divId}`);
-				} else {
-					console.log(`  – ${code}: no data extracted yet`);
-				}
-			} catch (err) {
-				console.log(`  ✗ ${code}: ${(err.message ?? String(err)).slice(0, 120)}`);
+			}
+			if (!succeeded) {
+				console.log(`  ✗ ${code}: ${(lastErr?.message ?? String(lastErr)).slice(0, 120)}`);
 			}
 		}
 
@@ -625,7 +732,7 @@ async function main() {
 	const mergedStr = JSON.stringify(mergedDivisions);
 	const existingStr = JSON.stringify(existing.divisions ?? {});
 	if (mergedStr === existingStr) {
-		console.log('\n✅  No changes — ocala-results.json is already up to date.');
+		console.log(`\n✅  No changes — ${RESULTS_PATH.split('/').pop()} is already up to date.`);
 		return;
 	}
 
