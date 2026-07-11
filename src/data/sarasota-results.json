@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-11T15:54:27.778Z",
+  "lastUpdated": "2026-07-11T16:07:25.345Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -125,7 +125,9 @@
       },
       "M30404": {
         "player1": "Kyle Artman",
-        "player2": "Van Soles"
+        "player2": "Van Soles",
+        "score": "15-3,15-11",
+        "winner": 1
       },
       "M30403": {
         "player1": "Marco Port",
