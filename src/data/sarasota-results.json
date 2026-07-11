@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-11T14:51:41.273Z",
+  "lastUpdated": "2026-07-11T15:10:57.348Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -27,7 +27,8 @@
       },
       "MA6": {
         "player1": "David Wilmore Jr.",
-        "player2": "Van Soles"
+        "player2": "Van Soles",
+        "winner": 1
       },
       "MA7": {
         "player1": "Mike Caldwell",

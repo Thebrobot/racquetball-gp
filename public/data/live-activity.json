@@ -1,7 +1,17 @@
 {
-  "lastUpdated": "2026-07-11T14:51:41.273Z",
+  "lastUpdated": "2026-07-11T15:10:57.348Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-11T15:10:57.348Z-mens-singles-a-MA6",
+      "at": "2026-07-11T15:10:57.348Z",
+      "type": "result",
+      "divisionId": "mens-singles-a",
+      "divisionLabel": "Men's Singles: A",
+      "matchId": "MA6",
+      "headline": "David Wilmore Jr. def Van Soles",
+      "bracketHref": "/events/sarasota-open/divisions/mens-singles-a"
+    },
     {
       "id": "2026-07-11T14:51:41.273Z-mens-singles-b-MB6",
       "at": "2026-07-11T14:51:41.273Z",
@@ -866,17 +876,6 @@
       "divisionLabel": "Men's Singles: A",
       "matchId": "MA5",
       "headline": "Brian Grantham def Mauricio Muriel",
-      "detail": "WBF - No Show",
-      "bracketHref": "/events/ocala-open/divisions/mens-singles-a"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-singles-a-MA6",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-singles-a",
-      "divisionLabel": "Men's Singles: A",
-      "matchId": "MA6",
-      "headline": "Gordon Henry def Wade Stubanas",
       "detail": "WBF - No Show",
       "bracketHref": "/events/ocala-open/divisions/mens-singles-a"
     }
