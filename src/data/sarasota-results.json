@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-11T17:21:33.433Z",
+  "lastUpdated": "2026-07-11T17:28:25.372Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -326,7 +326,9 @@
     "mens-doubles-elite": {
       "MED6": {
         "player1": "Samuel Schulze / Brendan Anthony",
-        "player2": "Troy Ayers / Timothy Burke"
+        "player2": "Troy Ayers / Timothy Burke",
+        "score": "15-3,15-7",
+        "winner": 1
       },
       "MED5": {
         "player1": "Chris Steinheiser / John Johnston",
