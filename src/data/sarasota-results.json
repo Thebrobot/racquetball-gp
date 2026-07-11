@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-11T17:41:39.167Z",
+  "lastUpdated": "2026-07-11T17:49:33.259Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -196,7 +196,9 @@
       },
       "M60+4": {
         "player1": "Joe Alonso",
-        "player2": "Ivars Blums"
+        "player2": "Ivars Blums",
+        "score": "15-10,15-9",
+        "winner": 1
       },
       "M60+3": {
         "player1": "Charles Cole",

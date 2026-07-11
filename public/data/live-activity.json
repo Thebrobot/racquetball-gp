@@ -1,7 +1,18 @@
 {
-  "lastUpdated": "2026-07-11T17:41:39.167Z",
+  "lastUpdated": "2026-07-11T17:49:33.259Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-11T17:49:33.259Z-mens-age-60-M60+4",
+      "at": "2026-07-11T17:49:33.259Z",
+      "type": "result",
+      "divisionId": "mens-age-60",
+      "divisionLabel": "Men's Age Singles: 60+",
+      "matchId": "M60+4",
+      "headline": "Joe Alonso def Ivars Blums",
+      "detail": "15-10,15-9",
+      "bracketHref": "/events/sarasota-open/divisions/mens-age-60"
+    },
     {
       "id": "2026-07-11T17:41:39.167Z-mens-doubles-a-MAD6",
       "at": "2026-07-11T17:41:39.167Z",
@@ -865,17 +876,6 @@
       "matchId": "M50+7",
       "headline": "Kleber Oliveira def Timothy Schnellenberger",
       "detail": "15-7,15-4",
-      "bracketHref": "/events/ocala-open/divisions/mens-age-50"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-age-50-M50+6",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-age-50",
-      "divisionLabel": "Men's Age Singles: 50+",
-      "matchId": "M50+6",
-      "headline": "John Johnston def Charles Cole",
-      "detail": "15-11,15-7",
       "bracketHref": "/events/ocala-open/divisions/mens-age-50"
     }
   ]
