@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-11T21:14:37.014Z",
+  "lastUpdated": "2026-07-11T22:11:06.216Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -272,11 +272,19 @@
       },
       "MOD4": {
         "player1": "De La Rosa / Schulze",
-        "player2": "Pruitt / Ramos"
+        "player2": "Pruitt / Ramos",
+        "winner": 1,
+        "score": "15-12,15-11"
       },
       "MOD3": {
         "player1": "Kinkin / Portillo Torres",
-        "player2": "Morales / Nolan"
+        "player2": "Morales / Nolan",
+        "winner": 1,
+        "score": "15-5,15-9"
+      },
+      "MOD1": {
+        "player1": "De La Rosa / Schulze",
+        "player2": "Kinkin / Portillo Torres"
       }
     },
     "mens-doubles-b": {
@@ -322,7 +330,9 @@
       },
       "MDS5": {
         "player1": "Tony Gutierrez / Andres Ramirez",
-        "player2": "Chris Steinheiser / John Johnston"
+        "player2": "Chris Steinheiser / John Johnston",
+        "score": "15-6,15-11",
+        "winner": 1
       },
       "MDS4": {
         "player1": "Bobby Morales / Charles Nolan",
@@ -344,7 +354,9 @@
     "mens-singles-elite": {
       "ME3": {
         "player1": "Luis Macias",
-        "player2": "Richard Unzueta"
+        "player2": "Richard Unzueta",
+        "score": "15-13,15-4",
+        "winner": 1
       },
       "ME2": {
         "player1": "Samuel Schulze",

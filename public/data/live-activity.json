@@ -1,7 +1,51 @@
 {
-  "lastUpdated": "2026-07-11T21:14:37.014Z",
+  "lastUpdated": "2026-07-11T22:11:06.216Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-11T22:11:06.216Z-mens-doubles-open-MOD4",
+      "at": "2026-07-11T22:11:06.216Z",
+      "type": "result",
+      "divisionId": "mens-doubles-open",
+      "divisionLabel": "Men's Doubles: Open",
+      "matchId": "MOD4",
+      "headline": "De La Rosa / Schulze def Pruitt / Ramos",
+      "detail": "15-12,15-11",
+      "bracketHref": "/events/sarasota-open/divisions/mens-doubles-open"
+    },
+    {
+      "id": "2026-07-11T22:11:06.216Z-mens-doubles-open-MOD3",
+      "at": "2026-07-11T22:11:06.216Z",
+      "type": "result",
+      "divisionId": "mens-doubles-open",
+      "divisionLabel": "Men's Doubles: Open",
+      "matchId": "MOD3",
+      "headline": "Kinkin / Portillo Torres def Morales / Nolan",
+      "detail": "15-5,15-9",
+      "bracketHref": "/events/sarasota-open/divisions/mens-doubles-open"
+    },
+    {
+      "id": "2026-07-11T22:11:06.216Z-mens-doubles-centurion-MDS5",
+      "at": "2026-07-11T22:11:06.216Z",
+      "type": "result",
+      "divisionId": "mens-doubles-centurion",
+      "divisionLabel": "Men's Doubles: Centurion/",
+      "matchId": "MDS5",
+      "headline": "Tony Gutierrez / Andres Ramirez def Chris Steinheiser / John Johnston",
+      "detail": "15-6,15-11",
+      "bracketHref": "/events/sarasota-open/divisions/mens-doubles-centurion"
+    },
+    {
+      "id": "2026-07-11T22:11:06.216Z-mens-singles-elite-ME3",
+      "at": "2026-07-11T22:11:06.216Z",
+      "type": "result",
+      "divisionId": "mens-singles-elite",
+      "divisionLabel": "Men's Singles: Elite",
+      "matchId": "ME3",
+      "headline": "Luis Macias def Richard Unzueta",
+      "detail": "15-13,15-4",
+      "bracketHref": "/events/sarasota-open/divisions/mens-singles-elite"
+    },
     {
       "id": "2026-07-11T21:14:37.014Z-mens-doubles-b-MBD3",
       "at": "2026-07-11T21:14:37.014Z",
@@ -832,50 +876,6 @@
       "headline": "Haacke / Haacke def Johnston / Lopez",
       "detail": "15-5,15-4",
       "bracketHref": "/events/ocala-open/divisions/mens-doubles-elite"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-doubles-elite-MED7",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-doubles-elite",
-      "divisionLabel": "Men's Doubles: Elite",
-      "matchId": "MED7",
-      "headline": "Johnston / Lopez def Artman / Oliveira",
-      "detail": "15-14,15-10",
-      "bracketHref": "/events/ocala-open/divisions/mens-doubles-elite"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-doubles-elite-MED8",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-doubles-elite",
-      "divisionLabel": "Men's Doubles: Elite",
-      "matchId": "MED8",
-      "headline": "Anthony / Schulze def Toston / Beacher",
-      "detail": "15-12,5-15,11-7",
-      "bracketHref": "/events/ocala-open/divisions/mens-doubles-elite"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-doubles-open-MOD1",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-doubles-open",
-      "divisionLabel": "Men's Doubles: Open",
-      "matchId": "MOD1",
-      "headline": "M. Huyke / O. Huyke def Garcia / Nolan",
-      "detail": "WBF - No Show MOD 1",
-      "bracketHref": "/events/ocala-open/divisions/mens-doubles-open"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-doubles-open-MOD2",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-doubles-open",
-      "divisionLabel": "Men's Doubles: Open",
-      "matchId": "MOD2",
-      "headline": "Beacher / Toston def Rivero / Steinheiser",
-      "detail": "15-12,9-15,11-0",
-      "bracketHref": "/events/ocala-open/divisions/mens-doubles-open"
     }
   ]
 }
