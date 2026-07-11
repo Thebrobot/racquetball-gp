@@ -1,7 +1,18 @@
 {
-  "lastUpdated": "2026-07-11T16:08:53.466Z",
+  "lastUpdated": "2026-07-11T16:29:03.744Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-11T16:29:03.744Z-mens-doubles-open-MOD6",
+      "at": "2026-07-11T16:29:03.744Z",
+      "type": "result",
+      "divisionId": "mens-doubles-open",
+      "divisionLabel": "Men's Doubles: Open",
+      "matchId": "MOD6",
+      "headline": "Mike Kinkin / Eduardo Portillo Torres def Mike Harmon / Yelandi Rivero",
+      "detail": "15-13,15-7",
+      "bracketHref": "/events/sarasota-open/divisions/mens-doubles-open"
+    },
     {
       "id": "2026-07-11T16:08:53.466Z-mens-singles-a-MA8",
       "at": "2026-07-11T16:08:53.466Z",
@@ -865,17 +876,6 @@
       "matchId": "MB5",
       "headline": "E Martinez def H Artman",
       "detail": "15-3,15-3",
-      "bracketHref": "/events/ocala-open/divisions/mens-singles-b"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-singles-b-MB7",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-singles-b",
-      "divisionLabel": "Men's Singles: B",
-      "matchId": "MB7",
-      "headline": "Kyle Artman def Ryan Appleby",
-      "detail": "15-13,15-13",
       "bracketHref": "/events/ocala-open/divisions/mens-singles-b"
     }
   ]
