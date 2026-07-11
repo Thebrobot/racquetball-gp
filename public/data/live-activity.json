@@ -1,7 +1,17 @@
 {
-  "lastUpdated": "2026-07-11T15:39:35.361Z",
+  "lastUpdated": "2026-07-11T15:54:27.778Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-11T15:54:27.778Z-mens-singles-open-MO6",
+      "at": "2026-07-11T15:54:27.778Z",
+      "type": "result",
+      "divisionId": "mens-singles-open",
+      "divisionLabel": "Men's Singles: Open",
+      "matchId": "MO6",
+      "headline": "Dylan Pruitt def Joseph Boyette",
+      "bracketHref": "/events/sarasota-open/divisions/mens-singles-open"
+    },
     {
       "id": "2026-07-11T15:39:35.361Z-mens-singles-b-MB8",
       "at": "2026-07-11T15:39:35.361Z",
@@ -867,17 +877,6 @@
       "headline": "Edgar Martinez def Ben Mordkovich",
       "detail": "15-2,15-3",
       "bracketHref": "/events/ocala-open/divisions/mens-singles-b"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-singles-a-MA1",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-singles-a",
-      "divisionLabel": "Men's Singles: A",
-      "matchId": "MA1",
-      "headline": "G Henry def B Anthony",
-      "detail": "WBF - No Show",
-      "bracketHref": "/events/ocala-open/divisions/mens-singles-a"
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-11T15:39:35.361Z",
+  "lastUpdated": "2026-07-11T15:54:27.778Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -8,7 +8,8 @@
       },
       "MO6": {
         "player1": "Dylan Pruitt",
-        "player2": "Joseph Boyette"
+        "player2": "Joseph Boyette",
+        "winner": 1
       },
       "MO7": {
         "player1": "Amir Baig",
