@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-12T18:15:19.890Z",
+  "lastUpdated": "2026-07-12T19:34:04.121Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -160,7 +160,9 @@
       },
       "MC1": {
         "player1": "Marco Port",
-        "player2": "Ben Mordkovich"
+        "player2": "Ben Mordkovich",
+        "score": "14-15,15-7,11-10",
+        "winner": 2
       }
     },
     "mens-age-3040": {
@@ -458,7 +460,9 @@
       },
       "MED1": {
         "player1": "Samuel Schulze / Brendan Anthony",
-        "player2": "Chris Steinheiser / John Johnston"
+        "player2": "Chris Steinheiser / John Johnston",
+        "score": "15-4,15-10",
+        "winner": 1
       }
     },
     "mens-doubles-a": {
@@ -518,7 +522,9 @@
       },
       "MAD1": {
         "player1": "Gene Fry / Tony Gutierrez",
-        "player2": "Brian Grantham / Wade Stubanas"
+        "player2": "Brian Grantham / Wade Stubanas",
+        "score": "15-1,15-2",
+        "winner": 2
       }
     }
   }

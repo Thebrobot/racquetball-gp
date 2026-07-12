@@ -1,7 +1,40 @@
 {
-  "lastUpdated": "2026-07-12T18:15:19.890Z",
+  "lastUpdated": "2026-07-12T19:34:04.121Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-12T19:34:04.121Z-mens-singles-c-MC1",
+      "at": "2026-07-12T19:34:04.121Z",
+      "type": "result",
+      "divisionId": "mens-singles-c",
+      "divisionLabel": "Men's Singles: C",
+      "matchId": "MC1",
+      "headline": "Ben Mordkovich def Marco Port",
+      "detail": "14-15,15-7,11-10",
+      "bracketHref": "/events/sarasota-open/divisions/mens-singles-c"
+    },
+    {
+      "id": "2026-07-12T19:34:04.121Z-mens-doubles-elite-MED1",
+      "at": "2026-07-12T19:34:04.121Z",
+      "type": "result",
+      "divisionId": "mens-doubles-elite",
+      "divisionLabel": "Men's Doubles: Elite",
+      "matchId": "MED1",
+      "headline": "Samuel Schulze / Brendan Anthony def Chris Steinheiser / John Johnston",
+      "detail": "15-4,15-10",
+      "bracketHref": "/events/sarasota-open/divisions/mens-doubles-elite"
+    },
+    {
+      "id": "2026-07-12T19:34:04.121Z-mens-doubles-a-MAD1",
+      "at": "2026-07-12T19:34:04.121Z",
+      "type": "result",
+      "divisionId": "mens-doubles-a",
+      "divisionLabel": "Men's Doubles: A",
+      "matchId": "MAD1",
+      "headline": "Brian Grantham / Wade Stubanas def Gene Fry / Tony Gutierrez",
+      "detail": "15-1,15-2",
+      "bracketHref": "/events/sarasota-open/divisions/mens-doubles-a"
+    },
     {
       "id": "2026-07-12T18:15:19.890Z-mens-age-60-M60+2",
       "at": "2026-07-12T18:15:19.890Z",
@@ -843,39 +876,6 @@
       "headline": "Brian Grantham / Wade Stubanas def Kyle Artman / Paul Sotolongo",
       "detail": "15-1,15-7",
       "bracketHref": "/events/sarasota-open/divisions/mens-doubles-a"
-    },
-    {
-      "id": "2026-07-11T04:54:33.288Z-mens-singles-b-MB9",
-      "at": "2026-07-11T04:54:33.288Z",
-      "type": "result",
-      "divisionId": "mens-singles-b",
-      "divisionLabel": "Men's Singles: B",
-      "matchId": "MB9",
-      "headline": "Ryan Appleby def Mark Manzano",
-      "detail": "15-9,15-1",
-      "bracketHref": "/events/sarasota-open/divisions/mens-singles-b"
-    },
-    {
-      "id": "2026-07-11T04:54:33.288Z-mens-singles-c-MC6",
-      "at": "2026-07-11T04:54:33.288Z",
-      "type": "result",
-      "divisionId": "mens-singles-c",
-      "divisionLabel": "Men's Singles: C",
-      "matchId": "MC6",
-      "headline": "Marco Port def Havan Artman",
-      "detail": "15-13,15-9",
-      "bracketHref": "/events/sarasota-open/divisions/mens-singles-c"
-    },
-    {
-      "id": "2026-07-11T04:54:33.288Z-mens-age-3040-M30406",
-      "at": "2026-07-11T04:54:33.288Z",
-      "type": "result",
-      "divisionId": "mens-age-3040",
-      "divisionLabel": "Men's Age Singles: 30/40+",
-      "matchId": "M30406",
-      "headline": "Oscar Sanchez def Kyle Artman",
-      "detail": "15-11,14-15,11-1",
-      "bracketHref": "/events/sarasota-open/divisions/mens-age-3040"
     }
   ]
 }
