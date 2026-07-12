@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-12T17:21:27.240Z",
+  "lastUpdated": "2026-07-12T18:15:19.890Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -268,11 +268,15 @@
       },
       "M60+2": {
         "player1": "Ivars Blums",
-        "player2": "Oscar Urquidi"
+        "player2": "Oscar Urquidi",
+        "score": "15-8,15-9",
+        "winner": 1
       },
       "M60+1": {
         "player1": "Joe Alonso",
-        "player2": "Charles Cole"
+        "player2": "Charles Cole",
+        "score": "15-2,15-10",
+        "winner": 2
       }
     },
     "mens-age-70": {
@@ -390,11 +394,15 @@
       },
       "MDS2": {
         "player1": "Chris Steinheiser / John Johnston",
-        "player2": "Timothy Burke / Troy Ayers"
+        "player2": "Timothy Burke / Troy Ayers",
+        "score": "WBF - No Show MDS 2",
+        "winner": 1
       },
       "MDS1": {
         "player1": "Bobby Morales / Charles Nolan",
-        "player2": "Tony Gutierrez / Andres Ramirez"
+        "player2": "Tony Gutierrez / Andres Ramirez",
+        "score": "15-1,15-12",
+        "winner": 2
       }
     },
     "mens-singles-elite": {
