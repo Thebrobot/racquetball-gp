@@ -1,7 +1,29 @@
 {
-  "lastUpdated": "2026-07-12T00:08:10.632Z",
+  "lastUpdated": "2026-07-12T14:10:55.619Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-12T14:10:55.619Z-mens-doubles-a-MAD4",
+      "at": "2026-07-12T14:10:55.619Z",
+      "type": "result",
+      "divisionId": "mens-doubles-a",
+      "divisionLabel": "Men's Doubles: A",
+      "matchId": "MAD4",
+      "headline": "Brian Grantham / Wade Stubanas def Brendan Anthony / Havan Artman",
+      "detail": "15-1,15-6",
+      "bracketHref": "/events/sarasota-open/divisions/mens-doubles-a"
+    },
+    {
+      "id": "2026-07-12T14:10:55.619Z-mens-doubles-a-MAD3",
+      "at": "2026-07-12T14:10:55.619Z",
+      "type": "result",
+      "divisionId": "mens-doubles-a",
+      "divisionLabel": "Men's Doubles: A",
+      "matchId": "MAD3",
+      "headline": "Heriberto Cruz-Anaya / Bailey Lewis def Gene Fry / Tony Gutierrez",
+      "detail": "WBF - No Show MAD 3",
+      "bracketHref": "/events/sarasota-open/divisions/mens-doubles-a"
+    },
     {
       "id": "2026-07-12T00:08:10.632Z-mens-doubles-centurion-MDS3",
       "at": "2026-07-12T00:08:10.632Z",
@@ -853,28 +875,6 @@
       "matchId": "MCOD3",
       "headline": "Ramirez / Gutierrez def Lopez / Johnston",
       "detail": "15-7,11-15,11-4",
-      "bracketHref": "/events/ocala-open/divisions/mens-doubles-centurion"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-doubles-centurion-MCOD4",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-doubles-centurion",
-      "divisionLabel": "Men's Doubles: Centurion+ Open",
-      "matchId": "MCOD4",
-      "headline": "Herrera / Hernandez def Foley / Nolan",
-      "detail": "15-10,2-15,11-8",
-      "bracketHref": "/events/ocala-open/divisions/mens-doubles-centurion"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-doubles-centurion-MCOD6",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-doubles-centurion",
-      "divisionLabel": "Men's Doubles: Centurion+ Open",
-      "matchId": "MCOD6",
-      "headline": "Ramirez / Gutierrez def Baig / Rivero",
-      "detail": "15-14,15-10",
       "bracketHref": "/events/ocala-open/divisions/mens-doubles-centurion"
     }
   ]
