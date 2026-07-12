@@ -1,7 +1,18 @@
 {
-  "lastUpdated": "2026-07-11T23:55:34.492Z",
+  "lastUpdated": "2026-07-12T00:08:10.632Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-12T00:08:10.632Z-mens-doubles-centurion-MDS3",
+      "at": "2026-07-12T00:08:10.632Z",
+      "type": "result",
+      "divisionId": "mens-doubles-centurion",
+      "divisionLabel": "Men's Doubles: Centurion/",
+      "matchId": "MDS3",
+      "headline": "Tony Gutierrez / Andres Ramirez def Timothy Burke / Troy Ayers",
+      "detail": "15-7,15-6",
+      "bracketHref": "/events/sarasota-open/divisions/mens-doubles-centurion"
+    },
     {
       "id": "2026-07-11T23:55:34.492Z-mens-singles-a-MA4",
       "at": "2026-07-11T23:55:34.492Z",
@@ -864,17 +875,6 @@
       "matchId": "MCOD6",
       "headline": "Ramirez / Gutierrez def Baig / Rivero",
       "detail": "15-14,15-10",
-      "bracketHref": "/events/ocala-open/divisions/mens-doubles-centurion"
-    },
-    {
-      "id": "2026-05-16T20:30:00.000Z-mens-doubles-centurion-MCOD5",
-      "at": "2026-05-16T20:30:00.000Z",
-      "type": "result",
-      "divisionId": "mens-doubles-centurion",
-      "divisionLabel": "Men's Doubles: Centurion+ Open",
-      "matchId": "MCOD5",
-      "headline": "Foley / Nolan def Haacke / Urzua",
-      "detail": "15-11,15-9",
       "bracketHref": "/events/ocala-open/divisions/mens-doubles-centurion"
     }
   ]

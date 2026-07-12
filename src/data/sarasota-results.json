@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-11T23:55:34.492Z",
+  "lastUpdated": "2026-07-12T00:08:10.632Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -358,7 +358,9 @@
       },
       "MDS3": {
         "player1": "Tony Gutierrez / Andres Ramirez",
-        "player2": "Timothy Burke / Troy Ayers"
+        "player2": "Timothy Burke / Troy Ayers",
+        "score": "15-7,15-6",
+        "winner": 1
       },
       "MDS2": {
         "player1": "Chris Steinheiser / John Johnston",
