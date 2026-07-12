@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-12T15:15:21.485Z",
+  "lastUpdated": "2026-07-12T16:14:52.259Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -112,11 +112,19 @@
       },
       "MB3": {
         "player1": "K Artman",
-        "player2": "S Gill"
+        "player2": "S Gill",
+        "winner": 1,
+        "score": "15-12,15-2"
       },
       "MB4": {
         "player1": "R Appleby",
-        "player2": "M Kern"
+        "player2": "M Kern",
+        "winner": 2,
+        "score": "15-11,12-15,15-10"
+      },
+      "MB1": {
+        "player1": "M Kern",
+        "player2": "K Artman"
       }
     },
     "mens-singles-c": {
@@ -180,7 +188,9 @@
       },
       "M30402": {
         "player1": "Van Soles",
-        "player2": "Oscar Sanchez"
+        "player2": "Oscar Sanchez",
+        "score": "WBF - No Show M3040 2",
+        "winner": 2
       },
       "M30401": {
         "player1": "Kyle Artman",
@@ -278,7 +288,9 @@
       },
       "M70+1": {
         "player1": "Gene Fry",
-        "player2": "Oscar Urquidi"
+        "player2": "Oscar Urquidi",
+        "score": "15-4,15-0",
+        "winner": 1
       }
     },
     "mens-doubles-open": {
@@ -338,11 +350,15 @@
       },
       "MBD2": {
         "player1": "Edgar Martinez / Alan Schiebe",
-        "player2": "Mike Caldwell / Daniel Bray"
+        "player2": "Mike Caldwell / Daniel Bray",
+        "score": "WBF - No Show MBD 2",
+        "winner": 2
       },
       "MBD1": {
         "player1": "Matt Kern / Ryan Appleby",
-        "player2": "Mark Manzano / Paul Sotolongo"
+        "player2": "Mark Manzano / Paul Sotolongo",
+        "score": "WBF - No Show MBD 1",
+        "winner": 1
       }
     },
     "mens-doubles-centurion": {
@@ -394,7 +410,9 @@
       },
       "ME1": {
         "player1": "Samuel Schulze",
-        "player2": "Luis Macias"
+        "player2": "Luis Macias",
+        "score": "14-15,15-9,11-8",
+        "winner": 2
       }
     },
     "mens-doubles-elite": {
@@ -484,7 +502,9 @@
       },
       "MAD2": {
         "player1": "Brendan Anthony / Havan Artman",
-        "player2": "Kyle Artman / Paul Sotolongo"
+        "player2": "Kyle Artman / Paul Sotolongo",
+        "score": "WBF - No Show MAD 2",
+        "winner": 1
       },
       "MAD1": {
         "player1": "Gene Fry / Tony Gutierrez",
