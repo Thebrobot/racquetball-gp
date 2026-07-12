@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-12T16:14:52.259Z",
+  "lastUpdated": "2026-07-12T17:21:27.240Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -154,7 +154,9 @@
       },
       "MC2": {
         "player1": "Chris Cournoyer",
-        "player2": "Havan Artman"
+        "player2": "Havan Artman",
+        "score": "14-15,15-8,11-1",
+        "winner": 2
       },
       "MC1": {
         "player1": "Marco Port",

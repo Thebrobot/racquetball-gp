@@ -1,7 +1,18 @@
 {
-  "lastUpdated": "2026-07-12T16:14:52.259Z",
+  "lastUpdated": "2026-07-12T17:21:27.240Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-12T17:21:27.240Z-mens-singles-c-MC2",
+      "at": "2026-07-12T17:21:27.240Z",
+      "type": "result",
+      "divisionId": "mens-singles-c",
+      "divisionLabel": "Men's Singles: C",
+      "matchId": "MC2",
+      "headline": "Havan Artman def Chris Cournoyer",
+      "detail": "14-15,15-8,11-1",
+      "bracketHref": "/events/sarasota-open/divisions/mens-singles-c"
+    },
     {
       "id": "2026-07-12T16:14:52.259Z-mens-singles-b-MB3",
       "at": "2026-07-12T16:14:52.259Z",
@@ -864,17 +875,6 @@
       "matchId": "MBD6",
       "headline": "Matt Kern / Ryan Appleby def Mike Caldwell / Daniel Bray",
       "detail": "10-15,15-6,11-6",
-      "bracketHref": "/events/sarasota-open/divisions/mens-doubles-b"
-    },
-    {
-      "id": "2026-07-11T04:54:33.288Z-mens-doubles-b-MBD5",
-      "at": "2026-07-11T04:54:33.288Z",
-      "type": "result",
-      "divisionId": "mens-doubles-b",
-      "divisionLabel": "Men's Doubles: B",
-      "matchId": "MBD5",
-      "headline": "Edgar Martinez / Alan Schiebe def Mark Manzano / Paul Sotolongo",
-      "detail": "15-14,15-10",
       "bracketHref": "/events/sarasota-open/divisions/mens-doubles-b"
     }
   ]
