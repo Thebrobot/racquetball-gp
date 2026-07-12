@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-12T14:10:55.619Z",
+  "lastUpdated": "2026-07-12T15:15:21.485Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -214,11 +214,19 @@
       },
       "M50+4": {
         "player1": "J Johnston",
-        "player2": "H Cruz-Anaya"
+        "player2": "H Cruz-Anaya",
+        "winner": 2,
+        "score": "15-4,5-15,11-5"
       },
       "M50+3": {
         "player1": "A Baig",
-        "player2": "M Gonzalez"
+        "player2": "M Gonzalez",
+        "winner": 1,
+        "score": "15-6,7-15,11-7"
+      },
+      "M50+1": {
+        "player1": "H Cruz-Anaya",
+        "player2": "A Baig"
       }
     },
     "mens-age-60": {
