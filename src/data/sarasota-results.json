@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-12T20:24:44.060Z",
+  "lastUpdated": "2026-07-15T15:16:36.415Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -34,7 +34,9 @@
       },
       "MO1": {
         "player1": "E Portillo Torres",
-        "player2": "D De La Rosa"
+        "player2": "D De La Rosa",
+        "winner": 1,
+        "score": "15-6,15-3"
       }
     },
     "mens-singles-a": {
@@ -76,7 +78,9 @@
       },
       "MA1": {
         "player1": "W Stubanas",
-        "player2": "D Wilmore Jr."
+        "player2": "D Wilmore Jr.",
+        "winner": 1,
+        "score": "15-3,15-1"
       }
     },
     "mens-singles-b": {
@@ -124,7 +128,9 @@
       },
       "MB1": {
         "player1": "M Kern",
-        "player2": "K Artman"
+        "player2": "K Artman",
+        "winner": 1,
+        "score": "15-11,12-15,15-10"
       }
     },
     "mens-singles-c": {
@@ -242,7 +248,9 @@
       },
       "M50+1": {
         "player1": "H Cruz-Anaya",
-        "player2": "A Baig"
+        "player2": "A Baig",
+        "winner": 1,
+        "score": "15-4,5-15,11-5"
       }
     },
     "mens-age-60": {
@@ -330,7 +338,9 @@
       },
       "MOD1": {
         "player1": "De La Rosa / Schulze",
-        "player2": "Kinkin / Portillo Torres"
+        "player2": "Kinkin / Portillo Torres",
+        "winner": 1,
+        "score": "15-12,15-11"
       }
     },
     "mens-doubles-b": {

@@ -449,6 +449,51 @@ async function extractSingleElimData(page) {
 			}
 		}
 
+		// ── Pass 4: in-box championship / final results ───────────────────────
+		// Finals show both players inside the match box with scores on the next
+		// row. The winner's name cell has a 3pt colored border (blue on R2).
+		// Names like "E Portillo Torres" or "W Stubanas" fail isFullName (single-
+		// letter first names), so Passes 2–3 never pick these up.
+		for (const box of matchBoxes) {
+			const link = box.querySelector('a[href*="viewAppMatch"]');
+			const matchId = (link?.textContent ?? '').trim();
+			if (!/^[A-Z][A-Z0-9+]{0,4}\d{1,3}$/.test(matchId)) continue;
+
+			const data = results[matchId];
+			if (!data || data.winner != null) continue;
+			// Need both slots filled — skip TBD placeholders.
+			if (!isPlayerName(data.player1 ?? '') || !isPlayerName(data.player2 ?? '')) continue;
+
+			for (const tr of Array.from(box.querySelectorAll('tr'))) {
+				const nameEl = tr.querySelector('strong, b');
+				if (!nameEl) continue;
+				const nameTd = nameEl.closest('td');
+				if (!nameTd || !isWinnerBorder(nameTd.getAttribute('style'))) continue;
+
+				const winnerName = cleanName(nameEl.textContent);
+				if (!isPlayerName(winnerName)) continue;
+
+				const scoreTr = tr.nextElementSibling;
+				const score = scoreTr ? extractScore(scoreTr.textContent ?? '') : null;
+				if (!score) continue;
+
+				const winLN = lastNames(winnerName);
+				const p1LN = lastNames(data.player1 ?? '');
+				const p2LN = lastNames(data.player2 ?? '');
+				const hitsP1 = winLN.every((ln) => p1LN.some((p) => p === ln || p.includes(ln) || ln.includes(p)));
+				const hitsP2 = winLN.every((ln) => p2LN.some((p) => p === ln || p.includes(ln) || ln.includes(p)));
+
+				if (hitsP1 && !hitsP2) {
+					results[matchId] = { ...data, winner: 1, score };
+					break;
+				}
+				if (hitsP2 && !hitsP1) {
+					results[matchId] = { ...data, winner: 2, score };
+					break;
+				}
+			}
+		}
+
 		return results;
 	});
 }
