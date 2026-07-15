@@ -454,6 +454,27 @@ async function extractSingleElimData(page) {
 		// row. The winner's name cell has a 3pt colored border (blue on R2).
 		// Names like "E Portillo Torres" or "W Stubanas" fail isFullName (single-
 		// letter first names), so Passes 2–3 never pick these up.
+		//
+		// R2 also renders a separate CHAMPION block with the authoritative final
+		// score. The in-box winner row can show a stale feeder score (e.g. MB1
+		// displays the semi score 15-11,12-15,15-10 instead of 15-13,9-15,11-3).
+		const championScoreFor = (playerName) => {
+			const champTd = Array.from(document.querySelectorAll('td')).find((td) =>
+				/^CHAMPION$/i.test((td.textContent ?? '').trim()),
+			);
+			if (!champTd) return null;
+			const table = champTd.closest('table');
+			const champName = cleanName(table?.querySelector('strong, b')?.textContent ?? '');
+			if (!isPlayerName(champName)) return null;
+			const pLN = lastNames(playerName);
+			const cLN = lastNames(champName);
+			const matches = pLN.every((ln) =>
+				cLN.some((p) => p === ln || p.includes(ln) || ln.includes(p)),
+			);
+			if (!matches) return null;
+			return extractScore(champTd.closest('tr')?.nextElementSibling?.textContent ?? '');
+		};
+
 		for (const box of matchBoxes) {
 			const link = box.querySelector('a[href*="viewAppMatch"]');
 			const matchId = (link?.textContent ?? '').trim();
@@ -484,11 +505,11 @@ async function extractSingleElimData(page) {
 				const hitsP2 = winLN.every((ln) => p2LN.some((p) => p === ln || p.includes(ln) || ln.includes(p)));
 
 				if (hitsP1 && !hitsP2) {
-					results[matchId] = { ...data, winner: 1, score };
+					results[matchId] = { ...data, winner: 1, score: championScoreFor(winnerName) ?? score };
 					break;
 				}
 				if (hitsP2 && !hitsP1) {
-					results[matchId] = { ...data, winner: 2, score };
+					results[matchId] = { ...data, winner: 2, score: championScoreFor(winnerName) ?? score };
 					break;
 				}
 			}

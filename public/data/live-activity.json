@@ -1,7 +1,51 @@
 {
-  "lastUpdated": "2026-07-15T15:16:36.415Z",
+  "lastUpdated": "2026-07-15T15:22:55.463Z",
   "eventSlug": "sarasota-open",
   "events": [
+    {
+      "id": "2026-07-15T15:22:55.463Z-mens-singles-open-MO1",
+      "at": "2026-07-15T15:22:55.463Z",
+      "type": "result",
+      "divisionId": "mens-singles-open",
+      "divisionLabel": "Men's Singles: Open",
+      "matchId": "MO1",
+      "headline": "E Portillo Torres def D De La Rosa",
+      "detail": "8-15,15-5,11-4",
+      "bracketHref": "/events/sarasota-open/divisions/mens-singles-open"
+    },
+    {
+      "id": "2026-07-15T15:22:55.463Z-mens-singles-a-MA1",
+      "at": "2026-07-15T15:22:55.463Z",
+      "type": "result",
+      "divisionId": "mens-singles-a",
+      "divisionLabel": "Men's Singles: A",
+      "matchId": "MA1",
+      "headline": "W Stubanas def D Wilmore Jr.",
+      "detail": "15-5,15-3",
+      "bracketHref": "/events/sarasota-open/divisions/mens-singles-a"
+    },
+    {
+      "id": "2026-07-15T15:22:55.463Z-mens-singles-b-MB1",
+      "at": "2026-07-15T15:22:55.463Z",
+      "type": "result",
+      "divisionId": "mens-singles-b",
+      "divisionLabel": "Men's Singles: B",
+      "matchId": "MB1",
+      "headline": "M Kern def K Artman",
+      "detail": "15-13,9-15,11-3",
+      "bracketHref": "/events/sarasota-open/divisions/mens-singles-b"
+    },
+    {
+      "id": "2026-07-15T15:22:55.463Z-mens-doubles-open-MOD1",
+      "at": "2026-07-15T15:22:55.463Z",
+      "type": "result",
+      "divisionId": "mens-doubles-open",
+      "divisionLabel": "Men's Doubles: Open",
+      "matchId": "MOD1",
+      "headline": "De La Rosa / Schulze def Kinkin / Portillo Torres",
+      "detail": "15-0,15-8",
+      "bracketHref": "/events/sarasota-open/divisions/mens-doubles-open"
+    },
     {
       "id": "2026-07-15T15:16:36.415Z-mens-singles-open-MO1",
       "at": "2026-07-15T15:16:36.415Z",
@@ -834,49 +878,6 @@
       "matchId": "MC4",
       "headline": "Marco Port def Chris Cournoyer",
       "detail": "15-3,15-6",
-      "bracketHref": "/events/sarasota-open/divisions/mens-singles-c"
-    },
-    {
-      "id": "2026-07-11T15:10:57.348Z-mens-singles-a-MA6",
-      "at": "2026-07-11T15:10:57.348Z",
-      "type": "result",
-      "divisionId": "mens-singles-a",
-      "divisionLabel": "Men's Singles: A",
-      "matchId": "MA6",
-      "headline": "David Wilmore Jr. def Van Soles",
-      "bracketHref": "/events/sarasota-open/divisions/mens-singles-a"
-    },
-    {
-      "id": "2026-07-11T14:51:41.273Z-mens-singles-b-MB6",
-      "at": "2026-07-11T14:51:41.273Z",
-      "type": "result",
-      "divisionId": "mens-singles-b",
-      "divisionLabel": "Men's Singles: B",
-      "matchId": "MB6",
-      "headline": "K Artman def E Martinez",
-      "detail": "WBF - No Show",
-      "bracketHref": "/events/sarasota-open/divisions/mens-singles-b"
-    },
-    {
-      "id": "2026-07-11T14:51:41.273Z-mens-singles-b-MB7",
-      "at": "2026-07-11T14:51:41.273Z",
-      "type": "result",
-      "divisionId": "mens-singles-b",
-      "divisionLabel": "Men's Singles: B",
-      "matchId": "MB7",
-      "headline": "S Gill def D Bray",
-      "detail": "15-3,8-15,11-3",
-      "bracketHref": "/events/sarasota-open/divisions/mens-singles-b"
-    },
-    {
-      "id": "2026-07-11T14:51:41.273Z-mens-singles-c-MC3",
-      "at": "2026-07-11T14:51:41.273Z",
-      "type": "result",
-      "divisionId": "mens-singles-c",
-      "divisionLabel": "Men's Singles: C",
-      "matchId": "MC3",
-      "headline": "Havan Artman def Ben Mordkovich",
-      "detail": "15-3,15-1",
       "bracketHref": "/events/sarasota-open/divisions/mens-singles-c"
     }
   ]

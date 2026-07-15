@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-15T15:16:36.415Z",
+  "lastUpdated": "2026-07-15T15:22:55.463Z",
   "divisions": {
     "mens-singles-open": {
       "MO5": {
@@ -36,7 +36,7 @@
         "player1": "E Portillo Torres",
         "player2": "D De La Rosa",
         "winner": 1,
-        "score": "15-6,15-3"
+        "score": "8-15,15-5,11-4"
       }
     },
     "mens-singles-a": {
@@ -80,7 +80,7 @@
         "player1": "W Stubanas",
         "player2": "D Wilmore Jr.",
         "winner": 1,
-        "score": "15-3,15-1"
+        "score": "15-5,15-3"
       }
     },
     "mens-singles-b": {
@@ -130,7 +130,7 @@
         "player1": "M Kern",
         "player2": "K Artman",
         "winner": 1,
-        "score": "15-11,12-15,15-10"
+        "score": "15-13,9-15,11-3"
       }
     },
     "mens-singles-c": {
@@ -340,7 +340,7 @@
         "player1": "De La Rosa / Schulze",
         "player2": "Kinkin / Portillo Torres",
         "winner": 1,
-        "score": "15-12,15-11"
+        "score": "15-0,15-8"
       }
     },
     "mens-doubles-b": {
