@@ -11,6 +11,7 @@
     "preview": "astro preview",
     "lint": "eslint .",
     "sync:points": "node scripts/sync-gp-points.mjs",
+    "compute:sarasota-points": "tsx scripts/compute-sarasota-gp-points.ts",
     "sync:photos": "node scripts/sync-player-photos.mjs",
     "optimize:images": "node scripts/optimize-site-images.mjs",
     "favicon:ico": "node scripts/generate-favicon-ico.mjs",
@@ -28,6 +29,7 @@
     "globals": "^17.5.0",
     "playwright": "^1.60.0",
     "sharp": "^0.34.5",
+    "tsx": "^4.20.5",
     "typescript-eslint": "^8.58.2"
   }
 }

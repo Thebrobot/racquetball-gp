@@ -18,10 +18,18 @@ while true; do
 	echo ""
 	echo "=== live-sync $(date '+%a %b %d %I:%M:%S %p') ==="
 
+	# Recover from a rebase left behind by an interrupted pull (e.g. Wi-Fi drop):
+	# a leftover rebase-merge dir blocks every subsequent pull and push.
+	if [ -d .git/rebase-merge ] || [ -d .git/rebase-apply ]; then
+		echo "(recovering from interrupted rebase)"
+		git rebase --abort 2>/dev/null || rm -rf .git/rebase-merge .git/rebase-apply
+	fi
+
 	git pull --rebase --autostash origin main || echo "(pull failed, continuing with local state)"
 
 	node scripts/sync-r2-brackets.mjs sarasota || echo "(bracket sync failed this cycle)"
 	node scripts/sync-gp-points.mjs || echo "(points sync failed this cycle)"
+	npm run compute:sarasota-points || echo "(sarasota points compute failed this cycle)"
 
 	if ! git diff --quiet -- "${SYNC_FILES[@]}"; then
 		git add -- "${SYNC_FILES[@]}"

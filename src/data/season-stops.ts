@@ -29,6 +29,8 @@ export interface SeasonStop {
 	participantsHref?: string;
 	/** Facebook “Watch live” on tournament cards when set */
 	watchLiveUrl?: string;
+	/** Show a disabled Watch live button (e.g. before the event weekend). */
+	watchLiveDisabled?: boolean;
 }
 
 export const TOUR_STOP_COUNT = 4;
@@ -60,7 +62,7 @@ export const SEASON_STOPS: SeasonStop[] = [
 		label: 'Lap 2',
 		cityLine: 'Sarasota, FL',
 		dateHint: 'Jul 10–12',
-		kind: 'next',
+		kind: 'done',
 		image: '/images/stops/stop-sarasota.webp',
 		eventName: 'Sarasota Open',
 		dateFull: 'July 10–12, 2026 · Sarasota, FL',
@@ -77,7 +79,7 @@ export const SEASON_STOPS: SeasonStop[] = [
 		label: 'Lap 3',
 		cityLine: 'Port St. Lucie, FL',
 		dateHint: 'Oct 23–25',
-		kind: 'upcoming',
+		kind: 'next',
 		image: '/images/stops/stop-port-st-lucie.webp',
 		eventName: 'Port St. Lucie Open',
 		dateFull: 'October 23–25, 2026 · Port St. Lucie, FL',
@@ -86,6 +88,7 @@ export const SEASON_STOPS: SeasonStop[] = [
 		registerUrl: 'https://www.r2sports.com/tourney/home.asp?TID=54248',
 		bentoGridArea: 'c2',
 		watchLiveUrl: GRAND_PRIX_FACEBOOK_URL,
+		watchLiveDisabled: true,
 		photoCredit:
 			'Photo: Port St. Lucie City Hall, Birbie28 / Wikimedia Commons (CC BY-SA 4.0). Civic Center hosts the tournament.',
 	},

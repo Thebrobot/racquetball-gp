@@ -77,6 +77,11 @@ jobs:
         continue-on-error: true # points are secondary; never block a bracket commit
         run: npm run sync:points
 
+      - name: Recompute Sarasota Lap 2 points from brackets
+        if: steps.window.outputs.run == 'true'
+        continue-on-error: true
+        run: npm run compute:sarasota-points
+
       - name: Check for changes
         id: diff
         if: always() && steps.window.outputs.run == 'true'

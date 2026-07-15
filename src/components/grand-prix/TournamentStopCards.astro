@@ -25,7 +25,7 @@ function registerCtaLabel(url: string): string {
 					: `Lap ${index + 1} of ${TOUR_STOP_COUNT}`;
 			const regClosed = stop.kind === 'done';
 			const regPending = stop.kind === 'upcoming';
-			const watchLiveDisabled = stop.kind === 'upcoming';
+			const watchLiveDisabled = stop.watchLiveDisabled ?? stop.kind === 'upcoming';
 			return (
 				<div
 					class:list={[

@@ -1,18 +1,12 @@
 ---
-import { dlrSpotlight } from '../../data/guest-spotlight/dlr';
-
 const raw = Astro.url.pathname.replace(/\/$/, '') || '/';
 const path = raw === '' ? '/' : raw;
-const guestHref = dlrSpotlight.pageHref;
 
 function active(href: string): string {
 	const isHome = href === '/';
 	if (isHome) return path === '/' ? 'active' : '';
 	if (href === '/leaderboard') {
 		return path === '/leaderboard' || path.startsWith('/leaderboard/') ? 'active' : '';
-	}
-	if (href === guestHref) {
-		return path.startsWith('/spotlight/') ? 'active' : '';
 	}
 	return path === href ? 'active' : '';
 }
@@ -70,7 +64,6 @@ function bottomActive(href: string): string {
 			<a href="/points" class:list={[active('/points')]} data-key="points">Points</a>
 			<a href="/leaderboard" class:list={[active('/leaderboard')]} data-key="leaderboard">Leaderboard</a>
 			<a href="/sponsors" class:list={[active('/sponsors')]} data-key="sponsors">Sponsors</a>
-			<a href={guestHref} class:list={[active(guestHref)]} data-key="guest">DLR Guest</a>
 			<div class="nav-drawer-sep" aria-hidden="true"></div>
 			<a class:list={['nav-register', active('/contact')]} href="/contact">
 				Get connected with us
