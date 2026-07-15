@@ -323,6 +323,28 @@ function findExistingRow(rows: GpRow[], name: string): GpRow | undefined {
 	return rows.find((r) => namesMatch(r.name, name));
 }
 
+/** Points total, then Lap 2, then Lap 1 (wins are applied on the site from match data). */
+function compareStandingsRows(a: GpRow, b: GpRow): number {
+	const ta = a.s1 + a.s2;
+	const tb = b.s1 + b.s2;
+	if (tb !== ta) return tb - ta;
+	if (b.s2 !== a.s2) return b.s2 - a.s2;
+	if (b.s1 !== a.s1) return b.s1 - a.s1;
+	return a.name.localeCompare(b.name);
+}
+
+function rankDivisionRows(rows: GpRow[]): void {
+	rows.sort(compareStandingsRows);
+	let place = 1;
+	rows.forEach((row, i) => {
+		if (i > 0 && compareStandingsRows(rows[i - 1]!, row) !== 0) place = i + 1;
+		else if (i === 0) place = 1;
+		row.place = place;
+		row.attendance = (row.s1 > 0 ? 1 : 0) + (row.s2 > 0 ? 1 : 0);
+		row.status = statusForRank(place);
+	});
+}
+
 function mergeIntoPayload(payload: GpPayload, s2ByDivision: Map<string, Map<string, number>>): GpPayload {
 	const standings: GpPayload['standings'] = {
 		singles: { ...(payload.standings.singles ?? {}) },
@@ -363,36 +385,15 @@ function mergeIntoPayload(payload: GpPayload, s2ByDivision: Map<string, Map<stri
 			}
 		}
 
-		rows.sort((a, b) => {
-			const ta = a.s1 + a.s2;
-			const tb = b.s1 + b.s2;
-			if (tb !== ta) return tb - ta;
-			return a.name.localeCompare(b.name);
-		});
-		rows.forEach((row, i) => {
-			row.place = i + 1;
-			row.attendance = (row.s1 > 0 ? 1 : 0) + (row.s2 > 0 ? 1 : 0);
-			row.status = statusForRank(i + 1);
-		});
-
+		rankDivisionRows(rows);
 		standings[category][divisionId] = rows;
 	}
 
-	// Re-rank divisions that only have Ocala players (s2 all zero) — keep order by total
+	// Re-rank divisions that only have Ocala players (s2 all zero)
 	for (const cat of Object.values(standings)) {
 		for (const [divisionId, rows] of Object.entries(cat)) {
 			if (s2ByDivision.has(divisionId)) continue;
-			rows.sort((a, b) => {
-				const ta = a.s1 + a.s2;
-				const tb = b.s1 + b.s2;
-				if (tb !== ta) return tb - ta;
-				return a.name.localeCompare(b.name);
-			});
-			rows.forEach((row, i) => {
-				row.place = i + 1;
-				row.attendance = (row.s1 > 0 ? 1 : 0) + (row.s2 > 0 ? 1 : 0);
-				row.status = statusForRank(i + 1);
-			});
+			rankDivisionRows(rows);
 		}
 	}
 

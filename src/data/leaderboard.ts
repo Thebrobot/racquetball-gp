@@ -164,11 +164,37 @@ function enrichRow(row: LbRow, divisionId: string): LbRow {
 	return image ? { ...row, wins, image } : { ...row, wins };
 }
 
+/** Points first; when tied, more match wins in the division, then better Lap 2, then Lap 1. */
+export function compareLeaderboardRows(a: LbRow, b: LbRow): number {
+	const byPts = leaderboardTotal(b) - leaderboardTotal(a);
+	if (byPts !== 0) return byPts;
+	const byWins = (b.wins ?? 0) - (a.wins ?? 0);
+	if (byWins !== 0) return byWins;
+	if (b.s2 !== a.s2) return b.s2 - a.s2;
+	if (b.s1 !== a.s1) return b.s1 - a.s1;
+	return a.name.localeCompare(b.name);
+}
+
+/** Competition place from an already-sorted list (ties share place when compare === 0). */
+export function assignLeaderboardPlaces(rows: LbRow[]): LbRow[] {
+	let place = 1;
+	return rows.map((row, i) => {
+		if (i > 0 && compareLeaderboardRows(rows[i - 1]!, row) !== 0) {
+			place = i + 1;
+		} else if (i === 0) {
+			place = 1;
+		}
+		return { ...row, place };
+	});
+}
+
 function enrichDivisionRows(rows: LbRow[], divisionId: string): LbRow[] {
 	const enriched = rows.map((row) => enrichRow(row, divisionId));
-	const max = Math.max(...enriched.map((r) => leaderboardTotal(r)), 0);
-	if (max <= 0) return enriched;
-	return enriched.map((r) => ({
+	enriched.sort(compareLeaderboardRows);
+	const ranked = assignLeaderboardPlaces(enriched);
+	const max = Math.max(...ranked.map((r) => leaderboardTotal(r)), 0);
+	if (max <= 0) return ranked;
+	return ranked.map((r) => ({
 		...r,
 		status: leaderboardTotal(r) === max ? 'q' : r.status,
 	}));
@@ -222,7 +248,7 @@ export function formatPlayerInitials(name: string): string {
 	return name.slice(0, 2).toUpperCase();
 }
 
-/** Sorted by total points descending. Empty divisions use a single placeholder row when `usePlaceholder` is true. */
+/** Sorted by division points, then wins (not alphabetical). Empty divisions use a placeholder when requested. */
 export function getSortedRows(
 	category: LbCategory,
 	division: string,
@@ -233,7 +259,7 @@ export function getSortedRows(
 	if (!rows.length && usePlaceholder) {
 		rows = [PENDING_ROW];
 	}
-	rows.sort((a, b) => leaderboardTotal(b) - leaderboardTotal(a));
+	rows.sort(compareLeaderboardRows);
 	return rows;
 }
 

@@ -167,20 +167,21 @@ const lbInitialState = JSON.stringify({ category: initialCategory, division: ini
 					</tr>
 				</thead>
 				<tbody id="lb-tbody">
-					{initialRows.map((r, i) => {
+					{initialRows.map((r) => {
 						const total = leaderboardTotal(r);
+						const place = r.place || 0;
 						const pctFill = initialMaxPts > 0 ? Math.round((total / initialMaxPts) * 100) : 0;
 						return (
 							<tr>
 								<td class="lb-rank-cell">
-									{i === 0 ? (
+									{place === 1 ? (
 										<span class="lb-medal">🥇</span>
-									) : i === 1 ? (
+									) : place === 2 ? (
 										<span class="lb-medal">🥈</span>
-									) : i === 2 ? (
+									) : place === 3 ? (
 										<span class="lb-medal">🥉</span>
 									) : (
-										<span class="rank-other">{i + 1}</span>
+										<span class="rank-other">{place || '-'}</span>
 									)}
 								</td>
 								<td>
@@ -214,9 +215,9 @@ const lbInitialState = JSON.stringify({ category: initialCategory, division: ini
 								</td>
 								<td class="lb-stops right hide-mobile">{r.s1 || '-'}</td>
 								<td class="lb-stops right hide-mobile">{r.s2 || '-'}</td>
-								<td class:list={['lb-pts-cell', i === 0 ? 'leader' : '']}>{total}</td>
+								<td class:list={['lb-pts-cell', place === 1 ? 'leader' : '']}>{total}</td>
 								<td class="lb-stops right hide-mobile">{r.wins ?? 0}</td>
-								<td class="lb-stops right hide-mobile">{r.place ?? '-'}</td>
+								<td class="lb-stops right hide-mobile">{place || '-'}</td>
 								<td class="lb-stops right hide-mobile">{r.attendance ?? 0}/4</td>
 								<td class="lb-status-cell">
 									<span class:list={['lb-badge', badgeMap[r.status]]}>{badgeLabel[r.status]}</span>

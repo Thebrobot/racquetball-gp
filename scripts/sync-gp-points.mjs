@@ -229,12 +229,21 @@ function parseTabRows(csvText, divisionId, existingS2) {
 		const ta = a.s1 + a.s2;
 		const tb = b.s1 + b.s2;
 		if (tb !== ta) return tb - ta;
+		if (b.s2 !== a.s2) return b.s2 - a.s2;
+		if (b.s1 !== a.s1) return b.s1 - a.s1;
 		return a.name.localeCompare(b.name);
 	});
+	let place = 1;
 	out.forEach((row, i) => {
-		row.place = i + 1;
+		if (i > 0) {
+			const prev = out[i - 1];
+			const same =
+				prev.s1 + prev.s2 === row.s1 + row.s2 && prev.s2 === row.s2 && prev.s1 === row.s1;
+			if (!same) place = i + 1;
+		}
+		row.place = place;
 		row.attendance = (row.s1 > 0 ? 1 : 0) + (row.s2 > 0 ? 1 : 0);
-		row.status = statusForRank(i + 1);
+		row.status = statusForRank(place);
 	});
 
 	return out;

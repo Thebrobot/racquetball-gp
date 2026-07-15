@@ -11,6 +11,8 @@ import {
 	PENDING_ROW,
 	leaderboardTotal,
 	getSortedRows,
+	compareLeaderboardRows,
+	assignLeaderboardPlaces,
 	formatPlayerInitials,
 	isPendingPlaceholder,
 } from '../data/leaderboard';
@@ -537,15 +539,20 @@ function renderLb() {
 	if (!rows.length) {
 		rows = [PENDING_ROW];
 	}
-	rows.sort((a, b) => leaderboardTotal(b) - leaderboardTotal(a));
-	const maxPts = rows.length ? rows[0].s1 + rows[0].s2 : 1;
+	rows.sort(compareLeaderboardRows);
+	rows = assignLeaderboardPlaces(rows);
+	const maxPts = rows.length ? leaderboardTotal(rows[0]) : 1;
 	tbody.innerHTML = rows
 		.map((r, i) => {
-			const total = r.s1 + r.s2;
-			const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
-			const medals = ['🥇', '🥈', '🥉'];
+			const total = leaderboardTotal(r);
+			const place = r.place || i + 1;
+			const rankClass =
+				place === 1 ? 'rank-1' : place === 2 ? 'rank-2' : place === 3 ? 'rank-3' : 'rank-other';
+			const medals = ['🥇', '🥈', '🥉'] as const;
 			const rankDisp =
-				i < 3 ? `<span class="lb-medal">${medals[i]}</span>` : `<span class="${rankClass}">${i + 1}</span>`;
+				place >= 1 && place <= 3
+					? `<span class="lb-medal">${medals[place - 1]}</span>`
+					: `<span class="${rankClass}">${place}</span>`;
 			const pctFill = maxPts > 0 ? Math.round((total / maxPts) * 100) : 0;
 			const badgeMap = { q: 'badge-q', pace: 'badge-pace', chase: 'badge-chase' };
 			const badgeLabel = { q: 'Qualified', pace: 'On Pace', chase: 'Chasing' };
@@ -570,9 +577,9 @@ function renderLb() {
       </td>
       <td class="lb-stops right hide-mobile">${r.s1 || '-'}</td>
       <td class="lb-stops right hide-mobile">${r.s2 || '-'}</td>
-      <td class="lb-pts-cell ${i === 0 ? 'leader' : ''}">${total}</td>
+      <td class="lb-pts-cell ${place === 1 ? 'leader' : ''}">${total}</td>
       <td class="lb-stops right hide-mobile">${r.wins ?? 0}</td>
-      <td class="lb-stops right hide-mobile">${r.place ?? '-'}</td>
+      <td class="lb-stops right hide-mobile">${place}</td>
       <td class="lb-stops right hide-mobile">${r.attendance ?? 0}/4</td>
       <td class="lb-status-cell"><span class="lb-badge ${badgeMap[r.status]}">${badgeLabel[r.status]}</span></td>
     </tr>`;
