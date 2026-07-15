@@ -3,6 +3,7 @@ import BaseLayout from './BaseLayout.astro';
 import '../styles/grand-prix.css';
 import GrandPrixNav from '../components/grand-prix/GrandPrixNav.astro';
 import TournamentWeekendPromo from '../components/grand-prix/TournamentWeekendPromo.astro';
+import LeaderboardUpdateModal from '../components/grand-prix/LeaderboardUpdateModal.astro';
 import GrandPrixFooter from '../components/grand-prix/GrandPrixFooter.astro';
 import SponsorSpotlight from '../components/grand-prix/SponsorSpotlight.astro';
 
@@ -41,6 +42,7 @@ const {
 	<div class="gp-site">
 		<GrandPrixNav />
 		<TournamentWeekendPromo />
+		<LeaderboardUpdateModal />
 		<slot />
 		{
 			!hideSponsorSpotlight && spotlightName && spotlightBlurb && (

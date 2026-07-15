@@ -1,0 +1,121 @@
+---
+import {
+	getTopN,
+	leaderboardTotal,
+	formatPlayerInitials,
+	isPendingPlaceholder,
+	leaderboardDivisionHref,
+} from '../../data/leaderboard';
+import { getPlayerSlug } from '../../data/players';
+import { getPlayerImageForDisplay } from '../../data/player-images';
+
+/** Bump this when you want the modal to show again to returning visitors. */
+const CAMPAIGN_ID = 'sarasota-lap2-2026';
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const showOnPage =
+	!path.startsWith('/leaderboard') &&
+	!path.startsWith('/spotlight') &&
+	!path.startsWith('/live');
+
+const topOpen = getTopN('singles', 'mens-singles-open', 5, false).filter(
+	(r) => !isPendingPlaceholder(r) && leaderboardTotal(r) > 0,
+);
+
+const showModal = showOnPage && topOpen.length > 0;
+
+const openHref = leaderboardDivisionHref('mens-singles-open');
+---
+
+{
+	showModal && (
+		<>
+			<script
+				type="application/json"
+				id="gp-lb-update-data"
+				set:html={JSON.stringify({ campaignId: CAMPAIGN_ID })}
+			/>
+			<div
+				class="gp-lb-update"
+				id="gp-lb-update"
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="gp-lb-update-title"
+				aria-hidden="true"
+				hidden
+			>
+				<button
+					type="button"
+					class="gp-lb-update__backdrop"
+					id="gp-lb-update-backdrop"
+					aria-label="Dismiss standings update"
+				></button>
+				<div class="gp-lb-update__panel">
+					<button
+						type="button"
+						class="gp-lb-update__close"
+						id="gp-lb-update-close"
+						aria-label="Close standings update"
+					>
+						<span aria-hidden="true">×</span>
+					</button>
+					<p class="gp-lb-update__eyebrow">Standings update</p>
+					<h2 class="gp-lb-update__title" id="gp-lb-update-title">
+						Sarasota points are <span>live</span>
+					</h2>
+					<p class="gp-lb-update__sub">
+						Lap 2 results are on the season leaderboard — Ocala + Sarasota totals, every division.
+					</p>
+
+					<div class="gp-lb-update__preview">
+						<div class="gp-lb-update__preview-head">
+							<span>Singles · Open</span>
+							<span>Pts</span>
+						</div>
+						<ol class="gp-lb-update__list">
+							{topOpen.map((row, i) => {
+								const slug = getPlayerSlug(row.name);
+								const img = getPlayerImageForDisplay(row.name, 64);
+								const total = leaderboardTotal(row);
+								return (
+									<li class="gp-lb-update__row">
+										<span class="gp-lb-update__rank" aria-hidden="true">{i + 1}</span>
+										{img ? (
+											<img
+												class="gp-lb-update__avatar"
+												src={img}
+												alt=""
+												width="36"
+												height="36"
+												decoding="async"
+											/>
+										) : (
+											<span class="gp-lb-update__avatar gp-lb-update__avatar--fallback" aria-hidden="true">
+												{formatPlayerInitials(row.name)}
+											</span>
+										)}
+										{slug ? (
+											<a class="gp-lb-update__name" href={`/players/${slug}`}>{row.name}</a>
+										) : (
+											<span class="gp-lb-update__name">{row.name}</span>
+										)}
+										<span class="gp-lb-update__pts">{total}</span>
+									</li>
+								);
+							})}
+						</ol>
+					</div>
+
+					<div class="gp-lb-update__actions">
+						<a class="gp-lb-update__btn gp-lb-update__btn--primary" href="/leaderboard" id="gp-lb-update-cta">
+							View full leaderboard
+						</a>
+						<a class="gp-lb-update__btn gp-lb-update__btn--ghost" href={openHref}>
+							Open Singles standings
+						</a>
+					</div>
+				</div>
+			</div>
+		</>
+	)
+}

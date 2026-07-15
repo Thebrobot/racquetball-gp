@@ -207,8 +207,98 @@ function wouldShowLiveWeekendPromo(): boolean {
 	}
 }
 
+function lbUpdateDismissKey(campaignId: string): string {
+	return `gp:lbUpdateDismissed:${campaignId}`;
+}
+
+function wouldShowLeaderboardUpdateModal(): boolean {
+	const dataEl = document.getElementById('gp-lb-update-data');
+	const root = document.getElementById('gp-lb-update');
+	if (!dataEl || !root) return false;
+	try {
+		const payload = JSON.parse(dataEl.textContent || '{}') as { campaignId?: string };
+		if (!payload.campaignId) return false;
+		return localStorage.getItem(lbUpdateDismissKey(payload.campaignId)) !== '1';
+	} catch {
+		return false;
+	}
+}
+
+function initLeaderboardUpdateModal() {
+	if (wouldShowLiveWeekendPromo()) return;
+
+	const dataEl = document.getElementById('gp-lb-update-data');
+	const root = document.getElementById('gp-lb-update');
+	const closeBtn = document.getElementById('gp-lb-update-close');
+	const backdrop = document.getElementById('gp-lb-update-backdrop');
+	if (!dataEl || !root || !closeBtn || !backdrop) return;
+
+	let campaignId: string;
+	try {
+		const payload = JSON.parse(dataEl.textContent || '{}') as { campaignId?: string };
+		if (!payload.campaignId) return;
+		campaignId = payload.campaignId;
+	} catch {
+		return;
+	}
+
+	const dismissStorageKey = lbUpdateDismissKey(campaignId);
+	try {
+		if (localStorage.getItem(dismissStorageKey) === '1') return;
+	} catch {
+		/* ignore */
+	}
+
+	const panel = root;
+	const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+	function dismiss() {
+		try {
+			localStorage.setItem(dismissStorageKey, '1');
+		} catch {
+			/* ignore */
+		}
+		panel.classList.remove('gp-lb-update--visible');
+		panel.setAttribute('aria-hidden', 'true');
+		panel.setAttribute('hidden', '');
+		document.documentElement.classList.remove('gp-lb-update-open');
+		document.removeEventListener('keydown', onDocKey);
+		previouslyFocused?.focus();
+	}
+
+	function onDocKey(e: KeyboardEvent) {
+		if (e.key === 'Escape') dismiss();
+	}
+
+	closeBtn.addEventListener('click', dismiss);
+	backdrop.addEventListener('click', dismiss);
+
+	const cta = document.getElementById('gp-lb-update-cta');
+	cta?.addEventListener('click', () => {
+		try {
+			localStorage.setItem(dismissStorageKey, '1');
+		} catch {
+			/* ignore */
+		}
+	});
+
+	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const delayMs = reducedMotion ? 0 : 700;
+
+	window.setTimeout(() => {
+		panel.removeAttribute('hidden');
+		panel.setAttribute('aria-hidden', 'false');
+		document.documentElement.classList.add('gp-lb-update-open');
+		void panel.offsetWidth;
+		panel.classList.add('gp-lb-update--visible');
+		document.addEventListener('keydown', onDocKey);
+		closeBtn.focus();
+	}, delayMs);
+}
+
 function initTournamentRegisterPromo() {
 	if (wouldShowLiveWeekendPromo()) return;
+	if (wouldShowLeaderboardUpdateModal()) return;
 
 	const dataEl = document.getElementById('gp-register-promo-data');
 	const root = document.getElementById('gp-register-promo');
@@ -1196,6 +1286,7 @@ function initLiveActivity() {
 
 initNavDrawer();
 initLiveWeekendPromo();
+initLeaderboardUpdateModal();
 initTournamentRegisterPromo();
 initLeaderboardPage();
 initHeroVideo();
