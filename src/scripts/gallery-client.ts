@@ -167,7 +167,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		);
 	}
 
-	/** Prefer sharing the image file so the system sheet shows the photo, not the site logo. */
+	/** Prefer sharing the image file so Messages/WhatsApp get the photo, not title + link text. */
 	async function shareLink(url: string, title: string, photos: GalleryPhoto[] = []): Promise<void> {
 		if (typeof navigator.share === 'function') {
 			try {
@@ -177,24 +177,14 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 					if (file) files.push(file);
 				}
 
-				if (files.length && typeof navigator.canShare === 'function') {
-					const withMeta: ShareData = {
-						files,
-						title,
-						text: `${title}\n${url}`,
-					};
-					if (navigator.canShare(withMeta)) {
-						await navigator.share(withMeta);
-						return;
-					}
-					if (navigator.canShare({ files })) {
-						// iOS often only accepts files alone (no title/text/url)
-						await navigator.share({ files });
-						return;
-					}
+				// Share files alone — combining title/text/url makes iOS/Messages drop the image
+				// and send "Florida Racquetball Grand Prix" + the link instead.
+				if (files.length && typeof navigator.canShare === 'function' && navigator.canShare({ files })) {
+					await navigator.share({ files });
+					return;
 				}
 
-				await navigator.share({ title, url, text: title });
+				await navigator.share({ title, url });
 				return;
 			} catch (err) {
 				if (isAbort(err)) return;
