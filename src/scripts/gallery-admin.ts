@@ -177,7 +177,7 @@ function initGalleryAdmin(): void {
 		btn.disabled = false;
 
 		if (fail === 0) {
-			status.innerHTML = `Uploaded ${ok} photo${ok === 1 ? '' : 's'}. <a href="/gallery">View gallery →</a>`;
+			status.innerHTML = `Uploaded ${ok} photo${ok === 1 ? '' : 's'}. <a href="/gallery?fresh=${Date.now()}">View gallery →</a>`;
 		} else if (ok > 0) {
 			status.textContent = `Uploaded ${ok}, failed ${fail}. Check the list above — successful ones should appear there.`;
 		}

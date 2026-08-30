@@ -302,22 +302,26 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 
 	// Refresh from API so we don't show a stale SSR snapshot after uploads
 	if (config.mode !== 'collection') {
-		void fetch(`/api/gallery/list?cb=${Date.now()}`, { cache: 'no-store' })
-			.then((r) => r.json())
-			.then((data: { photos?: GalleryPhoto[] }) => {
-				if (!Array.isArray(data?.photos)) return;
-				config.photos = data.photos;
-				renderFilters();
-				renderGrid();
-				updateSelectBar();
-				const openId =
-					config.initialOpenId ||
-					(location.hash.startsWith('#photo-') ? location.hash.slice('#photo-'.length) : undefined);
-				if (openId && visible.some((p) => p.id === openId)) openLightbox(openId);
-			})
-			.catch(() => {
-				/* keep SSR photos */
-			});
+		const refresh = () =>
+			fetch(`/api/gallery/list?cb=${Date.now()}`, { cache: 'no-store' })
+				.then((r) => r.json())
+				.then((data: { photos?: GalleryPhoto[] }) => {
+					if (!Array.isArray(data?.photos)) return;
+					config.photos = data.photos;
+					renderFilters();
+					renderGrid();
+					updateSelectBar();
+				})
+				.catch(() => {
+					/* keep SSR photos */
+				});
+
+		void refresh().then(() => {
+			// One delayed refresh catches Blob list lag right after an upload
+			window.setTimeout(() => {
+				void refresh();
+			}, 1500);
+		});
 	}
 
 	const openId =

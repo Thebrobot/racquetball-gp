@@ -6,6 +6,8 @@ import type { GalleryClientConfig } from '../../lib/gallery/types';
 
 export const prerender = false;
 
+Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
+
 const index = await readGalleryIndex();
 const siteOrigin = Astro.site?.origin ?? 'https://www.racquetballgp.com';
 const openId = Astro.url.searchParams.get('photo') ?? undefined;
