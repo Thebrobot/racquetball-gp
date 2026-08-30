@@ -147,19 +147,6 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		showLb();
 	}
 
-	async function photoAsFile(photo: GalleryPhoto): Promise<File | null> {
-		try {
-			const res = await fetch(photo.url, { mode: 'cors', cache: 'force-cache' });
-			if (!res.ok) return null;
-			const blob = await res.blob();
-			const type = blob.type && blob.type.startsWith('image/') ? blob.type : 'image/jpeg';
-			const ext = type.includes('png') ? 'png' : type.includes('webp') ? 'webp' : 'jpg';
-			return new File([blob], `racquetball-gp-${photo.id}.${ext}`, { type });
-		} catch {
-			return null;
-		}
-	}
-
 	function isAbort(err: unknown): boolean {
 		return (
 			(err instanceof DOMException && err.name === 'AbortError') ||
@@ -167,24 +154,12 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		);
 	}
 
-	/** Prefer sharing the image file so Messages/WhatsApp get the photo, not title + link text. */
-	async function shareLink(url: string, title: string, photos: GalleryPhoto[] = []): Promise<void> {
+	/** Share the gallery link; preview image comes from page Open Graph tags. */
+	async function shareLink(url: string, _title: string, _photos: GalleryPhoto[] = []): Promise<void> {
 		if (typeof navigator.share === 'function') {
 			try {
-				const files: File[] = [];
-				for (const photo of photos.slice(0, 10)) {
-					const file = await photoAsFile(photo);
-					if (file) files.push(file);
-				}
-
-				// Share files alone — combining title/text/url makes iOS/Messages drop the image
-				// and send "Florida Racquetball Grand Prix" + the link instead.
-				if (files.length && typeof navigator.canShare === 'function' && navigator.canShare({ files })) {
-					await navigator.share({ files });
-					return;
-				}
-
-				await navigator.share({ title, url });
+				// URL only — title/text often get pasted into Messages as plain text
+				await navigator.share({ url });
 				return;
 			} catch (err) {
 				if (isAbort(err)) return;
@@ -193,7 +168,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		if (shareMenu) {
 			shareMenu.hidden = false;
 			shareMenu.dataset.url = url;
-			shareMenu.dataset.title = title;
+			shareMenu.dataset.title = _title;
 		} else {
 			try {
 				await navigator.clipboard.writeText(url);

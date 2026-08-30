@@ -17,6 +17,8 @@ const index = await readGalleryIndex();
 const siteOrigin = Astro.site?.origin ?? 'https://www.racquetballgp.com';
 const titleBit = photo.caption || albumLabel(photo.album);
 const description = `${titleBit} — Florida Racquetball Grand Prix 2026 photo gallery.`;
+// Same-origin preview URL — Messages/Facebook often ignore cross-origin Blob og:image
+const ogImage = `${siteOrigin}/api/gallery/og/${photo.id}`;
 
 const clientConfig: GalleryClientConfig = {
 	photos: index.photos.filter((p) => p.album === photo.album),
@@ -31,9 +33,9 @@ const clientConfig: GalleryClientConfig = {
 <GrandPrixLayout
 	title={`${titleBit} | Gallery`}
 	description={description}
-	ogImage={photo.url}
+	ogImage={ogImage}
 	ogImageWidth={1200}
-	ogImageHeight={800}
+	ogImageHeight={630}
 	hideSponsorSpotlight
 >
 	<section class="gallery-page" aria-labelledby="gallery-heading">

@@ -22,7 +22,7 @@ const siteOrigin = Astro.site?.origin ?? 'https://www.racquetballgp.com';
 const count = photos.length;
 const title = `${count} photo${count === 1 ? '' : 's'} from the Florida Racquetball Grand Prix`;
 const description = `A shared selection of ${count} photo${count === 1 ? '' : 's'} from the 2026 Florida Racquetball Grand Prix.`;
-const ogImage = photos[0].url;
+const ogImage = `${siteOrigin}/api/gallery/og/${photos[0].id}`;
 
 const clientConfig: GalleryClientConfig = {
 	photos,
@@ -38,7 +38,7 @@ const clientConfig: GalleryClientConfig = {
 	description={description}
 	ogImage={ogImage}
 	ogImageWidth={1200}
-	ogImageHeight={800}
+	ogImageHeight={630}
 	hideSponsorSpotlight
 >
 	<section class="gallery-page" aria-labelledby="gallery-heading">
