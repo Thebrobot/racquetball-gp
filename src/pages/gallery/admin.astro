@@ -63,8 +63,9 @@ const index = loggedIn ? await readGalleryIndex() : { version: 1 as const, photo
 						</div>
 
 						<form class="gallery-admin-upload" id="gallery-upload-form">
-							<label class="gallery-admin-label" for="gallery-album">Album</label>
+							<label class="gallery-admin-label" for="gallery-album">Event</label>
 							<select class="gallery-admin-input" id="gallery-album" name="album" required>
+								<option value="" disabled selected>Select an event…</option>
 								{GALLERY_ALBUMS.map((a) => (
 									<option value={a.id}>{a.label}</option>
 								))}
@@ -90,7 +91,9 @@ const index = loggedIn ? await readGalleryIndex() : { version: 1 as const, photo
 								multiple
 								required
 							/>
-							<p class="gallery-admin-hint">Up to 50MB per photo. Files upload directly to storage.</p>
+							<p class="gallery-admin-hint">
+								Pick the event first. Up to 50MB per photo; files upload directly to storage.
+							</p>
 
 							<button class="gallery-admin-btn" type="submit" id="gallery-upload-btn">Upload</button>
 							<p class="gallery-admin-status" id="gallery-upload-status" aria-live="polite"></p>

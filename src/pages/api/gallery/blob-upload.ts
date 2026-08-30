@@ -25,20 +25,18 @@ type UploadMeta = {
 	id: string;
 };
 
-function parseMeta(raw: string | null | undefined): UploadMeta {
-	let album = 'general';
-	let caption: string | undefined;
-	let id = randomUUID();
-	if (!raw) return { album, caption, id };
+function parseMeta(raw: string | null | undefined): UploadMeta | null {
+	if (!raw) return null;
 	try {
 		const parsed = JSON.parse(raw) as { album?: string; caption?: string; id?: string };
-		if (parsed.album && isValidAlbumId(parsed.album)) album = parsed.album;
-		if (parsed.caption) caption = String(parsed.caption).trim().slice(0, 200) || undefined;
-		if (parsed.id && typeof parsed.id === 'string') id = parsed.id;
+		const album = parsed.album?.trim() ?? '';
+		if (!isValidAlbumId(album)) return null;
+		const caption = parsed.caption ? String(parsed.caption).trim().slice(0, 200) || undefined : undefined;
+		const id = parsed.id && typeof parsed.id === 'string' ? parsed.id : randomUUID();
+		return { album, caption, id };
 	} catch {
-		/* ignore */
+		return null;
 	}
-	return { album, caption, id };
 }
 
 export const POST: APIRoute = async ({ request }) => {
@@ -57,6 +55,9 @@ export const POST: APIRoute = async ({ request }) => {
 			request,
 			onBeforeGenerateToken: async (_pathname, clientPayload) => {
 				const meta = parseMeta(clientPayload);
+				if (!meta) {
+					throw new Error('Select a valid event for this upload.');
+				}
 				return {
 					allowedContentTypes: ALLOWED_TYPES,
 					maximumSizeInBytes: MAX_UPLOAD_BYTES,
@@ -66,6 +67,7 @@ export const POST: APIRoute = async ({ request }) => {
 			},
 			onUploadCompleted: async ({ blob, tokenPayload }) => {
 				const meta = parseMeta(tokenPayload);
+				if (!meta) return;
 				await addPhoto({
 					id: meta.id,
 					url: blob.url,

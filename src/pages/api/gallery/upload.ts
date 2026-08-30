@@ -37,13 +37,13 @@ export const POST: APIRoute = async ({ request }) => {
 	}
 
 	const form = await request.formData();
-	const album = String(form.get('album') ?? 'general');
+	const album = String(form.get('album') ?? '');
 	const captionRaw = String(form.get('caption') ?? '').trim();
 	const caption = captionRaw.slice(0, 200) || undefined;
 	const file = form.get('file');
 
 	if (!isValidAlbumId(album)) {
-		return new Response(JSON.stringify({ error: 'Invalid album.' }), {
+		return new Response(JSON.stringify({ error: 'Select a valid event.' }), {
 			status: 400,
 			headers: { 'Content-Type': 'application/json' },
 		});

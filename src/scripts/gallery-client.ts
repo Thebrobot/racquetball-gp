@@ -71,15 +71,14 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		for (const p of config.photos) {
 			counts.set(p.album, (counts.get(p.album) ?? 0) + 1);
 		}
-		const chips = [
-			{ id: 'all', label: 'All' },
-			...config.albums.filter((a) => (counts.get(a.id) ?? 0) > 0 || a.id === 'general'),
-		];
+		// Always list every event so visitors can filter by stop
+		const chips = [{ id: 'all', label: 'All events' }, ...config.albums];
 		filterBar.innerHTML = chips
-			.map(
-				(c) =>
-					`<button type="button" class="gallery-filter${c.id === album ? ' is-active' : ''}" data-album="${escapeHtml(c.id)}">${escapeHtml(c.label)}</button>`,
-			)
+			.map((c) => {
+				const count = c.id === 'all' ? config.photos.length : (counts.get(c.id) ?? 0);
+				const label = c.id === 'all' ? c.label : `${c.label}${count ? ` (${count})` : ''}`;
+				return `<button type="button" class="gallery-filter${c.id === album ? ' is-active' : ''}" data-album="${escapeHtml(c.id)}">${escapeHtml(label)}</button>`;
+			})
 			.join('');
 	}
 

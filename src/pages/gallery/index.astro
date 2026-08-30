@@ -32,12 +32,12 @@ const clientConfig: GalleryClientConfig = {
 				Photo <span class="gallery-title-accent">Gallery</span>
 			</h1>
 			<p class="gallery-sub">
-				Action from Florida&rsquo;s first statewide racquetball Grand Prix. Tap a photo to expand, or
-				select several to share.
+				Action from Florida&rsquo;s first statewide racquetball Grand Prix. Filter by event, tap a photo to
+				expand, or select several to share.
 			</p>
 
 			<div class="gallery-toolbar">
-				<div class="gallery-filters" id="gallery-filters" role="toolbar" aria-label="Filter by stop"></div>
+				<div class="gallery-filters" id="gallery-filters" role="toolbar" aria-label="Filter by event"></div>
 				<button type="button" class="gallery-select-toggle" id="gallery-select-toggle" aria-pressed="false">
 					Select
 				</button>
@@ -60,14 +60,16 @@ const clientConfig: GalleryClientConfig = {
 	</section>
 
 	<div class="gallery-lightbox" id="gallery-lightbox" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-label="Expanded photo">
-		<button type="button" class="gallery-lb-close" id="gallery-lb-close" aria-label="Close">×</button>
+		<div class="gallery-lb-top">
+			<button type="button" class="gallery-lb-share" id="gallery-lb-share">Share</button>
+			<button type="button" class="gallery-lb-close" id="gallery-lb-close" aria-label="Close">×</button>
+		</div>
 		<button type="button" class="gallery-lb-nav gallery-lb-prev" id="gallery-lb-prev" aria-label="Previous photo">‹</button>
 		<figure class="gallery-lb-figure">
 			<img id="gallery-lb-img" src="" alt="" />
 			<figcaption id="gallery-lb-caption"></figcaption>
 		</figure>
 		<button type="button" class="gallery-lb-nav gallery-lb-next" id="gallery-lb-next" aria-label="Next photo">›</button>
-		<button type="button" class="gallery-lb-share" id="gallery-lb-share">Share</button>
 	</div>
 
 	<div class="gallery-share-menu" id="gallery-share-menu" hidden role="dialog" aria-label="Share options">

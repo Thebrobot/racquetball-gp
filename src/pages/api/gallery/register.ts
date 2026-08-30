@@ -25,7 +25,7 @@ export const POST: APIRoute = async ({ request }) => {
 	const id = body.id?.trim();
 	const url = body.url?.trim();
 	const pathname = body.pathname?.trim();
-	const album = body.album?.trim() || 'general';
+	const album = body.album?.trim() || '';
 	const caption = body.caption?.trim().slice(0, 200) || undefined;
 
 	if (!id || !url || !pathname) {
@@ -36,7 +36,7 @@ export const POST: APIRoute = async ({ request }) => {
 	}
 
 	if (!isValidAlbumId(album)) {
-		return new Response(JSON.stringify({ error: 'Invalid album.' }), {
+		return new Response(JSON.stringify({ error: 'Select a valid event.' }), {
 			status: 400,
 			headers: { 'Content-Type': 'application/json' },
 		});

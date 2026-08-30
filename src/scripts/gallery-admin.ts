@@ -30,6 +30,11 @@ function initGalleryAdmin(): void {
 		let fail = 0;
 		const album = albumEl.value;
 		const caption = captionEl?.value.trim() || undefined;
+		if (!album) {
+			status.textContent = 'Select an event before uploading.';
+			btn.disabled = false;
+			return;
+		}
 
 		for (let i = 0; i < files.length; i++) {
 			const file = files[i];
