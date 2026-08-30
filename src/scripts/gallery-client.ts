@@ -181,10 +181,17 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 	}
 
 	function openFacebookShare(url: string): void {
-		// Facebook's share URL — on iPhone this usually opens the Facebook app,
-		// not the limited iOS share-sheet extension.
+		// Use the mobile web sharer in a new tab. Navigating with location.href on iPhone
+		// often just opens the Facebook app with no post attached (Universal Links).
 		const sharer = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-		window.location.href = sharer;
+		void navigator.clipboard.writeText(url).catch(() => {
+			/* ignore */
+		});
+		const popup = window.open(sharer, '_blank', 'noopener,noreferrer');
+		if (!popup) {
+			// Popup blocked — stay on the web sharer in this tab
+			window.location.assign(sharer);
+		}
 	}
 
 	function wireShareMenu(): void {
@@ -234,8 +241,13 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 				return;
 			}
 			if (kind === 'facebook') {
-				shareMenu.hidden = true;
+				const label = t.textContent;
+				t.textContent = 'Link copied';
 				openFacebookShare(url);
+				setTimeout(() => {
+					t.textContent = label || 'Facebook';
+					shareMenu.hidden = true;
+				}, 1200);
 				return;
 			}
 			if (kind === 'x') {
