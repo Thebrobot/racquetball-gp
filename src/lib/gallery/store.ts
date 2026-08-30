@@ -9,21 +9,37 @@ function hasBlobToken(): boolean {
 	return Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
 }
 
+function indexPublicUrl(): string | null {
+	const raw = process.env.BLOB_STORE_ID || '';
+	const storeId = raw.replace(/^store_/, '');
+	if (!storeId) return null;
+	return `https://${storeId}.public.blob.vercel-storage.com/${GALLERY_INDEX_PATH}`;
+}
+
 export async function readGalleryIndex(): Promise<GalleryIndex> {
 	if (!hasBlobToken()) return emptyIndex();
 
 	try {
+		// Prefer direct URL so we don't depend on list() matching.
+		const direct = indexPublicUrl();
+		const candidates: string[] = [];
+		if (direct) candidates.push(direct);
+
 		const result = await list({ prefix: GALLERY_INDEX_PATH, limit: 10 });
 		const match = result.blobs.find((b) => b.pathname === GALLERY_INDEX_PATH);
-		if (!match) return emptyIndex();
+		if (match?.url) candidates.push(match.url);
 
-		const res = await fetch(`${match.url}${match.url.includes('?') ? '&' : '?'}t=${Date.now()}`, {
-			cache: 'no-store',
-		});
-		if (!res.ok) return emptyIndex();
-		const data = (await res.json()) as GalleryIndex;
-		if (!data || data.version !== 1 || !Array.isArray(data.photos)) return emptyIndex();
-		return data;
+		for (const base of candidates) {
+			const res = await fetch(`${base}${base.includes('?') ? '&' : '?'}cb=${Date.now()}`, {
+				cache: 'no-store',
+				headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+			});
+			if (!res.ok) continue;
+			const data = (await res.json()) as GalleryIndex;
+			if (!data || data.version !== 1 || !Array.isArray(data.photos)) continue;
+			return data;
+		}
+		return emptyIndex();
 	} catch {
 		return emptyIndex();
 	}
@@ -35,6 +51,8 @@ export async function writeGalleryIndex(index: GalleryIndex): Promise<void> {
 		addRandomSuffix: false,
 		allowOverwrite: true,
 		contentType: 'application/json',
+		// Critical: default Blob CDN cache is ~30 days, which hid new uploads.
+		cacheControlMaxAge: 0,
 	});
 }
 

@@ -8,6 +8,18 @@
 			]
 		},
 		{
+			"source": "/gallery",
+			"headers": [{ "key": "Cache-Control", "value": "no-store" }]
+		},
+		{
+			"source": "/gallery/(.*)",
+			"headers": [{ "key": "Cache-Control", "value": "no-store" }]
+		},
+		{
+			"source": "/api/gallery/(.*)",
+			"headers": [{ "key": "Cache-Control", "value": "no-store" }]
+		},
+		{
 			"source": "/(.*)",
 			"headers": [
 				{ "key": "X-Frame-Options", "value": "DENY" },

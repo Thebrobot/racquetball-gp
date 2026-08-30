@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { isValidAlbumId } from '../../../lib/gallery/albums';
 import { isGalleryAuthenticated } from '../../../lib/gallery/auth';
-import { addPhoto } from '../../../lib/gallery/store';
+import { addPhoto, readGalleryIndex } from '../../../lib/gallery/store';
 
 export const prerender = false;
 
@@ -58,8 +58,17 @@ export const POST: APIRoute = async ({ request }) => {
 		createdAt: new Date().toISOString(),
 	});
 
-	return new Response(JSON.stringify({ ok: true }), {
+	const index = await readGalleryIndex();
+	const saved = index.photos.some((p) => p.id === id);
+	if (!saved) {
+		return new Response(JSON.stringify({ error: 'Upload saved but gallery list did not update. Try again.' }), {
+			status: 500,
+			headers: { 'Content-Type': 'application/json' },
+		});
+	}
+
+	return new Response(JSON.stringify({ ok: true, photoCount: index.photos.length }), {
 		status: 200,
-		headers: { 'Content-Type': 'application/json' },
+		headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
 	});
 };
