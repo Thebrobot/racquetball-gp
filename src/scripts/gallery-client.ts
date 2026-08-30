@@ -149,12 +149,14 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 	}
 
 	async function shareLink(url: string, title: string): Promise<void> {
-		if (navigator.share) {
+		if (typeof navigator.share === 'function') {
 			try {
 				await navigator.share({ title, url, text: title });
 				return;
-			} catch {
-				/* fall through */
+			} catch (err) {
+				// User cancelled the system sheet — don't open the fallback menu
+				if (err instanceof DOMException && err.name === 'AbortError') return;
+				if (err instanceof Error && err.name === 'AbortError') return;
 			}
 		}
 		if (shareMenu) {
@@ -162,8 +164,12 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 			shareMenu.dataset.url = url;
 			shareMenu.dataset.title = title;
 		} else {
-			await navigator.clipboard.writeText(url);
-			alert('Link copied.');
+			try {
+				await navigator.clipboard.writeText(url);
+				alert('Link copied.');
+			} catch {
+				alert(url);
+			}
 		}
 	}
 
