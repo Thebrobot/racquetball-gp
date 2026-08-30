@@ -7899,6 +7899,14 @@ body.gallery-lb-open .gp-bottom-nav {
   margin: 0;
   min-height: 1.2em;
 }
+.gallery-admin-status a {
+  color: var(--orange);
+  text-decoration: none;
+  font-weight: 700;
+}
+.gallery-admin-status a:hover {
+  color: var(--orange2);
+}
 .gallery-admin-hint {
   margin: -2px 0 4px;
   color: var(--muted);

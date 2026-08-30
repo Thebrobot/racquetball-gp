@@ -5,7 +5,6 @@ async function fileToJpeg(file: File): Promise<File> {
 	const type = (file.type || '').toLowerCase();
 	const name = file.name.toLowerCase();
 	const alreadyJpeg = type === 'image/jpeg' || type === 'image/jpg' || /\.jpe?g$/.test(name);
-	// Keep small JPEGs as-is; still convert HEIC / PNG / unknown for reliability
 	if (alreadyJpeg && file.size < 4 * 1024 * 1024) {
 		return file;
 	}
@@ -47,6 +46,46 @@ async function fileToJpeg(file: File): Promise<File> {
 	return new File([blob], `${base}.jpg`, { type: 'image/jpeg', lastModified: Date.now() });
 }
 
+type RegisteredPhoto = {
+	id: string;
+	url: string;
+	pathname: string;
+	album: string;
+	caption?: string;
+	albumLabel: string;
+};
+
+function escapeHtml(s: string): string {
+	return s
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;');
+}
+
+function prependAdminItem(list: HTMLElement, photo: RegisteredPhoto): void {
+	const existing = list.querySelector(`[data-id="${CSS.escape(photo.id)}"]`);
+	if (existing) return;
+
+	const li = document.createElement('li');
+	li.className = 'gallery-admin-item';
+	li.dataset.id = photo.id;
+	li.innerHTML = `
+		<img src="${escapeHtml(photo.url)}" alt="" loading="lazy" decoding="async" />
+		<div class="gallery-admin-item-meta">
+			<span>${escapeHtml(photo.albumLabel || photo.album)}</span>
+			${photo.caption ? `<span class="gallery-admin-item-cap">${escapeHtml(photo.caption)}</span>` : ''}
+		</div>
+		<button type="button" class="gallery-admin-delete" data-delete="${escapeHtml(photo.id)}">Delete</button>
+	`;
+	list.prepend(li);
+}
+
+function updateListTitle(count: number): void {
+	const title = document.getElementById('gallery-admin-list-title');
+	if (title) title.textContent = `Uploaded (${count})`;
+}
+
 function initGalleryAdmin(): void {
 	const form = document.getElementById('gallery-upload-form') as HTMLFormElement | null;
 	const status = document.getElementById('gallery-upload-status');
@@ -65,6 +104,7 @@ function initGalleryAdmin(): void {
 		btn.disabled = true;
 		let ok = 0;
 		let fail = 0;
+		let lastCount = 0;
 		const album = albumEl.value;
 		const caption = captionEl?.value.trim() || undefined;
 		if (!album) {
@@ -95,7 +135,7 @@ function initGalleryAdmin(): void {
 					},
 				});
 
-				status.textContent = `Saving ${i + 1} of ${fileList.length}…`;
+				status.textContent = `Saving ${i + 1} of ${fileList.length} to gallery…`;
 				const reg = await fetch('/api/gallery/register', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
@@ -108,12 +148,22 @@ function initGalleryAdmin(): void {
 					}),
 				});
 
+				const data = (await reg.json().catch(() => ({}))) as {
+					error?: string;
+					photoCount?: number;
+					photo?: RegisteredPhoto;
+				};
+
 				if (!reg.ok) {
 					fail++;
-					const data = (await reg.json().catch(() => ({}))) as { error?: string };
 					status.textContent = data.error || 'Uploaded file but failed to add it to the gallery list.';
 				} else {
 					ok++;
+					if (typeof data.photoCount === 'number') lastCount = data.photoCount;
+					if (data.photo && list) {
+						prependAdminItem(list, data.photo);
+						updateListTitle(lastCount || list.children.length);
+					}
 				}
 			} catch (err) {
 				fail++;
@@ -123,12 +173,13 @@ function initGalleryAdmin(): void {
 			}
 		}
 
+		if (filesInput) filesInput.value = '';
+		btn.disabled = false;
+
 		if (fail === 0) {
-			status.textContent = `Uploaded ${ok} photo${ok === 1 ? '' : 's'}. Reloading…`;
-			setTimeout(() => location.reload(), 700);
-		} else {
-			status.textContent = `Uploaded ${ok}, failed ${fail}. ${status.textContent || ''}`.trim();
-			btn.disabled = false;
+			status.innerHTML = `Uploaded ${ok} photo${ok === 1 ? '' : 's'}. <a href="/gallery">View gallery →</a>`;
+		} else if (ok > 0) {
+			status.textContent = `Uploaded ${ok}, failed ${fail}. Check the list above — successful ones should appear there.`;
 		}
 	});
 
@@ -149,6 +200,7 @@ function initGalleryAdmin(): void {
 		});
 		if (res.ok) {
 			t.closest('.gallery-admin-item')?.remove();
+			if (list) updateListTitle(list.children.length);
 		} else {
 			alert('Could not delete photo.');
 		}

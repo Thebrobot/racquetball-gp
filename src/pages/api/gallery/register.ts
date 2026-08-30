@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { isValidAlbumId } from '../../../lib/gallery/albums';
+import { albumLabel, isValidAlbumId } from '../../../lib/gallery/albums';
 import { isGalleryAuthenticated } from '../../../lib/gallery/auth';
 import { addPhoto } from '../../../lib/gallery/store';
 
@@ -50,19 +50,30 @@ export const POST: APIRoute = async ({ request }) => {
 	}
 
 	try {
-		const index = await addPhoto({
+		const photo = {
 			id,
 			url,
 			pathname,
 			album,
 			caption,
 			createdAt: new Date().toISOString(),
-		});
+		};
+		const index = await addPhoto(photo);
 
-		return new Response(JSON.stringify({ ok: true, photoCount: index.photos.length }), {
-			status: 200,
-			headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
-		});
+		return new Response(
+			JSON.stringify({
+				ok: true,
+				photoCount: index.photos.length,
+				photo: {
+					...photo,
+					albumLabel: albumLabel(album),
+				},
+			}),
+			{
+				status: 200,
+				headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+			},
+		);
 	} catch (err) {
 		const message = err instanceof Error ? err.message : 'Could not update gallery list.';
 		return new Response(JSON.stringify({ error: message }), {

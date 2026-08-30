@@ -99,7 +99,7 @@ const index = loggedIn ? await readGalleryIndex() : { version: 1 as const, photo
 							<p class="gallery-admin-status" id="gallery-upload-status" aria-live="polite"></p>
 						</form>
 
-						<h2 class="gallery-admin-list-title">Uploaded ({index.photos.length})</h2>
+						<h2 class="gallery-admin-list-title" id="gallery-admin-list-title">Uploaded ({index.photos.length})</h2>
 						<ul class="gallery-admin-list" id="gallery-admin-list">
 							{index.photos.map((p) => (
 								<li class="gallery-admin-item" data-id={p.id}>
