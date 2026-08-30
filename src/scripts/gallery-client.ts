@@ -154,29 +154,37 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		);
 	}
 
-	/** Share the gallery link; preview image comes from page Open Graph tags. */
-	async function shareLink(url: string, _title: string, _photos: GalleryPhoto[] = []): Promise<void> {
-		if (typeof navigator.share === 'function') {
-			try {
-				// URL only — title/text often get pasted into Messages as plain text
-				await navigator.share({ url });
-				return;
-			} catch (err) {
-				if (isAbort(err)) return;
-			}
-		}
+	/** Open our share menu so Facebook can use Facebook's own share (opens the app when possible). */
+	function shareLink(url: string, title: string, _photos: GalleryPhoto[] = []): void {
 		if (shareMenu) {
 			shareMenu.hidden = false;
 			shareMenu.dataset.url = url;
-			shareMenu.dataset.title = _title;
-		} else {
+			shareMenu.dataset.title = title;
+			return;
+		}
+		void (async () => {
+			if (typeof navigator.share === 'function') {
+				try {
+					await navigator.share({ url });
+					return;
+				} catch (err) {
+					if (isAbort(err)) return;
+				}
+			}
 			try {
 				await navigator.clipboard.writeText(url);
 				alert('Link copied.');
 			} catch {
 				alert(url);
 			}
-		}
+		})();
+	}
+
+	function openFacebookShare(url: string): void {
+		// Facebook's share URL — on iPhone this usually opens the Facebook app,
+		// not the limited iOS share-sheet extension.
+		const sharer = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+		window.location.href = sharer;
 	}
 
 	function wireShareMenu(): void {
@@ -200,14 +208,38 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 				}, 900);
 				return;
 			}
+			if (kind === 'system') {
+				shareMenu.hidden = true;
+				if (typeof navigator.share === 'function') {
+					try {
+						await navigator.share({ url });
+					} catch (err) {
+						if (!isAbort(err)) {
+							try {
+								await navigator.clipboard.writeText(url);
+								alert('Link copied.');
+							} catch {
+								alert(url);
+							}
+						}
+					}
+				} else {
+					try {
+						await navigator.clipboard.writeText(url);
+						alert('Link copied.');
+					} catch {
+						alert(url);
+					}
+				}
+				return;
+			}
 			if (kind === 'facebook') {
-				window.open(
-					`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-					'_blank',
-					'noopener,noreferrer',
-				);
+				shareMenu.hidden = true;
+				openFacebookShare(url);
+				return;
 			}
 			if (kind === 'x') {
+				shareMenu.hidden = true;
 				window.open(
 					`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
 					'_blank',
