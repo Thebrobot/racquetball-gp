@@ -1,13 +1,50 @@
 import { upload } from '@vercel/blob/client';
 
-function extFor(file: File): string {
-	const fromName = file.name.includes('.') ? file.name.split('.').pop()?.toLowerCase() : undefined;
-	if (fromName && /^[a-z0-9]{2,5}$/.test(fromName)) return fromName;
-	if (file.type === 'image/png') return 'png';
-	if (file.type === 'image/webp') return 'webp';
-	if (file.type === 'image/gif') return 'gif';
-	if (file.type === 'image/heic' || file.type === 'image/heif') return 'heic';
-	return 'jpg';
+/** Re-encode to JPEG so iPhone HEIC/empty-type photos work everywhere. */
+async function fileToJpeg(file: File): Promise<File> {
+	const type = (file.type || '').toLowerCase();
+	const name = file.name.toLowerCase();
+	const alreadyJpeg = type === 'image/jpeg' || type === 'image/jpg' || /\.jpe?g$/.test(name);
+	// Keep small JPEGs as-is; still convert HEIC / PNG / unknown for reliability
+	if (alreadyJpeg && file.size < 4 * 1024 * 1024) {
+		return file;
+	}
+
+	let bitmap: ImageBitmap;
+	try {
+		bitmap = await createImageBitmap(file);
+	} catch {
+		throw new Error(
+			'Could not read this photo. On iPhone, try Settings → Camera → Formats → Most Compatible, or export as JPEG.',
+		);
+	}
+
+	const maxEdge = 2400;
+	const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
+	const width = Math.max(1, Math.round(bitmap.width * scale));
+	const height = Math.max(1, Math.round(bitmap.height * scale));
+
+	const canvas = document.createElement('canvas');
+	canvas.width = width;
+	canvas.height = height;
+	const ctx = canvas.getContext('2d');
+	if (!ctx) {
+		bitmap.close();
+		throw new Error('Could not process this photo on this device.');
+	}
+	ctx.drawImage(bitmap, 0, 0, width, height);
+	bitmap.close();
+
+	const blob = await new Promise<Blob>((resolve, reject) => {
+		canvas.toBlob(
+			(b) => (b ? resolve(b) : reject(new Error('Could not convert photo to JPEG.'))),
+			'image/jpeg',
+			0.88,
+		);
+	});
+
+	const base = file.name.replace(/\.[^.]+$/, '') || 'photo';
+	return new File([blob], `${base}.jpg`, { type: 'image/jpeg', lastModified: Date.now() });
 }
 
 function initGalleryAdmin(): void {
@@ -36,19 +73,30 @@ function initGalleryAdmin(): void {
 			return;
 		}
 
-		for (let i = 0; i < files.length; i++) {
-			const file = files[i];
-			status.textContent = `Uploading ${i + 1} of ${files.length}…`;
+		const fileList = Array.from(files);
+
+		for (let i = 0; i < fileList.length; i++) {
+			const original = fileList[i];
+			status.textContent = `Preparing ${i + 1} of ${fileList.length}…`;
 			const id = crypto.randomUUID();
-			const pathname = `gallery/${album}/${id}.${extFor(file)}`;
 
 			try {
-				const blob = await upload(pathname, file, {
+				const jpeg = await fileToJpeg(original);
+				const pathname = `gallery/${album}/${id}.jpg`;
+				status.textContent = `Uploading ${i + 1} of ${fileList.length}… 0%`;
+
+				const blob = await upload(pathname, jpeg, {
 					access: 'public',
 					handleUploadUrl: '/api/gallery/blob-upload',
 					clientPayload: JSON.stringify({ album, caption, id }),
+					multipart: true,
+					contentType: 'image/jpeg',
+					onUploadProgress: ({ percentage }) => {
+						status.textContent = `Uploading ${i + 1} of ${fileList.length}… ${Math.round(percentage)}%`;
+					},
 				});
 
+				status.textContent = `Saving ${i + 1} of ${fileList.length}…`;
 				const reg = await fetch('/api/gallery/register', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
@@ -64,7 +112,7 @@ function initGalleryAdmin(): void {
 				if (!reg.ok) {
 					fail++;
 					const data = (await reg.json().catch(() => ({}))) as { error?: string };
-					status.textContent = data.error || 'Saved upload but failed to list photo.';
+					status.textContent = data.error || 'Uploaded file but failed to add it to the gallery list.';
 				} else {
 					ok++;
 				}
@@ -72,14 +120,17 @@ function initGalleryAdmin(): void {
 				fail++;
 				const message = err instanceof Error ? err.message : 'Upload failed.';
 				status.textContent = message;
+				console.error('Gallery upload error', err);
 			}
 		}
 
-		status.textContent =
-			fail === 0
-				? `Uploaded ${ok} photo${ok === 1 ? '' : 's'}. Reloading…`
-				: `Uploaded ${ok}, failed ${fail}. Reloading…`;
-		setTimeout(() => location.reload(), 800);
+		if (fail === 0) {
+			status.textContent = `Uploaded ${ok} photo${ok === 1 ? '' : 's'}. Reloading…`;
+			setTimeout(() => location.reload(), 700);
+		} else {
+			status.textContent = `Uploaded ${ok}, failed ${fail}. ${status.textContent || ''}`.trim();
+			btn.disabled = false;
+		}
 	});
 
 	logout?.addEventListener('click', async () => {

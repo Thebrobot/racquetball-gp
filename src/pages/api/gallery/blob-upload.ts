@@ -3,21 +3,11 @@ import type { APIRoute } from 'astro';
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { isValidAlbumId } from '../../../lib/gallery/albums';
 import { isGalleryAuthenticated } from '../../../lib/gallery/auth';
-import { addPhoto } from '../../../lib/gallery/store';
 
 export const prerender = false;
 
 /** Client uploads bypass the 4.5MB Vercel Function body limit. */
 export const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
-
-const ALLOWED_TYPES = [
-	'image/jpeg',
-	'image/png',
-	'image/webp',
-	'image/gif',
-	'image/heic',
-	'image/heif',
-];
 
 type UploadMeta = {
 	album: string;
@@ -59,24 +49,15 @@ export const POST: APIRoute = async ({ request }) => {
 					throw new Error('Select a valid event for this upload.');
 				}
 				return {
-					allowedContentTypes: ALLOWED_TYPES,
+					allowedContentTypes: ['image/jpeg', 'image/jpg'],
 					maximumSizeInBytes: MAX_UPLOAD_BYTES,
 					addRandomSuffix: false,
 					tokenPayload: JSON.stringify(meta),
 				};
 			},
-			onUploadCompleted: async ({ blob, tokenPayload }) => {
-				const meta = parseMeta(tokenPayload);
-				if (!meta) return;
-				await addPhoto({
-					id: meta.id,
-					url: blob.url,
-					pathname: blob.pathname,
-					album: meta.album,
-					caption: meta.caption,
-					createdAt: new Date().toISOString(),
-				});
-			},
+			// Index updates happen from the browser via /api/gallery/register
+			// so we avoid a race with this webhook callback.
+			onUploadCompleted: async () => {},
 		});
 
 		return new Response(JSON.stringify(jsonResponse), {

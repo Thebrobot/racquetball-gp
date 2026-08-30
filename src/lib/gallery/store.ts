@@ -17,7 +17,9 @@ export async function readGalleryIndex(): Promise<GalleryIndex> {
 		const match = result.blobs.find((b) => b.pathname === GALLERY_INDEX_PATH);
 		if (!match) return emptyIndex();
 
-		const res = await fetch(match.url, { cache: 'no-store' });
+		const res = await fetch(`${match.url}${match.url.includes('?') ? '&' : '?'}t=${Date.now()}`, {
+			cache: 'no-store',
+		});
 		if (!res.ok) return emptyIndex();
 		const data = (await res.json()) as GalleryIndex;
 		if (!data || data.version !== 1 || !Array.isArray(data.photos)) return emptyIndex();

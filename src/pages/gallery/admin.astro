@@ -92,7 +92,7 @@ const index = loggedIn ? await readGalleryIndex() : { version: 1 as const, photo
 								required
 							/>
 							<p class="gallery-admin-hint">
-								Pick the event first. Up to 50MB per photo; files upload directly to storage.
+								Pick the event first. Phone photos are converted to JPEG automatically (up to 50MB).
 							</p>
 
 							<button class="gallery-admin-btn" type="submit" id="gallery-upload-btn">Upload</button>
