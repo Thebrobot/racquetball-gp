@@ -1,4 +1,4 @@
-import { put, del, list } from '@vercel/blob';
+import { put, del, get, list } from '@vercel/blob';
 import type { GalleryIndex, GalleryPhoto } from './types';
 
 export const GALLERY_INDEX_PATH = 'gallery/index.json';
@@ -9,50 +9,77 @@ function hasBlobToken(): boolean {
 	return Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
 }
 
-function indexPublicUrl(): string | null {
-	const raw = process.env.BLOB_STORE_ID || '';
-	const storeId = raw.replace(/^store_/, '');
-	if (!storeId) return null;
-	return `https://${storeId}.public.blob.vercel-storage.com/${GALLERY_INDEX_PATH}`;
+function parseIndex(raw: unknown): GalleryIndex | null {
+	const data = raw as GalleryIndex;
+	if (!data || data.version !== 1 || !Array.isArray(data.photos)) return null;
+	return data;
 }
 
+async function readStreamText(stream: ReadableStream<Uint8Array> | null): Promise<string> {
+	if (!stream) return '';
+	return new Response(stream).text();
+}
+
+/**
+ * Gallery catalog is stored as a private blob and read with useCache:false
+ * so uploads are never hidden behind the public Blob CDN cache.
+ */
 export async function readGalleryIndex(): Promise<GalleryIndex> {
 	if (!hasBlobToken()) return emptyIndex();
 
 	try {
-		// Prefer direct URL so we don't depend on list() matching.
-		const direct = indexPublicUrl();
-		const candidates: string[] = [];
-		if (direct) candidates.push(direct);
+		const fresh = await get(GALLERY_INDEX_PATH, { access: 'private', useCache: false });
+		if (fresh?.stream) {
+			const text = await readStreamText(fresh.stream);
+			const parsed = parseIndex(JSON.parse(text));
+			if (parsed) return parsed;
+		}
+	} catch {
+		/* try legacy public index below */
+	}
 
+	// One-time migration path: older deploys wrote a public CDN-cached index.
+	try {
+		const legacy = await get(GALLERY_INDEX_PATH, { access: 'public', useCache: false });
+		if (legacy?.stream) {
+			const text = await readStreamText(legacy.stream);
+			const parsed = parseIndex(JSON.parse(text));
+			if (parsed) {
+				await writeGalleryIndex(parsed);
+				return parsed;
+			}
+		}
+	} catch {
+		/* ignore */
+	}
+
+	try {
 		const result = await list({ prefix: GALLERY_INDEX_PATH, limit: 10 });
 		const match = result.blobs.find((b) => b.pathname === GALLERY_INDEX_PATH);
-		if (match?.url) candidates.push(match.url);
-
-		for (const base of candidates) {
-			const res = await fetch(`${base}${base.includes('?') ? '&' : '?'}cb=${Date.now()}`, {
-				cache: 'no-store',
-				headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
-			});
-			if (!res.ok) continue;
-			const data = (await res.json()) as GalleryIndex;
-			if (!data || data.version !== 1 || !Array.isArray(data.photos)) continue;
-			return data;
+		if (match?.url) {
+			const res = await fetch(`${match.url}?cb=${Date.now()}`, { cache: 'no-store' });
+			if (res.ok) {
+				const parsed = parseIndex(await res.json());
+				if (parsed) {
+					await writeGalleryIndex(parsed);
+					return parsed;
+				}
+			}
 		}
-		return emptyIndex();
 	} catch {
-		return emptyIndex();
+		/* ignore */
 	}
+
+	return emptyIndex();
 }
 
 export async function writeGalleryIndex(index: GalleryIndex): Promise<void> {
 	await put(GALLERY_INDEX_PATH, JSON.stringify(index), {
-		access: 'public',
+		access: 'private',
 		addRandomSuffix: false,
 		allowOverwrite: true,
 		contentType: 'application/json',
-		// Critical: default Blob CDN cache is ~30 days, which hid new uploads.
-		cacheControlMaxAge: 0,
+		cacheControlMaxAge: 60,
 	});
 }
 

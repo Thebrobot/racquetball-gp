@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { isValidAlbumId } from '../../../lib/gallery/albums';
 import { isGalleryAuthenticated } from '../../../lib/gallery/auth';
-import { addPhoto, readGalleryIndex } from '../../../lib/gallery/store';
+import { addPhoto } from '../../../lib/gallery/store';
 
 export const prerender = false;
 
@@ -49,26 +49,25 @@ export const POST: APIRoute = async ({ request }) => {
 		});
 	}
 
-	await addPhoto({
-		id,
-		url,
-		pathname,
-		album,
-		caption,
-		createdAt: new Date().toISOString(),
-	});
+	try {
+		const index = await addPhoto({
+			id,
+			url,
+			pathname,
+			album,
+			caption,
+			createdAt: new Date().toISOString(),
+		});
 
-	const index = await readGalleryIndex();
-	const saved = index.photos.some((p) => p.id === id);
-	if (!saved) {
-		return new Response(JSON.stringify({ error: 'Upload saved but gallery list did not update. Try again.' }), {
+		return new Response(JSON.stringify({ ok: true, photoCount: index.photos.length }), {
+			status: 200,
+			headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+		});
+	} catch (err) {
+		const message = err instanceof Error ? err.message : 'Could not update gallery list.';
+		return new Response(JSON.stringify({ error: message }), {
 			status: 500,
 			headers: { 'Content-Type': 'application/json' },
 		});
 	}
-
-	return new Response(JSON.stringify({ ok: true, photoCount: index.photos.length }), {
-		status: 200,
-		headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
-	});
 };

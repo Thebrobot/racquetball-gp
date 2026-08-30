@@ -114,12 +114,6 @@ function initGalleryAdmin(): void {
 					status.textContent = data.error || 'Uploaded file but failed to add it to the gallery list.';
 				} else {
 					ok++;
-					// Confirm the public list sees it before we claim success
-					const listRes = await fetch(`/api/gallery/list?cb=${Date.now()}`, { cache: 'no-store' });
-					const listData = (await listRes.json().catch(() => null)) as { photos?: { id: string }[] } | null;
-					if (!listData?.photos?.some((p) => p.id === id)) {
-						status.textContent = 'Saved, but gallery list is still catching up…';
-					}
 				}
 			} catch (err) {
 				fail++;
