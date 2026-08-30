@@ -89,7 +89,6 @@ function initGalleryAdmin(): void {
 					access: 'public',
 					handleUploadUrl: '/api/gallery/blob-upload',
 					clientPayload: JSON.stringify({ album, caption, id }),
-					multipart: true,
 					contentType: 'image/jpeg',
 					onUploadProgress: ({ percentage }) => {
 						status.textContent = `Uploading ${i + 1} of ${fileList.length}… ${Math.round(percentage)}%`;
