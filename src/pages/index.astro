@@ -1,7 +1,6 @@
 ---
 import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
-import TitleSponsorIntro from '../components/grand-prix/TitleSponsorIntro.astro';
-import PuppySponsorIntro from '../components/grand-prix/PuppySponsorIntro.astro';
+import SeriesManifesto from '../components/grand-prix/SeriesManifesto.astro';
 import PlayerSpotlight from '../components/grand-prix/PlayerSpotlight.astro';
 import SeasonStopsBar from '../components/grand-prix/SeasonStopsBar.astro';
 import SeasonStopsBento from '../components/grand-prix/SeasonStopsBento.astro';
@@ -85,12 +84,7 @@ const spotlightImage = liveEvent?.spotlightImage ?? nextStop?.image;
 		<SeasonStopsBar />
 	</div>
 
-	{
-		/* TEMPORARY: Rogue Ranch K9 is filling the title-sponsor slot for a few weeks
-		   while Rapha International's placement is paused. To revert, swap
-		   <PuppySponsorIntro /> back to <TitleSponsorIntro />. */
-	}
-	<PuppySponsorIntro />
+	<SeriesManifesto />
 
 	{(liveEvent || nextStop) && (
 		<section
@@ -213,6 +207,11 @@ const spotlightImage = liveEvent?.spotlightImage ?? nextStop?.image;
 				<span class="site-explore-card-kicker">Partners</span>
 				<span class="site-explore-card-title">Sponsors</span>
 				<span class="site-explore-card-desc">Brands backing Florida racquetball.</span>
+			</a>
+			<a class="site-explore-card" href="/gallery">
+				<span class="site-explore-card-kicker">Photos</span>
+				<span class="site-explore-card-title">Gallery</span>
+				<span class="site-explore-card-desc">Action shots from every stop. Share and explore.</span>
 			</a>
 		</div>
 	</section>

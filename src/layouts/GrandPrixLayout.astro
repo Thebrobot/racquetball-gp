@@ -20,6 +20,7 @@ interface Props {
 	spotlightLogoUrl?: string;
 	imagePreloads?: string[];
 	hideSponsorSpotlight?: boolean;
+	noindex?: boolean;
 }
 
 const {
@@ -35,10 +36,11 @@ const {
 	spotlightLogoUrl,
 	imagePreloads,
 	hideSponsorSpotlight = false,
+	noindex = false,
 } = Astro.props;
 ---
 
-<BaseLayout {title} {description} {siteName} {ogImage} {ogImageWidth} {ogImageHeight} fullBleed imagePreloads={imagePreloads}>
+<BaseLayout {title} {description} {siteName} {ogImage} {ogImageWidth} {ogImageHeight} {noindex} fullBleed imagePreloads={imagePreloads}>
 	<div class="gp-site">
 		<GrandPrixNav />
 		<TournamentWeekendPromo />

@@ -1,0 +1,214 @@
+---
+import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
+import { GALLERY_ALBUMS, albumLabel } from '../../lib/gallery/albums';
+import {
+	galleryAuthConfigured,
+	isGalleryAuthenticated,
+} from '../../lib/gallery/auth';
+import { readGalleryIndex } from '../../lib/gallery/store';
+
+export const prerender = false;
+
+const loggedIn = isGalleryAuthenticated(Astro.request);
+const configured = galleryAuthConfigured();
+const index = loggedIn ? await readGalleryIndex() : { version: 1 as const, photos: [] };
+---
+
+<GrandPrixLayout
+	title="Gallery Admin"
+	description="Upload photos to the Florida Racquetball Grand Prix gallery."
+	noindex
+	hideSponsorSpotlight
+>
+	<section class="gallery-admin" aria-labelledby="gallery-admin-heading">
+		<div class="gallery-admin-inner">
+			<p class="gallery-kicker">Photographers</p>
+			<h1 id="gallery-admin-heading" class="gallery-title">Gallery admin</h1>
+
+			{
+				!configured && (
+					<p class="gallery-admin-msg gallery-admin-msg--warn">
+						Login is not configured yet. Set <code>GALLERY_PASSWORD</code> and
+						<code>GALLERY_SESSION_SECRET</code> in the project environment.
+					</p>
+				)
+			}
+
+			{
+				configured && !loggedIn && (
+					<form class="gallery-admin-login" id="gallery-login-form">
+						<label class="gallery-admin-label" for="gallery-password">Password</label>
+						<input
+							class="gallery-admin-input"
+							id="gallery-password"
+							name="password"
+							type="password"
+							autocomplete="current-password"
+							required
+						/>
+						<button class="gallery-admin-btn" type="submit">Sign in</button>
+						<p class="gallery-admin-error" id="gallery-login-error" hidden></p>
+					</form>
+				)
+			}
+
+			{
+				loggedIn && (
+					<div class="gallery-admin-desk">
+						<div class="gallery-admin-actions-top">
+							<a class="gallery-admin-link" href="/gallery">View public gallery</a>
+							<button type="button" class="gallery-admin-btn gallery-admin-btn--ghost" id="gallery-logout">
+								Sign out
+							</button>
+						</div>
+
+						<form class="gallery-admin-upload" id="gallery-upload-form">
+							<label class="gallery-admin-label" for="gallery-album">Album</label>
+							<select class="gallery-admin-input" id="gallery-album" name="album" required>
+								{GALLERY_ALBUMS.map((a) => (
+									<option value={a.id}>{a.label}</option>
+								))}
+							</select>
+
+							<label class="gallery-admin-label" for="gallery-caption">Caption (optional)</label>
+							<input
+								class="gallery-admin-input"
+								id="gallery-caption"
+								name="caption"
+								type="text"
+								maxlength="200"
+								placeholder="e.g. Finals, court 3"
+							/>
+
+							<label class="gallery-admin-label" for="gallery-files">Photos</label>
+							<input
+								class="gallery-admin-input"
+								id="gallery-files"
+								name="files"
+								type="file"
+								accept="image/*"
+								multiple
+								required
+							/>
+
+							<button class="gallery-admin-btn" type="submit" id="gallery-upload-btn">Upload</button>
+							<p class="gallery-admin-status" id="gallery-upload-status" aria-live="polite"></p>
+						</form>
+
+						<h2 class="gallery-admin-list-title">Uploaded ({index.photos.length})</h2>
+						<ul class="gallery-admin-list" id="gallery-admin-list">
+							{index.photos.map((p) => (
+								<li class="gallery-admin-item" data-id={p.id}>
+									<img src={p.url} alt="" loading="lazy" decoding="async" />
+									<div class="gallery-admin-item-meta">
+										<span>{albumLabel(p.album)}</span>
+										{p.caption && <span class="gallery-admin-item-cap">{p.caption}</span>}
+									</div>
+									<button type="button" class="gallery-admin-delete" data-delete={p.id}>
+										Delete
+									</button>
+								</li>
+							))}
+						</ul>
+					</div>
+				)
+			}
+		</div>
+	</section>
+
+	{
+		loggedIn && (
+			<script is:inline>
+				const form = document.getElementById('gallery-upload-form');
+				const status = document.getElementById('gallery-upload-status');
+				const btn = document.getElementById('gallery-upload-btn');
+				const logout = document.getElementById('gallery-logout');
+				const list = document.getElementById('gallery-admin-list');
+
+				form?.addEventListener('submit', async (e) => {
+					e.preventDefault();
+					const album = document.getElementById('gallery-album');
+					const caption = document.getElementById('gallery-caption');
+					const filesInput = document.getElementById('gallery-files');
+					const files = filesInput?.files;
+					if (!files?.length) return;
+
+					btn.disabled = true;
+					let ok = 0;
+					let fail = 0;
+					for (let i = 0; i < files.length; i++) {
+						status.textContent = `Uploading ${i + 1} of ${files.length}…`;
+						const fd = new FormData();
+						fd.append('file', files[i]);
+						fd.append('album', album.value);
+						if (caption.value.trim()) fd.append('caption', caption.value.trim());
+						try {
+							const res = await fetch('/api/gallery/upload', { method: 'POST', body: fd });
+							if (!res.ok) {
+								fail++;
+								const data = await res.json().catch(() => ({}));
+								status.textContent = data.error || 'Upload failed.';
+							} else {
+								ok++;
+							}
+						} catch {
+							fail++;
+						}
+					}
+					status.textContent =
+						fail === 0
+							? `Uploaded ${ok} photo${ok === 1 ? '' : 's'}. Reloading…`
+							: `Uploaded ${ok}, failed ${fail}. Reloading…`;
+					setTimeout(() => location.reload(), 700);
+				});
+
+				logout?.addEventListener('click', async () => {
+					await fetch('/api/gallery/logout', { method: 'POST' });
+					location.reload();
+				});
+
+				list?.addEventListener('click', async (e) => {
+					const t = e.target.closest('[data-delete]');
+					if (!t) return;
+					const id = t.getAttribute('data-delete');
+					if (!id || !confirm('Delete this photo?')) return;
+					const res = await fetch('/api/gallery/delete', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ id }),
+					});
+					if (res.ok) {
+						t.closest('.gallery-admin-item')?.remove();
+					} else {
+						alert('Could not delete photo.');
+					}
+				});
+			</script>
+		)
+	}
+
+	{
+		!loggedIn && configured && (
+			<script is:inline>
+				document.getElementById('gallery-login-form')?.addEventListener('submit', async (e) => {
+					e.preventDefault();
+					const err = document.getElementById('gallery-login-error');
+					const password = document.getElementById('gallery-password')?.value || '';
+					err.hidden = true;
+					const res = await fetch('/api/gallery/login', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ password }),
+					});
+					if (!res.ok) {
+						const data = await res.json().catch(() => ({}));
+						err.textContent = data.error || 'Login failed.';
+						err.hidden = false;
+						return;
+					}
+					location.reload();
+				});
+			</script>
+		)
+	}
+</GrandPrixLayout>

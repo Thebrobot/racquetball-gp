@@ -1,0 +1,94 @@
+---
+import GrandPrixLayout from '../../../layouts/GrandPrixLayout.astro';
+import { GALLERY_ALBUMS } from '../../../lib/gallery/albums';
+import { getPhotosByIds } from '../../../lib/gallery/store';
+import type { GalleryClientConfig } from '../../../lib/gallery/types';
+
+export const prerender = false;
+
+const raw = Astro.params.ids ?? '';
+const ids = raw
+	.split(',')
+	.map((s) => s.trim())
+	.filter(Boolean)
+	.slice(0, 40);
+
+const photos = ids.length ? await getPhotosByIds(ids) : [];
+if (!photos.length) {
+	return Astro.redirect('/gallery');
+}
+
+const siteOrigin = Astro.site?.origin ?? 'https://www.racquetballgp.com';
+const count = photos.length;
+const title = `${count} photo${count === 1 ? '' : 's'} from the Florida Racquetball Grand Prix`;
+const description = `A shared selection of ${count} photo${count === 1 ? '' : 's'} from the 2026 Florida Racquetball Grand Prix.`;
+const ogImage = photos[0].url;
+
+const clientConfig: GalleryClientConfig = {
+	photos,
+	albums: GALLERY_ALBUMS,
+	initialOpenId: photos[0].id,
+	siteOrigin,
+	mode: 'collection',
+};
+---
+
+<GrandPrixLayout
+	title={title}
+	description={description}
+	ogImage={ogImage}
+	ogImageWidth={1200}
+	ogImageHeight={800}
+	hideSponsorSpotlight
+>
+	<section class="gallery-page" aria-labelledby="gallery-heading">
+		<div class="gallery-page-inner">
+			<p class="gallery-kicker">Shared collection</p>
+			<h1 id="gallery-heading" class="gallery-title">
+				{count} <span class="gallery-title-accent">photos</span>
+			</h1>
+			<p class="gallery-sub">
+				A shared selection from the Grand Prix. <a href="/gallery">Browse the full gallery</a>
+			</p>
+
+			<div class="gallery-toolbar">
+				<div class="gallery-filters" id="gallery-filters" hidden></div>
+				<button type="button" class="gallery-select-toggle" id="gallery-select-toggle" hidden>Select</button>
+			</div>
+
+			<div class="gallery-select-bar" id="gallery-select-bar" hidden>
+				<span id="gallery-select-count">0 selected</span>
+				<button type="button" class="gallery-share-selected" id="gallery-share-selected" disabled>
+					Share selected
+				</button>
+				<button type="button" class="gallery-cancel-select" id="gallery-cancel-select">Cancel</button>
+			</div>
+
+			<p class="gallery-empty" id="gallery-empty" hidden></p>
+			<div class="gallery-grid" id="gallery-grid"></div>
+		</div>
+	</section>
+
+	<div class="gallery-lightbox" id="gallery-lightbox" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-label="Expanded photo">
+		<button type="button" class="gallery-lb-close" id="gallery-lb-close" aria-label="Close">×</button>
+		<button type="button" class="gallery-lb-nav gallery-lb-prev" id="gallery-lb-prev" aria-label="Previous photo">‹</button>
+		<figure class="gallery-lb-figure">
+			<img id="gallery-lb-img" src="" alt="" />
+			<figcaption id="gallery-lb-caption"></figcaption>
+		</figure>
+		<button type="button" class="gallery-lb-nav gallery-lb-next" id="gallery-lb-next" aria-label="Next photo">›</button>
+		<button type="button" class="gallery-lb-share" id="gallery-lb-share">Share</button>
+	</div>
+
+	<div class="gallery-share-menu" id="gallery-share-menu" hidden role="dialog" aria-label="Share options">
+		<button type="button" data-share="facebook">Facebook</button>
+		<button type="button" data-share="x">X</button>
+		<button type="button" data-share="copy">Copy link</button>
+		<button type="button" data-share="close">Close</button>
+	</div>
+
+	<script is:inline define:vars={{ clientConfig }}>
+		window.__GP_GALLERY__ = clientConfig;
+	</script>
+	<script src="../../../scripts/gallery-client.ts"></script>
+</GrandPrixLayout>

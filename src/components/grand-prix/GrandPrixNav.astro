@@ -8,6 +8,11 @@ function active(href: string): string {
 	if (href === '/leaderboard') {
 		return path === '/leaderboard' || path.startsWith('/leaderboard/') ? 'active' : '';
 	}
+	if (href === '/gallery') {
+		return path === '/gallery' || (path.startsWith('/gallery/') && !path.startsWith('/gallery/admin'))
+			? 'active'
+			: '';
+	}
 	return path === href ? 'active' : '';
 }
 
@@ -64,6 +69,7 @@ function bottomActive(href: string): string {
 			<a href="/points" class:list={[active('/points')]} data-key="points">Points</a>
 			<a href="/leaderboard" class:list={[active('/leaderboard')]} data-key="leaderboard">Leaderboard</a>
 			<a href="/sponsors" class:list={[active('/sponsors')]} data-key="sponsors">Sponsors</a>
+			<a href="/gallery" class:list={[active('/gallery')]} data-key="gallery">Gallery</a>
 			<div class="nav-drawer-sep" aria-hidden="true"></div>
 			<a class:list={['nav-register', active('/contact')]} href="/contact">
 				Get connected with us
