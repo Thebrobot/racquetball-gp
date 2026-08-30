@@ -147,15 +147,57 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		showLb();
 	}
 
-	async function shareLink(url: string, title: string): Promise<void> {
+	async function photoAsFile(photo: GalleryPhoto): Promise<File | null> {
+		try {
+			const res = await fetch(photo.url, { mode: 'cors', cache: 'force-cache' });
+			if (!res.ok) return null;
+			const blob = await res.blob();
+			const type = blob.type && blob.type.startsWith('image/') ? blob.type : 'image/jpeg';
+			const ext = type.includes('png') ? 'png' : type.includes('webp') ? 'webp' : 'jpg';
+			return new File([blob], `racquetball-gp-${photo.id}.${ext}`, { type });
+		} catch {
+			return null;
+		}
+	}
+
+	function isAbort(err: unknown): boolean {
+		return (
+			(err instanceof DOMException && err.name === 'AbortError') ||
+			(err instanceof Error && err.name === 'AbortError')
+		);
+	}
+
+	/** Prefer sharing the image file so the system sheet shows the photo, not the site logo. */
+	async function shareLink(url: string, title: string, photos: GalleryPhoto[] = []): Promise<void> {
 		if (typeof navigator.share === 'function') {
 			try {
+				const files: File[] = [];
+				for (const photo of photos.slice(0, 10)) {
+					const file = await photoAsFile(photo);
+					if (file) files.push(file);
+				}
+
+				if (files.length && typeof navigator.canShare === 'function') {
+					const withMeta: ShareData = {
+						files,
+						title,
+						text: `${title}\n${url}`,
+					};
+					if (navigator.canShare(withMeta)) {
+						await navigator.share(withMeta);
+						return;
+					}
+					if (navigator.canShare({ files })) {
+						// iOS often only accepts files alone (no title/text/url)
+						await navigator.share({ files });
+						return;
+					}
+				}
+
 				await navigator.share({ title, url, text: title });
 				return;
 			} catch (err) {
-				// User cancelled the system sheet — don't open the fallback menu
-				if (err instanceof DOMException && err.name === 'AbortError') return;
-				if (err instanceof Error && err.name === 'AbortError') return;
+				if (isAbort(err)) return;
 			}
 		}
 		if (shareMenu) {
@@ -251,9 +293,12 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 	shareSelectedBtn?.addEventListener('click', () => {
 		const ids = Array.from(selected);
 		if (!ids.length) return;
+		const photos = ids
+			.map((id) => config.photos.find((p) => p.id === id))
+			.filter((p): p is GalleryPhoto => Boolean(p));
 		const url = collectionUrl(ids);
 		const title = `${ids.length} photos from the Florida Racquetball Grand Prix`;
-		void shareLink(url, title);
+		void shareLink(url, title, photos);
 	});
 
 	lbClose?.addEventListener('click', closeLb);
@@ -266,7 +311,11 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 	lbShare?.addEventListener('click', () => {
 		const photo = visible[lbIndex];
 		if (!photo) return;
-		void shareLink(photoUrl(photo.id), photo.caption || 'Florida Racquetball Grand Prix');
+		void shareLink(
+			photoUrl(photo.id),
+			photo.caption || 'Florida Racquetball Grand Prix',
+			[photo],
+		);
 	});
 
 	document.addEventListener('keydown', (e) => {
