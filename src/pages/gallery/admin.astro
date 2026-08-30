@@ -90,6 +90,7 @@ const index = loggedIn ? await readGalleryIndex() : { version: 1 as const, photo
 								multiple
 								required
 							/>
+							<p class="gallery-admin-hint">Up to 50MB per photo. Files upload directly to storage.</p>
 
 							<button class="gallery-admin-btn" type="submit" id="gallery-upload-btn">Upload</button>
 							<p class="gallery-admin-status" id="gallery-upload-status" aria-live="polite"></p>
@@ -117,74 +118,7 @@ const index = loggedIn ? await readGalleryIndex() : { version: 1 as const, photo
 	</section>
 
 	{
-		loggedIn && (
-			<script is:inline>
-				const form = document.getElementById('gallery-upload-form');
-				const status = document.getElementById('gallery-upload-status');
-				const btn = document.getElementById('gallery-upload-btn');
-				const logout = document.getElementById('gallery-logout');
-				const list = document.getElementById('gallery-admin-list');
-
-				form?.addEventListener('submit', async (e) => {
-					e.preventDefault();
-					const album = document.getElementById('gallery-album');
-					const caption = document.getElementById('gallery-caption');
-					const filesInput = document.getElementById('gallery-files');
-					const files = filesInput?.files;
-					if (!files?.length) return;
-
-					btn.disabled = true;
-					let ok = 0;
-					let fail = 0;
-					for (let i = 0; i < files.length; i++) {
-						status.textContent = `Uploading ${i + 1} of ${files.length}…`;
-						const fd = new FormData();
-						fd.append('file', files[i]);
-						fd.append('album', album.value);
-						if (caption.value.trim()) fd.append('caption', caption.value.trim());
-						try {
-							const res = await fetch('/api/gallery/upload', { method: 'POST', body: fd });
-							if (!res.ok) {
-								fail++;
-								const data = await res.json().catch(() => ({}));
-								status.textContent = data.error || 'Upload failed.';
-							} else {
-								ok++;
-							}
-						} catch {
-							fail++;
-						}
-					}
-					status.textContent =
-						fail === 0
-							? `Uploaded ${ok} photo${ok === 1 ? '' : 's'}. Reloading…`
-							: `Uploaded ${ok}, failed ${fail}. Reloading…`;
-					setTimeout(() => location.reload(), 700);
-				});
-
-				logout?.addEventListener('click', async () => {
-					await fetch('/api/gallery/logout', { method: 'POST' });
-					location.reload();
-				});
-
-				list?.addEventListener('click', async (e) => {
-					const t = e.target.closest('[data-delete]');
-					if (!t) return;
-					const id = t.getAttribute('data-delete');
-					if (!id || !confirm('Delete this photo?')) return;
-					const res = await fetch('/api/gallery/delete', {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ id }),
-					});
-					if (res.ok) {
-						t.closest('.gallery-admin-item')?.remove();
-					} else {
-						alert('Could not delete photo.');
-					}
-				});
-			</script>
-		)
+		loggedIn && <script src="../../scripts/gallery-admin.ts"></script>
 	}
 
 	{

@@ -7894,6 +7894,12 @@ body.gallery-lb-open .gp-bottom-nav {
   margin: 0;
   min-height: 1.2em;
 }
+.gallery-admin-hint {
+  margin: -2px 0 4px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
 .gallery-admin-actions-top {
   display: flex;
   flex-wrap: wrap;
