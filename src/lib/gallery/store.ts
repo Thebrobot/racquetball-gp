@@ -21,36 +21,21 @@ async function readStreamText(stream: ReadableStream<Uint8Array> | null): Promis
 }
 
 /**
- * Gallery catalog is stored as a private blob and read with useCache:false
- * so uploads are never hidden behind the public Blob CDN cache.
+ * Index stays on the public store (this project’s Blob store is public-only).
+ * Reads use the SDK with useCache:false so we don’t get a stale CDN copy.
  */
 export async function readGalleryIndex(): Promise<GalleryIndex> {
 	if (!hasBlobToken()) return emptyIndex();
 
 	try {
-		const fresh = await get(GALLERY_INDEX_PATH, { access: 'private', useCache: false });
+		const fresh = await get(GALLERY_INDEX_PATH, { access: 'public', useCache: false });
 		if (fresh?.stream) {
 			const text = await readStreamText(fresh.stream);
 			const parsed = parseIndex(JSON.parse(text));
 			if (parsed) return parsed;
 		}
 	} catch {
-		/* try legacy public index below */
-	}
-
-	// One-time migration path: older deploys wrote a public CDN-cached index.
-	try {
-		const legacy = await get(GALLERY_INDEX_PATH, { access: 'public', useCache: false });
-		if (legacy?.stream) {
-			const text = await readStreamText(legacy.stream);
-			const parsed = parseIndex(JSON.parse(text));
-			if (parsed) {
-				await writeGalleryIndex(parsed);
-				return parsed;
-			}
-		}
-	} catch {
-		/* ignore */
+		/* fall through */
 	}
 
 	try {
@@ -60,10 +45,7 @@ export async function readGalleryIndex(): Promise<GalleryIndex> {
 			const res = await fetch(`${match.url}?cb=${Date.now()}`, { cache: 'no-store' });
 			if (res.ok) {
 				const parsed = parseIndex(await res.json());
-				if (parsed) {
-					await writeGalleryIndex(parsed);
-					return parsed;
-				}
+				if (parsed) return parsed;
 			}
 		}
 	} catch {
@@ -75,10 +57,11 @@ export async function readGalleryIndex(): Promise<GalleryIndex> {
 
 export async function writeGalleryIndex(index: GalleryIndex): Promise<void> {
 	await put(GALLERY_INDEX_PATH, JSON.stringify(index), {
-		access: 'private',
+		access: 'public',
 		addRandomSuffix: false,
 		allowOverwrite: true,
 		contentType: 'application/json',
+		// Blob minimum is 60s; still far better than the default ~30 day CDN cache.
 		cacheControlMaxAge: 60,
 	});
 }
