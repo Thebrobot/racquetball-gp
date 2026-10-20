@@ -1,17 +1,18 @@
 ---
 import GrandPrixLayout from '../../../layouts/GrandPrixLayout.astro';
 import OfficialBallChip from '../../../components/grand-prix/OfficialBallChip.astro';
-import { EVENTS, getEventStatus } from '../../../data/events';
+import { EVENT_SKELETONS, getEventStatus } from '../../../data/events';
+import { getLiveEvent, getLiveEvents } from '../../../lib/results/live';
 import { getPlayerSlug, getPlayerImageForDisplay, getPlayerScheduleEntries } from '../../../data/players';
 import { formatPlayerInitials } from '../../../data/leaderboard';
 import { titleSponsor } from '../../../data/ocala-sponsors';
 
-export async function getStaticPaths() {
-	return EVENTS.map((event) => ({ params: { slug: event.slug }, props: { event } }));
-}
+export const prerender = false;
 
-const { event: routeEvent } = Astro.props;
-const event = EVENTS.find((e) => e.slug === routeEvent.slug) ?? routeEvent;
+const liveEvents = await getLiveEvents();
+const event = (await getLiveEvent(Astro.params.slug!)) ?? EVENT_SKELETONS.find((e) => e.slug === Astro.params.slug);
+if (!event) return new Response('Not found', { status: 404 });
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
 
 // Build a map: division label → sorted list of unique participants
 const divisionOrder = event.divisions; // preserves intended display order
@@ -33,7 +34,7 @@ for (const profile of event.profiles ?? []) {
 	// every match in the division is decided.
 	const liveEntries = isPastEvent
 		? [profile]
-		: getPlayerScheduleEntries(profile.name, [{ ...profile, eventName: event.name }]);
+		: getPlayerScheduleEntries(profile.name, [{ ...profile, eventName: event.name }], liveEvents);
 	const next = liveEntries[0];
 	const done = liveEntries.length === 0;
 	const time = next?.time ?? profile.time;

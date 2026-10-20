@@ -3,23 +3,19 @@ import GrandPrixLayout from '../../../../layouts/GrandPrixLayout.astro';
 import SingleEliminationBracket from '../../../../components/grand-prix/SingleEliminationBracket.astro';
 import SponsorLogoMarquee from '../../../../components/grand-prix/SponsorLogoMarquee.astro';
 import OfficialBallChip from '../../../../components/grand-prix/OfficialBallChip.astro';
-import { EVENTS } from '../../../../data/events';
+import { EVENT_SKELETONS } from '../../../../data/events';
+import { getLiveEvent } from '../../../../lib/results/live';
 import { getAllPlayers, getPlayerSlug } from '../../../../data/players';
 import { resolveTeamMembers } from '../../../../lib/resolve-team-members';
 import { titleSponsor } from '../../../../data/ocala-sponsors';
 
-export async function getStaticPaths() {
-	return EVENTS.flatMap((event) =>
-		(event.divisionDetails ?? []).map((division) => ({
-			params: { slug: event.slug, division: division.id },
-			props: { event, division },
-		})),
-	);
-}
+export const prerender = false;
 
-const { event: routeEvent, division: routeDivision } = Astro.props;
-const event = EVENTS.find((e) => e.slug === routeEvent.slug) ?? routeEvent;
-const division = event.divisionDetails.find((d) => d.id === routeDivision.id) ?? routeDivision;
+const event = (await getLiveEvent(Astro.params.slug!)) ?? EVENT_SKELETONS.find((e) => e.slug === Astro.params.slug);
+if (!event) return new Response('Not found', { status: 404 });
+const division = event.divisionDetails.find((d) => d.id === Astro.params.division);
+if (!division) return new Response('Not found', { status: 404 });
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
 const players = division.roundRobinPlayers ?? [];
 const rrMatches = division.roundRobinMatches ?? [];
 
@@ -78,12 +74,19 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 
 	{division.format === 'single' ? (
 		<section class="event-section">
-			<SingleEliminationBracket division={division} eventName={event.name} />
+			{(division.rounds?.length ?? 0) > 0 ? (
+				<SingleEliminationBracket division={division} eventName={event.name} />
+			) : (
+				<p class="section-sub">Draw not posted yet. The bracket will appear here when the director activates it on R2.</p>
+			)}
 			<SponsorLogoMarquee />
 		</section>
 	) : (
 		<>
 		<section class="event-section rr-section">
+			{players.length === 0 && rrMatches.length === 0 && (
+				<p class="section-sub">Draw not posted yet. The pool will appear here when the director activates it on R2.</p>
+			)}
 
 			{/* ── Pool winner banner ── */}
 			{poolWinner && (

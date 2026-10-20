@@ -1,6 +1,7 @@
 /** Standings categories and row shape: single source for Astro pages and client script. */
 
 import gpPoints from './gp-points.json';
+import { EVENTS, type EventData } from './events';
 import { getPlayerImageForDisplay } from './player-images';
 import { countPlayerWinsInDivision } from './match-wins';
 
@@ -158,8 +159,8 @@ const emptyMixed = {
 	'mixed-doubles': [],
 } as const;
 
-function enrichRow(row: LbRow, divisionId: string): LbRow {
-	const wins = countPlayerWinsInDivision(row.name, divisionId);
+function enrichRow(row: LbRow, divisionId: string, events: EventData[]): LbRow {
+	const wins = countPlayerWinsInDivision(row.name, divisionId, events);
 	const image = getPlayerImageForDisplay(row.name, 128);
 	return image ? { ...row, wins, image } : { ...row, wins };
 }
@@ -188,8 +189,8 @@ export function assignLeaderboardPlaces(rows: LbRow[]): LbRow[] {
 	});
 }
 
-function enrichDivisionRows(rows: LbRow[], divisionId: string): LbRow[] {
-	const enriched = rows.map((row) => enrichRow(row, divisionId));
+function enrichDivisionRows(rows: LbRow[], divisionId: string, events: EventData[]): LbRow[] {
+	const enriched = rows.map((row) => enrichRow(row, divisionId, events));
 	enriched.sort(compareLeaderboardRows);
 	const ranked = assignLeaderboardPlaces(enriched);
 	const max = Math.max(...ranked.map((r) => leaderboardTotal(r)), 0);
@@ -200,15 +201,15 @@ function enrichDivisionRows(rows: LbRow[], divisionId: string): LbRow[] {
 	}));
 }
 
-function buildLbData(): LbData {
+export function buildLbData(events: EventData[] = EVENTS): LbData {
 	const synced = gpPoints.standings as LbData;
 	const enrichCategory = (cat: Record<string, LbRow[]>) =>
-		Object.fromEntries(Object.entries(cat).map(([id, rows]) => [id, enrichDivisionRows(rows, id)]));
+		Object.fromEntries(Object.entries(cat).map(([id, rows]) => [id, enrichDivisionRows(rows, id, events)]));
 
 	return {
-		singles: { ...emptySingles, ...enrichCategory(synced.singles ?? {}) },
-		doubles: { ...emptyDoubles, ...enrichCategory(synced.doubles ?? {}) },
-		mixed: { ...emptyMixed, ...enrichCategory(synced.mixed ?? {}) },
+		singles: { ...emptySingles, ...enrichCategory(synced.singles ?? {}) } as Record<string, LbRow[]>,
+		doubles: { ...emptyDoubles, ...enrichCategory(synced.doubles ?? {}) } as Record<string, LbRow[]>,
+		mixed: { ...emptyMixed, ...enrichCategory(synced.mixed ?? {}) } as Record<string, LbRow[]>,
 	};
 }
 
@@ -249,18 +250,27 @@ export function formatPlayerInitials(name: string): string {
 }
 
 /** Sorted by division points, then wins (not alphabetical). Empty divisions use a placeholder when requested. */
-export function getSortedRows(
+export function getSortedRowsFrom(
+	data: LbData,
 	category: LbCategory,
 	division: string,
 	usePlaceholder: boolean,
 ): LbRow[] {
-	const catData = lbData[category];
+	const catData = data[category];
 	let rows = catData?.[division] ? [...catData[division]] : [];
 	if (!rows.length && usePlaceholder) {
 		rows = [PENDING_ROW];
 	}
 	rows.sort(compareLeaderboardRows);
 	return rows;
+}
+
+export function getSortedRows(
+	category: LbCategory,
+	division: string,
+	usePlaceholder: boolean,
+): LbRow[] {
+	return getSortedRowsFrom(lbData, category, division, usePlaceholder);
 }
 
 export function getTopN(category: LbCategory, division: string, n: number, usePlaceholder = true): LbRow[] {

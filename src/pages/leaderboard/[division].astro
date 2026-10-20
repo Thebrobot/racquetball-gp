@@ -1,21 +1,18 @@
 ---
 import LeaderboardPage from '../../components/grand-prix/LeaderboardPage.astro';
 import {
-	LB_DIVISIONS_BY_CATEGORY,
 	LB_CATEGORY_HEADING,
 	getCategoryForDivision,
 	getDivisionDisplayMeta,
 } from '../../data/leaderboard';
 
-export function getStaticPaths() {
-	return Object.values(LB_DIVISIONS_BY_CATEGORY).flatMap((list) =>
-		list.map((d) => ({ params: { division: d.id } }))
-	);
-}
+export const prerender = false;
 
 const { division } = Astro.params;
-const category = getCategoryForDivision(division!)!;
-const meta = getDivisionDisplayMeta(division!)!;
+const category = getCategoryForDivision(division!);
+const meta = getDivisionDisplayMeta(division!);
+if (!category || !meta) return new Response('Not found', { status: 404 });
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
 ---
 
 <LeaderboardPage

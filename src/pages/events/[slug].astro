@@ -1,18 +1,18 @@
 ---
 import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
 import OfficialBallChip from '../../components/grand-prix/OfficialBallChip.astro';
-import { EVENTS, getEventStatus } from '../../data/events';
+import { EVENT_SKELETONS, getEventStatus } from '../../data/events';
+import { getLiveEvent, getLiveEvents } from '../../lib/results/live';
 import { getPlayerSlug, getPlayerImageForDisplay, getPlayerScheduleEntries } from '../../data/players';
 import { formatPlayerInitials } from '../../data/leaderboard';
 import { titleSponsor } from '../../data/ocala-sponsors';
 
-export async function getStaticPaths() {
-	return EVENTS.map((event) => ({ params: { slug: event.slug }, props: { event } }));
-}
+export const prerender = false;
 
-const { event: routeEvent } = Astro.props;
-// Re-resolve from EVENTS so props stale in dev mode don't mask updated data.
-const event = EVENTS.find((e) => e.slug === routeEvent.slug) ?? routeEvent;
+const liveEvents = await getLiveEvents();
+const event = (await getLiveEvent(Astro.params.slug!)) ?? EVENT_SKELETONS.find((e) => e.slug === Astro.params.slug);
+if (!event) return new Response('Not found', { status: 404 });
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
 const divisionBase = `/events/${event.slug}/divisions`;
 
 // ── Participants data (build-time) ────────────────────────────────────────────
@@ -32,7 +32,7 @@ const playerMap = new Map<string, PlayerRow>();
 for (const profile of event.profiles ?? []) {
 	const liveEntries = isPastEvent
 		? [profile]
-		: getPlayerScheduleEntries(profile.name, [{ ...profile, eventName: event.name }]);
+		: getPlayerScheduleEntries(profile.name, [{ ...profile, eventName: event.name }], liveEvents);
 	const next = liveEntries[0];
 	const done = liveEntries.length === 0;
 	const time = next?.time ?? profile.time;
@@ -61,6 +61,12 @@ const divisionLabelToId = new Map<string, string>();
 for (const d of event.divisionDetails ?? []) {
 	divisionLabelToId.set(d.label, d.id);
 }
+
+const drawsPosted = (event.divisionDetails ?? []).some(
+	(d) =>
+		(d.rounds ?? []).some((r) => r.matches.length > 0) ||
+		(d.roundRobinMatches ?? []).length > 0,
+);
 ---
 
 <GrandPrixLayout
@@ -115,6 +121,9 @@ for (const d of event.divisionDetails ?? []) {
 	<!-- ── BRACKETS PANEL ── -->
 	<div id="panel-brackets" class="event-panel" role="tabpanel" aria-labelledby="tab-brackets">
 		<section class="event-section" aria-label="Brackets">
+			{!drawsPosted && (
+				<p class="section-sub">Brackets are not posted yet. Division pages will fill in when the director activates draws on R2.</p>
+			)}
 			<div class="division-list">
 				{(event.divisionDetails ?? []).map((division) => (
 					<a class="division-card" href={`${divisionBase}/${division.id}`}>

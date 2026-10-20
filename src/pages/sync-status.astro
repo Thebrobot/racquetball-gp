@@ -1,0 +1,137 @@
+---
+import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
+import { getLiveHealth } from '../lib/results/live';
+import { R2_SYNC_EVENTS } from '../lib/results/config';
+import { eventWindow, isEventWindowOpen } from '../lib/results/window';
+import { titleSponsor } from '../data/ocala-sponsors';
+
+export const prerender = false;
+
+const health = await getLiveHealth();
+const now = new Date();
+const events = health?.events?.length
+	? health.events
+	: R2_SYNC_EVENTS.map((event) => {
+			const win = eventWindow(event);
+			return {
+				slug: event.slug,
+				tid: event.tid,
+				name: event.name,
+				window: {
+					start: win.start.toISOString(),
+					end: win.end.toISOString(),
+					timezone: win.timezone,
+					active: isEventWindowOpen(event, now),
+				},
+				lastSuccessAt: null,
+				lastAttemptAt: null,
+				status: 'idle' as const,
+				note: null,
+				staleDivisions: 0,
+				quarantineCount: 0,
+				divisions: [],
+				quarantine: [],
+				overridesApplied: [],
+			};
+		});
+
+function fmt(iso: string | null | undefined): string {
+	if (!iso) return '—';
+	const d = new Date(iso);
+	if (Number.isNaN(d.getTime())) return '—';
+	return d.toLocaleString('en-US', {
+		month: 'short',
+		day: 'numeric',
+		hour: 'numeric',
+		minute: '2-digit',
+		timeZone: 'America/New_York',
+		timeZoneName: 'short',
+	});
+}
+
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=60');
+---
+
+<GrandPrixLayout
+	title="Results sync status | Florida Racquetball Grand Prix"
+	description="Last successful R2 Sports bracket sync per division, stale flags, and quarantined score changes."
+	spotlightLabel="Title sponsor"
+	spotlightName={titleSponsor.name}
+	spotlightBlurb={titleSponsor.blurb}
+	spotlightLogoUrl={titleSponsor.logoUrl}
+>
+	<section class="event-hero">
+		<div class="section-label">Operations</div>
+		<h1 class="section-title">Results <span style="color:var(--orange)">sync</span></h1>
+		<p class="section-sub">
+			Machine-readable JSON: <a href="/api/results/health">/api/results/health</a>
+			{health ? ` · overall ${health.ok ? 'ok' : 'attention needed'}` : ' · no snapshot yet'}
+		</p>
+		<p class="section-sub">
+			Scheduler: {health?.scheduler.lastTrigger ?? '—'}
+			{health?.scheduler.skipped ? ` (skipped: ${health.scheduler.skipped})` : ''}
+			· last run {fmt(health?.scheduler.lastRunAt ?? null)}
+		</p>
+	</section>
+
+	{events.map((event) => (
+		<section class="event-section">
+			<h2>{event.name} <span class="muted">TID {event.tid}</span></h2>
+			<p>
+				Window {fmt(event.window.start)} – {fmt(event.window.end)} ({event.window.timezone})
+				· {event.window.active ? 'active now' : 'outside window'}
+				· status {event.note ?? event.status}
+			</p>
+			{event.status === 'awaiting-draws' || event.note === 'no draws yet' ? (
+				<p class="muted">no draws yet</p>
+			) : event.divisions.length === 0 ? (
+				<p class="muted">No division snapshots yet.</p>
+			) : (
+				<table class="sync-table">
+					<thead>
+						<tr>
+							<th>Division</th>
+							<th>Code</th>
+							<th>Matches</th>
+							<th>Confirmed</th>
+							<th>Last success</th>
+							<th>State</th>
+						</tr>
+					</thead>
+					<tbody>
+						{event.divisions.map((d) => (
+							<tr class:list={[{ stale: d.stale }]}>
+								<td>{d.label}</td>
+								<td>{d.code}</td>
+								<td>{d.matchCount}</td>
+								<td>{d.confirmedCount}</td>
+								<td>{fmt(d.lastSuccessAt)}</td>
+								<td>{d.stale ? `stale${d.lastError ? ` — ${d.lastError}` : ''}` : 'ok'}</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			)}
+			{event.quarantine.length > 0 && (
+				<div>
+					<h3>Quarantined changes</h3>
+					<ul>
+						{event.quarantine.map((q) => (
+							<li>
+								{q.divisionId} {q.matchId}: {q.field} {JSON.stringify(q.previous)} → {JSON.stringify(q.incoming)} ({q.reason})
+							</li>
+						))}
+					</ul>
+				</div>
+			)}
+		</section>
+	))}
+</GrandPrixLayout>
+
+<style>
+	.muted { color: var(--muted); font-weight: 400; }
+	.sync-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+	.sync-table th, .sync-table td { text-align: left; padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--border); }
+	.sync-table tr.stale td { background: #fff4e5; }
+	a { color: var(--orange); }
+</style>

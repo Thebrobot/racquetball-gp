@@ -1,15 +1,15 @@
 ---
 import GrandPrixLayout from '../../../layouts/GrandPrixLayout.astro';
 import OfficialBallChip from '../../../components/grand-prix/OfficialBallChip.astro';
-import { EVENTS } from '../../../data/events';
+import { EVENT_SKELETONS } from '../../../data/events';
+import { getLiveEvent } from '../../../lib/results/live';
 import { titleSponsor } from '../../../data/ocala-sponsors';
 
-export async function getStaticPaths() {
-	return EVENTS.map((event) => ({ params: { slug: event.slug }, props: { event } }));
-}
+export const prerender = false;
 
-const { event: routeEvent } = Astro.props;
-const event = EVENTS.find((e) => e.slug === routeEvent.slug) ?? routeEvent;
+const event = (await getLiveEvent(Astro.params.slug!)) ?? EVENT_SKELETONS.find((e) => e.slug === Astro.params.slug);
+if (!event) return new Response('Not found', { status: 404 });
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
 ---
 
 <GrandPrixLayout

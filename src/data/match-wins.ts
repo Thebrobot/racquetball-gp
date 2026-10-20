@@ -1,4 +1,4 @@
-import { EVENTS } from './events';
+import { EVENTS, type EventData } from './events';
 
 /** Match entry name (player or "LastA / LastB" team) against a standings/profile name. */
 export function playerMatchesEntry(playerName: string, entryName: string): boolean {
@@ -49,10 +49,14 @@ function matchResult(
 }
 
 /** Counted match wins in one GP division across all published event brackets. */
-export function countPlayerWinsInDivision(playerName: string, divisionId: string): number {
+export function countPlayerWinsInDivision(
+	playerName: string,
+	divisionId: string,
+	events: EventData[] = EVENTS,
+): number {
 	let wins = 0;
 
-	for (const event of EVENTS) {
+	for (const event of events) {
 		for (const div of event.divisionDetails ?? []) {
 			if (div.id !== divisionId) continue;
 

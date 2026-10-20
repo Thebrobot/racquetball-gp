@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import vercel from '@astrojs/vercel';
 import { loadEnv } from 'vite';
+import { resultsSitemapPaths } from './src/lib/results/sitemap-paths';
 
 const mode = process.env.NODE_ENV === 'production' ? 'production' : 'development';
 const env = loadEnv(mode, process.cwd(), 'PUBLIC_');
@@ -12,5 +13,9 @@ const site = env.PUBLIC_SITE_URL || 'https://www.racquetballgp.com';
 export default defineConfig({
 	site,
 	adapter: vercel(),
-	integrations: [sitemap()],
+	integrations: [
+		sitemap({
+			customPages: resultsSitemapPaths().map((path) => `${site}${path}`),
+		}),
+	],
 });

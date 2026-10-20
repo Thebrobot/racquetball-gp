@@ -1,9 +1,10 @@
 ---
 import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { EVENTS } from '../data/events';
+import { EVENT_SKELETONS } from '../data/events';
+import { getLiveActivity, getLiveEvent } from '../lib/results/live';
 import { titleSponsor } from '../data/ocala-sponsors';
+
+export const prerender = false;
 
 type LiveActivityEvent = {
 	id: string;
@@ -23,15 +24,9 @@ type LiveActivityFeed = {
 	events: LiveActivityEvent[];
 };
 
-const feedPath = join(process.cwd(), 'public/data/live-activity.json');
-let feed: LiveActivityFeed = { lastUpdated: null, eventSlug: 'ocala-open', events: [] };
-try {
-	feed = JSON.parse(readFileSync(feedPath, 'utf-8')) as LiveActivityFeed;
-} catch {
-	/* use empty feed */
-}
-
-const event = EVENTS.find((e) => e.slug === feed.eventSlug);
+const feed: LiveActivityFeed = await getLiveActivity();
+const event = (await getLiveEvent(feed.eventSlug)) ?? EVENT_SKELETONS.find((e) => e.slug === feed.eventSlug);
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=120');
 const eventName = event?.name ?? 'Ocala Open';
 const eventDateRange = event?.dateRange ?? '';
 
@@ -62,7 +57,7 @@ function formatSyncedAt(iso: string | null): string {
 		<h1 class="section-title">Live <span style="color:var(--orange)">updates</span></h1>
 		<p class="section-sub live-page-sub">
 			{eventName}{eventDateRange ? ` · ${eventDateRange}` : ''}. Results appear here as bracket automation
-			syncs from R2 Sports (typically every 10 minutes during play).
+			syncs from R2 Sports (every 5 minutes during an event window).
 		</p>
 		<p class="live-sync-label" id="live-sync-label">
 			Last synced <span id="live-sync-time">{formatSyncedAt(feed.lastUpdated)}</span>
