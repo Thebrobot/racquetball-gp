@@ -26,6 +26,7 @@ const events = health?.events?.length
 				lastSuccessAt: null,
 				lastAttemptAt: null,
 				status: 'idle' as const,
+				note: null,
 				staleDivisions: 0,
 				quarantineCount: 0,
 				divisions: [],
@@ -79,9 +80,11 @@ Astro.response.headers.set('Cache-Control', 'public, s-maxage=15, stale-while-re
 			<p>
 				Window {fmt(event.window.start)} – {fmt(event.window.end)} ({event.window.timezone})
 				· {event.window.active ? 'active now' : 'outside window'}
-				· status {event.status}
+				· status {event.note ?? event.status}
 			</p>
-			{event.divisions.length === 0 ? (
+			{event.status === 'awaiting-draws' || event.note === 'no draws yet' ? (
+				<p class="muted">no draws yet</p>
+			) : event.divisions.length === 0 ? (
 				<p class="muted">No division snapshots yet.</p>
 			) : (
 				<table class="sync-table">

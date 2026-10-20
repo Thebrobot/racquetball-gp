@@ -10,7 +10,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "lint": "eslint .",
-    "test": "tsx --test tests/results/parse-match.test.ts tests/results/parse-draw.test.ts tests/results/validate.test.ts tests/results/window.test.ts",
+    "test": "tsx --test tests/results/parse-match.test.ts tests/results/parse-draw.test.ts tests/results/validate.test.ts tests/results/window.test.ts tests/results/empty-draws.test.ts",
     "test:r2-e2e": "tsx --test tests/results/e2e-r2.test.ts",
     "sync:brackets": "tsx scripts/sync-brackets.ts",
     "sync:points": "node scripts/sync-gp-points.mjs",

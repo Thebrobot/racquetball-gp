@@ -27,3 +27,20 @@ describe('eventWindow', () => {
 		assert.equal(isEventWindowOpen(sarasota, new Date('2026-07-13T13:00:00Z')), false);
 	});
 });
+
+const portStLucie: R2EventConfig = {
+	slug: 'port-st-lucie-open',
+	tid: '54248',
+	name: 'Port St. Lucie Open',
+	startDate: '2026-10-23',
+	endDate: '2026-10-25',
+	timezone: 'America/New_York',
+};
+
+describe('Port St. Lucie window', () => {
+	it('opens Friday 23 Oct 2026 06:00 ET and closes Monday 08:00 ET', () => {
+		const { start, end } = eventWindow(portStLucie);
+		assert.equal(start.toISOString(), '2026-10-23T10:00:00.000Z');
+		assert.equal(end.toISOString(), '2026-10-26T12:00:00.000Z');
+	});
+});

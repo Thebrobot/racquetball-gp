@@ -1,7 +1,15 @@
 import { EVENT_SKELETONS } from '../../data/events';
 import { detectActivityChanges, mergeActivity } from './activity';
 import { R2_SYNC_EVENTS } from './config';
-import { divisionListUrl, drawOutUrl, fetchText, looksLikeR2Html, mapPool, matchPageUrl } from './fetch';
+import {
+	divisionListUrl,
+	drawOutUrl,
+	fetchText,
+	isAwaitingDrawsHtml,
+	looksLikeR2Html,
+	mapPool,
+	matchPageUrl,
+} from './fetch';
 import { applyOverrides, loadOverrides } from './overrides';
 import { parseDivisionList, drawKey } from './parse-divisions';
 import { parseDrawPage } from './parse-draw';
@@ -94,7 +102,7 @@ async function readMatchAgreed(tid: string, r2MatchId: string, fallbackCode: str
 
 async function discoverDivisions(tid: string, eventSlug: string): Promise<DiscoveredDivision[]> {
 	const { html } = await fetchText(divisionListUrl(tid));
-	if (!looksLikeR2Html(html)) {
+	if (!looksLikeR2Html(html) && !isAwaitingDrawsHtml(html)) {
 		throw new Error(`Division list for TID ${tid} did not look like R2 HTML`);
 	}
 	const skeleton = EVENT_SKELETONS.find((e) => e.slug === eventSlug);
@@ -105,9 +113,41 @@ async function discoverDivisions(tid: string, eventSlug: string): Promise<Discov
 	}));
 }
 
+export function resolveSnapshotStatus(opts: {
+	discoveredCount: number;
+	staleCount: number;
+	publishedDivisionCount: number;
+	prevHadMatches: boolean;
+}): EventSnapshot['status'] {
+	if (opts.discoveredCount === 0) {
+		return opts.prevHadMatches ? 'partial' : 'awaiting-draws';
+	}
+	if (opts.staleCount === 0) return 'ok';
+	if (opts.publishedDivisionCount > 0) return 'partial';
+	return 'failed';
+}
+
+function prevHadMatches(prev: EventSnapshot | null): boolean {
+	return Object.values(prev?.divisions ?? {}).some((d) => d.matchCount > 0);
+}
+
+function emptyAwaitingSnapshot(event: R2EventConfig, at: string): EventSnapshot {
+	return {
+		version: 1,
+		slug: event.slug,
+		tid: event.tid,
+		name: event.name,
+		syncedAt: at,
+		status: 'awaiting-draws',
+		divisions: {},
+		quarantine: [],
+		overridesApplied: [],
+	};
+}
+
 async function fetchDraw(tid: string, divID: number, combinedID: number) {
 	const { url, html } = await fetchText(drawOutUrl(tid, divID, combinedID));
-	if (!looksLikeR2Html(html)) {
+	if (!looksLikeR2Html(html) && !isAwaitingDrawsHtml(html)) {
 		throw new Error(`Draw ${divID}/${combinedID} did not look like R2 HTML`);
 	}
 	return parseDrawPage(html, { divID, combinedID, finalUrl: url });
@@ -324,6 +364,25 @@ async function syncEvent(event: R2EventConfig, opts: SyncOptions): Promise<Event
 
 	log(opts, `  discovered ${discovered.length} draw(s)`);
 
+	if (discovered.length === 0) {
+		if (prevHadMatches(prev)) {
+			log(opts, `  ⚠ list returned no draws; kept last good snapshot`);
+			return {
+				...prev!,
+				syncedAt: at,
+				status: 'partial',
+				divisions: Object.fromEntries(
+					Object.entries(prev!.divisions).map(([id, d]) => [
+						id,
+						{ ...d, stale: true, lastError: 'Division list returned no draws; kept last good snapshot' },
+					]),
+				),
+			};
+		}
+		log(opts, `  no draws yet`);
+		return emptyAwaitingSnapshot(event, at);
+	}
+
 	const extra: DiscoveredDivision[] = [];
 	const seen = new Set(discovered.map((d) => drawKey(d.divID, d.combinedID)));
 	const drawByKey = new Map<string, Awaited<ReturnType<typeof fetchDraw>>>();
@@ -409,7 +468,12 @@ async function syncEvent(event: R2EventConfig, opts: SyncOptions): Promise<Event
 		tid: event.tid,
 		name: event.name,
 		syncedAt: at,
-		status: failures === 0 ? 'ok' : Object.keys(divisions).length ? 'partial' : 'failed',
+		status: resolveSnapshotStatus({
+			discoveredCount: toSync.length,
+			staleCount: failures,
+			publishedDivisionCount: Object.keys(divisions).length,
+			prevHadMatches: prevHadMatches(prev),
+		}),
 		divisions,
 		quarantine,
 		overridesApplied: [],
@@ -435,6 +499,7 @@ function toEventHealth(event: R2EventConfig, snapshot: EventSnapshot | null, now
 		lastSuccessAt: snapshot?.status === 'failed' ? null : (snapshot?.syncedAt ?? null),
 		lastAttemptAt: snapshot?.syncedAt ?? null,
 		status: snapshot?.status ?? 'idle',
+		note: snapshot?.status === 'awaiting-draws' ? 'no draws yet' : null,
 		staleDivisions: divisions.filter((d) => d.stale).length,
 		quarantineCount: snapshot?.quarantine.length ?? 0,
 		divisions: divisions.map((d) => ({

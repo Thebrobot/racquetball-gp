@@ -61,6 +61,12 @@ const divisionLabelToId = new Map<string, string>();
 for (const d of event.divisionDetails ?? []) {
 	divisionLabelToId.set(d.label, d.id);
 }
+
+const drawsPosted = (event.divisionDetails ?? []).some(
+	(d) =>
+		(d.rounds ?? []).some((r) => r.matches.length > 0) ||
+		(d.roundRobinMatches ?? []).length > 0,
+);
 ---
 
 <GrandPrixLayout
@@ -115,6 +121,9 @@ for (const d of event.divisionDetails ?? []) {
 	<!-- ── BRACKETS PANEL ── -->
 	<div id="panel-brackets" class="event-panel" role="tabpanel" aria-labelledby="tab-brackets">
 		<section class="event-section" aria-label="Brackets">
+			{!drawsPosted && (
+				<p class="section-sub">Brackets are not posted yet. Division pages will fill in when the director activates draws on R2.</p>
+			)}
 			<div class="division-list">
 				{(event.divisionDetails ?? []).map((division) => (
 					<a class="division-card" href={`${divisionBase}/${division.id}`}>

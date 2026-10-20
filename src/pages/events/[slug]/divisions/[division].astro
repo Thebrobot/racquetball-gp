@@ -74,12 +74,19 @@ const poolWinner = allMatchesComplete ? standings[0]?.name : null;
 
 	{division.format === 'single' ? (
 		<section class="event-section">
-			<SingleEliminationBracket division={division} eventName={event.name} />
+			{(division.rounds?.length ?? 0) > 0 ? (
+				<SingleEliminationBracket division={division} eventName={event.name} />
+			) : (
+				<p class="section-sub">Draw not posted yet. The bracket will appear here when the director activates it on R2.</p>
+			)}
 			<SponsorLogoMarquee />
 		</section>
 	) : (
 		<>
 		<section class="event-section rr-section">
+			{players.length === 0 && rrMatches.length === 0 && (
+				<p class="section-sub">Draw not posted yet. The pool will appear here when the director activates it on R2.</p>
+			)}
 
 			{/* ── Pool winner banner ── */}
 			{poolWinner && (

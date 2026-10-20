@@ -81,9 +81,20 @@ export function isRateLimitedHtml(html: string): boolean {
 	return /too many page views|verify you are not a robot|are not a robot|nothing done, no validation/i.test(html);
 }
 
+/** R2 list/draw page before the director activates brackets. */
+export function isAwaitingDrawsHtml(html: string): boolean {
+	if (isRateLimitedHtml(html)) return false;
+	return /no draws|brackets are currently unavailable|draws will be available when activated|all draws will be available/i.test(
+		html,
+	);
+}
+
 export function looksLikeR2Html(html: string): boolean {
 	if (isRateLimitedHtml(html)) return false;
-	return /viewBracket\(|viewAppMatch\(|r2p-versus-grid|r2p-match-result|listAllDivs/i.test(html);
+	return (
+		/viewBracket\(|viewAppMatch\(|r2p-versus-grid|r2p-match-result|listAllDivs/i.test(html) ||
+		isAwaitingDrawsHtml(html)
+	);
 }
 
 export function delay(ms: number): Promise<void> {

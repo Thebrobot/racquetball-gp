@@ -135,7 +135,7 @@ export interface EventSnapshot {
 	tid: string;
 	name: string;
 	syncedAt: string;
-	status: 'ok' | 'partial' | 'failed' | 'idle';
+	status: 'ok' | 'partial' | 'failed' | 'idle' | 'awaiting-draws';
 	divisions: Record<string, DivisionSnapshot>;
 	quarantine: QuarantineItem[];
 	overridesApplied: OverrideApplication[];
@@ -166,6 +166,8 @@ export interface EventHealth {
 	lastSuccessAt: string | null;
 	lastAttemptAt: string | null;
 	status: EventSnapshot['status'];
+	/** Human-readable health line, e.g. "no draws yet" while registration is still open. */
+	note?: string | null;
 	staleDivisions: number;
 	quarantineCount: number;
 	divisions: DivisionHealth[];

@@ -28,6 +28,15 @@ export const R2_SYNC_EVENTS: R2EventConfig[] = [
 		timezone: 'America/New_York',
 		scoreRules: 'usar-adult',
 	},
+	{
+		slug: 'port-st-lucie-open',
+		tid: '54248',
+		name: 'Port St. Lucie Open',
+		startDate: '2026-10-23',
+		endDate: '2026-10-25',
+		timezone: 'America/New_York',
+		scoreRules: 'usar-adult',
+	},
 ];
 
 export const DEFAULT_TIMEZONE = 'America/New_York';

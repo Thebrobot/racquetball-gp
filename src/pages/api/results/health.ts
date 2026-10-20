@@ -31,6 +31,7 @@ export const GET: APIRoute = async () => {
 				lastSuccessAt: null,
 				lastAttemptAt: null,
 				status: 'idle' as const,
+				note: null,
 				staleDivisions: 0,
 				quarantineCount: 0,
 				divisions: [],
