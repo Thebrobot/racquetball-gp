@@ -1,6 +1,18 @@
 {
 	"$schema": "https://openapi.vercel.sh/vercel.json",
+	"crons": [
+		{
+			"path": "/api/cron/sync-brackets",
+			"schedule": "*/5 * * * *"
+		}
+	],
 	"headers": [
+		{
+			"source": "/api/results/(.*)",
+			"headers": [
+				{ "key": "Cache-Control", "value": "public, max-age=15, stale-while-revalidate=60" }
+			]
+		},
 		{
 			"source": "/data/live-activity.json",
 			"headers": [

@@ -1,5 +1,6 @@
 import ocalaResultsData from './ocala-results.json';
 import sarasotaResultsData from './sarasota-results.json';
+import { applyResultsToEvent, type DivisionResultMap } from '../lib/results/apply';
 import { GRAND_PRIX_FACEBOOK_URL } from './social';
 
 export type EventStatus = 'live' | 'recent' | 'upcoming';
@@ -1272,145 +1273,22 @@ const EVENTS_RAW: EventData[] = [
 	},
 ];
 
-// ── Live-results merge ─────────────────────────────────────────────────────
-// <event>-results.json files are written by scripts/sync-r2-brackets.mjs
-// (GitHub Actions cron).  They carry live match scores/winners keyed by match
-// ID (e.g. "MO9").  We merge at build-time so the static site always reflects
-// the latest snapshot.
+// ── Results merge ──────────────────────────────────────────────────────────
+// Live scores live in Vercel Blob (see src/lib/results/). Request-time pages
+// call getLiveEvents(). Committed JSON is a last-known fallback for builds
+// and environments without Blob credentials — it is no longer updated by cron.
 
-interface MatchResult {
-	score?: string | null;
-	winner?: 1 | 2 | null;
-	player1?: string;
-	player2?: string;
-}
+/** Bracket/profile skeletons without live scores. Used by the sync mapper. */
+export const EVENT_SKELETONS: EventData[] = EVENTS_RAW;
 
-type DivisionResult = Record<string, MatchResult>;
-
-/** Results are scoped per event slug: division ids repeat across events
- *  (e.g. both stops have "mens-singles-open"), so each stop merges only its
- *  own results file or scores would leak into other stops' brackets. */
-const RESULTS_BY_EVENT: Record<string, { divisions?: Record<string, DivisionResult> }> = {
-	'ocala-open': ocalaResultsData as { divisions?: Record<string, DivisionResult> },
-	'sarasota-open': sarasotaResultsData as { divisions?: Record<string, DivisionResult> },
+const FALLBACK_RESULTS: Record<string, { divisions?: Record<string, DivisionResultMap> }> = {
+	'ocala-open': ocalaResultsData as { divisions?: Record<string, DivisionResultMap> },
+	'sarasota-open': sarasotaResultsData as { divisions?: Record<string, DivisionResultMap> },
 };
 
-function applyResultsToEvent(event: EventData, divResults: Record<string, DivisionResult>): EventData {
-
-	/** Never promote R2 scrape noise (e.g. "BYE") into a real TBD slot on our bracket. */
-	const fillFromResult = (slot: string, name: string | null | undefined): string | null => {
-		if (slot !== 'TBD') return null;
-		const n = (name ?? '').trim();
-		if (!n || n.toUpperCase() === 'BYE') return null;
-		return n;
-	};
-
-	// Name-based fallback lookup — used by both SE rounds and RR matches.
-	const findByNames = (
-		matchMap: DivisionResult,
-		a: string,
-		b: string,
-	): MatchResult | undefined => {
-		const ax = a.toLowerCase();
-		const bx = b.toLowerCase();
-		return Object.values(matchMap).find((r) => {
-			const rp1 = (r.player1 ?? '').toLowerCase();
-			const rp2 = (r.player2 ?? '').toLowerCase();
-			return (rp1 === ax && rp2 === bx) || (rp1 === bx && rp2 === ax);
-		});
-	};
-
-	return {
-		...event,
-		divisionDetails: event.divisionDetails.map((div) => {
-			const matchMap = divResults[div.id];
-			if (!matchMap) return div;
-
-			// ── Single Elimination ───────────────────────────────────────────
-			if (div.rounds) {
-				const updatedRounds = div.rounds.map((round) => ({
-					...round,
-					matches: round.matches.map((match) => {
-						let res: MatchResult | undefined;
-						if (match.matchId) res = matchMap[match.matchId];
-						if (!res) res = findByNames(matchMap, match.player1, match.player2);
-						if (!res) return match;
-						const p1Fill = fillFromResult(match.player1, res.player1);
-						const p2Fill = fillFromResult(match.player2, res.player2);
-						return {
-							...match,
-							...(res.score != null ? { score: res.score } : {}),
-							...(res.winner != null ? { winner: res.winner } : {}),
-							...(p1Fill ? { player1: p1Fill } : {}),
-							...(p2Fill ? { player2: p2Fill } : {}),
-						};
-					}),
-				}));
-
-				// Propagate winner names into TBD slots (and R2-abbreviated slots) in
-				// later rounds so the bracket display shows the advancing player instead
-				// of "TBD", and so the winnerColorMap key stays consistent across rounds
-				// for the same player (R2 fills TBD with abbreviated names like "A Herrera"
-				// which would otherwise get a different color entry than "Alejandro Herrera").
-				const isGhostSlot = (s: string) => {
-					const u = s.trim().toUpperCase();
-					return u === 'TBD' || u === '' || u === 'BYE';
-				};
-				const isAbbreviatedName = (s: string): boolean => {
-					const parts = s.trim().split(/\s+/);
-					return parts.length >= 2 && parts[0]!.length === 1;
-				};
-				const feederWinnerName = (feeder: EventBracketMatch | undefined): string | null => {
-					if (!feeder?.winner) return null;
-					const name = feeder.winner === 1 ? feeder.player1 : feeder.player2;
-					return !isGhostSlot(name) ? name : null;
-				};
-				for (let ri = 1; ri < updatedRounds.length; ri++) {
-					updatedRounds[ri] = {
-						...updatedRounds[ri]!,
-						matches: updatedRounds[ri]!.matches.map((match, gi) => {
-							let { player1, player2 } = match;
-							if (isGhostSlot(player1) || isAbbreviatedName(player1)) {
-								const name = feederWinnerName(updatedRounds[ri - 1]?.matches[gi * 2]);
-								if (name) player1 = name;
-							}
-							if (isGhostSlot(player2) || isAbbreviatedName(player2)) {
-								const name = feederWinnerName(updatedRounds[ri - 1]?.matches[gi * 2 + 1]);
-								if (name) player2 = name;
-							}
-							return player1 !== match.player1 || player2 !== match.player2
-								? { ...match, player1, player2 }
-								: match;
-						}),
-					};
-				}
-
-				return { ...div, rounds: updatedRounds };
-			}
-
-			// ── Round Robin ──────────────────────────────────────────────────
-			// RR matches don't carry matchId in the static data, so the merge
-			// uses name-based lookup against the scraped team1/team2 pairs.
-			if (div.roundRobinMatches) {
-				const updatedRR = div.roundRobinMatches.map((m) => {
-					const res = m.matchId ? matchMap[m.matchId] : findByNames(matchMap, m.team1, m.team2);
-					if (!res) return m;
-					return {
-						...m,
-						...(res.score != null ? { score: res.score } : {}),
-						...(res.winner != null ? { winner: res.winner } : {}),
-					};
-				});
-				return { ...div, roundRobinMatches: updatedRR };
-			}
-
-			return div;
-		}),
-	};
-}
-
+/** Build-time / fallback events: skeleton + last committed snapshot. */
 export const EVENTS: EventData[] = EVENTS_RAW.map((event) => {
-	const divResults = RESULTS_BY_EVENT[event.slug]?.divisions ?? {};
+	const divResults = FALLBACK_RESULTS[event.slug]?.divisions ?? {};
 	return Object.keys(divResults).length ? applyResultsToEvent(event, divResults) : event;
 });
 

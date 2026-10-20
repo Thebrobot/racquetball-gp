@@ -1,5 +1,5 @@
 import {
-	lbData,
+	lbData as bundledLbData,
 	LB_DIVISIONS_BY_CATEGORY,
 	LB_CATEGORY_HEADING,
 	isDivisionInCategory,
@@ -8,14 +8,29 @@ import {
 	getCategoryForDivision,
 	leaderboardDivisionHref,
 	type LbCategory,
+	type LbData,
 	PENDING_ROW,
 	leaderboardTotal,
-	getSortedRows,
+	getSortedRowsFrom,
 	compareLeaderboardRows,
 	assignLeaderboardPlaces,
 	formatPlayerInitials,
 	isPendingPlaceholder,
 } from '../data/leaderboard';
+
+function readLiveLbData(): LbData {
+	const el = document.getElementById('lb-live-data');
+	if (!el?.textContent) return bundledLbData;
+	try {
+		return JSON.parse(el.textContent) as LbData;
+	} catch {
+		return bundledLbData;
+	}
+}
+
+const lbData = readLiveLbData();
+const getSortedRows = (category: LbCategory, division: string, usePlaceholder: boolean) =>
+	getSortedRowsFrom(lbData, category, division, usePlaceholder);
 import { getPlayerImageForDisplay } from '../data/player-images';
 import { getPlayerSlug } from '../data/players';
 
@@ -1106,7 +1121,7 @@ function initHeroVideo() {
 
 // ── LIVE ACTIVITY FEED ─────────────────────────────────────────────────────
 
-const LIVE_ACTIVITY_URL = '/data/live-activity.json';
+const LIVE_ACTIVITY_URL = '/api/results/activity';
 const LIVE_ACTIVITY_SEEN_KEY = 'gp:liveActivitySeenAt';
 const LIVE_ACTIVITY_POLL_MS = 60_000;
 

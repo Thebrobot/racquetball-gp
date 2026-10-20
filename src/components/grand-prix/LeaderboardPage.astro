@@ -7,7 +7,8 @@ import {
 	DEFAULT_LEADERBOARD_CATEGORY,
 	DEFAULT_LEADERBOARD_DIVISION,
 	getDivisionLeaders,
-	getSortedRows,
+	buildLbData,
+	getSortedRowsFrom,
 	getDivisionDisplayMeta,
 	leaderboardDivisionHref,
 	leaderboardTotal,
@@ -19,6 +20,7 @@ import { getPlayerImageForDisplay } from '../../data/player-images';
 import { getPlayerSlug } from '../../data/players';
 import { SEASON_STOPS } from '../../data/season-stops';
 import { EVENTS } from '../../data/events';
+import { getLiveEvents } from '../../lib/results/live';
 import { titleSponsor } from '../../data/ocala-sponsors';
 
 interface Props {
@@ -35,13 +37,16 @@ const {
 	pageDescription = 'Live season standings for the Florida Racquetball Grand Prix, updated after every stop.',
 } = Astro.props;
 
+const liveEvents = await getLiveEvents();
+const liveLbData = buildLbData(liveEvents);
+
 const stopsComplete = SEASON_STOPS.filter((s) => s.kind === 'done').length;
 const totalStops = SEASON_STOPS.filter((s) => s.kind !== 'champ').length;
 const registeredCount = new Set(
 	EVENTS.flatMap((e) => (e.profiles ?? []).map((p) => p.name))
 ).size;
 
-const initialRows = getSortedRows(initialCategory, initialDivision, true);
+const initialRows = getSortedRowsFrom(liveLbData, initialCategory, initialDivision, true);
 const initialMaxPts = initialRows.length ? leaderboardTotal(initialRows[0]) : 1;
 const initialMeta = getDivisionDisplayMeta(initialDivision);
 const initialContextLabel = initialMeta
@@ -66,6 +71,7 @@ const lbInitialState = JSON.stringify({ category: initialCategory, division: ini
 	spotlightLogoUrl={titleSponsor.logoUrl}
 >
 	<script type="application/json" id="lb-initial-state" set:html={lbInitialState} />
+	<script type="application/json" id="lb-live-data" set:html={JSON.stringify(liveLbData)} />
 
 	<div class="lb-hero">
 		<img

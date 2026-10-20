@@ -1,25 +1,24 @@
 ---
 import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
 import { getAllPlayers, getPlayerMatchHistory, getPlayerScheduleEntries, getPlayerGrandPrixStandings, GP_SERIES_POSTS, getPlayerImageForDisplay, getPlayerImageSrcSet } from '../../data/players';
+import { getLiveEvents } from '../../lib/results/live';
 import { resolveTeamMembers, type TeamResolveCtx } from '../../lib/resolve-team-members';
 import { titleSponsor } from '../../data/ocala-sponsors';
 
-export async function getStaticPaths() {
-	return getAllPlayers().map((player) => ({ params: { slug: player.slug }, props: { player } }));
-}
+export const prerender = false;
 
-const { player: routePlayer } = Astro.props;
-
-// Resolve fresh profile data on each render (props from getStaticPaths can be stale in dev).
+const liveEvents = await getLiveEvents();
 const allPlayers = getAllPlayers();
-const player = allPlayers.find((p) => p.slug === routePlayer.slug) ?? routePlayer;
+const player = allPlayers.find((p) => p.slug === Astro.params.slug);
+if (!player) return new Response('Not found', { status: 404 });
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
 
 const bio =
 	player.bio ||
 	`Grand Prix competitor from ${player.city ?? 'Florida'}. Focused on steady finishes and building points across every stop.`;
-const matchHistory = getPlayerMatchHistory(player.name);
+const matchHistory = getPlayerMatchHistory(player.name, liveEvents);
 const gpStandings = getPlayerGrandPrixStandings(player.name);
-const scheduleEntries = getPlayerScheduleEntries(player.name, player.events ?? []);
+const scheduleEntries = getPlayerScheduleEntries(player.name, player.events ?? [], liveEvents);
 const profilePhoto = getPlayerImageSrcSet(player.name, 140);
 
 const wins = matchHistory.filter((m) => m.result === 'win').length;
