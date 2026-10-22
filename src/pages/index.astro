@@ -153,14 +153,45 @@ const spotlightImage = liveEvent?.spotlightImage ?? nextStop?.image;
 								<p class="event-spotlight-venue">{nextStop.venue}</p>
 								{nextStop.teaser && <p class="event-spotlight-teaser">{nextStop.teaser}</p>}
 								<div class="event-spotlight-ctas">
-									<a
-										class="event-spotlight-cta event-spotlight-cta--primary"
-										href={nextStop.registerUrl}
-										target="_blank"
-										rel="noopener noreferrer"
-									>
-										Register on R2
-									</a>
+									{nextStop.bracketsHref ? (
+										<a class="event-spotlight-cta event-spotlight-cta--primary" href={nextStop.bracketsHref}>
+											View brackets
+										</a>
+									) : (
+										<a
+											class="event-spotlight-cta event-spotlight-cta--primary"
+											href={nextStop.registerUrl}
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											Register on R2
+										</a>
+									)}
+									{nextStop.participantsHref && (
+										<a class="event-spotlight-cta event-spotlight-cta--participants" href={nextStop.participantsHref}>
+											View participants
+										</a>
+									)}
+									{nextStop.watchLiveUrl && !nextStop.watchLiveDisabled && (
+										<a
+											class="event-spotlight-cta event-spotlight-cta--watch"
+											href={nextStop.watchLiveUrl}
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											Watch live
+										</a>
+									)}
+									{nextStop.bracketsHref && (
+										<a
+											class="event-spotlight-cta event-spotlight-cta--schedule"
+											href={nextStop.registerUrl}
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											Register on R2
+										</a>
+									)}
 									<a class="event-spotlight-cta event-spotlight-cta--schedule" href="/tournaments">
 										See schedule
 									</a>

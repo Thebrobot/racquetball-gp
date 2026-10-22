@@ -19,6 +19,11 @@ const { stop, extraClass } = Astro.props;
 		gridArea: stop.bentoGridArea,
 	}}
 >
+	{stop.bracketsHref ? (
+		<a class="stop-bento-link" href={stop.bracketsHref} aria-label={`${stop.eventName} brackets`}>
+			<span class="visually-hidden">{stop.eventName} brackets</span>
+		</a>
+	) : null}
 	<div class="stop-bento-bg" aria-hidden="true"></div>
 	<div class="stop-bento-content">
 		<span class="stop-bento-dot" aria-hidden="true"></span>

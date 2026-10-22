@@ -1,5 +1,7 @@
 import ocalaResultsData from './ocala-results.json';
 import sarasotaResultsData from './sarasota-results.json';
+import portStLucieResultsData from './port-st-lucie-results.json';
+import { PORT_ST_LUCIE_EVENT } from './port-st-lucie-event';
 import { GRAND_PRIX_FACEBOOK_URL } from './social';
 
 export type EventStatus = 'live' | 'recent' | 'upcoming';
@@ -1270,6 +1272,8 @@ const EVENTS_RAW: EventData[] = [
 			{ name: 'David Wilmore Jr.',      division: "Men's Age Singles: 50+",        time: 'Saturday · 4:00 PM',  note: 'Court 5' },
 		],
 	},
+	// ── Stop 3: Port St. Lucie Open ──────────────────────────────────────────
+	PORT_ST_LUCIE_EVENT,
 ];
 
 // ── Live-results merge ─────────────────────────────────────────────────────
@@ -1293,6 +1297,7 @@ type DivisionResult = Record<string, MatchResult>;
 const RESULTS_BY_EVENT: Record<string, { divisions?: Record<string, DivisionResult> }> = {
 	'ocala-open': ocalaResultsData as { divisions?: Record<string, DivisionResult> },
 	'sarasota-open': sarasotaResultsData as { divisions?: Record<string, DivisionResult> },
+	'port-st-lucie-open': portStLucieResultsData as { divisions?: Record<string, DivisionResult> },
 };
 
 function applyResultsToEvent(event: EventData, divResults: Record<string, DivisionResult>): EventData {

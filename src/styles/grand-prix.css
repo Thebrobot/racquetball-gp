@@ -489,6 +489,13 @@ html.nav-drawer-open .nav-drawer-backdrop {
 .season-strip:focus-within .strip-track {
   animation-play-state: paused;
 }
+a.stop-item {
+  text-decoration: none;
+  cursor: pointer;
+}
+a.stop-item:hover {
+  color: #fff;
+}
 .stop-item {
   display: flex;
   align-items: center;
@@ -2979,6 +2986,11 @@ html.nav-drawer-open .nav-drawer-backdrop {
   border-color: rgba(240, 90, 26, 0.45);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
   transform: translateY(-4px);
+}
+.stop-bento-link {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
 }
 .stop-bento-bg {
   position: absolute;

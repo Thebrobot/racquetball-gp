@@ -57,6 +57,16 @@ const promoCopy =
 						>
 							Register for the tournament on R2
 						</a>
+						{nextStop.bracketsHref && (
+							<a class="gp-register-promo__btn gp-register-promo__btn--ghost" href={nextStop.bracketsHref}>
+								View brackets
+							</a>
+						)}
+						{nextStop.participantsHref && (
+							<a class="gp-register-promo__btn gp-register-promo__btn--ghost" href={nextStop.participantsHref}>
+								View participants
+							</a>
+						)}
 						<a class="gp-register-promo__btn gp-register-promo__btn--ghost" href="/tournaments">
 							See full schedule
 						</a>

@@ -12,15 +12,25 @@ function itemClass(kind: SeasonStop['kind']) {
 <div class="season-strip" aria-label="Season schedule">
 	<div class="strip-track">
 		{
-			GRAND_PRIX_FULL_SCHEDULE.map((stop) => (
-				<div class={itemClass(stop.kind)}>
-					<span class="stop-dot"></span>
-					<span>
-						<span class="stop-num">{stop.label}</span>
-						{stop.cityLine} · {stop.dateHint}
-					</span>
-				</div>
-			))
+			GRAND_PRIX_FULL_SCHEDULE.map((stop) => {
+				const href = stop.bracketsHref ?? stop.participantsHref;
+				const inner = (
+					<>
+						<span class="stop-dot"></span>
+						<span>
+							<span class="stop-num">{stop.label}</span>
+							{stop.cityLine} · {stop.dateHint}
+						</span>
+					</>
+				);
+				return href ? (
+					<a class={itemClass(stop.kind)} href={href} aria-label={`${stop.eventName} brackets`}>
+						{inner}
+					</a>
+				) : (
+					<div class={itemClass(stop.kind)}>{inner}</div>
+				);
+			})
 		}
 	</div>
 </div>
