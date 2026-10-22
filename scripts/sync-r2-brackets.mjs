@@ -5,7 +5,8 @@
  * src/data/<event>-results.json.  Called automatically by the GitHub Actions
  * cron workflow every 10 minutes during the tournament weekend.
  *
- * Select the event with a CLI arg (defaults to sarasota):
+ * Select the event with a CLI arg (defaults to psl):
+ *   node scripts/sync-r2-brackets.mjs psl
  *   node scripts/sync-r2-brackets.mjs sarasota
  *   node scripts/sync-r2-brackets.mjs ocala
  *
@@ -40,7 +41,7 @@ const ACTIVITY_PATH = resolve(__dirname, '../public/data/live-activity.json');
 const MAX_ACTIVITY_EVENTS = 80;
 
 // ── Per-event configuration ─────────────────────────────────────────────────
-// Select with CLI arg: `node scripts/sync-r2-brackets.mjs sarasota` (default: sarasota)
+// Select with CLI arg: `node scripts/sync-r2-brackets.mjs psl` (default: psl)
 
 const EVENT_CONFIGS = {
 	ocala: {
@@ -155,9 +156,57 @@ const EVENT_CONFIGS = {
 			{ code: 'MDS',   divID: 0,   combinedID: 237436 },
 		],
 	},
+	psl: {
+		slug: 'port-st-lucie-open',
+		tid: '54248',
+		resultsPath: resolve(__dirname, '../src/data/port-st-lucie-results.json'),
+		divisionLabels: {
+			'mens-singles-open': "Men's Singles: Open",
+			'mens-singles-elite': "Men's Singles: Elite",
+			'mens-singles-a': "Men's Singles: A",
+			'mens-singles-b': "Men's Singles: B",
+			'mens-age-3040': "Men's Age Singles: 24/30/40",
+			'mens-age-50': "Men's Age Singles: 50+",
+			'mens-age-60': "Men's Age Singles: 60+",
+			'mens-doubles-open': "Men's Doubles: Open",
+			'mens-doubles-elite': "Men's Doubles: Elite",
+			'mens-doubles-a': "Men's Doubles: A",
+			'mens-doubles-b': "Men's Doubles: B",
+			'mens-doubles-centurion': "Men's Doubles: Centurion/Super",
+		},
+		codeIdMap: {
+			MO:    'mens-singles-open',
+			ME:    'mens-singles-elite',
+			MA:    'mens-singles-a',
+			MB:    'mens-singles-b',
+			M3040: 'mens-age-3040',
+			'M50+': 'mens-age-50',
+			'M60+': 'mens-age-60',
+			MOD:   'mens-doubles-open',
+			MED:   'mens-doubles-elite',
+			MAD:   'mens-doubles-a',
+			MBD:   'mens-doubles-b',
+			MCSD:  'mens-doubles-centurion',
+		},
+		// From listDivs.asp?TID=54248 viewBracket(divID, combinedID) links
+		divisionUrls: [
+			{ code: 'MO',    divID: 2,   combinedID: 0 },
+			{ code: 'ME',    divID: 753, combinedID: 0 },
+			{ code: 'MA',    divID: 3,   combinedID: 0 },
+			{ code: 'MB',    divID: 4,   combinedID: 0 },
+			{ code: 'M3040', divID: 0,   combinedID: 239162 },
+			{ code: 'M50+',  divID: 22,  combinedID: 0 },
+			{ code: 'M60+',  divID: 26,  combinedID: 0 },
+			{ code: 'MOD',   divID: 68,  combinedID: 0 },
+			{ code: 'MED',   divID: 756, combinedID: 0 },
+			{ code: 'MAD',   divID: 69,  combinedID: 0 },
+			{ code: 'MBD',   divID: 70,  combinedID: 0 },
+			{ code: 'MCSD',  divID: 0,   combinedID: 239171 },
+		],
+	},
 };
 
-const eventKey = process.argv[2] ?? 'sarasota';
+const eventKey = process.argv[2] ?? 'psl';
 const EVENT = EVENT_CONFIGS[eventKey];
 if (!EVENT) {
 	console.error(`Unknown event "${eventKey}". Valid: ${Object.keys(EVENT_CONFIGS).join(', ')}`);
@@ -812,7 +861,8 @@ async function main() {
 
 	const newActivity = detectActivityChanges(existing.divisions ?? {}, mergedDivisions, at);
 	const prevFeed = readActivityFeed();
-	const mergedEvents = [...newActivity, ...(prevFeed.events ?? [])].slice(0, MAX_ACTIVITY_EVENTS);
+	const prevEvents = prevFeed.eventSlug === EVENT_SLUG ? (prevFeed.events ?? []) : [];
+	const mergedEvents = [...newActivity, ...prevEvents].slice(0, MAX_ACTIVITY_EVENTS);
 	const activityOutput = {
 		lastUpdated: at,
 		eventSlug: EVENT_SLUG,

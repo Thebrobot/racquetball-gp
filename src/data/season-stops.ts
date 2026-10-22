@@ -88,7 +88,8 @@ export const SEASON_STOPS: SeasonStop[] = [
 		registerUrl: 'https://www.r2sports.com/tourney/home.asp?TID=54248',
 		bentoGridArea: 'c2',
 		watchLiveUrl: GRAND_PRIX_FACEBOOK_URL,
-		watchLiveDisabled: true,
+		bracketsHref: '/events/port-st-lucie-open#brackets',
+		participantsHref: '/events/port-st-lucie-open#participants',
 		photoCredit:
 			'Photo: Port St. Lucie City Hall, Birbie28 / Wikimedia Commons (CC BY-SA 4.0). Civic Center hosts the tournament.',
 	},

@@ -24,7 +24,7 @@ type LiveActivityFeed = {
 };
 
 const feedPath = join(process.cwd(), 'public/data/live-activity.json');
-let feed: LiveActivityFeed = { lastUpdated: null, eventSlug: 'ocala-open', events: [] };
+let feed: LiveActivityFeed = { lastUpdated: null, eventSlug: 'port-st-lucie-open', events: [] };
 try {
 	feed = JSON.parse(readFileSync(feedPath, 'utf-8')) as LiveActivityFeed;
 } catch {
@@ -51,7 +51,7 @@ function formatSyncedAt(iso: string | null): string {
 
 <GrandPrixLayout
 	title="Live Updates | Florida Racquetball Grand Prix"
-	description="Live bracket updates from the Ocala Open — match results and advancing players as scores are posted."
+	description="Live bracket updates from the Florida Racquetball Grand Prix — match results and advancing players as scores are posted."
 	spotlightLabel="Title sponsor"
 	spotlightName={titleSponsor.name}
 	spotlightBlurb={titleSponsor.blurb}
