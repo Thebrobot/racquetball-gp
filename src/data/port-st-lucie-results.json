@@ -1,4 +1,217 @@
 {
-  "lastUpdated": null,
-  "divisions": {}
+  "lastUpdated": "2026-10-22T18:09:19.346Z",
+  "divisions": {
+    "mens-singles-open": {
+      "MO6": {
+        "player1": "Annie Sanchez",
+        "player2": "Chris Steinheiser"
+      },
+      "MO5": {
+        "player1": "Naomi Ros",
+        "player2": "Joe Linnell"
+      },
+      "MO4": {
+        "player1": "Annie Sanchez",
+        "player2": "Joe Linnell"
+      },
+      "MO3": {
+        "player1": "Naomi Ros",
+        "player2": "Chris Steinheiser"
+      },
+      "MO2": {
+        "player1": "Joe Linnell",
+        "player2": "Chris Steinheiser"
+      },
+      "MO1": {
+        "player1": "Annie Sanchez",
+        "player2": "Naomi Ros"
+      }
+    },
+    "mens-singles-elite": {
+      "ME9": {
+        "player1": "Trevor Morgan",
+        "player2": "Richard Unzueta"
+      },
+      "ME11": {
+        "player1": "Alex Bartolome",
+        "player2": "Greg Caruso"
+      },
+      "ME10": {
+        "player1": "Wade Stubanas",
+        "player2": "Chris Dermody"
+      },
+      "ME5": {
+        "player1": "S De Witt",
+        "player2": "I Taylor"
+      }
+    },
+    "mens-singles-a": {
+      "MA9": {
+        "player1": "Elijah Saunders",
+        "player2": "Jose Gallegos"
+      },
+      "MA5": {
+        "player1": "B Haacke",
+        "player2": "B Kniesly"
+      },
+      "MA6": {
+        "player1": "J Cheng",
+        "player2": "L Prince Jr."
+      },
+      "MA7": {
+        "player1": "J Wuchte",
+        "player2": "B Grantham"
+      }
+    },
+    "mens-singles-b": {
+      "MB9": {
+        "player1": "Elijah Saunders",
+        "player2": "Mark Manzano"
+      },
+      "MB10": {
+        "player1": "Ben Mordkovich",
+        "player2": "Ann Brandt"
+      },
+      "MB5": {
+        "player1": "D Bray",
+        "player2": "R Appleby"
+      },
+      "MB6": {
+        "player1": "K Artman",
+        "player2": "J Estepan"
+      }
+    },
+    "mens-age-3040": {
+      "M30406": {
+        "player1": "Scott Haacke",
+        "player2": "Alex Bartolome"
+      },
+      "M30405": {
+        "player1": "Jason Cheng",
+        "player2": "Trevor Morgan"
+      },
+      "M30404": {
+        "player1": "Scott Haacke",
+        "player2": "Trevor Morgan"
+      },
+      "M30403": {
+        "player1": "Jason Cheng",
+        "player2": "Alex Bartolome"
+      },
+      "M30402": {
+        "player1": "Trevor Morgan",
+        "player2": "Alex Bartolome"
+      },
+      "M30401": {
+        "player1": "Scott Haacke",
+        "player2": "Jason Cheng"
+      }
+    },
+    "mens-age-50": {
+      "M50+5": {
+        "player1": "Richard Unzueta",
+        "player2": "Ben Kniesly"
+      },
+      "M50+3": {
+        "player1": "J Johnston",
+        "player2": "T Schnellenberger"
+      }
+    },
+    "mens-age-60": {
+      "M60+9": {
+        "player1": "John Wuchte",
+        "player2": "Larry Prince Jr."
+      },
+      "M60+5": {
+        "player1": "S Gill",
+        "player2": "M Boyar"
+      },
+      "M60+6": {
+        "player1": "D Huck",
+        "player2": "S Disalvo"
+      },
+      "M60+7": {
+        "player1": "J Russell",
+        "player2": "C Cole"
+      }
+    },
+    "mens-doubles-open": {
+      "MOD3": {
+        "player1": "Naomi Ros / Mike Kinkin",
+        "player2": "Jack McDonald / Yelandi Rivero"
+      },
+      "MOD2": {
+        "player1": "Annie Sanchez / Samuel Schulze",
+        "player2": "Jack McDonald / Yelandi Rivero"
+      },
+      "MOD1": {
+        "player1": "Annie Sanchez / Samuel Schulze",
+        "player2": "Naomi Ros / Mike Kinkin"
+      }
+    },
+    "mens-doubles-elite": {
+      "MED9": {
+        "player1": "Jack McDonald / Yelandi Rivero",
+        "player2": "Shane De Witt / Chris Dermody"
+      },
+      "MED11": {
+        "player1": "Mike Bock / Terry Money",
+        "player2": "Chris Steinheiser / John Johnston"
+      },
+      "MED10": {
+        "player1": "Dirk Huck / John Joseph",
+        "player2": "Alex Bartolome /"
+      },
+      "MED5": {
+        "player1": "Abondano / Fry",
+        "player2": "Stubanas / Grantham"
+      }
+    },
+    "mens-doubles-a": {
+      "MAD5": {
+        "player1": "Brendan Anthony / Jose Gallegos",
+        "player2": "Paul Sotolongo / Kyle Artman"
+      },
+      "MAD6": {
+        "player1": "Elijah Saunders / Jaime Abondano",
+        "player2": "Troy Ayers / Greg Caruso"
+      }
+    },
+    "mens-doubles-b": {
+      "MBD6": {
+        "player1": "Ryan Appleby / Matt Kern",
+        "player2": "Steve Disalvo / Kyle Artman"
+      },
+      "MBD5": {
+        "player1": "Paul Sotolongo / Mark Manzano",
+        "player2": "Jonathan Estepan / Daniel Bray"
+      },
+      "MBD4": {
+        "player1": "Ryan Appleby / Matt Kern",
+        "player2": "Jonathan Estepan / Daniel Bray"
+      },
+      "MBD3": {
+        "player1": "Paul Sotolongo / Mark Manzano",
+        "player2": "Steve Disalvo / Kyle Artman"
+      },
+      "MBD2": {
+        "player1": "Jonathan Estepan / Daniel Bray",
+        "player2": "Steve Disalvo / Kyle Artman"
+      },
+      "MBD1": {
+        "player1": "Ryan Appleby / Matt Kern",
+        "player2": "Paul Sotolongo / Mark Manzano"
+      }
+    },
+    "mens-doubles-centurion": {
+      "MCSD5": {
+        "player1": "Mike Bock / Terry Money",
+        "player2": "Timothy Burke / Troy Ayers"
+      },
+      "MCSD6": {
+        "player1": "Dirk Huck / John Joseph",
+        "player2": "Jack McDonald / Yelandi Rivero"
+      }
+    }
+  }
 }

@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-15T16:43:38.058Z",
+  "lastUpdated": "2026-10-22T18:09:23.642Z",
   "sourceSheetId": "1twUWpgQmx5p7qQE5UAd9ynlWfbjWP9RZTjwP9LtqYbc",
   "events": [
     {
@@ -28,9 +28,9 @@
         },
         {
           "place": 2,
-          "name": "Alejandro Herrera",
-          "s1": 100,
-          "s2": 0,
+          "name": "Eduardo Portillo Torres",
+          "s1": 0,
+          "s2": 100,
           "wins": 0,
           "attendance": 1,
           "status": "pace",
@@ -48,9 +48,9 @@
         },
         {
           "place": 4,
-          "name": "Eduardo Portillo Torres",
-          "s1": 0,
-          "s2": 100,
+          "name": "Alejandro Herrera",
+          "s1": 100,
+          "s2": 0,
           "wins": 0,
           "attendance": 1,
           "status": "pace",
@@ -77,7 +77,7 @@
           "city": ""
         },
         {
-          "place": 7,
+          "place": 6,
           "name": "Chris Steinheiser",
           "s1": 25,
           "s2": 25,
@@ -117,7 +117,7 @@
           "city": ""
         },
         {
-          "place": 11,
+          "place": 10,
           "name": "Orlando J. Huyke",
           "s1": 25,
           "s2": 0,
@@ -127,7 +127,7 @@
           "city": ""
         },
         {
-          "place": 12,
+          "place": 10,
           "name": "Sam Schulze",
           "s1": 25,
           "s2": 0,
@@ -137,7 +137,7 @@
           "city": ""
         },
         {
-          "place": 13,
+          "place": 10,
           "name": "Scott Haacke",
           "s1": 25,
           "s2": 0,
@@ -160,21 +160,21 @@
         },
         {
           "place": 2,
-          "name": "Orlando J. Huyke",
-          "s1": 100,
-          "s2": 0,
-          "wins": 0,
-          "attendance": 1,
-          "status": "pace",
-          "city": ""
-        },
-        {
-          "place": 3,
           "name": "Samuel Schulze",
           "s1": 25,
           "s2": 75,
           "wins": 0,
           "attendance": 2,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 3,
+          "name": "Orlando J. Huyke",
+          "s1": 100,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
           "status": "pace",
           "city": ""
         },
@@ -190,6 +190,16 @@
         },
         {
           "place": 5,
+          "name": "Richard Unzueta",
+          "s1": 0,
+          "s2": 50,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 6,
           "name": "Darron Toston",
           "s1": 50,
           "s2": 0,
@@ -209,17 +219,7 @@
           "city": ""
         },
         {
-          "place": 7,
-          "name": "Richard Unzueta",
-          "s1": 0,
-          "s2": 50,
-          "wins": 0,
-          "attendance": 1,
-          "status": "chase",
-          "city": ""
-        },
-        {
-          "place": 8,
+          "place": 6,
           "name": "Trace Gunsch",
           "s1": 50,
           "s2": 0,
@@ -239,7 +239,7 @@
           "city": ""
         },
         {
-          "place": 10,
+          "place": 9,
           "name": "Jordan Deeney",
           "s1": 25,
           "s2": 0,
@@ -249,7 +249,7 @@
           "city": ""
         },
         {
-          "place": 11,
+          "place": 9,
           "name": "Jorge Moreno",
           "s1": 25,
           "s2": 0,
@@ -259,7 +259,7 @@
           "city": ""
         },
         {
-          "place": 12,
+          "place": 9,
           "name": "Scott Haacke",
           "s1": 25,
           "s2": 0,
@@ -269,7 +269,7 @@
           "city": ""
         },
         {
-          "place": 13,
+          "place": 9,
           "name": "Timothy Schnellenberger",
           "s1": 25,
           "s2": 0,
@@ -282,9 +282,9 @@
       "mens-singles-a": [
         {
           "place": 1,
-          "name": "Brendan Anthony",
-          "s1": 75,
-          "s2": 50,
+          "name": "Wade Stubanas",
+          "s1": 25,
+          "s2": 100,
           "wins": 0,
           "attendance": 2,
           "status": "q",
@@ -292,9 +292,9 @@
         },
         {
           "place": 2,
-          "name": "Wade Stubanas",
-          "s1": 25,
-          "s2": 100,
+          "name": "Brendan Anthony",
+          "s1": 75,
+          "s2": 50,
           "wins": 0,
           "attendance": 2,
           "status": "pace",
@@ -351,7 +351,37 @@
           "city": ""
         },
         {
-          "place": 8,
+          "place": 7,
+          "name": "Mike Caldwell",
+          "s1": 0,
+          "s2": 25,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 7,
+          "name": "Oscar Sanchez",
+          "s1": 0,
+          "s2": 25,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 7,
+          "name": "Van Soles",
+          "s1": 0,
+          "s2": 25,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 11,
           "name": "Jorge Moreno",
           "s1": 25,
           "s2": 0,
@@ -361,7 +391,7 @@
           "city": ""
         },
         {
-          "place": 9,
+          "place": 11,
           "name": "Kleber Oliveira",
           "s1": 25,
           "s2": 0,
@@ -371,7 +401,7 @@
           "city": ""
         },
         {
-          "place": 10,
+          "place": 11,
           "name": "Kyle Artman",
           "s1": 25,
           "s2": 0,
@@ -391,27 +421,7 @@
           "city": ""
         },
         {
-          "place": 12,
-          "name": "Mike Caldwell",
-          "s1": 0,
-          "s2": 25,
-          "wins": 0,
-          "attendance": 1,
-          "status": "chase",
-          "city": ""
-        },
-        {
-          "place": 13,
-          "name": "Oscar Sanchez",
-          "s1": 0,
-          "s2": 25,
-          "wins": 0,
-          "attendance": 1,
-          "status": "chase",
-          "city": ""
-        },
-        {
-          "place": 14,
+          "place": 11,
           "name": "Robert Yanchis",
           "s1": 25,
           "s2": 0,
@@ -421,20 +431,10 @@
           "city": ""
         },
         {
-          "place": 15,
+          "place": 11,
           "name": "Russel O'Neal",
           "s1": 25,
           "s2": 0,
-          "wins": 0,
-          "attendance": 1,
-          "status": "chase",
-          "city": ""
-        },
-        {
-          "place": 16,
-          "name": "Van Soles",
-          "s1": 0,
-          "s2": 25,
           "wins": 0,
           "attendance": 1,
           "status": "chase",
@@ -474,29 +474,29 @@
         },
         {
           "place": 4,
-          "name": "Edgar Martinez",
-          "s1": 50,
-          "s2": 25,
+          "name": "Ryan Appleby",
+          "s1": 25,
+          "s2": 50,
           "wins": 0,
           "attendance": 2,
           "status": "pace",
           "city": ""
         },
         {
-          "place": 5,
-          "name": "Ryan Appleby",
+          "place": 4,
+          "name": "Scott Gill",
           "s1": 25,
           "s2": 50,
           "wins": 0,
           "attendance": 2,
-          "status": "chase",
+          "status": "pace",
           "city": ""
         },
         {
           "place": 6,
-          "name": "Scott Gill",
-          "s1": 25,
-          "s2": 50,
+          "name": "Edgar Martinez",
+          "s1": 50,
+          "s2": 25,
           "wins": 0,
           "attendance": 2,
           "status": "chase",
@@ -513,7 +513,7 @@
           "city": ""
         },
         {
-          "place": 8,
+          "place": 7,
           "name": "Mark Manzano",
           "s1": 25,
           "s2": 25,
@@ -533,7 +533,17 @@
           "city": ""
         },
         {
-          "place": 10,
+          "place": 9,
+          "name": "Ivars Blums",
+          "s1": 0,
+          "s2": 25,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 11,
           "name": "Ashley Medlock",
           "s1": 25,
           "s2": 0,
@@ -553,7 +563,7 @@
           "city": ""
         },
         {
-          "place": 12,
+          "place": 11,
           "name": "Haven Artman",
           "s1": 25,
           "s2": 0,
@@ -563,17 +573,7 @@
           "city": ""
         },
         {
-          "place": 13,
-          "name": "Ivars Blums",
-          "s1": 0,
-          "s2": 25,
-          "wins": 0,
-          "attendance": 1,
-          "status": "chase",
-          "city": ""
-        },
-        {
-          "place": 14,
+          "place": 11,
           "name": "Jonathan Estepan",
           "s1": 25,
           "s2": 0,
@@ -583,7 +583,7 @@
           "city": ""
         },
         {
-          "place": 15,
+          "place": 11,
           "name": "Mike Caldwell",
           "s1": 25,
           "s2": 0,
@@ -596,21 +596,21 @@
       "mens-singles-c": [
         {
           "place": 1,
-          "name": "Ben Mordkovich",
-          "s1": 75,
-          "s2": 25,
-          "wins": 0,
-          "attendance": 2,
-          "status": "q",
-          "city": ""
-        },
-        {
-          "place": 2,
           "name": "Marco Port",
           "s1": 0,
           "s2": 100,
           "wins": 0,
           "attendance": 1,
+          "status": "q",
+          "city": ""
+        },
+        {
+          "place": 2,
+          "name": "Ben Mordkovich",
+          "s1": 75,
+          "s2": 25,
+          "wins": 0,
+          "attendance": 2,
           "status": "pace",
           "city": ""
         },
@@ -658,9 +658,9 @@
       "mens-age-50": [
         {
           "place": 1,
-          "name": "Chad Beacher",
-          "s1": 100,
-          "s2": 0,
+          "name": "Heriberto Cruz-Anaya",
+          "s1": 0,
+          "s2": 100,
           "wins": 0,
           "attendance": 1,
           "status": "q",
@@ -668,21 +668,21 @@
         },
         {
           "place": 2,
-          "name": "Heriberto Cruz-Anaya",
-          "s1": 0,
-          "s2": 100,
-          "wins": 0,
-          "attendance": 1,
-          "status": "pace",
-          "city": ""
-        },
-        {
-          "place": 3,
           "name": "John Johnston",
           "s1": 50,
           "s2": 50,
           "wins": 0,
           "attendance": 2,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 3,
+          "name": "Chad Beacher",
+          "s1": 100,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
           "status": "pace",
           "city": ""
         },
@@ -708,16 +708,6 @@
         },
         {
           "place": 6,
-          "name": "Chris Steinheiser",
-          "s1": 50,
-          "s2": 0,
-          "wins": 0,
-          "attendance": 1,
-          "status": "chase",
-          "city": ""
-        },
-        {
-          "place": 7,
           "name": "Miguel Angel Gonzalez",
           "s1": 0,
           "s2": 50,
@@ -727,9 +717,9 @@
           "city": ""
         },
         {
-          "place": 8,
-          "name": "Charles Cole",
-          "s1": 25,
+          "place": 7,
+          "name": "Chris Steinheiser",
+          "s1": 50,
           "s2": 0,
           "wins": 0,
           "attendance": 1,
@@ -737,7 +727,7 @@
           "city": ""
         },
         {
-          "place": 9,
+          "place": 8,
           "name": "David Wilmore Jr.",
           "s1": 0,
           "s2": 25,
@@ -747,7 +737,7 @@
           "city": ""
         },
         {
-          "place": 10,
+          "place": 8,
           "name": "Luis Macias",
           "s1": 0,
           "s2": 25,
@@ -757,7 +747,7 @@
           "city": ""
         },
         {
-          "place": 11,
+          "place": 8,
           "name": "Richard Unzueta",
           "s1": 0,
           "s2": 25,
@@ -767,7 +757,7 @@
           "city": ""
         },
         {
-          "place": 12,
+          "place": 8,
           "name": "Robert Voor",
           "s1": 0,
           "s2": 25,
@@ -777,7 +767,17 @@
           "city": ""
         },
         {
-          "place": 13,
+          "place": 12,
+          "name": "Charles Cole",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 12,
           "name": "Timothy Schnellenberger",
           "s1": 25,
           "s2": 0,
@@ -787,7 +787,7 @@
           "city": ""
         },
         {
-          "place": 14,
+          "place": 12,
           "name": "Trace Gunsch",
           "s1": 25,
           "s2": 0,
@@ -830,9 +830,9 @@
         },
         {
           "place": 4,
-          "name": "Eric Foley",
-          "s1": 50,
-          "s2": 0,
+          "name": "Ivars Blums",
+          "s1": 0,
+          "s2": 50,
           "wins": 0,
           "attendance": 1,
           "status": "pace",
@@ -840,16 +840,16 @@
         },
         {
           "place": 5,
-          "name": "Ivars Blums",
-          "s1": 0,
-          "s2": 50,
+          "name": "Eric Foley",
+          "s1": 50,
+          "s2": 0,
           "wins": 0,
           "attendance": 1,
           "status": "chase",
           "city": ""
         },
         {
-          "place": 6,
+          "place": 5,
           "name": "Michael Ammen",
           "s1": 50,
           "s2": 0,
@@ -860,6 +860,16 @@
         },
         {
           "place": 7,
+          "name": "Oscar Urquidi",
+          "s1": 0,
+          "s2": 25,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 8,
           "name": "Laura Brandt",
           "s1": 25,
           "s2": 0,
@@ -870,16 +880,6 @@
         },
         {
           "place": 8,
-          "name": "Oscar Urquidi",
-          "s1": 0,
-          "s2": 25,
-          "wins": 0,
-          "attendance": 1,
-          "status": "chase",
-          "city": ""
-        },
-        {
-          "place": 9,
           "name": "Russel O'Neal",
           "s1": 25,
           "s2": 0,
@@ -912,6 +912,16 @@
         },
         {
           "place": 3,
+          "name": "Oscar Urquidi",
+          "s1": 0,
+          "s2": 50,
+          "wins": 0,
+          "attendance": 1,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 4,
           "name": "Michael Ammen",
           "s1": 50,
           "s2": 0,
@@ -922,22 +932,12 @@
         },
         {
           "place": 4,
-          "name": "Oscar Urquidi",
-          "s1": 0,
-          "s2": 50,
-          "wins": 0,
-          "attendance": 1,
-          "status": "pace",
-          "city": ""
-        },
-        {
-          "place": 5,
           "name": "Philip Gaerlan",
           "s1": 50,
           "s2": 0,
           "wins": 0,
           "attendance": 1,
-          "status": "chase",
+          "status": "pace",
           "city": ""
         },
         {
@@ -998,26 +998,36 @@
       "mens-doubles-open": [
         {
           "place": 1,
-          "name": "Charles Nolan",
-          "s1": 25,
-          "s2": 25,
-          "wins": 0,
-          "attendance": 2,
-          "status": "q",
-          "city": ""
-        },
-        {
-          "place": 2,
           "name": "Daniel De La Rosa",
           "s1": 0,
           "s2": 50,
           "wins": 0,
           "attendance": 1,
-          "status": "pace",
+          "status": "q",
+          "city": ""
+        },
+        {
+          "place": 1,
+          "name": "Samuel Schulze",
+          "s1": 0,
+          "s2": 50,
+          "wins": 0,
+          "attendance": 1,
+          "status": "q",
           "city": ""
         },
         {
           "place": 3,
+          "name": "Charles Nolan",
+          "s1": 25,
+          "s2": 25,
+          "wins": 0,
+          "attendance": 2,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 4,
           "name": "Mario A. Huyke",
           "s1": 50,
           "s2": 0,
@@ -1037,37 +1047,7 @@
           "city": ""
         },
         {
-          "place": 5,
-          "name": "Samuel Schulze",
-          "s1": 0,
-          "s2": 50,
-          "wins": 0,
-          "attendance": 1,
-          "status": "chase",
-          "city": ""
-        },
-        {
           "place": 6,
-          "name": "Chad Beacher",
-          "s1": 37.5,
-          "s2": 0,
-          "wins": 0,
-          "attendance": 1,
-          "status": "chase",
-          "city": ""
-        },
-        {
-          "place": 7,
-          "name": "Darron Toston",
-          "s1": 37.5,
-          "s2": 0,
-          "wins": 0,
-          "attendance": 1,
-          "status": "chase",
-          "city": ""
-        },
-        {
-          "place": 8,
           "name": "Eduardo Portillo Torres",
           "s1": 0,
           "s2": 37.5,
@@ -1077,7 +1057,7 @@
           "city": ""
         },
         {
-          "place": 9,
+          "place": 6,
           "name": "Mike Kinkin",
           "s1": 0,
           "s2": 37.5,
@@ -1087,12 +1067,32 @@
           "city": ""
         },
         {
-          "place": 10,
+          "place": 8,
           "name": "Yelandi Rivero",
           "s1": 25,
           "s2": 12.5,
           "wins": 0,
           "attendance": 2,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 9,
+          "name": "Chad Beacher",
+          "s1": 37.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 9,
+          "name": "Darron Toston",
+          "s1": 37.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
           "status": "chase",
           "city": ""
         },
@@ -1107,20 +1107,30 @@
           "city": ""
         },
         {
-          "place": 12,
-          "name": "Chris Steinheiser",
-          "s1": 25,
-          "s2": 0,
+          "place": 11,
+          "name": "Dylan Pruitt",
+          "s1": 0,
+          "s2": 25,
           "wins": 0,
           "attendance": 1,
           "status": "chase",
           "city": ""
         },
         {
-          "place": 13,
-          "name": "Dylan Pruitt",
+          "place": 11,
+          "name": "Nicholas Ramos",
           "s1": 0,
           "s2": 25,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 14,
+          "name": "Chris Steinheiser",
+          "s1": 25,
+          "s2": 0,
           "wins": 0,
           "attendance": 1,
           "status": "chase",
@@ -1137,16 +1147,6 @@
           "city": ""
         },
         {
-          "place": 15,
-          "name": "Nicholas Ramos",
-          "s1": 0,
-          "s2": 25,
-          "wins": 0,
-          "attendance": 1,
-          "status": "chase",
-          "city": ""
-        },
-        {
           "place": 16,
           "name": "Andres Ramirez",
           "s1": 0,
@@ -1157,7 +1157,7 @@
           "city": ""
         },
         {
-          "place": 17,
+          "place": 16,
           "name": "Mike Harmon",
           "s1": 0,
           "s2": 12.5,
@@ -1167,7 +1167,7 @@
           "city": ""
         },
         {
-          "place": 18,
+          "place": 16,
           "name": "Tony Gutierrez",
           "s1": 0,
           "s2": 12.5,
@@ -1189,13 +1189,13 @@
           "city": ""
         },
         {
-          "place": 2,
+          "place": 1,
           "name": "Samuel Schulze",
           "s1": 25,
           "s2": 50,
           "wins": 0,
           "attendance": 2,
-          "status": "pace",
+          "status": "q",
           "city": ""
         },
         {
@@ -1209,7 +1209,7 @@
           "city": ""
         },
         {
-          "place": 4,
+          "place": 3,
           "name": "Jim Russell",
           "s1": 50,
           "s2": 0,
@@ -1220,36 +1220,6 @@
         },
         {
           "place": 5,
-          "name": "Bryon Haacke",
-          "s1": 37.5,
-          "s2": 0,
-          "wins": 0,
-          "attendance": 1,
-          "status": "chase",
-          "city": ""
-        },
-        {
-          "place": 6,
-          "name": "John Johnston",
-          "s1": 25,
-          "s2": 12.5,
-          "wins": 0,
-          "attendance": 2,
-          "status": "chase",
-          "city": ""
-        },
-        {
-          "place": 7,
-          "name": "Scott Haacke",
-          "s1": 37.5,
-          "s2": 0,
-          "wins": 0,
-          "attendance": 1,
-          "status": "chase",
-          "city": ""
-        },
-        {
-          "place": 8,
           "name": "Timothy Burke",
           "s1": 0,
           "s2": 37.5,
@@ -1259,10 +1229,40 @@
           "city": ""
         },
         {
-          "place": 9,
+          "place": 5,
           "name": "Troy Ayers",
           "s1": 0,
           "s2": 37.5,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 7,
+          "name": "John Johnston",
+          "s1": 25,
+          "s2": 12.5,
+          "wins": 0,
+          "attendance": 2,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 8,
+          "name": "Bryon Haacke",
+          "s1": 37.5,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 8,
+          "name": "Scott Haacke",
+          "s1": 37.5,
+          "s2": 0,
           "wins": 0,
           "attendance": 1,
           "status": "chase",
@@ -1279,17 +1279,7 @@
           "city": ""
         },
         {
-          "place": 11,
-          "name": "Frank Lopez",
-          "s1": 25,
-          "s2": 0,
-          "wins": 0,
-          "attendance": 1,
-          "status": "chase",
-          "city": ""
-        },
-        {
-          "place": 12,
+          "place": 10,
           "name": "Yelandi Rivero",
           "s1": 0,
           "s2": 25,
@@ -1299,7 +1289,27 @@
           "city": ""
         },
         {
+          "place": 12,
+          "name": "Frank Lopez",
+          "s1": 25,
+          "s2": 0,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
           "place": 13,
+          "name": "Chris Steinheiser",
+          "s1": 0,
+          "s2": 12.5,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 14,
           "name": "Chad Beacher",
           "s1": 12.5,
           "s2": 0,
@@ -1319,17 +1329,7 @@
           "city": ""
         },
         {
-          "place": 15,
-          "name": "Chris Steinheiser",
-          "s1": 0,
-          "s2": 12.5,
-          "wins": 0,
-          "attendance": 1,
-          "status": "chase",
-          "city": ""
-        },
-        {
-          "place": 16,
+          "place": 14,
           "name": "Darron Toston",
           "s1": 12.5,
           "s2": 0,
@@ -1339,7 +1339,7 @@
           "city": ""
         },
         {
-          "place": 17,
+          "place": 14,
           "name": "Elijah Saunders",
           "s1": 12.5,
           "s2": 0,
@@ -1349,7 +1349,7 @@
           "city": ""
         },
         {
-          "place": 18,
+          "place": 14,
           "name": "Jiovanni Garcia",
           "s1": 12.5,
           "s2": 0,
@@ -1359,7 +1359,7 @@
           "city": ""
         },
         {
-          "place": 19,
+          "place": 14,
           "name": "Jordan Deeney",
           "s1": 12.5,
           "s2": 0,
@@ -1369,7 +1369,7 @@
           "city": ""
         },
         {
-          "place": 20,
+          "place": 14,
           "name": "Kleber Oliveira",
           "s1": 12.5,
           "s2": 0,
@@ -1379,7 +1379,7 @@
           "city": ""
         },
         {
-          "place": 21,
+          "place": 14,
           "name": "Kyle Artman",
           "s1": 12.5,
           "s2": 0,
@@ -1401,13 +1401,13 @@
           "city": ""
         },
         {
-          "place": 2,
+          "place": 1,
           "name": "Wade Stubanas",
           "s1": 50,
           "s2": 50,
           "wins": 0,
           "attendance": 2,
-          "status": "pace",
+          "status": "q",
           "city": ""
         },
         {
@@ -1421,10 +1421,10 @@
           "city": ""
         },
         {
-          "place": 4,
-          "name": "Bryon Haacke",
-          "s1": 37.5,
-          "s2": 0,
+          "place": 3,
+          "name": "Heriberto Cruz-Anaya",
+          "s1": 0,
+          "s2": 37.5,
           "wins": 0,
           "attendance": 1,
           "status": "pace",
@@ -1432,9 +1432,19 @@
         },
         {
           "place": 5,
-          "name": "Heriberto Cruz-Anaya",
-          "s1": 0,
-          "s2": 37.5,
+          "name": "Paul Sotolongo",
+          "s1": 25,
+          "s2": 12.5,
+          "wins": 0,
+          "attendance": 2,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 6,
+          "name": "Bryon Haacke",
+          "s1": 37.5,
+          "s2": 0,
           "wins": 0,
           "attendance": 1,
           "status": "chase",
@@ -1451,27 +1461,7 @@
           "city": ""
         },
         {
-          "place": 7,
-          "name": "Paul Sotolongo",
-          "s1": 25,
-          "s2": 12.5,
-          "wins": 0,
-          "attendance": 2,
-          "status": "chase",
-          "city": ""
-        },
-        {
           "place": 8,
-          "name": "Andres Urzua",
-          "s1": 25,
-          "s2": 0,
-          "wins": 0,
-          "attendance": 1,
-          "status": "chase",
-          "city": ""
-        },
-        {
-          "place": 9,
           "name": "Brendan Anthony",
           "s1": 0,
           "s2": 25,
@@ -1481,10 +1471,30 @@
           "city": ""
         },
         {
-          "place": 10,
+          "place": 8,
           "name": "Havan Artman",
           "s1": 0,
           "s2": 25,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 10,
+          "name": "Kyle Artman",
+          "s1": 12.5,
+          "s2": 12.5,
+          "wins": 0,
+          "attendance": 2,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 11,
+          "name": "Andres Urzua",
+          "s1": 25,
+          "s2": 0,
           "wins": 0,
           "attendance": 1,
           "status": "chase",
@@ -1501,7 +1511,7 @@
           "city": ""
         },
         {
-          "place": 12,
+          "place": 11,
           "name": "Jorge Moreno",
           "s1": 25,
           "s2": 0,
@@ -1511,30 +1521,30 @@
           "city": ""
         },
         {
-          "place": 13,
-          "name": "Kyle Artman",
-          "s1": 12.5,
-          "s2": 12.5,
-          "wins": 0,
-          "attendance": 2,
-          "status": "chase",
-          "city": ""
-        },
-        {
           "place": 14,
-          "name": "Ashley Medlock",
-          "s1": 12.5,
-          "s2": 0,
+          "name": "Gene Fry",
+          "s1": 0,
+          "s2": 12.5,
           "wins": 0,
           "attendance": 1,
           "status": "chase",
           "city": ""
         },
         {
-          "place": 15,
-          "name": "Gene Fry",
+          "place": 14,
+          "name": "Tony Gutierrez",
           "s1": 0,
           "s2": 12.5,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 16,
+          "name": "Ashley Medlock",
+          "s1": 12.5,
+          "s2": 0,
           "wins": 0,
           "attendance": 1,
           "status": "chase",
@@ -1551,7 +1561,7 @@
           "city": ""
         },
         {
-          "place": 17,
+          "place": 16,
           "name": "Kelly V.Z. Russell",
           "s1": 12.5,
           "s2": 0,
@@ -1561,7 +1571,7 @@
           "city": ""
         },
         {
-          "place": 18,
+          "place": 16,
           "name": "Robert Yanchis",
           "s1": 12.5,
           "s2": 0,
@@ -1571,20 +1581,10 @@
           "city": ""
         },
         {
-          "place": 19,
+          "place": 16,
           "name": "Ron Jennings",
           "s1": 12.5,
           "s2": 0,
-          "wins": 0,
-          "attendance": 1,
-          "status": "chase",
-          "city": ""
-        },
-        {
-          "place": 20,
-          "name": "Tony Gutierrez",
-          "s1": 0,
-          "s2": 12.5,
           "wins": 0,
           "attendance": 1,
           "status": "chase",
@@ -1603,13 +1603,13 @@
           "city": ""
         },
         {
-          "place": 2,
+          "place": 1,
           "name": "Ryan Appleby",
           "s1": 50,
           "s2": 50,
           "wins": 0,
           "attendance": 2,
-          "status": "pace",
+          "status": "q",
           "city": ""
         },
         {
@@ -1633,13 +1633,13 @@
           "city": ""
         },
         {
-          "place": 5,
+          "place": 4,
           "name": "Paul Sotolongo",
           "s1": 37.5,
           "s2": 12.5,
           "wins": 0,
           "attendance": 2,
-          "status": "chase",
+          "status": "pace",
           "city": ""
         },
         {
@@ -1653,7 +1653,7 @@
           "city": ""
         },
         {
-          "place": 7,
+          "place": 6,
           "name": "Mike Caldwell",
           "s1": 0,
           "s2": 37.5,
@@ -1683,7 +1683,7 @@
           "city": ""
         },
         {
-          "place": 10,
+          "place": 9,
           "name": "Mathew Brice",
           "s1": 25,
           "s2": 0,
@@ -1693,7 +1693,7 @@
           "city": ""
         },
         {
-          "place": 11,
+          "place": 9,
           "name": "Scott Swartz",
           "s1": 25,
           "s2": 0,
@@ -1713,7 +1713,7 @@
           "city": ""
         },
         {
-          "place": 13,
+          "place": 12,
           "name": "Jonathan Estepan",
           "s1": 12.5,
           "s2": 0,
@@ -1735,13 +1735,13 @@
           "city": ""
         },
         {
-          "place": 2,
+          "place": 1,
           "name": "Tony Gutierrez",
           "s1": 37.5,
           "s2": 50,
           "wins": 0,
           "attendance": 2,
-          "status": "pace",
+          "status": "q",
           "city": ""
         },
         {
@@ -1756,12 +1756,22 @@
         },
         {
           "place": 4,
+          "name": "John Johnston",
+          "s1": 25,
+          "s2": 25,
+          "wins": 0,
+          "attendance": 2,
+          "status": "pace",
+          "city": ""
+        },
+        {
+          "place": 5,
           "name": "Alejandro Herrera",
           "s1": 50,
           "s2": 0,
           "wins": 0,
           "attendance": 1,
-          "status": "pace",
+          "status": "chase",
           "city": ""
         },
         {
@@ -1771,16 +1781,6 @@
           "s2": 0,
           "wins": 0,
           "attendance": 1,
-          "status": "chase",
-          "city": ""
-        },
-        {
-          "place": 6,
-          "name": "John Johnston",
-          "s1": 25,
-          "s2": 25,
-          "wins": 0,
-          "attendance": 2,
           "status": "chase",
           "city": ""
         },
@@ -1815,7 +1815,7 @@
           "city": ""
         },
         {
-          "place": 10,
+          "place": 9,
           "name": "Frank Lopez",
           "s1": 25,
           "s2": 0,
@@ -1826,6 +1826,26 @@
         },
         {
           "place": 11,
+          "name": "Timothy Burke",
+          "s1": 0,
+          "s2": 12.5,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 11,
+          "name": "Troy Ayers",
+          "s1": 0,
+          "s2": 12.5,
+          "wins": 0,
+          "attendance": 1,
+          "status": "chase",
+          "city": ""
+        },
+        {
+          "place": 13,
           "name": "Amir Baig",
           "s1": 12.5,
           "s2": 0,
@@ -1835,7 +1855,7 @@
           "city": ""
         },
         {
-          "place": 12,
+          "place": 13,
           "name": "Andres Urzua",
           "s1": 12.5,
           "s2": 0,
@@ -1855,27 +1875,7 @@
           "city": ""
         },
         {
-          "place": 14,
-          "name": "Timothy Burke",
-          "s1": 0,
-          "s2": 12.5,
-          "wins": 0,
-          "attendance": 1,
-          "status": "chase",
-          "city": ""
-        },
-        {
-          "place": 15,
-          "name": "Troy Ayers",
-          "s1": 0,
-          "s2": 12.5,
-          "wins": 0,
-          "attendance": 1,
-          "status": "chase",
-          "city": ""
-        },
-        {
-          "place": 16,
+          "place": 13,
           "name": "Yelandi Rivero",
           "s1": 12.5,
           "s2": 0,
@@ -1897,33 +1897,33 @@
           "city": ""
         },
         {
-          "place": 2,
+          "place": 1,
           "name": "Gene Fry",
           "s1": 50,
           "s2": 0,
           "wins": 0,
           "attendance": 1,
-          "status": "pace",
+          "status": "q",
           "city": ""
         },
         {
-          "place": 3,
+          "place": 1,
           "name": "Hector Hernandez",
           "s1": 50,
           "s2": 0,
           "wins": 0,
           "attendance": 1,
-          "status": "pace",
+          "status": "q",
           "city": ""
         },
         {
-          "place": 4,
+          "place": 1,
           "name": "Tony Gutierrez",
           "s1": 50,
           "s2": 0,
           "wins": 0,
           "attendance": 1,
-          "status": "pace",
+          "status": "q",
           "city": ""
         },
         {
@@ -1937,7 +1937,7 @@
           "city": ""
         },
         {
-          "place": 6,
+          "place": 5,
           "name": "Steven Lewis",
           "s1": 37.5,
           "s2": 0,
@@ -1961,13 +1961,13 @@
           "city": ""
         },
         {
-          "place": 2,
+          "place": 1,
           "name": "Laura Brandt",
           "s1": 50,
           "s2": 0,
           "wins": 0,
           "attendance": 1,
-          "status": "pace",
+          "status": "q",
           "city": ""
         },
         {
@@ -1981,7 +1981,7 @@
           "city": ""
         },
         {
-          "place": 4,
+          "place": 3,
           "name": "Haven Artman",
           "s1": 37.5,
           "s2": 0,
@@ -2001,7 +2001,7 @@
           "city": ""
         },
         {
-          "place": 6,
+          "place": 5,
           "name": "Kelly V.Z. Russell",
           "s1": 25,
           "s2": 0,
@@ -2011,7 +2011,7 @@
           "city": ""
         },
         {
-          "place": 7,
+          "place": 5,
           "name": "Michelle Jennings",
           "s1": 25,
           "s2": 0,
@@ -2021,7 +2021,7 @@
           "city": ""
         },
         {
-          "place": 8,
+          "place": 5,
           "name": "Ron Jennings",
           "s1": 25,
           "s2": 0,
