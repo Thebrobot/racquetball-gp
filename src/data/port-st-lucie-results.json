@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-10-22T18:09:19.346Z",
+  "lastUpdated": "2026-10-23T21:38:34.183Z",
   "divisions": {
     "mens-singles-open": {
       "MO6": {
@@ -66,11 +66,15 @@
     "mens-singles-b": {
       "MB9": {
         "player1": "Elijah Saunders",
-        "player2": "Mark Manzano"
+        "player2": "Mark Manzano",
+        "winner": 1,
+        "score": "15-9,15-10"
       },
       "MB10": {
         "player1": "Ben Mordkovich",
-        "player2": "Ann Brandt"
+        "player2": "Ann Brandt",
+        "winner": 1,
+        "score": "15-13,15-13"
       },
       "MB5": {
         "player1": "D Bray",
@@ -79,6 +83,14 @@
       "MB6": {
         "player1": "K Artman",
         "player2": "J Estepan"
+      },
+      "MB8": {
+        "player1": "S Gill",
+        "player2": "E Saunders"
+      },
+      "MB7": {
+        "player1": "B Mordkovich",
+        "player2": "M Kern"
       }
     },
     "mens-age-3040": {
@@ -160,11 +172,17 @@
       },
       "MED10": {
         "player1": "Dirk Huck / John Joseph",
-        "player2": "Alex Bartolome /"
+        "player2": "Greg Caruso / Alex Bartolome",
+        "winner": 1,
+        "score": "WBF - No Show"
       },
       "MED5": {
         "player1": "Abondano / Fry",
         "player2": "Stubanas / Grantham"
+      },
+      "MED7": {
+        "player1": "Huck / Joseph",
+        "player2": "Haacke / Haacke"
       }
     },
     "mens-doubles-a": {
@@ -188,7 +206,9 @@
       },
       "MBD4": {
         "player1": "Ryan Appleby / Matt Kern",
-        "player2": "Jonathan Estepan / Daniel Bray"
+        "player2": "Jonathan Estepan / Daniel Bray",
+        "score": "15-4,15-9",
+        "winner": 1
       },
       "MBD3": {
         "player1": "Paul Sotolongo / Mark Manzano",

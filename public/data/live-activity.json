@@ -1,5 +1,66 @@
 {
-  "lastUpdated": "2026-10-22T18:09:19.346Z",
+  "lastUpdated": "2026-10-23T21:38:34.183Z",
   "eventSlug": "port-st-lucie-open",
-  "events": []
+  "events": [
+    {
+      "id": "2026-10-23T21:38:34.183Z-mens-singles-b-MB9",
+      "at": "2026-10-23T21:38:34.183Z",
+      "type": "result",
+      "divisionId": "mens-singles-b",
+      "divisionLabel": "Men's Singles: B",
+      "matchId": "MB9",
+      "headline": "Elijah Saunders def Mark Manzano",
+      "detail": "15-9,15-10",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-b",
+      "players": [
+        "Elijah Saunders",
+        "Mark Manzano"
+      ]
+    },
+    {
+      "id": "2026-10-23T21:38:34.183Z-mens-singles-b-MB10",
+      "at": "2026-10-23T21:38:34.183Z",
+      "type": "result",
+      "divisionId": "mens-singles-b",
+      "divisionLabel": "Men's Singles: B",
+      "matchId": "MB10",
+      "headline": "Ben Mordkovich def Ann Brandt",
+      "detail": "15-13,15-13",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-b",
+      "players": [
+        "Ben Mordkovich",
+        "Ann Brandt"
+      ]
+    },
+    {
+      "id": "2026-10-23T21:38:34.183Z-mens-doubles-elite-MED10",
+      "at": "2026-10-23T21:38:34.183Z",
+      "type": "result",
+      "divisionId": "mens-doubles-elite",
+      "divisionLabel": "Men's Doubles: Elite",
+      "matchId": "MED10",
+      "headline": "Dirk Huck / John Joseph def Greg Caruso / Alex Bartolome",
+      "detail": "WBF - No Show",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-elite",
+      "players": [
+        "Dirk Huck / John Joseph",
+        "Greg Caruso / Alex Bartolome"
+      ]
+    },
+    {
+      "id": "2026-10-23T21:38:34.183Z-mens-doubles-b-MBD4",
+      "at": "2026-10-23T21:38:34.183Z",
+      "type": "result",
+      "divisionId": "mens-doubles-b",
+      "divisionLabel": "Men's Doubles: B",
+      "matchId": "MBD4",
+      "headline": "Ryan Appleby / Matt Kern def Jonathan Estepan / Daniel Bray",
+      "detail": "15-4,15-9",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-b",
+      "players": [
+        "Ryan Appleby / Matt Kern",
+        "Jonathan Estepan / Daniel Bray"
+      ]
+    }
+  ]
 }
