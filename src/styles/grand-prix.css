@@ -9775,6 +9775,9 @@ html.gwel-open { overflow: hidden; }
 .gsub-file-state.is-ok { color: var(--green); }
 .gsub-file-state.is-bad { color: #ff8a8a; }
 .gsub .gwel-actions { margin-top: 10px; }
+.gsub button.gwel-btn { background: transparent; font: inherit; font-family: 'Barlow Condensed', sans-serif; cursor: pointer; }
+.gsub button.gwel-btn--primary { background: var(--orange); }
+.gsub button.gwel-btn--primary:hover { background: var(--orange2); }
 @media (max-width: 640px) { .gsub { padding: 10px; align-items: flex-end; } }
 
 /* ───── Admin: photo submissions ───── */
