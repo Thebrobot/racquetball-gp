@@ -79,7 +79,7 @@ function bottomActive(href: string): string {
 	</nav>
 </div>
 
-<!-- Bottom tab bar: mobile only, rendered via CSS display:none on desktop -->
+<!-- Bottom pill: mobile only. Live sits in the center so updates are one tap away. -->
 <nav class="gp-bottom-nav" aria-label="Primary navigation">
 	<a href="/" class:list={['gp-bottom-nav-item', bottomActive('/')]} aria-current={path === '/' ? 'page' : undefined}>
 		<svg viewBox="0 0 24 24" aria-hidden="true">
@@ -97,6 +97,22 @@ function bottomActive(href: string): string {
 		</svg>
 		<span>Schedule</span>
 	</a>
+	<a
+		href="/live"
+		id="gp-bottom-nav-live"
+		class:list={['gp-bottom-nav-item', 'gp-bottom-nav-item--live', bottomActive('/live')]}
+		aria-current={path.startsWith('/live') ? 'page' : undefined}
+		aria-label="Live updates"
+	>
+		<span class="gp-bottom-nav-live-orb">
+			<svg viewBox="0 0 24 24" aria-hidden="true">
+				<circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/>
+				<path d="M7.5 7.5a6.5 6.5 0 0 0 0 9"/>
+				<path d="M16.5 7.5a6.5 6.5 0 0 1 0 9"/>
+			</svg>
+		</span>
+		<span>Live</span>
+	</a>
 	<a href="/leaderboard" class:list={['gp-bottom-nav-item', bottomActive('/leaderboard')]} aria-current={path === '/leaderboard' || path.startsWith('/leaderboard/') ? 'page' : undefined}>
 		<svg viewBox="0 0 24 24" aria-hidden="true">
 			<line x1="18" y1="20" x2="18" y2="10"/>
@@ -112,26 +128,5 @@ function bottomActive(href: string): string {
 			<line x1="12" y1="16" x2="12.01" y2="16"/>
 		</svg>
 		<span>Points</span>
-	</a>
-	<a href="/sponsors" class:list={['gp-bottom-nav-item', bottomActive('/sponsors')]} aria-current={path === '/sponsors' ? 'page' : undefined}>
-		<svg viewBox="0 0 24 24" aria-hidden="true">
-			<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-		</svg>
-		<span>Sponsors</span>
-	</a>
-	<a
-		href="/live"
-		id="gp-bottom-nav-live"
-		class:list={['gp-bottom-nav-item', bottomActive('/live')]}
-		aria-current={path.startsWith('/live') ? 'page' : undefined}
-	>
-		<svg viewBox="0 0 24 24" aria-hidden="true">
-			<circle cx="12" cy="12" r="2"/>
-			<path d="M12 2a10 10 0 0 1 10 10"/>
-			<path d="M12 22a10 10 0 0 0-10-10"/>
-			<path d="M2 12h4"/>
-			<path d="M18 12h4"/>
-		</svg>
-		<span>Live</span>
 	</a>
 </nav>

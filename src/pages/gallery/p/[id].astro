@@ -26,7 +26,7 @@ const clientConfig: GalleryClientConfig = {
 	initialOpenId: photo.id,
 	initialAlbum: photo.album,
 	siteOrigin,
-	mode: 'browse',
+	mode: 'collection',
 };
 ---
 
@@ -40,16 +40,15 @@ const clientConfig: GalleryClientConfig = {
 >
 	<section class="gallery-page" aria-labelledby="gallery-heading">
 		<div class="gallery-page-inner">
-			<p class="gallery-kicker">Shared photo</p>
-			<h1 id="gallery-heading" class="gallery-title">
-				{titleBit}
-			</h1>
-			<p class="gallery-sub">
-				<a href="/gallery">Back to full gallery</a>
-			</p>
+			<header class="gallery-subhead">
+				<p class="gallery-kicker">Shared photo</p>
+				<h1 id="gallery-heading" class="gallery-title">{titleBit}</h1>
+				<p class="gallery-sub">
+					<a href="/gallery">Back to full gallery</a>
+				</p>
+			</header>
 
 			<div class="gallery-toolbar">
-				<div class="gallery-filters" id="gallery-filters" role="toolbar" aria-label="Filter by stop"></div>
 				<button type="button" class="gallery-select-toggle" id="gallery-select-toggle" aria-pressed="false">
 					Select
 				</button>
@@ -65,17 +64,34 @@ const clientConfig: GalleryClientConfig = {
 
 			<p class="gallery-empty" id="gallery-empty" hidden></p>
 			<div class="gallery-grid" id="gallery-grid"></div>
+			<div class="gallery-more-wrap" id="gallery-more-wrap" hidden>
+				<button type="button" class="gallery-load-more" id="gallery-load-more">Load more</button>
+			</div>
 		</div>
 	</section>
 
-	<div class="gallery-lightbox" id="gallery-lightbox" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-label="Expanded photo">
+	<div
+		class="gallery-lightbox"
+		id="gallery-lightbox"
+		hidden
+		aria-hidden="true"
+		role="dialog"
+		aria-modal="true"
+		aria-label="Expanded photo"
+	>
 		<div class="gallery-lb-top">
+			<button type="button" class="gallery-lb-like" id="gallery-lb-like" aria-pressed="false">Like</button>
+			<button type="button" class="gallery-lb-download" id="gallery-lb-download">Download</button>
 			<button type="button" class="gallery-lb-share" id="gallery-lb-share">Share</button>
 			<button type="button" class="gallery-lb-close" id="gallery-lb-close" aria-label="Close">×</button>
 		</div>
 		<button type="button" class="gallery-lb-nav gallery-lb-prev" id="gallery-lb-prev" aria-label="Previous photo">‹</button>
 		<figure class="gallery-lb-figure">
-			<img id="gallery-lb-img" src="" alt="" />
+			<span class="gallery-lb-frame">
+				<img id="gallery-lb-img" class="gallery-lb-photo" src="" alt="" />
+				<img class="gallery-watermark gallery-watermark--gp" src="/images/website-logo.webp" alt="" />
+				<img class="gallery-watermark gallery-watermark--credit" src="/images/daniel-bray-photography.png" alt="" />
+			</span>
 			<figcaption id="gallery-lb-caption"></figcaption>
 		</figure>
 		<button type="button" class="gallery-lb-nav gallery-lb-next" id="gallery-lb-next" aria-label="Next photo">›</button>

@@ -1,8 +1,10 @@
+import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
 import type { APIRoute } from 'astro';
 import { put } from '@vercel/blob';
 import { isValidAlbumId } from '../../../lib/gallery/albums';
 import { isGalleryAuthenticated } from '../../../lib/gallery/auth';
+import { readImageSize } from '../../../lib/gallery/image-size';
 import { addPhoto } from '../../../lib/gallery/store';
 import type { GalleryPhoto } from '../../../lib/gallery/types';
 
@@ -73,8 +75,10 @@ export const POST: APIRoute = async ({ request }) => {
 	const id = randomUUID();
 	const ext = extFor(file.type, file.name);
 	const pathname = `gallery/${album}/${id}.${ext}`;
+	const bytes = new Uint8Array(await file.arrayBuffer());
+	const size = readImageSize(bytes);
 
-	const blob = await put(pathname, file, {
+	const blob = await put(pathname, Buffer.from(bytes), {
 		access: 'public',
 		addRandomSuffix: false,
 		contentType: file.type || 'image/jpeg',
@@ -87,6 +91,7 @@ export const POST: APIRoute = async ({ request }) => {
 		album,
 		caption,
 		createdAt: new Date().toISOString(),
+		...(size ? { width: size.width, height: size.height } : {}),
 	};
 
 	await addPhoto(photo);

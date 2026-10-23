@@ -5,6 +5,13 @@ export type GalleryPhoto = {
 	album: string;
 	caption?: string;
 	createdAt: string;
+	/** Pixel size, stored so the masonry wall can reserve space before the file loads. */
+	width?: number;
+	height?: number;
+	photographer?: string;
+	division?: string;
+	/** Optional base like count. The public page keeps its own likes in localStorage. */
+	likes?: number;
 };
 
 export type GalleryIndex = {
@@ -14,7 +21,15 @@ export type GalleryIndex = {
 
 export type GalleryAlbum = {
 	id: string;
+	slug: string;
+	/** Event name. `label` matches it so existing admin markup can keep using `label`. */
 	label: string;
+	name: string;
+	date: string;
+	location: string;
+	coverImage: string;
+	description?: string;
+	year: number;
 };
 
 export type GalleryClientConfig = {

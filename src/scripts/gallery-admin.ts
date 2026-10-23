@@ -1,12 +1,16 @@
 import { upload } from '@vercel/blob/client';
+import { readImageSize } from '../lib/gallery/image-size';
+
+type PreparedUpload = { file: File; width?: number; height?: number };
 
 /** Re-encode to JPEG so iPhone HEIC/empty-type photos work everywhere. */
-async function fileToJpeg(file: File): Promise<File> {
+async function fileToJpeg(file: File): Promise<PreparedUpload> {
 	const type = (file.type || '').toLowerCase();
 	const name = file.name.toLowerCase();
 	const alreadyJpeg = type === 'image/jpeg' || type === 'image/jpg' || /\.jpe?g$/.test(name);
 	if (alreadyJpeg && file.size < 4 * 1024 * 1024) {
-		return file;
+		const size = readImageSize(new Uint8Array(await file.arrayBuffer()));
+		return { file, width: size?.width, height: size?.height };
 	}
 
 	let bitmap: ImageBitmap;
@@ -43,7 +47,11 @@ async function fileToJpeg(file: File): Promise<File> {
 	});
 
 	const base = file.name.replace(/\.[^.]+$/, '') || 'photo';
-	return new File([blob], `${base}.jpg`, { type: 'image/jpeg', lastModified: Date.now() });
+	return {
+		file: new File([blob], `${base}.jpg`, { type: 'image/jpeg', lastModified: Date.now() }),
+		width,
+		height,
+	};
 }
 
 type RegisteredPhoto = {
@@ -121,7 +129,8 @@ function initGalleryAdmin(): void {
 			const id = crypto.randomUUID();
 
 			try {
-				const jpeg = await fileToJpeg(original);
+				const prepared = await fileToJpeg(original);
+				const jpeg = prepared.file;
 				const pathname = `gallery/${album}/${id}.jpg`;
 				status.textContent = `Uploading ${i + 1} of ${fileList.length}… 0%`;
 
@@ -145,6 +154,8 @@ function initGalleryAdmin(): void {
 						pathname: blob.pathname,
 						album,
 						caption,
+						width: prepared.width,
+						height: prepared.height,
 					}),
 				});
 

@@ -25,3 +25,5 @@ pnpm-debug.log*
 
 # local agent worktrees
 .claude/
+.vercel
+.env*

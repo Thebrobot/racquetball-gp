@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { albumLabel, isValidAlbumId } from '../../../lib/gallery/albums';
 import { isGalleryAuthenticated } from '../../../lib/gallery/auth';
+import { asPositiveInt } from '../../../lib/gallery/image-size';
 import { addPhoto } from '../../../lib/gallery/store';
 
 export const prerender = false;
@@ -20,6 +21,8 @@ export const POST: APIRoute = async ({ request }) => {
 		pathname?: string;
 		album?: string;
 		caption?: string;
+		width?: number;
+		height?: number;
 	};
 
 	const id = body.id?.trim();
@@ -27,6 +30,8 @@ export const POST: APIRoute = async ({ request }) => {
 	const pathname = body.pathname?.trim();
 	const album = body.album?.trim() || '';
 	const caption = body.caption?.trim().slice(0, 200) || undefined;
+	const width = asPositiveInt(body.width);
+	const height = asPositiveInt(body.height);
 
 	if (!id || !url || !pathname) {
 		return new Response(JSON.stringify({ error: 'Missing photo fields.' }), {
@@ -57,6 +62,7 @@ export const POST: APIRoute = async ({ request }) => {
 			album,
 			caption,
 			createdAt: new Date().toISOString(),
+			...(width && height ? { width, height } : {}),
 		};
 		const index = await addPhoto(photo);
 

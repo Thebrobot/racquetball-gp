@@ -1,13 +1,33 @@
 import { put, del, get, list, type ListBlobResultBlob } from '@vercel/blob';
 import { isValidAlbumId } from './albums';
+import { asPositiveInt } from './image-size';
 import type { GalleryIndex, GalleryPhoto } from './types';
 
 export const GALLERY_INDEX_PATH = 'gallery/index.json';
 
 const emptyIndex = (): GalleryIndex => ({ version: 1, photos: [] });
 
+function usableBlobToken(): boolean {
+	const token = process.env.BLOB_READ_WRITE_TOKEN ?? '';
+	return token.length > 20 && !token.includes('SENSITIVE');
+}
+
 function hasBlobToken(): boolean {
-	return Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
+	return usableBlobToken() || Boolean(process.env.BLOB_STORE_ID);
+}
+
+/** Local dev has no readable blob token. The live gallery list is public. */
+async function readDevCatalog(): Promise<GalleryIndex | null> {
+	if (!import.meta.env.DEV) return null;
+	try {
+		const res = await fetch('https://www.racquetballgp.com/api/gallery/list', {
+			headers: { accept: 'application/json' },
+		});
+		if (!res.ok) return null;
+		return parseIndex(await res.json());
+	} catch {
+		return null;
+	}
 }
 
 function parseIndex(raw: unknown): GalleryIndex | null {
@@ -70,7 +90,9 @@ async function readMetaIndex(): Promise<GalleryIndex> {
  * That way a successful upload shows up immediately without CDN index lag.
  */
 export async function readGalleryIndex(): Promise<GalleryIndex> {
-	if (!hasBlobToken()) return emptyIndex();
+	if (!hasBlobToken()) {
+		return (await readDevCatalog()) ?? emptyIndex();
+	}
 
 	try {
 		const [blobs, meta] = await Promise.all([listAllGalleryBlobs(), readMetaIndex()]);
@@ -81,19 +103,27 @@ export async function readGalleryIndex(): Promise<GalleryIndex> {
 			.filter((p): p is GalleryPhoto => Boolean(p))
 			.map((p) => {
 				const m = metaById.get(p.id);
+				const width = asPositiveInt(m?.width);
+				const height = asPositiveInt(m?.height);
+				const likes = asPositiveInt(m?.likes);
 				return {
 					...p,
 					album: m?.album && isValidAlbumId(m.album) ? m.album : p.album,
-					caption: m?.caption,
+					caption: m?.caption || p.caption,
 					createdAt: m?.createdAt || p.createdAt,
+					...(width && height ? { width, height } : {}),
+					...(m?.photographer ? { photographer: m.photographer } : {}),
+					...(m?.division ? { division: m.division } : {}),
+					...(likes ? { likes } : {}),
 				};
 			})
 			.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
 		return { version: 1, photos };
 	} catch {
-		// Fall back to meta-only if listing fails
-		return readMetaIndex();
+		const meta = await readMetaIndex();
+		if (meta.photos.length > 0) return meta;
+		return (await readDevCatalog()) ?? emptyIndex();
 	}
 }
 
