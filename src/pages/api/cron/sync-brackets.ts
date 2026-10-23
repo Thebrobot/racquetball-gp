@@ -30,7 +30,7 @@ async function notifyFreshResults(feed: { lastUpdated: string | null; eventSlug:
 
 async function syncOne(event: LiveEventConfig, at: string): Promise<EventSyncStatus & { notified?: unknown }> {
 	const scraped = await scrapeEvent(event);
-	const { results, activity, changed, newActivity } = await buildMergedResults(event, scraped, at);
+	const { results, activity, changed, newActivity, quarantined } = await buildMergedResults(event, scraped, at);
 	await writeLiveResults(event.slug, results);
 	if (changed || activity.eventSlug === event.slug) {
 		await writeLiveActivity(activity);
@@ -49,6 +49,7 @@ async function syncOne(event: LiveEventConfig, at: string): Promise<EventSyncSta
 		lastUpdated: results.lastUpdated,
 		divisionsScraped: scraped.scraped,
 		matchesWithResults: scraped.matchesWithResults,
+		quarantined,
 		...(notified ? { notified } : {}),
 	};
 }
@@ -101,16 +102,19 @@ export const GET: APIRoute = async ({ request, url }) => {
 				lastUpdated: prev.events[event.slug]?.lastUpdated ?? null,
 				divisionsScraped: 0,
 				matchesWithResults: 0,
+				quarantined: [],
 			};
 		}
 	}
 
+	const quarantined = reports.flatMap((r) => r.quarantined ?? []);
 	const status: SyncStatus = {
 		ok: runErrors.length === 0,
 		lastRunAt: at,
 		lastSuccessAt: runErrors.length === 0 ? at : prev.lastSuccessAt,
 		lastError: runErrors.length ? runErrors.join('; ').slice(0, 500) : null,
 		inWindow: inWindow || force,
+		quarantined,
 		events,
 	};
 	await writeSyncStatus(status);

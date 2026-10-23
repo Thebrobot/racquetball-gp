@@ -117,3 +117,27 @@ export async function readSyncStatus(): Promise<SyncStatus> {
 export async function writeSyncStatus(status: SyncStatus): Promise<void> {
 	await writeBlobJson(STATUS_PATH, status);
 }
+
+/** Optional audit copy of the R2 HTML that produced a changed result. */
+export async function writeResultAuditHtml(
+	slug: string,
+	matchId: string,
+	html: string,
+	at = new Date().toISOString(),
+): Promise<string | null> {
+	if (!liveStoreConfigured()) return null;
+	const stamp = at.replace(/[:.]/g, '-');
+	const pathname = `live/audit/${slug}/${matchId}-${stamp}.html`;
+	try {
+		await put(pathname, html, {
+			access: 'public',
+			addRandomSuffix: false,
+			allowOverwrite: true,
+			contentType: 'text/html; charset=utf-8',
+			cacheControlMaxAge: 60 * 60 * 24 * 30,
+		});
+		return pathname;
+	} catch {
+		return null;
+	}
+}
