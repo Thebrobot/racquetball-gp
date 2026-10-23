@@ -9637,6 +9637,12 @@ a.lb2-name:hover { color: var(--orange2); }
 .acct-row-links { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 14px; margin-top: 4px; }
 .acct-row-links a, .acct-link { color: var(--orange2); text-decoration: none; }
 .acct-row-links a:hover, .acct-link:hover { color: #fff; }
+.acct-row-links--center { justify-content: center; }
+.acct-btn--create { display: block; text-align: center; text-decoration: none; }
+.acct-form--alt { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--card-border); }
+.acct-textbtn { align-self: flex-start; background: none; border: none; padding: 0; color: var(--orange2); font: inherit; font-size: 14px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.acct-textbtn:hover { color: #fff; }
+.acct-textbtn:disabled { opacity: 0.5; cursor: default; }
 .acct-divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; margin: 18px 0 10px; }
 .acct-divider::before, .acct-divider::after { content: ''; flex: 1; height: 1px; background: var(--card-border); }
 .acct-hint { font-size: 13px; color: var(--muted); margin: -2px 0 6px; }
