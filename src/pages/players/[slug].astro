@@ -166,44 +166,6 @@ function ordinal(n: number): string {
 		</div>
 	</header>
 
-	<!-- ── GRAND PRIX POINTS ── -->
-	{gpStandings.length > 0 && (
-		<section class="gp-band gp-band--court player-band" aria-labelledby="player-gp-points-title">
-			<div class="gp-band-inner">
-				<header class="player-band-head">
-					<p class="section-label">Season points</p>
-					<h2 id="player-gp-points-title" class="player-band-title">Grand Prix <span>points</span></h2>
-					<p class="gp-sub">Points per lap in every division entered, with the current season finish.</p>
-				</header>
-				<div class="player-gp-points-grid">
-					{gpStandings.map((entry) => (
-						<article class="player-gp-points-card">
-							<div class="player-gp-points-division">{entry.divisionLabel}</div>
-							<dl class="player-gp-points-stats">
-								<div class="player-gp-points-stat">
-									<dt>Finish</dt>
-									<dd>#{entry.place}</dd>
-								</div>
-								<div class="player-gp-points-stat">
-									<dt>Lap 1</dt>
-									<dd>{entry.s1}</dd>
-								</div>
-								<div class="player-gp-points-stat">
-									<dt>Lap 2</dt>
-									<dd>{entry.s2}</dd>
-								</div>
-								<div class="player-gp-points-stat player-gp-points-stat--total">
-									<dt>Total</dt>
-									<dd>{entry.total}</dd>
-								</div>
-							</dl>
-						</article>
-					))}
-				</div>
-			</div>
-		</section>
-	)}
-
 	<!-- ── UPCOMING SCHEDULE ── -->
 	{upcomingEntries.length > 0 && (
 	<section class="gp-band player-band" aria-labelledby="player-events-title">
@@ -334,9 +296,55 @@ function ordinal(n: number): string {
 	</section>
 	)}
 
+	<section class="gp-band gp-band--navy2 gp-band--tight player-photos" id="player-photos" data-slug={player.slug} hidden aria-labelledby="player-photos-heading">
+		<div class="gp-band-inner">
+			<p class="section-label">Gallery</p>
+			<h2 id="player-photos-heading" class="gp-title player-photos-title">Photos of <span>{player.name.split(' ')[0]}</span></h2>
+			<p class="gp-sub">Tagged in the Grand Prix gallery. Tap a photo to open it.</p>
+			<div class="player-photos-grid" id="player-photos-grid"></div>
+		</div>
+	</section>
+	<!-- ── GRAND PRIX POINTS ── -->
+	{gpStandings.length > 0 && (
+		<section class="gp-band gp-band--court player-band" aria-labelledby="player-gp-points-title">
+			<div class="gp-band-inner">
+				<header class="player-band-head">
+					<p class="section-label">Season points</p>
+					<h2 id="player-gp-points-title" class="player-band-title">Grand Prix <span>points</span></h2>
+					<p class="gp-sub">Points per lap in every division entered, with the current season finish.</p>
+				</header>
+				<div class="player-gp-points-grid">
+					{gpStandings.map((entry) => (
+						<article class="player-gp-points-card">
+							<div class="player-gp-points-division">{entry.divisionLabel}</div>
+							<dl class="player-gp-points-stats">
+								<div class="player-gp-points-stat">
+									<dt>Finish</dt>
+									<dd>#{entry.place}</dd>
+								</div>
+								<div class="player-gp-points-stat">
+									<dt>Lap 1</dt>
+									<dd>{entry.s1}</dd>
+								</div>
+								<div class="player-gp-points-stat">
+									<dt>Lap 2</dt>
+									<dd>{entry.s2}</dd>
+								</div>
+								<div class="player-gp-points-stat player-gp-points-stat--total">
+									<dt>Total</dt>
+									<dd>{entry.total}</dd>
+								</div>
+							</dl>
+						</article>
+					))}
+				</div>
+			</div>
+		</section>
+	)}
+
 	<!-- ── TOURNAMENT HISTORY ── -->
 	{historyGroups.length > 0 && (
-	<section class="gp-band gp-band--navy2 player-band" aria-labelledby="player-matches-title">
+	<section class="gp-band player-band" aria-labelledby="player-matches-title">
 		<div class="gp-band-inner">
 			<header class="player-band-head player-band-head--row">
 				<div>
@@ -417,7 +425,7 @@ function ordinal(n: number): string {
 	)}
 
 	<!-- ── SERIES WIRE ── -->
-	<section class="gp-band player-band" aria-labelledby="player-series-title">
+	<section class="gp-band gp-band--navy2 player-band" aria-labelledby="player-series-title">
 		<div class="gp-band-inner">
 			<header class="player-band-head">
 				<p class="section-label">Around the series</p>
@@ -440,14 +448,6 @@ function ordinal(n: number): string {
 					</article>
 				))}
 			</div>
-		</div>
-	</section>
-	<section class="gp-band gp-band--tight player-photos" id="player-photos" data-slug={player.slug} hidden aria-labelledby="player-photos-heading">
-		<div class="gp-band-inner">
-			<p class="section-label">Gallery</p>
-			<h2 id="player-photos-heading" class="gp-title player-photos-title">Photos of <span>{player.name.split(' ')[0]}</span></h2>
-			<p class="gp-sub">Tagged in the Grand Prix gallery. Tap a photo to open it.</p>
-			<div class="player-photos-grid" id="player-photos-grid"></div>
 		</div>
 	</section>
 </GrandPrixLayout>

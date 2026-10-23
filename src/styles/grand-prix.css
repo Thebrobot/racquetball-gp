@@ -9851,3 +9851,88 @@ a.glb-c-name:hover { color: var(--orange2); }
   .glb-compose { padding: 8px 14px calc(10px + env(safe-area-inset-bottom)); }
   .glb-nav { width: 34px; height: 34px; font-size: 22px; }
 }
+
+/* ───── NAV: account entry ───── */
+.nav-pill .nav-links a.nav-account {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 12px 6px 6px;
+  border: 1px solid rgba(255,255,255,0.16);
+  color: #fff;
+}
+.nav-pill .nav-links a.nav-account:hover, .nav-pill .nav-links a.nav-account.active { background: rgba(255,255,255,0.1); }
+.nav-account-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.1); color: #fff;
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 12px; letter-spacing: 0.04em;
+}
+.nav-account-avatar svg { width: 18px; height: 18px; }
+.nav-account-avatar.is-initials { background: var(--orange); }
+.nav-account-avatar.is-initials svg { display: none; }
+.nav-account.is-signed-in .nav-account-label { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-pill .nav-links a.nav-account-create { color: var(--orange2); }
+.nav-pill .nav-links a.nav-account-create[hidden], .nav-pill .nav-links a.nav-account[hidden] { display: none; }
+@media (max-width: 640px) {
+  .nav-pill .nav-links a.nav-account { justify-content: center; border-color: rgba(255,255,255,0.22); margin-top: 6px; }
+  .nav-pill .nav-links a.nav-account-create { text-align: center; }
+}
+
+/* ───── ACCOUNTS ANNOUNCEMENT STRIP (under the floating nav) ───── */
+.acct-announce {
+  position: fixed;
+  top: max(84px, calc(env(safe-area-inset-top) + 76px));
+  left: 0; right: 0; z-index: 190;
+  display: flex; justify-content: center;
+  padding: 0 10px;
+  pointer-events: none;
+}
+.acct-announce[hidden] { display: none; }
+.acct-announce-inner {
+  pointer-events: auto;
+  display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap;
+  max-width: var(--gp-shell-max);
+  width: 100%;
+  padding: 10px 14px 10px 14px;
+  border-radius: 14px;
+  background: rgba(240, 90, 26, 0.96);
+  color: #fff;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255,255,255,0.18);
+}
+.acct-announce-pill {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+  background: #fff; color: var(--orange); padding: 4px 9px; border-radius: 999px;
+}
+.acct-announce-text { margin: 0; font-size: 14.5px; line-height: 1.4; flex: 1 1 260px; }
+.acct-announce-actions { display: flex; gap: 8px; }
+.acct-announce-btn {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 8px 14px; border-radius: 8px; text-decoration: none; color: #fff; border: 1px solid rgba(255,255,255,0.5); white-space: nowrap;
+}
+.acct-announce-btn--primary { background: #fff; color: var(--orange); border-color: #fff; }
+.acct-announce-btn:hover { background: rgba(255,255,255,0.15); }
+.acct-announce-btn--primary:hover { background: #ffe8dc; }
+.acct-announce-close {
+  background: none; border: none; color: #fff; font-size: 22px; line-height: 1; cursor: pointer; padding: 0 2px; opacity: 0.85;
+}
+.acct-announce-close:hover { opacity: 1; }
+/* Push page heads down while the strip is up so it never covers titles */
+html.has-acct-announce .gp-page-head { padding-top: max(196px, calc(env(safe-area-inset-top) + 168px)); }
+@media (max-width: 640px) {
+  .acct-announce { top: max(80px, calc(env(safe-area-inset-top) + 72px)); }
+  .acct-announce-inner { padding: 10px 12px; gap: 8px 10px; }
+  .acct-announce-text { font-size: 13.5px; }
+  .acct-announce-actions { flex-basis: 100%; }
+  .acct-announce-btn { flex: 1; text-align: center; }
+  .acct-announce-close { position: absolute; right: 18px; top: 8px; }
+  .acct-announce-inner { position: relative; padding-right: 36px; }
+  html.has-acct-announce .gp-page-head { padding-top: max(236px, calc(env(safe-area-inset-top) + 212px)); }
+  html.has-acct-announce .hero--home { padding-top: max(220px, calc(env(safe-area-inset-top) + 200px)); }
+}
+/* Desktop pill: keep the account entry compact so the row never wraps */
+@media (min-width: 641px) {
+  .nav-pill .nav-links a.nav-account-create { display: none; }
+  .nav-pill .nav-links a.nav-account { padding: 4px; border-radius: 999px; }
+  .nav-pill .nav-links a.nav-account .nav-account-label { display: none; }
+  .nav-pill .nav-links a.nav-account.is-signed-in .nav-account-label { display: none; }
+}

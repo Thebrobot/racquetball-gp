@@ -13,6 +13,6 @@ export const GET: APIRoute = async ({ url }) => {
 	return json(
 		{ verified: Boolean(data), displayName: data?.display_name ?? null },
 		200,
-		{ 'Cache-Control': 'public, max-age=300, stale-while-revalidate=3600' },
+		{ 'Cache-Control': 'no-store' },
 	);
 };

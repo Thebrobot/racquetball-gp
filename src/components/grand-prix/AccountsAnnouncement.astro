@@ -1,0 +1,59 @@
+---
+/**
+ * One-time announcement for player accounts. Slim strip under the nav, not a
+ * modal. Hidden on account pages, for signed-in visitors, and after dismissal.
+ */
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const hideHere = ['/account', '/signup', '/admin', '/auth'].some((p) => path === p || path.startsWith(`${p}/`));
+/** Bump to show the strip again to people who dismissed an older one. */
+const CAMPAIGN = 'accounts-2026-10';
+---
+
+{!hideHere && (
+	<div class="acct-announce" id="acct-announce" data-campaign={CAMPAIGN} hidden>
+		<div class="acct-announce-inner">
+			<span class="acct-announce-pill">New</span>
+			<p class="acct-announce-text">
+				<strong>Player accounts are here.</strong> Tag yourself in photos, like and comment, and claim your player profile.
+			</p>
+			<div class="acct-announce-actions">
+				<a class="acct-announce-btn acct-announce-btn--primary" href="/signup">Create account</a>
+				<a class="acct-announce-btn" href="/account">Sign in</a>
+			</div>
+			<button type="button" class="acct-announce-close" id="acct-announce-close" aria-label="Dismiss">×</button>
+		</div>
+	</div>
+)}
+
+<script>
+	const strip = document.getElementById('acct-announce');
+	if (strip) {
+		const key = `gp:announce:${strip.dataset.campaign}`;
+		let dismissed = false;
+		try {
+			dismissed = localStorage.getItem(key) === '1';
+		} catch {
+			/* ignore */
+		}
+		if (!dismissed) {
+			fetch('/api/me', { cache: 'no-store' })
+				.then((r) => (r.ok ? r.json() : null))
+				.then((me: { configured?: boolean; signedIn?: boolean } | null) => {
+					if (me?.configured && !me.signedIn) {
+						strip.hidden = false;
+						document.documentElement.classList.add('has-acct-announce');
+					}
+				})
+				.catch(() => undefined);
+		}
+		document.getElementById('acct-announce-close')?.addEventListener('click', () => {
+			strip.hidden = true;
+			document.documentElement.classList.remove('has-acct-announce');
+			try {
+				localStorage.setItem(key, '1');
+			} catch {
+				/* ignore */
+			}
+		});
+	}
+</script>
