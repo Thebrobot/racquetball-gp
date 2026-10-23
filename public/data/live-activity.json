@@ -1,7 +1,84 @@
 {
-  "lastUpdated": "2026-10-23T21:38:34.183Z",
+  "lastUpdated": "2026-10-23T23:58:43.880Z",
   "eventSlug": "port-st-lucie-open",
   "events": [
+    {
+      "id": "2026-10-23T23:58:43.880Z-mens-singles-elite-ME9",
+      "at": "2026-10-23T23:58:43.880Z",
+      "type": "result",
+      "divisionId": "mens-singles-elite",
+      "divisionLabel": "Men's Singles: Elite",
+      "matchId": "ME9",
+      "headline": "Trevor Morgan def Richard Unzueta",
+      "detail": "15-7, 15-3",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-elite"
+    },
+    {
+      "id": "2026-10-23T23:58:43.880Z-mens-singles-elite-ME11",
+      "at": "2026-10-23T23:58:43.880Z",
+      "type": "result",
+      "divisionId": "mens-singles-elite",
+      "divisionLabel": "Men's Singles: Elite",
+      "matchId": "ME11",
+      "headline": "Greg Caruso def Alex Bartolome",
+      "detail": "15-12, 15-9",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-elite"
+    },
+    {
+      "id": "2026-10-23T23:58:43.880Z-mens-age-60-M60+9",
+      "at": "2026-10-23T23:58:43.880Z",
+      "type": "result",
+      "divisionId": "mens-age-60",
+      "divisionLabel": "Men's Age Singles: 60+",
+      "matchId": "M60+9",
+      "headline": "John Wuchte def Larry Prince Jr.",
+      "detail": "14-15, 15-8, 15-5",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-age-60"
+    },
+    {
+      "id": "2026-10-23T23:58:43.880Z-mens-age-60-M60+5",
+      "at": "2026-10-23T23:58:43.880Z",
+      "type": "result",
+      "divisionId": "mens-age-60",
+      "divisionLabel": "Men's Age Singles: 60+",
+      "matchId": "M60+5",
+      "headline": "Mike Boyar def Scott Gill",
+      "detail": "15-7, 15-8",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-age-60"
+    },
+    {
+      "id": "2026-10-23T23:58:43.880Z-mens-age-60-M60+7",
+      "at": "2026-10-23T23:58:43.880Z",
+      "type": "result",
+      "divisionId": "mens-age-60",
+      "divisionLabel": "Men's Age Singles: 60+",
+      "matchId": "M60+7",
+      "headline": "Charles Cole def Jim Russell",
+      "detail": "15-5, 14-14, Win by forfeit",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-age-60"
+    },
+    {
+      "id": "2026-10-23T23:58:43.880Z-mens-doubles-elite-MED11",
+      "at": "2026-10-23T23:58:43.880Z",
+      "type": "result",
+      "divisionId": "mens-doubles-elite",
+      "divisionLabel": "Men's Doubles: Elite",
+      "matchId": "MED11",
+      "headline": "Mike Bock / Terry Money def Chris Steinheiser / John Johnston",
+      "detail": "15-4, 15-11",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-elite"
+    },
+    {
+      "id": "2026-10-23T23:58:43.880Z-mens-doubles-b-MBD5",
+      "at": "2026-10-23T23:58:43.880Z",
+      "type": "result",
+      "divisionId": "mens-doubles-b",
+      "divisionLabel": "Men's Doubles: B",
+      "matchId": "MBD5",
+      "headline": "Jonathan Estepan / Daniel Bray def Paul Sotolongo / Mark Manzano",
+      "detail": "9-15, 15-14, 11-5",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-b"
+    },
     {
       "id": "2026-10-23T21:38:34.183Z-mens-singles-b-MB9",
       "at": "2026-10-23T21:38:34.183Z",
