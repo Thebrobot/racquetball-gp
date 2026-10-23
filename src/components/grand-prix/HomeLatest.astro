@@ -1,0 +1,139 @@
+---
+/**
+ * Latest results: during a tournament weekend this shows the newest bracket
+ * activity from the synced live feed; otherwise it shows the champions from
+ * the last completed stop, derived from per-lap leaderboard points.
+ */
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { EVENTS } from '../../data/events';
+import { SEASON_STOPS } from '../../data/season-stops';
+import {
+	lbData,
+	LB_DIVISIONS_BY_CATEGORY,
+	LB_CATEGORY_HEADING,
+	LB_OVERVIEW_CATEGORY_ORDER,
+	formatPlayerInitials,
+	type LbCategory,
+} from '../../data/leaderboard';
+import { getPlayerImageForDisplay } from '../../data/player-images';
+import { getPlayerSlug } from '../../data/players';
+
+type LiveActivityEvent = {
+	id: string;
+	at: string;
+	divisionLabel: string;
+	headline: string;
+	detail?: string;
+	bracketHref: string;
+};
+type LiveActivityFeed = { lastUpdated: string | null; eventSlug: string; events: LiveActivityEvent[] };
+
+let feed: LiveActivityFeed = { lastUpdated: null, eventSlug: '', events: [] };
+try {
+	feed = JSON.parse(readFileSync(join(process.cwd(), 'public/data/live-activity.json'), 'utf-8'));
+} catch {
+	/* no feed */
+}
+const feedEvent = EVENTS.find((e) => e.slug === feed.eventSlug);
+const liveItems = feed.events.slice(0, 3);
+const hasLive = liveItems.length > 0;
+
+// Last completed stop → lap key on leaderboard rows (s1 = lap 1, s2 = lap 2).
+const doneStops = SEASON_STOPS.filter((s) => s.kind === 'done');
+const lastStop = doneStops[doneStops.length - 1] ?? null;
+const lapKey = (doneStops.length >= 2 ? 's2' : 's1') as 's1' | 's2';
+
+type Champion = { category: LbCategory; division: string; divisionLabel: string; name: string };
+const champions: Champion[] = [];
+if (lastStop) {
+	for (const category of LB_OVERVIEW_CATEGORY_ORDER) {
+		for (const meta of LB_DIVISIONS_BY_CATEGORY[category]) {
+			const rows = lbData[category]?.[meta.id] ?? [];
+			const champ = rows.find((r) => r[lapKey] === 100);
+			if (champ) champions.push({ category, division: meta.id, divisionLabel: meta.label, name: champ.name });
+		}
+	}
+}
+const championsShown = champions.slice(0, 8);
+const lastStopSlug = lastStop?.bracketsHref?.replace('#brackets', '') ?? '/tournaments';
+
+function teamNames(name: string): string[] {
+	return name.split('/').map((s) => s.trim()).filter(Boolean);
+}
+function formatWhen(iso: string): string {
+	const d = new Date(iso);
+	if (Number.isNaN(d.getTime())) return '';
+	return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
+---
+
+{hasLive ? (
+	<section class="home-latest" aria-labelledby="home-latest-heading">
+		<div class="home-latest-inner">
+			<header class="home-latest-head">
+				<p class="section-label"><span class="home-live-dot" aria-hidden="true"></span> Live this weekend</p>
+				<h2 id="home-latest-heading" class="home-latest-title">
+					Latest <span>results</span>
+				</h2>
+				<p class="home-latest-sub">
+					{feedEvent?.name ?? 'Tournament'} · synced from R2 every 10 minutes during play.
+				</p>
+			</header>
+			<div class="home-latest-feed">
+				{liveItems.map((item) => (
+					<article class="home-feed-card">
+						<time class="home-feed-time" datetime={item.at}>{formatWhen(item.at)}</time>
+						<p class="home-feed-division">{item.divisionLabel}</p>
+						<h3 class="home-feed-headline">{item.headline}</h3>
+						{item.detail && <p class="home-feed-detail">{item.detail}</p>}
+						<a class="home-feed-link" href={item.bracketHref}>View bracket →</a>
+					</article>
+				))}
+			</div>
+			<a class="home-latest-cta" href="/live">Every result as it posts →</a>
+		</div>
+	</section>
+) : lastStop && championsShown.length ? (
+	<section class="home-latest" aria-labelledby="home-latest-heading">
+		<div class="home-latest-inner">
+			<header class="home-latest-head">
+				<p class="section-label">Last stop · {lastStop.eventName}</p>
+				<h2 id="home-latest-heading" class="home-latest-title">
+					{lastStop.cityLine.split(',')[0]}{' '}<span>champions</span>
+				</h2>
+				<p class="home-latest-sub">{lastStop.dateFull}. Division winners who banked the full 100 points.</p>
+			</header>
+			<ul class="home-champs">
+				{championsShown.map((c) => {
+					const names = teamNames(c.name);
+					const isTeam = names.length > 1;
+					const img = !isTeam ? getPlayerImageForDisplay(c.name, 64) : undefined;
+					const slug = !isTeam ? getPlayerSlug(c.name) : null;
+					return (
+						<li class="home-champ">
+							{img ? (
+								<img class="home-champ-avatar" src={img} alt="" width="52" height="52" loading="lazy" decoding="async" />
+							) : (
+								<span class="home-champ-avatar home-champ-avatar--fallback" aria-hidden="true">
+									{isTeam ? names.map((n) => n[0]).join('') : formatPlayerInitials(c.name)}
+								</span>
+							)}
+							<span class="home-champ-body">
+								<span class="home-champ-division">{LB_CATEGORY_HEADING[c.category]} · {c.divisionLabel}</span>
+								<span class="home-champ-name">
+									{slug ? <a href={`/players/${slug}`}>{c.name}</a> : names.join(' / ')}
+								</span>
+							</span>
+							<span class="home-champ-badge" aria-label="Champion">🏆</span>
+						</li>
+					);
+				})}
+			</ul>
+			<div class="home-latest-actions">
+				<a class="home-latest-cta" href={`${lastStopSlug}#brackets`}>All {lastStop.eventName} brackets →</a>
+				<a class="home-latest-cta home-latest-cta--ghost" href="/live">Live updates during stops →</a>
+			</div>
+		</div>
+	</section>
+) : null}

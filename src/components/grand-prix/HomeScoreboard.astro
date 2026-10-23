@@ -1,0 +1,100 @@
+---
+import {
+	getTopN,
+	leaderboardTotal,
+	leaderboardDivisionHref,
+	formatPlayerInitials,
+	LB_DIVISIONS_BY_CATEGORY,
+	type LbCategory,
+} from '../../data/leaderboard';
+import { getPlayerImageForDisplay } from '../../data/player-images';
+import { getPlayerSlug, getAllPlayers } from '../../data/players';
+import { SEASON_STOPS, TOUR_STOP_COUNT } from '../../data/season-stops';
+
+interface Props {
+	photoCount?: number;
+}
+const { photoCount = 0 } = Astro.props;
+
+const TRACKS: { category: LbCategory; division: string; label: string; sub: string }[] = [
+	{ category: 'singles', division: 'mens-singles-open', label: 'Singles', sub: 'Open' },
+	{ category: 'doubles', division: 'mens-doubles-open', label: 'Doubles', sub: 'Open' },
+	{ category: 'mixed', division: 'mixed-doubles', label: 'Mixed', sub: 'Open / A' },
+];
+
+const columns = TRACKS.map((t) => ({
+	...t,
+	href: leaderboardDivisionHref(t.division),
+	rows: getTopN(t.category, t.division, 3, false).filter((r) => leaderboardTotal(r) > 0),
+}));
+
+const stopsDone = SEASON_STOPS.filter((s) => s.kind === 'done').length;
+const divisionCount = Object.values(LB_DIVISIONS_BY_CATEGORY).reduce((n, list) => n + list.length, 0);
+const playerCount = getAllPlayers().length;
+
+/** Doubles rows are "A / B" teams: render both names, no profile link. */
+function teamNames(name: string): string[] {
+	return name.split('/').map((s) => s.trim()).filter(Boolean);
+}
+---
+
+<section class="home-board" aria-labelledby="home-board-heading">
+	<div class="home-board-inner">
+		<ul class="home-stats" aria-label="Series at a glance">
+			<li><strong>{stopsDone}<span class="home-stats-of">/{TOUR_STOP_COUNT}</span></strong><span>Stops played</span></li>
+			<li><strong>{divisionCount}</strong><span>Divisions</span></li>
+			<li><strong>{playerCount}</strong><span>Players</span></li>
+			{photoCount > 0 && <li><strong>{photoCount}</strong><span>Photos</span></li>}
+		</ul>
+
+		<header class="home-board-head">
+			<p class="section-label">Season standings</p>
+			<h2 id="home-board-heading" class="home-board-title">
+				Who is <span>winning</span>
+			</h2>
+			<p class="home-board-sub">Open-division leaders after {stopsDone} of {TOUR_STOP_COUNT} stops. Points move after every final.</p>
+		</header>
+
+		<div class="home-board-grid">
+			{columns.map((col) => (
+				<article class="home-board-col">
+					<h3 class="home-board-col-title">
+						{col.label} <span>{col.sub}</span>
+					</h3>
+					{col.rows.length ? (
+						<ol class="home-board-list">
+							{col.rows.map((row, i) => {
+								const names = teamNames(row.name);
+								const isTeam = names.length > 1;
+								const img = !isTeam ? getPlayerImageForDisplay(row.name, 64) : undefined;
+								const slug = !isTeam ? getPlayerSlug(row.name) : null;
+								return (
+									<li class:list={['home-board-row', { 'home-board-row--lead': i === 0 }]}>
+										<span class="home-board-rank" aria-hidden="true">{i + 1}</span>
+										{img ? (
+											<img class="home-board-avatar" src={img} alt="" width="44" height="44" loading="lazy" decoding="async" />
+										) : (
+											<span class="home-board-avatar home-board-avatar--fallback" aria-hidden="true">
+												{isTeam ? names.map((n) => n[0]).join('') : formatPlayerInitials(row.name)}
+											</span>
+										)}
+										<span class="home-board-name">
+											{slug ? <a href={`/players/${slug}`}>{row.name}</a> : names.join(' / ')}
+											{row.city && !isTeam && <small>{row.city}</small>}
+										</span>
+										<span class="home-board-pts"><strong>{leaderboardTotal(row)}</strong> pts</span>
+									</li>
+								);
+							})}
+						</ol>
+					) : (
+						<p class="home-board-empty">Standings open after the first stop.</p>
+					)}
+					<a class="home-board-more" href={col.href}>Full {col.label.toLowerCase()} standings →</a>
+				</article>
+			))}
+		</div>
+
+		<a class="home-board-cta" href="/leaderboard">All {divisionCount} divisions on the leaderboard →</a>
+	</div>
+</section>

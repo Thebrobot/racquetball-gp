@@ -1,0 +1,55 @@
+---
+import { GRAND_PRIX_FULL_SCHEDULE, type SeasonStop } from '../../data/season-stops';
+
+function stateLabel(stop: SeasonStop): string {
+	if (stop.kind === 'done') return 'Played';
+	if (stop.kind === 'next') return 'Up next';
+	if (stop.kind === 'champ') return 'Finale';
+	return 'Coming up';
+}
+function lapLabel(stop: SeasonStop, i: number): string {
+	return stop.kind === 'champ' ? 'Championship' : `Lap ${i + 1}`;
+}
+---
+
+<section class="home-timeline" aria-labelledby="home-timeline-heading">
+	<div class="home-timeline-inner">
+		<header class="home-timeline-head">
+			<p class="section-label">The season</p>
+			<h2 id="home-timeline-heading" class="home-timeline-title">
+				Four stops. <span>One board.</span>
+			</h2>
+			<p class="home-timeline-sub">
+				Every finish feeds the same statewide leaderboard, from the May opener in Ocala to outdoor Eustis in
+				December, with a series championship to follow in 2027.
+			</p>
+		</header>
+
+		<ol class="home-timeline-track">
+			{GRAND_PRIX_FULL_SCHEDULE.map((stop, i) => {
+				const href = stop.bracketsHref ?? (stop.kind === 'champ' ? '/tournaments' : stop.registerUrl);
+				const external = /^https?:/.test(href);
+				return (
+					<li class:list={['home-tl-item', `home-tl-item--${stop.kind}`]}>
+						<span class="home-tl-marker" aria-hidden="true"></span>
+						<a
+							class="home-tl-card"
+							href={href}
+							{...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+						>
+							<span class="home-tl-thumb" style={{ '--tl-img': `url("${stop.image}")` }} aria-hidden="true"></span>
+							<span class="home-tl-body">
+								<span class="home-tl-lap">{lapLabel(stop, i)} · {stateLabel(stop)}</span>
+								<span class="home-tl-city">{stop.cityLine.split(',')[0]}</span>
+								<span class="home-tl-date">{stop.dateHint}{stop.kind === 'champ' ? '' : ', 2026'}</span>
+								<span class="home-tl-venue">{stop.venue}</span>
+							</span>
+						</a>
+					</li>
+				);
+			})}
+		</ol>
+
+		<a class="home-timeline-cta" href="/tournaments">Dates, venues and registration for every stop →</a>
+	</div>
+</section>
