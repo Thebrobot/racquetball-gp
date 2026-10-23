@@ -20,6 +20,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
 		password?: string;
 		display_name?: string;
 		player_slug?: string;
+		marketing_opt_in?: unknown;
 		next?: string;
 	};
 	const email = String(body.email ?? '').trim().toLowerCase();
@@ -43,6 +44,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
 			emailRedirectTo: `${url.origin}/auth/callback?next=${encodeURIComponent(next)}`,
 			data: {
 				display_name: displayName,
+				marketing_opt_in: body.marketing_opt_in === true,
 				...(player ? { claim_player_slug: player.slug, claim_player_name: player.name } : {}),
 			},
 		},

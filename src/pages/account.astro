@@ -18,6 +18,7 @@ const saved = params.get('saved') === '1';
 const passwordSaved = params.get('password') === 'saved';
 const notifySaved = params.get('notify') === 'saved';
 const notifyEmail = session?.profile?.notify_email ?? true;
+const marketingOptIn = session?.profile?.marketing_opt_in ?? false;
 const claimFlag = params.get('claim') ?? '';
 
 type Claim = { id: string; player_slug: string; player_name: string; status: string; created_at: string };
@@ -156,7 +157,12 @@ const claimMessages: Record<string, string> = {
 							<label class="acct-switch">
 								<input type="checkbox" name="notify_email" checked={notifyEmail} />
 								<span class="acct-switch-track" aria-hidden="true"></span>
-								<span class="acct-switch-text"><strong>Email</strong><span>{session.user.email}</span></span>
+								<span class="acct-switch-text"><strong>Activity email</strong><span>Tags, comments, claim approvals and the likes roll-up, to {session.user.email}</span></span>
+							</label>
+							<label class="acct-switch" style="margin-top:10px;">
+								<input type="checkbox" name="marketing_opt_in" checked={marketingOptIn} />
+								<span class="acct-switch-track" aria-hidden="true"></span>
+								<span class="acct-switch-text"><strong>Grand Prix news</strong><span>Results, upcoming stops and announcements. Optional.</span></span>
 							</label>
 							<div class="acct-inline" style="margin-top:8px;">
 								<button class="btn-ghost acct-btn" type="submit">Save</button>

@@ -1,4 +1,5 @@
 import { LB_CATEGORY_HEADING, LB_DIVISIONS_BY_CATEGORY, LB_OVERVIEW_CATEGORY_ORDER, lbData, leaderboardTotal, type LbCategory, type LbRow } from './leaderboard';
+import playerAliases from './player-aliases.json';
 import { EVENTS, getEventStatus, type EventStatus } from './events';
 import type { EventBracketMatch, EventBracketRound } from './events';
 import { getPlayerImageForDisplay } from './player-images';
@@ -279,11 +280,27 @@ export interface PlayerProfile {
 	events: PlayerEventCall[];
 }
 
-export function getPlayerSlug(name: string): string {
+function rawPlayerSlug(name: string): string {
 	return name
 		.toLowerCase()
 		.replace(/[^a-z0-9]+/g, '-')
 		.replace(/(^-|-$)+/g, '');
+}
+
+type Alias = { slug: string; name: string };
+const PLAYER_ALIASES: Record<string, Alias> = Object.fromEntries(
+	Object.entries(playerAliases as Record<string, Alias | string>).filter((e): e is [string, Alias] => typeof e[1] === 'object'),
+);
+
+/** Slug for a player name. Alternate spellings resolve to the canonical player (src/data/player-aliases.json). */
+export function getPlayerSlug(name: string): string {
+	const raw = rawPlayerSlug(name);
+	return PLAYER_ALIASES[raw]?.slug ?? raw;
+}
+
+/** The spelling we show for a player, whichever spelling the data used. */
+export function canonicalPlayerName(name: string): string {
+	return PLAYER_ALIASES[rawPlayerSlug(name)]?.name ?? name;
 }
 
 function isIndividual(name: string): boolean {
@@ -346,7 +363,7 @@ export function getAllPlayers(): PlayerProfile[] {
 				if (!isIndividual(row.name)) return;
 				const slug = getPlayerSlug(row.name);
 			const existing = map.get(slug) ?? {
-				name: row.name,
+				name: canonicalPlayerName(row.name),
 				slug,
 				city: row.city,
 				imageUrl: getPlayerImageForDisplay(row.name, 64) ?? row.image,
@@ -371,7 +388,7 @@ export function getAllPlayers(): PlayerProfile[] {
 			if (!isIndividual(profile.name)) return;
 			const slug = getPlayerSlug(profile.name);
 			const existing = map.get(slug) ?? {
-				name: profile.name,
+				name: canonicalPlayerName(profile.name),
 				slug,
 				city: PLAYER_CITIES[slug],
 				imageUrl: getPlayerImageForDisplay(profile.name, 64),

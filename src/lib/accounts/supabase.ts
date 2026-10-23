@@ -47,6 +47,7 @@ export interface Profile {
 	is_junior: boolean;
 	notify_email?: boolean;
 	notify_push?: boolean;
+	marketing_opt_in?: boolean;
 	created_at: string;
 }
 
@@ -98,7 +99,7 @@ export async function getSession(request: Request, cookies: AstroCookies): Promi
 	if (error || !data.user) return null;
 	const { data: profile } = await client
 		.from('profiles')
-		.select('id, email, display_name, player_slug, is_junior, notify_email, notify_push, created_at')
+		.select('id, email, display_name, player_slug, is_junior, notify_email, notify_push, marketing_opt_in, created_at')
 		.eq('id', data.user.id)
 		.maybeSingle();
 	return {

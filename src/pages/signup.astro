@@ -63,6 +63,11 @@ const players = getAllPlayers();
 						<input type="hidden" name="player_slug" id="su-player-slug" value="" />
 						<p class="acct-hint" id="su-player-hint">Kyle reviews profile links before the verified badge shows.</p>
 
+						<label class="acct-check">
+							<input type="checkbox" name="marketing_opt_in" value="1" />
+							<span>Email me Grand Prix news, results and upcoming stops. Optional, unsubscribe any time.</span>
+						</label>
+						<p class="acct-hint">By creating an account you agree to how we handle your details in our <a class="acct-link" href="/privacy">privacy notice</a>.</p>
 						<button class="btn-main acct-btn acct-btn--full" type="submit" id="su-submit">Create account</button>
 						<p class="acct-p acct-p--muted acct-error" id="su-error" hidden></p>
 					</form>
@@ -113,6 +118,7 @@ const players = getAllPlayers();
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
 				display_name: fd.get('display_name'),
+				marketing_opt_in: fd.get('marketing_opt_in') === '1',
 				email: fd.get('email'),
 				password: fd.get('password'),
 				player_slug: fd.get('player_slug'),

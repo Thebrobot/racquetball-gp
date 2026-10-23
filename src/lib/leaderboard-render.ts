@@ -10,7 +10,7 @@ import {
 	type LbRow,
 } from '../data/leaderboard';
 import { getPlayerImageForDisplay } from '../data/player-images';
-import { getPlayerSlug } from '../data/players';
+import { getPlayerSlug, canonicalPlayerName } from '../data/players';
 
 export function escHtml(s: string): string {
 	return String(s)
@@ -37,7 +37,7 @@ function avatarHtml(r: LbRow, cssPx: number, cls: string): string {
 
 function nameHtml(r: LbRow, cls: string): string {
 	if (isPendingPlaceholder(r)) return `<span class="${cls}">${escHtml(r.name)}</span>`;
-	return `<a class="${cls}" href="/players/${escAttr(getPlayerSlug(r.name))}">${escHtml(r.name)}</a>`;
+	return `<a class="${cls}" href="/players/${escAttr(getPlayerSlug(r.name))}">${escHtml(canonicalPlayerName(r.name))}</a>`;
 }
 
 /** One standings row. `place` is the assigned place (ties share a number). */
