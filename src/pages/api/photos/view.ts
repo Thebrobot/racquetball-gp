@@ -18,11 +18,13 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 	} catch {
 		address = undefined;
 	}
-	const { error } = await admin
+	const { data, error } = await admin
 		.from('photo_views')
 		.upsert(
 			{ photo_id: body.photoId, day: todayUtc(), visitor_hash: visitorHash(request, address) },
 			{ onConflict: 'photo_id,day,visitor_hash', ignoreDuplicates: true },
-		);
-	return json({ ok: !error });
+		)
+		.select('photo_id');
+	// `counted` is false when this visitor already viewed the photo today.
+	return json({ ok: !error, counted: !error && (data?.length ?? 0) > 0 });
 };

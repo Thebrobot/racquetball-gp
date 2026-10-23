@@ -9,6 +9,7 @@ function salt(): string {
 	return (
 		process.env.GALLERY_SESSION_SECRET ??
 		process.env.SUPABASE_SERVICE_ROLE_KEY ??
+		process.env.SERVICE_ROLE_KEY ??
 		'florida-racquetball-grand-prix'
 	).slice(0, 48);
 }

@@ -97,13 +97,20 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 	function recordView(photo: GalleryPhoto): void {
 		if (viewedThisSession.has(photo.id)) return;
 		viewedThisSession.add(photo.id);
-		viewCounts[photo.id] = (viewCounts[photo.id] ?? 0) + 1;
 		void fetch('/api/photos/view', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ photoId: photo.id }),
 			keepalive: true,
-		}).catch(() => undefined);
+		})
+			.then(async (res) => {
+				const data = res.ok ? ((await res.json()) as { counted?: boolean }) : null;
+				if (data?.counted) {
+					viewCounts[photo.id] = (viewCounts[photo.id] ?? 0) + 1;
+					if (visible[lbIndex]?.id === photo.id) syncLbLike(photo);
+				}
+			})
+			.catch(() => undefined);
 	}
 
 	function photoIdFromUrl(url: string): string | null {
@@ -777,8 +784,8 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		lbImg.src = photo.url;
 		lbImg.alt = altText(photo);
 		if (lbCaption) lbCaption.textContent = captionText(photo);
-		syncLbLike(photo);
 		recordView(photo);
+		syncLbLike(photo);
 		lightbox.hidden = false;
 		lightbox.setAttribute('aria-hidden', 'false');
 		document.body.classList.add('gallery-lb-open');

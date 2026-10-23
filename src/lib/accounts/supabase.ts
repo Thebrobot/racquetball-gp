@@ -9,14 +9,18 @@ import { createServerClient, parseCookieHeader, type CookieOptions } from '@supa
 import { createClient, type SupabaseClient, type User } from '@supabase/supabase-js';
 import type { AstroCookies } from 'astro';
 
-function env(name: string): string {
-	const v = (import.meta.env as Record<string, string | undefined>)[name] ?? process.env[name];
-	return (v ?? '').trim();
+/** Reads the first defined name; the Vercel project uses the un-prefixed spellings. */
+function env(...names: string[]): string {
+	for (const name of names) {
+		const v = (import.meta.env as Record<string, string | undefined>)[name] ?? process.env[name];
+		if (v && v.trim()) return v.trim();
+	}
+	return '';
 }
 
-export const SUPABASE_URL = env('PUBLIC_SUPABASE_URL');
-const ANON_KEY = env('PUBLIC_SUPABASE_ANON_KEY');
-const SERVICE_KEY = env('SUPABASE_SERVICE_ROLE_KEY');
+export const SUPABASE_URL = env('PUBLIC_SUPABASE_URL', 'SUPABASE_URL');
+const ANON_KEY = env('PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_ANON_KEY');
+const SERVICE_KEY = env('SUPABASE_SERVICE_ROLE_KEY', 'SERVICE_ROLE_KEY');
 
 export function accountsConfigured(): boolean {
 	return Boolean(SUPABASE_URL && ANON_KEY);
