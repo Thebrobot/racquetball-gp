@@ -233,6 +233,7 @@ const clientConfig: GalleryClientConfig = {
 </GrandPrixLayout>
 
 <script>
+	import { lockScroll, unlockScroll } from '../../scripts/scroll-lock';
 	const sheet = document.getElementById('gallery-submit');
 	const openBtn = document.getElementById('gallery-add-btn');
 	const form = document.getElementById('gsub-form') as HTMLFormElement | null;
@@ -249,11 +250,13 @@ const clientConfig: GalleryClientConfig = {
 			}
 			sheet.hidden = false;
 			document.documentElement.classList.add('gwel-open');
+			lockScroll('submit-sheet');
 			requestAnimationFrame(() => sheet.classList.add('is-in'));
 		};
 		const close = () => {
 			sheet.classList.remove('is-in');
 			document.documentElement.classList.remove('gwel-open');
+			unlockScroll('submit-sheet');
 			setTimeout(() => (sheet.hidden = true), 250);
 		};
 		openBtn.addEventListener('click', open);

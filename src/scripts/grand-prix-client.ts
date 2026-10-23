@@ -1,3 +1,4 @@
+import { lockScroll, unlockScroll } from './scroll-lock';
 import {
 	lbData,
 	LB_DIVISIONS_BY_CATEGORY,
@@ -104,6 +105,7 @@ function initNavDrawer() {
 		menuBtn.tabIndex = mobile ? 0 : -1;
 		if (!mobile) {
 			document.documentElement.classList.remove('nav-drawer-open');
+			unlockScroll('nav-drawer');
 			menuBtn.setAttribute('aria-expanded', 'false');
 			primaryNav.removeAttribute('inert');
 			primaryNav.removeAttribute('aria-hidden');
@@ -124,6 +126,8 @@ function initNavDrawer() {
 	function setOpen(open: boolean) {
 		if (!isMobile()) return;
 		document.documentElement.classList.toggle('nav-drawer-open', open);
+		if (open) lockScroll('nav-drawer');
+		else unlockScroll('nav-drawer');
 		applyPanelState();
 	}
 

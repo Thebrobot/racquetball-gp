@@ -1,5 +1,6 @@
 import type { GalleryAlbum, GalleryClientConfig, GalleryPhoto } from '../lib/gallery/types';
 import { enablePush, getPushState, pushSupported } from './push-client';
+import { lockScroll, unlockScroll } from './scroll-lock';
 
 export type { GalleryClientConfig };
 
@@ -1152,6 +1153,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		lightbox.hidden = false;
 		lightbox.setAttribute('aria-hidden', 'false');
 		document.body.classList.add('gallery-lb-open');
+		lockScroll('gallery');
 		if (lbPrev) lbPrev.hidden = visible.length < 2;
 		if (lbNext) lbNext.hidden = visible.length < 2;
 		if (isBrowse) {
@@ -1177,10 +1179,13 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		lightbox.hidden = true;
 		lightbox.setAttribute('aria-hidden', 'true');
 		document.body.classList.remove('gallery-lb-open');
+		unlockScroll('gallery');
 		if (shareMenu) shareMenu.hidden = true;
 		if (feedOpen) {
 			// The detail view was opened from the feed: drop back to the feed, not the wall.
 			document.body.classList.add('gallery-lb-open');
+			lockScroll('gallery');
+		lockScroll('gallery');
 			const current = visible[lbIndex];
 			if (isBrowse && current) {
 				history.replaceState({ galleryEvent: slugFor(albumId), photo: current.id }, '', pageUrl(slugFor(albumId), current.id));
@@ -1346,6 +1351,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		feed.hidden = false;
 		feed.setAttribute('aria-hidden', 'false');
 		document.body.classList.add('gallery-lb-open');
+		lockScroll('gallery');
 		scrollFeedTo(idx, 'auto');
 		setFeedCurrent(idx);
 		feedObserver?.disconnect();
@@ -1374,6 +1380,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		feed.setAttribute('aria-hidden', 'true');
 		feedScroll.innerHTML = '';
 		document.body.classList.remove('gallery-lb-open');
+		unlockScroll('gallery');
 		if (shareMenu) shareMenu.hidden = true;
 		if (opts?.history !== false && isBrowse) {
 			history.replaceState({ galleryEvent: slugFor(albumId) }, '', pageUrl(slugFor(albumId), null));
