@@ -146,6 +146,13 @@ export function htmlHasWinnerMark(html: string): boolean {
 	return WINNER_MARK_IN_HTML.test(html);
 }
 
+/** Compact snippet for status/quarantine when r2-push did not return a match page. */
+export function describeBadMatchHtml(html: string, max = 140): string {
+	const compact = String(html ?? '').replace(/\s+/g, ' ').trim();
+	const snippet = compact.slice(0, max);
+	return `match page HTML missing versus/result markup (${compact.length} bytes: ${snippet || 'empty'})`;
+}
+
 export type ParsedMatchPage = {
 	player1: string | null;
 	player2: string | null;

@@ -6,17 +6,19 @@ import { fileURLToPath } from 'node:url';
 import { applyResultsToEvent } from '../../data/events';
 import { PORT_ST_LUCIE_EVENT } from '../../data/port-st-lucie-event';
 import { LIVE_EVENTS } from './config';
-import { parseMatchPage, winnerNameFromHtml } from './parse-match-page';
+import { describeBadMatchHtml, htmlLooksLikeMatchPage, parseMatchPage, winnerNameFromHtml } from './parse-match-page';
 import { extractRoundRobinFromHtml, extractScore, extractSingleElimFromHtml } from './parse-r2';
-import { resolveMatchResult } from './resolve-results';
+import { ownDrawFinal, resolveMatchResult } from './resolve-results';
 import {
 	applyActivityUpdates,
 	applyMatchOverrides,
+	BROWSER_HEADERS,
 	detectActivityChanges,
 	dropPublishedQuarantine,
 	isRetryableStatus,
 	mergeOneMatch,
 	mergeScrapedResults,
+	USER_AGENT,
 } from './scrape';
 
 const fixtures = resolve(dirname(fileURLToPath(import.meta.url)), 'fixtures');
@@ -245,6 +247,25 @@ describe('match-result-overrides still win', () => {
 		});
 		assert.equal(divisions['mens-singles-open']?.MO9?.winner, 2);
 		assert.equal(divisions['mens-singles-open']?.MO9?.score, '15-4, 2-15, 11-3');
+	});
+
+	it('publishes confirmed PSL MBD4 / M60+5 / M60+7 overrides', () => {
+		const divisions = applyMatchOverrides('port-st-lucie-open', {
+			'mens-doubles-b': {
+				MBD4: { player1: 'Ryan Appleby / Matt Kern', player2: 'Jonathan Estepan / Daniel Bray' },
+			},
+			'mens-age-60': {
+				'M60+5': { player1: 'Scott Gill', player2: 'Mike Boyar' },
+				'M60+7': { player1: 'Jim Russell', player2: 'Charles Cole' },
+			},
+		});
+		assert.equal(divisions['mens-doubles-b']?.MBD4?.winner, 1);
+		assert.equal(divisions['mens-doubles-b']?.MBD4?.score, '15-4, 15-9');
+		assert.equal(divisions['mens-doubles-b']?.MBD4?.court, 'Court 4');
+		assert.equal(divisions['mens-age-60']?.['M60+5']?.winner, 2);
+		assert.equal(divisions['mens-age-60']?.['M60+5']?.score, '15-7, 15-8');
+		assert.equal(divisions['mens-age-60']?.['M60+7']?.winner, 2);
+		assert.equal(divisions['mens-age-60']?.['M60+7']?.score, '15-5, 14-14, Win by forfeit');
 	});
 });
 
@@ -476,6 +497,57 @@ describe('quarantine list clears once a match publishes', () => {
 			),
 			[],
 		);
+	});
+});
+
+describe('missing match-page markup falls back to that match own draw result', () => {
+	const blockPage = `<!DOCTYPE html><html><head><title>Attention Required | Cloudflare</title></head>
+		<body>Please enable cookies to continue. cf-browser-verification challenge</body></html>`;
+
+	it('treats a block/stub page as missing versus/result markup and logs a snippet', () => {
+		assert.equal(htmlLooksLikeMatchPage(blockPage), false);
+		const reason = describeBadMatchHtml(blockPage);
+		assert.match(reason, /missing versus\/result markup/i);
+		assert.match(reason, /Cloudflare|cf-browser-verification|Attention Required/);
+		assert.match(reason, /bytes:/);
+	});
+
+	it('publishes MBD4 from the draw when r2-push returns that stub', () => {
+		assert.ok(ownDrawFinal(mbdDraw.matches.MBD4!));
+		const { record, quarantine } = resolveMatchResult({
+			matchId: 'MBD4',
+			draw: mbdDraw.matches.MBD4!,
+			page: null,
+			pageError: describeBadMatchHtml(blockPage),
+		});
+		assert.equal(quarantine, undefined);
+		assert.equal(record.winner, 1);
+		assert.equal(record.score, '15-4, 15-9');
+		assert.match(record.player1 ?? '', /Appleby/);
+	});
+
+	it('does not invent a 60+ score when the draw box has a winner but no own-box score', () => {
+		assert.equal(ownDrawFinal(m60Draw.matches['M60+5']!), null);
+		const { record, quarantine } = resolveMatchResult({
+			matchId: 'M60+5',
+			draw: m60Draw.matches['M60+5']!,
+			page: null,
+			pageError: describeBadMatchHtml(blockPage),
+		});
+		assert.ok(quarantine);
+		assert.match(quarantine.reason, /missing versus\/result markup/i);
+		assert.match(quarantine.reason, /Cloudflare|Attention Required/);
+		assert.equal(record.winner, undefined);
+	});
+
+	it('sends full Chrome navigation headers on production fetches', () => {
+		assert.match(BROWSER_HEADERS['user-agent'] ?? '', /Chrome\/124/);
+		assert.equal(BROWSER_HEADERS['user-agent'], USER_AGENT);
+		assert.match(BROWSER_HEADERS.accept ?? '', /text\/html/);
+		assert.equal(BROWSER_HEADERS['accept-language'], 'en-US,en;q=0.9');
+		assert.equal(BROWSER_HEADERS['sec-fetch-dest'], 'document');
+		assert.equal(BROWSER_HEADERS['sec-fetch-mode'], 'navigate');
+		assert.match(BROWSER_HEADERS['sec-ch-ua'] ?? '', /Chromium/);
 	});
 });
 

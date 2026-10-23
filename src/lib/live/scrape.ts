@@ -1,6 +1,7 @@
 import overridesJson from '../../../scripts/match-result-overrides.json';
 import { drawOutUrl, type LiveEventConfig } from './config';
 import {
+	describeBadMatchHtml,
 	htmlHasWinnerMark,
 	htmlLooksLikeMatchPage,
 	matchPageUrl,
@@ -22,6 +23,24 @@ import type { LiveActivityEvent, LiveActivityFeed, LiveResultsFile, QuarantinedM
 
 export const USER_AGENT =
 	'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+
+/** Full Chrome navigation headers — Vercel/datacenter fetches need these, not UA alone. */
+export const BROWSER_HEADERS: Record<string, string> = {
+	'user-agent': USER_AGENT,
+	accept:
+		'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+	'accept-language': 'en-US,en;q=0.9',
+	'cache-control': 'max-age=0',
+	'sec-ch-ua': '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+	'sec-ch-ua-mobile': '?0',
+	'sec-ch-ua-platform': '"macOS"',
+	'sec-fetch-dest': 'document',
+	'sec-fetch-mode': 'navigate',
+	'sec-fetch-site': 'same-origin',
+	'sec-fetch-user': '?1',
+	'upgrade-insecure-requests': '1',
+};
+
 const MAX_ATTEMPTS = 3;
 const MAX_ACTIVITY_EVENTS = 600;
 const MATCH_PAGE_CONCURRENCY = 3;
@@ -58,14 +77,14 @@ export function isRetryableStatus(status: number): boolean {
 	return RETRYABLE_STATUS.has(status);
 }
 
-async function fetchHtml(url: string): Promise<{ html: string; finalUrl: string }> {
+async function fetchHtml(url: string, referer?: string): Promise<{ html: string; finalUrl: string }> {
 	let lastErr: unknown = null;
 	for (let attempt = 1; attempt <= FETCH_ATTEMPTS; attempt++) {
 		try {
 			const res = await fetch(url, {
 				headers: {
-					'user-agent': USER_AGENT,
-					accept: 'text/html,application/xhtml+xml',
+					...BROWSER_HEADERS,
+					referer: referer || 'https://www.r2sports.com/',
 				},
 				redirect: 'follow',
 				signal: AbortSignal.timeout(15_000),
@@ -93,12 +112,13 @@ async function scrapeDivision(
 	divId: string | null;
 	draw: DrawPageParse;
 	html: string;
+	finalUrl: string;
 }> {
 	const { html, finalUrl } = await fetchHtml(drawOutUrl(event, divID, combinedID));
 	const divCode = resolveDivCodeFromHtml(html);
 	const divId = divCode ? event.codeIdMap[divCode] ?? null : null;
-	if (!divId) return { divCode, divId: null, draw: { matches: {}, advancements: [] }, html };
-	return { divCode, divId, draw: parseBracketPage(html, finalUrl), html };
+	if (!divId) return { divCode, divId: null, draw: { matches: {}, advancements: [] }, html, finalUrl };
+	return { divCode, divId, draw: parseBracketPage(html, finalUrl), html, finalUrl };
 }
 
 async function mapPool<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
@@ -126,7 +146,7 @@ export async function scrapeEvent(event: LiveEventConfig): Promise<EventScrapeRe
 		let succeeded = false;
 		for (let attempt = 1; attempt <= MAX_ATTEMPTS && !succeeded; attempt++) {
 			try {
-				const { divCode, divId, draw, html } = await scrapeDivision(event, divID, combinedID);
+				const { divCode, divId, draw, html, finalUrl } = await scrapeDivision(event, divID, combinedID);
 				succeeded = true;
 				if (!divId) {
 					divisionReports.push({
@@ -141,7 +161,7 @@ export async function scrapeEvent(event: LiveEventConfig): Promise<EventScrapeRe
 					break;
 				}
 
-				const pageByR2 = await fetchMatchPages(event.tid, Object.values(draw.matches));
+				const pageByR2 = await fetchMatchPages(event.tid, Object.values(draw.matches), finalUrl);
 				const data: MatchMap = {};
 				for (const [matchId, parsed] of Object.entries(draw.matches)) {
 					const pageHit = parsed.r2MatchId ? pageByR2.get(parsed.r2MatchId) : undefined;
@@ -202,7 +222,7 @@ export async function scrapeEvent(event: LiveEventConfig): Promise<EventScrapeRe
 
 type PageHit = { page: ParsedMatchPage | null; html?: string; error?: string };
 
-async function fetchMatchPages(tid: string, matches: ParsedDrawMatch[]): Promise<Map<string, PageHit>> {
+async function fetchMatchPages(tid: string, matches: ParsedDrawMatch[], referer?: string): Promise<Map<string, PageHit>> {
 	const finishedIds = new Set(
 		matches
 			.filter((m) => m.drawWinner != null || Boolean(m.drawWinnerName) || Boolean(m.drawScore))
@@ -216,9 +236,9 @@ async function fetchMatchPages(tid: string, matches: ParsedDrawMatch[]): Promise
 		let lastErr: string | null = null;
 		for (let attempt = 1; attempt <= FETCH_ATTEMPTS; attempt++) {
 			try {
-				const { html } = await fetchHtml(matchPageUrl(tid, r2MatchId));
+				const { html } = await fetchHtml(matchPageUrl(tid, r2MatchId), referer);
 				if (!htmlLooksLikeMatchPage(html)) {
-					lastErr = 'match page HTML missing versus/result markup';
+					lastErr = describeBadMatchHtml(html);
 					if (attempt < FETCH_ATTEMPTS) {
 						await new Promise((r) => setTimeout(r, 300 * attempt));
 						continue;
