@@ -2,9 +2,10 @@ name: Sync R2 Brackets
 
 # Fallback sync for the Port St. Lucie Open weekend (Oct 23–25, 2026).
 # Primary live updates now come from Vercel Cron → /api/cron/sync-brackets
-# (fetch + Vercel Blob, no redeploy). This workflow still scrapes with
-# Playwright, refreshes GP points, and commits JSON so a missed Vercel
-# run cannot leave the site stuck.
+# (fetch + Vercel Blob, no redeploy). This workflow uses the same
+# fetch + explicit-winner path (scripts/sync-r2-live.ts), refreshes GP
+# points, and commits JSON so a missed Vercel run cannot leave the site
+# stuck. It must not write heuristic winners.
 #
 # The window guard below skips all scheduled syncs after Mon Oct 26 2026
 # 06:00 UTC (Sunday midnight ET + buffer). Manual runs always work.
@@ -52,25 +53,9 @@ jobs:
         if: steps.window.outputs.run == 'true'
         run: npm ci
 
-      - name: Cache Playwright browsers
-        if: steps.window.outputs.run == 'true'
-        uses: actions/cache@v4
-        id: playwright-cache
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-chromium-${{ hashFiles('package-lock.json') }}
-
-      - name: Install Playwright Chromium
-        if: steps.window.outputs.run == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install chromium --with-deps
-
-      - name: Install Playwright system deps (cached run)
-        if: steps.window.outputs.run == 'true' && steps.playwright-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps chromium
-
       - name: Run bracket sync
         if: steps.window.outputs.run == 'true'
-        run: node scripts/sync-r2-brackets.mjs psl
+        run: npx tsx scripts/sync-r2-live.ts psl
 
       - name: Refresh GP points from Google Sheet
         if: steps.window.outputs.run == 'true'

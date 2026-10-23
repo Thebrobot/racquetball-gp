@@ -15,12 +15,19 @@ export type LiveActivityEvent = {
 	headline: string;
 	detail?: string;
 	bracketHref: string;
+	correction?: boolean;
 };
 
 export type LiveActivityFeed = {
 	lastUpdated: string | null;
 	eventSlug: string;
 	events: LiveActivityEvent[];
+};
+
+export type QuarantinedMatch = {
+	matchId: string;
+	divisionId?: string;
+	reason: string;
 };
 
 export type EventSyncStatus = {
@@ -31,6 +38,7 @@ export type EventSyncStatus = {
 	lastUpdated: string | null;
 	divisionsScraped: number;
 	matchesWithResults: number;
+	quarantined?: QuarantinedMatch[];
 };
 
 export type SyncStatus = {
@@ -40,5 +48,6 @@ export type SyncStatus = {
 	lastError: string | null;
 	inWindow: boolean;
 	skipped?: string;
+	quarantined?: QuarantinedMatch[];
 	events: Record<string, EventSyncStatus>;
 };

@@ -1,18 +1,44 @@
 /**
- * R2 Sports bracket HTML parsers. Ported from scripts/sync-r2-brackets.mjs
- * page.evaluate() callbacks so the Vercel cron can scrape with fetch + linkedom
- * instead of Playwright/Chromium.
+ * R2 Sports bracket HTML parsers.
+ * This file extracts the match roster, numeric R2 ids, schedule, and
+ * *explicit* same-box winner markers. It does not infer a winner by
+ * matching last names into a later-round slot.
  */
 import { parseHTML } from 'linkedom';
+import { cleanPlayerName, formatScore, isPlayerName, matchWinnerSide } from './r2-names';
+import { parseR2Schedule } from './r2-schedule';
 
 export type MatchRecord = {
 	player1?: string | null;
 	player2?: string | null;
 	winner?: 1 | 2;
 	score?: string;
+	court?: string;
+	scheduledTime?: string;
 };
 
 export type MatchMap = Record<string, MatchRecord>;
+
+export type DrawWinnerSource = 'box-border' | 'round-robin-w';
+
+export type ParsedDrawMatch = MatchRecord & {
+	r2MatchId?: string;
+	/** Winner taken only from an explicit marker on this match's own row/box. */
+	drawWinner?: 1 | 2;
+	drawWinnerName?: string;
+	drawScore?: string;
+	drawWinnerSource?: DrawWinnerSource;
+};
+
+export type DrawAdvancement = {
+	name: string;
+	score: string | null;
+};
+
+export type DrawPageParse = {
+	matches: Record<string, ParsedDrawMatch>;
+	advancements: DrawAdvancement[];
+};
 
 type DomEl = {
 	textContent: string | null;
@@ -38,12 +64,11 @@ function textOf(el: DomEl | null | undefined): string {
 }
 
 const DIV_CODE_RE = /\(\s*([A-Z][A-Z0-9+]*)\s*\)\s*(?:Men|Women|Mixed)/;
+const MATCH_CODE_RE = /^[A-Z][A-Z0-9+]{0,4}\d{1,3}$/;
+const VIEW_MATCH_RE = /viewAppMatch\((\d+)\)/i;
 
 export function resolveDivCodeFromHtml(html: string): string | null {
 	const document = asDoc(html);
-	// R2's HTML is invalid (scripts before doctype). linkedom's body.textContent
-	// is often empty, but heading nodes still parse. Prefer those over a raw
-	// HTML scan — the stylesheet comments mention other division codes.
 	const heading = document.querySelector('font[size="6"]') ?? document.querySelector('font[size="5"]');
 	const headingMatch = textOf(heading).match(DIV_CODE_RE);
 	if (headingMatch) return headingMatch[1];
@@ -54,298 +79,112 @@ export function resolveDivCodeFromHtml(html: string): string | null {
 	return null;
 }
 
-export function extractSingleElimFromHtml(html: string): MatchMap {
-	const document = asDoc(html);
-	const cleanName = (s: string) =>
-		(s ?? '').replace(/\s*:\s*.*$/, '').replace(/\s+-\s*W\s*$/, '').replace(/\s+/g, ' ').trim();
-
-	const isPlayerName = (s: string) => {
-		const t = (s ?? '').trim();
-		return t.length >= 3 && (t.includes(' ') || t.includes('/')) && /[A-Za-z]/.test(t);
-	};
-
-	const isFullName = (s: string) =>
-		isPlayerName(s) &&
-		s.split('/').every((part) => {
-			const words = part.trim().split(/\s+/);
-			return words.length >= 2 && (words[0]?.length ?? 0) > 1;
-		});
-
-	const extractScore = (text: string) => {
-		const t = String(text ?? '');
-		const wbf = t.match(/WBF[^\n\r]*/i) ?? t.match(/No[\s-]?Show[^\n\r]*/i) ?? t.match(/Forfeit[^\n\r]*/i);
-		if (wbf) return wbf[0].trim();
-		const m = t.match(/\d{1,3}[-–]\d{1,3}(?:[,\s]+\d{1,3}[-–]\d{1,3})*/);
-		return m ? m[0].replace(/–/g, '-').replace(/\s+/g, '') : null;
-	};
-
-	const lastNames = (name: string) =>
-		(name ?? '')
-			.split('/')
-			.map((p) => p.trim().split(/\s+/).pop()?.toLowerCase())
-			.filter((n): n is string => Boolean(n));
-
-	const allTables = Array.from(document.querySelectorAll('table'));
-	const matchBoxes = allTables.filter((t) => t.querySelector('a[href*="viewAppMatch"]'));
-
-	const matchMap: MatchMap = {};
-
-	for (const box of matchBoxes) {
-		const link = box.querySelector('a[href*="viewAppMatch"]');
-		const matchId = textOf(link);
-		if (!/^[A-Z][A-Z0-9+]{0,4}\d{1,3}$/.test(matchId)) continue;
-
-		const names = Array.from(box.querySelectorAll('strong, b'))
-			.map((el) => cleanName(el.textContent ?? ''))
-			.filter(isPlayerName);
-
-		if (names.length === 0) continue;
-		matchMap[matchId] = {
-			player1: names[0] ?? null,
-			player2: names[1] ?? null,
-		};
-	}
-
-	const results: MatchMap = { ...matchMap };
-
-	{
-		const cells = Array.from(document.querySelectorAll('td')).filter((td) => !td.querySelector('table'));
-		for (const cell of cells) {
-			const closestTable = cell.closest('table');
-			const isMatchBox = !!closestTable?.querySelector('a[href*="viewAppMatch"]');
-			const strong = cell.querySelector('strong, b');
-			if (!strong) continue;
-			const advancerName = cleanName(strong.textContent ?? '');
-			if (!isPlayerName(advancerName)) continue;
-			if (isMatchBox && !isFullName(advancerName)) continue;
-
-			const score = extractScore(cell.textContent ?? '');
-			if (!score) continue;
-
-			const advLN = lastNames(advancerName);
-			if (!advLN.length) continue;
-
-			let fullMatch: { matchId: string; data: MatchRecord; side: 1 | 2 } | null = null;
-			let abbrMatch: { matchId: string; data: MatchRecord; side: 1 | 2 } | null = null;
-			let ambiguous = false;
-
-			for (const [matchId, data] of Object.entries(results)) {
-				if (data.winner != null) continue;
-				const p1LN = lastNames(data.player1 ?? '');
-				const p2LN = lastNames(data.player2 ?? '');
-
-				const hitsP1 = advLN.every((ln) => p1LN.some((p) => p === ln || p.includes(ln) || ln.includes(p)));
-				const hitsP2 = advLN.every((ln) => p2LN.some((p) => p === ln || p.includes(ln) || ln.includes(p)));
-
-				if (hitsP1 && !hitsP2) {
-					if (isFullName(data.player1 ?? '')) {
-						if (fullMatch) {
-							ambiguous = true;
-							break;
-						}
-						fullMatch = { matchId, data, side: 1 };
-					} else if (!fullMatch) {
-						abbrMatch = { matchId, data, side: 1 };
-					}
-				} else if (hitsP2 && !hitsP1) {
-					if (isFullName(data.player2 ?? '')) {
-						if (fullMatch) {
-							ambiguous = true;
-							break;
-						}
-						fullMatch = { matchId, data, side: 2 };
-					} else if (!fullMatch) {
-						abbrMatch = { matchId, data, side: 2 };
-					}
-				}
-			}
-
-			if (ambiguous) continue;
-			const target = fullMatch ?? abbrMatch;
-			if (!target) continue;
-			results[target.matchId] = { ...target.data, winner: target.side, score };
-		}
-	}
-
-	const matchNum = (matchId: string) => {
-		const m = matchId.match(/\d+$/);
-		return m ? parseInt(m[0], 10) : Infinity;
-	};
-
-	const isWinnerBorder = (style: string | null) => /3\.0?pt solid (?!black)/.test(style ?? '');
-
-	for (const nameEl of Array.from(document.querySelectorAll('b, strong'))) {
-		const advancerName = cleanName(nameEl.textContent ?? '');
-		if (!isPlayerName(advancerName)) continue;
-
-		const parentTd = nameEl.closest('td');
-		if (!parentTd) continue;
-		const hasWinnerBorder = isWinnerBorder(parentTd.getAttribute('style'));
-		if (isFullName(advancerName) && !hasWinnerBorder) continue;
-
-		const parentTable = nameEl.closest('table');
-		const link = parentTable?.querySelector('a[href*="viewAppMatch"]');
-		const targetMatchId = textOf(link);
-		if (!/^[A-Z][A-Z0-9+]{0,4}\d{1,3}$/.test(targetMatchId)) continue;
-		if (!matchMap[targetMatchId]) continue;
-		const targetNum = matchNum(targetMatchId);
-
-		const winnerTr = parentTd.closest('tr');
-		const scoreTd = winnerTr?.nextElementSibling?.querySelector('td') ?? null;
-		const score = scoreTd ? extractScore(scoreTd.textContent ?? '') : null;
-
-		const advLN = lastNames(advancerName);
-		if (!advLN.length) continue;
-
-		const advInitial = (() => {
-			const parts = advancerName.trim().split(/\s+/);
-			return !advancerName.includes('/') && (parts[0]?.length ?? 0) === 1
-				? parts[0]!.toUpperCase()
-				: null;
-		})();
-
-		if (isFullName(advancerName)) {
-			const data = results[targetMatchId];
-			if (!data || data.winner != null) continue;
-			const p1LN = lastNames(data.player1 ?? '');
-			const p2LN = lastNames(data.player2 ?? '');
-			const hitsP1 = advLN.every((ln) => p1LN.some((p) => p === ln || p.includes(ln) || ln.includes(p)));
-			const hitsP2 = advLN.every((ln) => p2LN.some((p) => p === ln || p.includes(ln) || ln.includes(p)));
-			if (hitsP1 && !hitsP2) results[targetMatchId] = { ...data, winner: 1 };
-			else if (hitsP2 && !hitsP1) results[targetMatchId] = { ...data, winner: 2 };
-			continue;
-		}
-
-		if (!score) continue;
-
-		let best: { matchId: string; data: MatchRecord; side: 1 | 2; num: number } | null = null;
-		let ambiguous = false;
-
-		for (const [matchId, data] of Object.entries(results)) {
-			if (matchId === targetMatchId) continue;
-			if (data.winner != null && data.score != null) continue;
-			const yNum = matchNum(matchId);
-			if (yNum <= targetNum) continue;
-
-			const p1LN = lastNames(data.player1 ?? '');
-			const p2LN = lastNames(data.player2 ?? '');
-
-			const hitsP1 = advLN.every((ln) => p1LN.some((p) => p === ln || p.includes(ln) || ln.includes(p)));
-			const hitsP2 = advLN.every((ln) => p2LN.some((p) => p === ln || p.includes(ln) || ln.includes(p)));
-
-			const verifyInitial = (playerName: string | null | undefined, hits: boolean) => {
-				if (!hits || !advInitial) return hits;
-				const pFirst = (playerName ?? '').trim().split(/\s+/)[0];
-				return pFirst?.[0]?.toUpperCase() === advInitial;
-			};
-			const validP1 = verifyInitial(data.player1, hitsP1 && !hitsP2);
-			const validP2 = verifyInitial(data.player2, hitsP2 && !hitsP1);
-
-			if (validP1) {
-				if (best === null || yNum < best.num) {
-					best = { matchId, data, side: 1, num: yNum };
-					ambiguous = false;
-				} else if (yNum === best.num) {
-					ambiguous = true;
-				}
-			} else if (validP2) {
-				if (best === null || yNum < best.num) {
-					best = { matchId, data, side: 2, num: yNum };
-					ambiguous = false;
-				} else if (yNum === best.num) {
-					ambiguous = true;
-				}
-			}
-		}
-
-		if (ambiguous || !best) continue;
-		const existing = results[best.matchId];
-		if (!existing) continue;
-		if (existing.winner == null) {
-			results[best.matchId] = { ...existing, winner: best.side, score };
-		} else if (existing.score == null && existing.winner === best.side) {
-			results[best.matchId] = { ...existing, score };
-		}
-	}
-
-	const championScoreFor = (playerName: string) => {
-		const champTd = Array.from(document.querySelectorAll('td')).find((td) =>
-			/^CHAMPION$/i.test((td.textContent ?? '').trim()),
-		);
-		if (!champTd) return null;
-		const table = champTd.closest('table');
-		const champName = cleanName(table?.querySelector('strong, b')?.textContent ?? '');
-		if (!isPlayerName(champName)) return null;
-		const pLN = lastNames(playerName);
-		const cLN = lastNames(champName);
-		const matches = pLN.every((ln) => cLN.some((p) => p === ln || p.includes(ln) || ln.includes(p)));
-		if (!matches) return null;
-		return extractScore(champTd.closest('tr')?.nextElementSibling?.textContent ?? '');
-	};
-
-	for (const box of matchBoxes) {
-		const link = box.querySelector('a[href*="viewAppMatch"]');
-		const matchId = textOf(link);
-		if (!/^[A-Z][A-Z0-9+]{0,4}\d{1,3}$/.test(matchId)) continue;
-
-		const data = results[matchId];
-		if (!data || data.winner != null) continue;
-		if (!isPlayerName(data.player1 ?? '') || !isPlayerName(data.player2 ?? '')) continue;
-
-		for (const tr of Array.from(box.querySelectorAll('tr'))) {
-			const nameEl = tr.querySelector('strong, b');
-			if (!nameEl) continue;
-			const nameTd = nameEl.closest('td');
-			if (!nameTd || !isWinnerBorder(nameTd.getAttribute('style'))) continue;
-
-			const winnerName = cleanName(nameEl.textContent ?? '');
-			if (!isPlayerName(winnerName)) continue;
-
-			const scoreTr = tr.nextElementSibling;
-			const score = scoreTr ? extractScore(scoreTr.textContent ?? '') : null;
-			if (!score) continue;
-
-			const winLN = lastNames(winnerName);
-			const p1LN = lastNames(data.player1 ?? '');
-			const p2LN = lastNames(data.player2 ?? '');
-			const hitsP1 = winLN.every((ln) => p1LN.some((p) => p === ln || p.includes(ln) || ln.includes(p)));
-			const hitsP2 = winLN.every((ln) => p2LN.some((p) => p === ln || p.includes(ln) || ln.includes(p)));
-
-			if (hitsP1 && !hitsP2) {
-				results[matchId] = { ...data, winner: 1, score: championScoreFor(winnerName) ?? score };
-				break;
-			}
-			if (hitsP2 && !hitsP1) {
-				results[matchId] = { ...data, winner: 2, score: championScoreFor(winnerName) ?? score };
-				break;
-			}
-		}
-	}
-
-	return results;
+export function extractScore(text: string): string | null {
+	const t = String(text ?? '');
+	const wbf = t.match(/WBF[^\n\r]*/i) ?? t.match(/No[\s-]?Show[^\n\r]*/i) ?? t.match(/Forfeit[^\n\r]*/i);
+	if (wbf) return wbf[0].trim();
+	const m = t.match(/\d{1,3}[-–]\d{1,3}(?:[,\s]+\d{1,3}[-–]\d{1,3})*/);
+	return m ? formatScore(m[0]) : null;
 }
 
-export function extractRoundRobinFromHtml(html: string): MatchMap {
+const isWinnerBorder = (style: string | null) => /3\.0?pt solid (?!black)/.test(style ?? '');
+
+function r2IdFromHref(href: string | null): string | undefined {
+	const m = (href ?? '').match(VIEW_MATCH_RE);
+	return m?.[1];
+}
+
+function applySchedule(target: ParsedDrawMatch, text: string): void {
+	const parsed = parseR2Schedule(text);
+	if (parsed.court && !target.court) target.court = parsed.court;
+	if (parsed.scheduledTime && !target.scheduledTime) target.scheduledTime = parsed.scheduledTime;
+}
+
+export function extractSingleElimFromHtml(html: string): DrawPageParse {
 	const document = asDoc(html);
-	const results: MatchMap = {};
+	const allTables = Array.from(document.querySelectorAll('table'));
+	const matchBoxes = allTables.filter((t) => t.querySelector('a[href*="viewAppMatch"]'));
+	const matches: Record<string, ParsedDrawMatch> = {};
 
-	const extractScore = (text: string) => {
-		const t = String(text ?? '');
-		const wbf = t.match(/WBF[^\n\r]*/i) ?? t.match(/No[\s-]?Show[^\n\r]*/i);
-		if (wbf) return wbf[0].trim();
-		const m = t.match(/\d{1,3}[-–]\d{1,3}(?:[,\s]+\d{1,3}[-–]\d{1,3})*/);
-		return m ? m[0].replace(/–/g, '-').replace(/\s+/g, '') : null;
-	};
+	for (const box of matchBoxes) {
+		const link = box.querySelector('a[href*="viewAppMatch"]');
+		const matchId = textOf(link);
+		if (!MATCH_CODE_RE.test(matchId)) continue;
 
+		const names = Array.from(box.querySelectorAll('strong, b'))
+			.map((el) => cleanPlayerName(el.textContent ?? ''))
+			.filter(isPlayerName);
+
+		const entry: ParsedDrawMatch = {
+			player1: names[0] ?? null,
+			player2: names[1] ?? null,
+			r2MatchId: r2IdFromHref(link?.getAttribute('href') ?? null),
+		};
+		applySchedule(entry, textOf(box));
+
+		for (const nameEl of Array.from(box.querySelectorAll('strong, b'))) {
+			const nameTd = nameEl.closest('td');
+			if (!nameTd || !isWinnerBorder(nameTd.getAttribute('style'))) continue;
+			const winnerName = cleanPlayerName(nameEl.textContent ?? '');
+			if (!isPlayerName(winnerName)) continue;
+			const side = matchWinnerSide(winnerName, entry.player1, entry.player2);
+			if (side == null) continue;
+			entry.drawWinner = side;
+			entry.drawWinnerName = winnerName;
+			entry.drawWinnerSource = 'box-border';
+			const scoreTr = nameTd.closest('tr')?.nextElementSibling;
+			const score = scoreTr ? extractScore(textOf(scoreTr)) : extractScore(textOf(nameTd));
+			if (score) entry.drawScore = score;
+			break;
+		}
+
+		if (!entry.drawScore) {
+			const boxScore = extractScore(textOf(box));
+			if (boxScore) entry.drawScore = boxScore;
+		}
+
+		matches[matchId] = entry;
+	}
+
+	const advancements: DrawAdvancement[] = [];
+	const cells = Array.from(document.querySelectorAll('td')).filter((td) => !td.querySelector('table'));
+	for (const cell of cells) {
+		const strong = cell.querySelector('strong, b');
+		if (!strong) continue;
+		const name = cleanPlayerName(strong.textContent ?? '');
+		if (!isPlayerName(name)) continue;
+		const own = extractScore(textOf(cell));
+		const next = cell.closest('tr')?.nextElementSibling
+			? extractScore(textOf(cell.closest('tr')?.nextElementSibling))
+			: null;
+		const score = own ?? next;
+		if (!score) continue;
+		const inMatchBox = Boolean(cell.closest('table')?.querySelector('a[href*="viewAppMatch"]'));
+		if (inMatchBox && namesAlignBox(cell, name)) continue;
+		advancements.push({ name, score });
+	}
+
+	return { matches, advancements };
+}
+
+function namesAlignBox(cell: DomEl, name: string): boolean {
+	const box = cell.closest('table');
+	if (!box?.querySelector('a[href*="viewAppMatch"]')) return false;
+	const names = Array.from(box.querySelectorAll('strong, b'))
+		.map((el) => cleanPlayerName(el.textContent ?? ''))
+		.filter(isPlayerName);
+	return names.some((n) => n.toLowerCase() === name.toLowerCase());
+}
+
+export function extractRoundRobinFromHtml(html: string): DrawPageParse {
+	const document = asDoc(html);
+	const matches: Record<string, ParsedDrawMatch> = {};
 	const codeRe = /^[A-Z][A-Z0-9+]{0,4}\s+\d{1,3}$/;
-	const matchLinks = Array.from(document.querySelectorAll('a')).filter((a) =>
-		codeRe.test(textOf(a)),
-	);
+	const matchLinks = Array.from(document.querySelectorAll('a')).filter((a) => codeRe.test(textOf(a)));
 
 	for (const link of matchLinks) {
 		const rawId = textOf(link);
 		const matchId = rawId.replace(/\s+/g, '');
-
 		const row = link.closest('tr');
 		if (!row) continue;
 		const rowText = textOf(row);
@@ -355,28 +194,48 @@ export function extractRoundRobinFromHtml(html: string): MatchMap {
 		);
 		if (!versus) continue;
 
-		const stripW = (s: string) => s.replace(/\s+-\s+W$/, '').trim();
+		const stripW = (s: string) => s.replace(/\s+-\s+W$/i, '').trim();
 		const player1 = stripW(versus[1] ?? '');
 		const player2 = stripW(versus[2] ?? '');
 		const score = extractScore(rowText);
+		const entry: ParsedDrawMatch = {
+			player1,
+			player2,
+			r2MatchId: r2IdFromHref(link.getAttribute('href')),
+		};
+		applySchedule(entry, rowText);
+		if (score) entry.drawScore = score;
 
-		let winner: 1 | 2 | undefined;
 		if (/vs\.?\s+[A-Z][\w .'\-/]+?\s+-\s+W\s+(?:Sa|Su|Mo|Tu|We|Th|Fr|F|M|W)\s+\d/.test(rowText)) {
-			winner = 2;
+			entry.drawWinner = 2;
+			entry.drawWinnerName = player2;
+			entry.drawWinnerSource = 'round-robin-w';
 		} else if (/-\s+W\s+vs\.?/.test(rowText)) {
-			winner = 1;
+			entry.drawWinner = 1;
+			entry.drawWinnerName = player1;
+			entry.drawWinnerSource = 'round-robin-w';
 		}
 
-		const entry: MatchRecord = { player1, player2 };
-		if (score) entry.score = score;
-		if (winner) entry.winner = winner;
-		results[matchId] = entry;
+		matches[matchId] = entry;
 	}
 
-	return results;
+	return { matches, advancements: [] };
 }
 
-export function parseBracketPage(html: string, finalUrl: string): MatchMap {
+export function parseBracketPage(html: string, finalUrl: string): DrawPageParse {
 	if (/roundRobin\.asp/i.test(finalUrl)) return extractRoundRobinFromHtml(html);
 	return extractSingleElimFromHtml(html);
+}
+
+/** Publishable fields only — drop draw-only / internal keys. */
+export function toMatchRecord(parsed: ParsedDrawMatch): MatchRecord {
+	const record: MatchRecord = {
+		player1: parsed.player1 ?? null,
+		player2: parsed.player2 ?? null,
+	};
+	if (parsed.winner != null) record.winner = parsed.winner;
+	if (parsed.score) record.score = parsed.score;
+	if (parsed.court) record.court = parsed.court;
+	if (parsed.scheduledTime) record.scheduledTime = parsed.scheduledTime;
+	return record;
 }

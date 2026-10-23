@@ -1277,16 +1277,18 @@ const EVENTS_RAW: EventData[] = [
 ];
 
 // ── Live-results merge ─────────────────────────────────────────────────────
-// <event>-results.json files are written by scripts/sync-r2-brackets.mjs
-// (GitHub Actions cron).  They carry live match scores/winners keyed by match
-// ID (e.g. "MO9").  We merge at build-time so the static site always reflects
-// the latest snapshot.
+// <event>-results.json files are written by the live sync (Vercel cron → Blob,
+// GitHub Actions fallback → committed JSON). They carry scores, winners, court,
+// and scheduledTime keyed by match ID (e.g. "MO9"). applyResultsToEvent overlays
+// those onto the static event so draw and per-match pages stay current.
 
 export interface MatchResult {
 	score?: string | null;
 	winner?: 1 | 2 | null;
 	player1?: string | null;
 	player2?: string | null;
+	court?: string | null;
+	scheduledTime?: string | null;
 }
 
 export type DivisionResult = Record<string, MatchResult>;
@@ -1325,7 +1327,7 @@ export function applyResultsToEvent(event: EventData, divResults: Record<string,
 		});
 	};
 
-	return {
+	const withDivisions = {
 		...event,
 		divisionDetails: event.divisionDetails.map((div) => {
 			const matchMap = divResults[div.id];
@@ -1346,6 +1348,10 @@ export function applyResultsToEvent(event: EventData, divResults: Record<string,
 							...match,
 							...(res.score != null ? { score: res.score } : {}),
 							...(res.winner != null ? { winner: res.winner } : {}),
+							...(res.court != null && res.court !== '' ? { court: res.court } : {}),
+							...(res.scheduledTime != null && res.scheduledTime !== ''
+								? { scheduledTime: res.scheduledTime }
+								: {}),
 							...(p1Fill ? { player1: p1Fill } : {}),
 							...(p2Fill ? { player2: p2Fill } : {}),
 						};
@@ -1404,6 +1410,10 @@ export function applyResultsToEvent(event: EventData, divResults: Record<string,
 						...m,
 						...(res.score != null ? { score: res.score } : {}),
 						...(res.winner != null ? { winner: res.winner } : {}),
+						...(res.court != null && res.court !== '' ? { court: res.court } : {}),
+						...(res.scheduledTime != null && res.scheduledTime !== ''
+							? { scheduledTime: res.scheduledTime }
+							: {}),
 					};
 				});
 				return { ...div, roundRobinMatches: updatedRR };
@@ -1412,6 +1422,53 @@ export function applyResultsToEvent(event: EventData, divResults: Record<string,
 			return div;
 		}),
 	};
+
+	if (!event.profiles?.length) return withDivisions;
+
+	const profiles = event.profiles.map((profile) => {
+		const div = withDivisions.divisionDetails.find((d) => d.label === profile.division);
+		if (!div) return profile;
+		const next = nextPendingMatchFor(profile.name, div);
+		if (!next) return profile;
+		return {
+			...profile,
+			...(next.scheduledTime ? { time: next.scheduledTime } : {}),
+			...(next.court ? { note: next.court } : {}),
+		};
+	});
+	return { ...withDivisions, profiles };
+}
+
+function nameInSlot(playerName: string, slot: string): boolean {
+	const n = playerName.trim().toLowerCase();
+	const s = slot.trim().toLowerCase();
+	if (!n || !s) return false;
+	if (s.includes(n)) return true;
+	const last = n.split(/\s+/).pop();
+	return Boolean(last && last.length > 2 && s.includes(last));
+}
+
+function nextPendingMatchFor(
+	playerName: string,
+	div: EventDivisionDetail,
+): { scheduledTime?: string; court?: string } | null {
+	if (div.roundRobinMatches?.length) {
+		const match = div.roundRobinMatches.find(
+			(m) =>
+				m.winner == null &&
+				(nameInSlot(playerName, m.team1) || nameInSlot(playerName, m.team2)),
+		);
+		return match ? { scheduledTime: match.scheduledTime, court: match.court } : null;
+	}
+	if (!div.rounds) return null;
+	for (const round of div.rounds) {
+		for (const match of round.matches) {
+			if (match.winner != null) continue;
+			if (!nameInSlot(playerName, match.player1) && !nameInSlot(playerName, match.player2)) continue;
+			return { scheduledTime: match.scheduledTime, court: match.court };
+		}
+	}
+	return null;
 }
 
 export const EVENTS: EventData[] = EVENTS_RAW.map((event) => {

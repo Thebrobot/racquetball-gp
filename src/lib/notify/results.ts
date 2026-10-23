@@ -20,6 +20,7 @@ export type ResultEvent = {
 	detail?: string;
 	bracketHref: string;
 	players?: string[];
+	correction?: boolean;
 };
 export type ResultFeed = { lastUpdated: string | null; eventSlug: string; events: ResultEvent[] };
 
@@ -69,7 +70,7 @@ function eventName(slug: string): string {
 
 /** Handle every unseen result in the feed. Returns counts for logging. */
 export async function processResultFeed(admin: SupabaseClient, feed: ResultFeed): Promise<{ seen: number; fresh: number; notified: number }> {
-	const events = (feed.events ?? []).filter((e) => e.type === 'result' && e.id);
+	const events = (feed.events ?? []).filter((e) => (e.type === 'result' || e.type === 'correction') && e.id);
 	if (!events.length) return { seen: 0, fresh: 0, notified: 0 };
 
 	const { data: inserted } = await admin
@@ -95,7 +96,19 @@ export async function processResultFeed(admin: SupabaseClient, feed: ResultFeed)
 		]);
 		const emailAndPush = new Set<string>([...((own ?? []) as { id: string }[]).map((r) => r.id), ...((fans ?? []) as { user_id: string }[]).map((r) => r.user_id)]);
 		const pushOnly = eventFollowerIds.filter((id) => !emailAndPush.has(id));
-		const payload = { eventId: ev.id, eventSlug: feed.eventSlug, eventName: name, headline: ev.headline, detail: ev.detail ?? '', divisionLabel: ev.divisionLabel, bracketHref: ev.bracketHref, players: slugs };
+		const isCorrection = Boolean(ev.correction || ev.type === 'correction' || /^correction:/i.test(ev.headline));
+		const headline = isCorrection && !/^correction:/i.test(ev.headline) ? `Correction: ${ev.headline}` : ev.headline;
+		const payload = {
+			eventId: ev.id,
+			eventSlug: feed.eventSlug,
+			eventName: name,
+			headline,
+			detail: ev.detail ?? '',
+			divisionLabel: ev.divisionLabel,
+			bracketHref: ev.bracketHref,
+			players: slugs,
+			correction: isCorrection,
+		};
 		await Promise.all([
 			...[...emailAndPush].map((userId) => notify(admin, { userId, kind: 'result', payload, channels: { email: true, push: true } })),
 			...pushOnly.map((userId) => notify(admin, { userId, kind: 'result', payload, channels: { email: false, push: true } })),
