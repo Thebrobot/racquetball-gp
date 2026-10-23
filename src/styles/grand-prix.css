@@ -9610,3 +9610,34 @@ a.lb2-name:hover { color: var(--orange2); }
   .lb2-head { display: none; }
   .lb2-legend { font-size: 12px; }
 }
+
+/* ───── ACCOUNT PAGES (sign in, sign up, account, admin) ───── */
+.acct-card { padding: 22px 22px 20px; margin-bottom: 16px; }
+.acct-h2 { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 26px; text-transform: uppercase; margin: 0 0 6px; }
+.acct-p { margin: 0 0 10px; font-size: 15.5px; line-height: 1.55; }
+.acct-p a { color: var(--orange2); }
+.acct-p--muted { color: var(--muted); font-size: 14px; }
+.acct-ok { color: var(--green); }
+.acct-error-text, .acct-error { color: #ff8a8a; }
+.acct-row { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 12px; }
+.acct-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+.acct-form { display: flex; flex-direction: column; gap: 8px; }
+.acct-form--inline { margin-top: 6px; }
+.acct-inline { display: flex; gap: 8px; }
+.acct-inline .acct-input { flex: 1; }
+.acct-label { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+.acct-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.16); border-radius: 10px; color: #fff; font: inherit; font-size: 16px; padding: 12px 14px; }
+.acct-input:focus { outline: none; border-color: var(--orange); }
+.acct-btn { margin-top: 6px; align-self: flex-start; }
+.acct-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.acct-actions { display: flex; gap: 12px 24px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+.acct-signout { background: none; border: none; color: var(--muted); font: inherit; font-size: 14px; cursor: pointer; padding: 0; text-decoration: underline; }
+.acct-signout:hover { color: #fff; }
+.acct-msg--warn { color: #ffd166; }
+.acct-row-links { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 14px; margin-top: 4px; }
+.acct-row-links a, .acct-link { color: var(--orange2); text-decoration: none; }
+.acct-row-links a:hover, .acct-link:hover { color: #fff; }
+.acct-divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; margin: 18px 0 10px; }
+.acct-divider::before, .acct-divider::after { content: ''; flex: 1; height: 1px; background: var(--card-border); }
+.acct-hint { font-size: 13px; color: var(--muted); margin: -2px 0 6px; }
+.acct-btn--full { align-self: stretch; text-align: center; }
