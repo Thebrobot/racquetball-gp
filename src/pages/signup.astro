@@ -1,0 +1,131 @@
+---
+import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
+import { accountsConfigured, getSession } from '../lib/accounts/supabase';
+import { getAllPlayers } from '../data/players';
+
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'no-store');
+
+const configured = accountsConfigured();
+const session = configured ? await getSession(Astro.request, Astro.cookies) : null;
+if (session) return Astro.redirect('/account', 303);
+
+let next = Astro.url.searchParams.get('next') ?? '/account';
+if (!next.startsWith('/') || next.startsWith('//')) next = '/account';
+const sent = Astro.url.searchParams.get('sent') === '1';
+const players = getAllPlayers();
+---
+
+<GrandPrixLayout title="Create an account | Florida Racquetball Grand Prix" description="Create a free account to like photos, follow players and claim your player profile." noindex hideSponsorSpotlight>
+	<header class="gp-page-head">
+		<div class="gp-page-head-inner">
+			<div>
+				<p class="section-label">Players and fans</p>
+				<h1 class="gp-title">Create an <span>account</span></h1>
+				<p class="gp-sub">Free, takes a minute. Like photos, keep your name on them, and link your player profile if you compete.</p>
+			</div>
+		</div>
+	</header>
+
+	<section class="gp-band gp-band--tight acct">
+		<div class="gp-band-inner gp-band-inner--narrow">
+			{!configured && (
+				<div class="gp-card acct-card"><p class="acct-msg acct-msg--warn">Accounts are not set up on this deployment yet.</p></div>
+			)}
+
+			{configured && sent && (
+				<div class="gp-card acct-card">
+					<h2 class="acct-h2">Check your email</h2>
+					<p class="acct-p">We sent a verification link. Tap it to activate your account; it works once and expires in an hour.</p>
+					<p class="acct-p acct-p--muted">Nothing there? Check spam. Already verified? <a class="acct-link" href="/account">Sign in</a>.</p>
+				</div>
+			)}
+
+			{configured && !sent && (
+				<div class="gp-card acct-card">
+					<form class="acct-form" id="signup-form" novalidate>
+						<input type="hidden" name="next" value={next} />
+						<label class="acct-label" for="su-name">Your name</label>
+						<input class="acct-input" id="su-name" name="display_name" type="text" minlength="2" maxlength="60" required autocomplete="name" placeholder="How it should appear on the site" />
+
+						<label class="acct-label" for="su-email">Email</label>
+						<input class="acct-input" id="su-email" name="email" type="email" inputmode="email" required autocomplete="email" placeholder="you@example.com" />
+
+						<label class="acct-label" for="su-password">Password</label>
+						<input class="acct-input" id="su-password" name="password" type="password" minlength="8" required autocomplete="new-password" />
+						<p class="acct-hint">At least 8 characters.</p>
+
+						<label class="acct-label" for="su-player">Play in the Grand Prix? Pick your name (optional)</label>
+						<input class="acct-input" id="su-player" list="su-player-list" name="player_name_lookup" placeholder="Start typing your name…" autocomplete="off" />
+						<datalist id="su-player-list">
+							{players.map((p) => <option value={p.name} data-slug={p.slug} />)}
+						</datalist>
+						<input type="hidden" name="player_slug" id="su-player-slug" value="" />
+						<p class="acct-hint" id="su-player-hint">Kyle reviews profile links before the verified badge shows.</p>
+
+						<button class="btn-main acct-btn acct-btn--full" type="submit" id="su-submit">Create account</button>
+						<p class="acct-p acct-p--muted acct-error" id="su-error" hidden></p>
+					</form>
+					<div class="acct-divider">Already have an account</div>
+					<p class="acct-p acct-p--muted" style="margin:0;"><a class="acct-link" href={`/account?next=${encodeURIComponent(next)}`}>Sign in →</a></p>
+				</div>
+			)}
+		</div>
+	</section>
+</GrandPrixLayout>
+
+<script>
+	const form = document.getElementById('signup-form') as HTMLFormElement | null;
+	const lookup = document.getElementById('su-player') as HTMLInputElement | null;
+	const slugEl = document.getElementById('su-player-slug') as HTMLInputElement | null;
+	const hint = document.getElementById('su-player-hint');
+	const list = document.getElementById('su-player-list');
+
+	function syncPlayer() {
+		if (!lookup || !slugEl || !list) return;
+		const typed = lookup.value.trim().toLowerCase();
+		const opt = Array.from(list.querySelectorAll('option')).find((o) => o.value.toLowerCase() === typed);
+		slugEl.value = opt?.getAttribute('data-slug') ?? '';
+		if (hint) {
+			hint.textContent = typed && !slugEl.value
+				? 'Pick a name from the list, or leave it blank and claim later.'
+				: 'Kyle reviews profile links before the verified badge shows.';
+		}
+	}
+	lookup?.addEventListener('input', syncPlayer);
+	lookup?.addEventListener('change', syncPlayer);
+
+	form?.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		const errEl = document.getElementById('su-error')!;
+		const btn = document.getElementById('su-submit') as HTMLButtonElement;
+		errEl.hidden = true;
+		if (!form.reportValidity()) return;
+		if (lookup?.value.trim() && !slugEl?.value) {
+			errEl.textContent = 'Pick your name from the list, or clear the field.';
+			errEl.hidden = false;
+			return;
+		}
+		btn.disabled = true;
+		const fd = new FormData(form);
+		const res = await fetch('/api/auth/signup', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				display_name: fd.get('display_name'),
+				email: fd.get('email'),
+				password: fd.get('password'),
+				player_slug: fd.get('player_slug'),
+				next: fd.get('next'),
+			}),
+		});
+		const data = (await res.json().catch(() => ({}))) as { ok?: boolean; needsVerification?: boolean; next?: string; error?: string };
+		if (res.ok && data.ok) {
+			window.location.href = data.needsVerification ? '/signup?sent=1' : (data.next ?? '/account');
+			return;
+		}
+		errEl.textContent = data.error ?? 'Something went wrong.';
+		errEl.hidden = false;
+		btn.disabled = false;
+	});
+</script>
