@@ -9724,3 +9724,16 @@ html.gwel-open { overflow: hidden; }
 .acct-push .acct-error { flex-basis: 100%; }
 .gallery-push-offer { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--card-border); }
 .gallery-push-offer .gallery-people-label { flex-basis: 100%; }
+
+/* ───── Account: plain checkbox row (sign-up consent) ───── */
+.acct-check { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; line-height: 1.45; color: rgba(255,255,255,0.8); cursor: pointer; margin-top: 4px; }
+.acct-check input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--orange); flex-shrink: 0; }
+
+/* ───── Nav CTA: short label on tablet widths so the pill stays two rows ───── */
+.nav-register-short { display: none; }
+@media (max-width: 900px) and (min-width: 641px) {
+  .nav-register-long { display: none; }
+  .nav-register-short { display: inline; }
+  .nav-pill .nav-links a:not(.nav-register) { padding-inline: 9px; font-size: 13px; letter-spacing: 0.06em; }
+  .nav-pill .nav-links a.nav-account { padding: 4px; }
+}

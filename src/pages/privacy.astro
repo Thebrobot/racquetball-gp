@@ -1,0 +1,63 @@
+---
+import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
+import { registrationContact } from '../data/contacts';
+const updated = 'October 23, 2026';
+---
+
+<GrandPrixLayout title="Privacy notice | Florida Racquetball Grand Prix" description="What the Florida Racquetball Grand Prix site stores about you and how it is used." hideSponsorSpotlight>
+	<header class="gp-page-head">
+		<div class="gp-page-head-inner">
+			<div>
+				<p class="section-label">Your details</p>
+				<h1 class="gp-title">Privacy <span>notice</span></h1>
+				<p class="gp-sub">Plain words on what we keep and why. Last updated {updated}.</p>
+			</div>
+		</div>
+	</header>
+
+	<section class="gp-band gp-band--navy2">
+		<div class="gp-band-inner legal">
+			<h2>What we collect</h2>
+			<ul>
+				<li><strong>Tournament results.</strong> Names, divisions, scores and standings from Grand Prix events are public and appear on player pages and leaderboards.</li>
+				<li><strong>Player accounts.</strong> If you create an account we store your email address, the display name you choose, your password (hashed, never readable by us), and which player profile you have claimed.</li>
+				<li><strong>Activity.</strong> Photos you tag yourself in, likes and comments you make, and the notification choices you set.</li>
+				<li><strong>Browser notifications.</strong> If you turn them on, we store the subscription your browser gives us so we can send them. Turning them off deletes it.</li>
+				<li><strong>Counters.</strong> Photo views and shares are counted without storing who you are. We keep no advertising trackers.</li>
+			</ul>
+
+			<h2>How we use it</h2>
+			<ul>
+				<li>To run the site: show results, let you sign in, tag yourself and comment.</li>
+				<li>To notify you about activity on your photos and your profile claim. Each of these can be switched off on your account page.</li>
+				<li>To send Grand Prix news and results, only if you ticked that box at sign-up or on your account page. Every such email has an unsubscribe link, and the switch on your account page does the same.</li>
+			</ul>
+
+			<h2>Who sees it</h2>
+			<p>Your email address is never shown on the site and never sold or shared for someone else's marketing. The services that run the site hold data on our behalf: Vercel (hosting), Supabase (accounts database) and Resend (email delivery). Photos are stored with Vercel.</p>
+
+			<h2>Juniors</h2>
+			<p>Photos of junior players can be marked by the organiser so that comments are reviewed before they appear. A parent or guardian can ask for a junior's tags or photos to be removed at any time.</p>
+
+			<h2>Your choices</h2>
+			<ul>
+				<li>Change your display name and notification switches on your <a href="/account">account page</a>.</li>
+				<li>Remove a tag from any photo you are in, or delete your own comments, from the photo itself.</li>
+				<li>To delete your account and everything tied to it, email <a href={`mailto:${registrationContact.email}`}>{registrationContact.email}</a> from the address on the account.</li>
+			</ul>
+
+			<h2>Questions</h2>
+			<p>Write to <a href={`mailto:${registrationContact.email}`}>{registrationContact.email}</a>.</p>
+		</div>
+	</section>
+</GrandPrixLayout>
+
+<style>
+	.legal { max-width: 46rem; }
+	.legal h2 { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--orange2); margin: 28px 0 10px; }
+	.legal h2:first-child { margin-top: 0; }
+	.legal p, .legal li { font-size: 16px; line-height: 1.6; color: rgba(255,255,255,0.85); }
+	.legal ul { padding-left: 20px; margin: 0; }
+	.legal li { margin-bottom: 8px; }
+	.legal a { color: var(--orange2); }
+</style>

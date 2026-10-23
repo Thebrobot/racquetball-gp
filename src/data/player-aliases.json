@@ -1,0 +1,39 @@
+{
+	"_comment": "Alternate spellings seen in results data, mapped to the canonical player. Key = slug of the alternate spelling. Old profile links redirect (see astro.config.mjs).",
+	"gordon-kelley": {
+		"slug": "gordon-kelly",
+		"name": "Gordon Kelly"
+	},
+	"haven-artman": {
+		"slug": "havan-artman",
+		"name": "Havan Artman"
+	},
+	"isac-taylor": {
+		"slug": "isaac-taylor",
+		"name": "Isaac Taylor"
+	},
+	"mario-a-huyke": {
+		"slug": "mario-andres-huyke",
+		"name": "Mario Andres Huyke"
+	},
+	"mathew-brice": {
+		"slug": "matthew-brice",
+		"name": "Matthew Brice"
+	},
+	"orlando-j-huyke": {
+		"slug": "orlando-josu-huyke",
+		"name": "Orlando Josu Huyke"
+	},
+	"russel-o-neal": {
+		"slug": "russell-o-neal",
+		"name": "Russell O'Neal"
+	},
+	"sam-schulze": {
+		"slug": "samuel-schulze",
+		"name": "Samuel Schulze"
+	},
+	"kelly-v-z-russell": {
+		"slug": "kelly-van-zant-russell",
+		"name": "Kelly Van Zant-Russell"
+	}
+}
