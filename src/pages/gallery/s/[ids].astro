@@ -4,6 +4,8 @@ import { GALLERY_ALBUMS } from '../../../lib/gallery/albums';
 import { getPhotosByIds } from '../../../lib/gallery/store';
 import type { GalleryClientConfig } from '../../../lib/gallery/types';
 
+import { getGallerySocial } from '../../../lib/accounts/photo-stats';
+
 export const prerender = false;
 
 const raw = Astro.params.ids ?? '';
@@ -24,7 +26,9 @@ const title = `${count} photo${count === 1 ? '' : 's'} from the Florida Racquetb
 const description = `A shared selection of ${count} photo${count === 1 ? '' : 's'} from the 2026 Florida Racquetball Grand Prix.`;
 const ogImage = `${siteOrigin}/api/gallery/og/${photos[0].id}`;
 
+const social = await getGallerySocial(Astro.request, Astro.cookies);
 const clientConfig: GalleryClientConfig = {
+	...social,
 	photos,
 	albums: GALLERY_ALBUMS,
 	initialOpenId: photos[0].id,
@@ -72,6 +76,7 @@ const clientConfig: GalleryClientConfig = {
 	>
 		<div class="gallery-lb-top">
 			<button type="button" class="gallery-lb-like" id="gallery-lb-like" aria-pressed="false">Like</button>
+			<span class="gallery-lb-views" id="gallery-lb-views" aria-live="polite"></span>
 			<button type="button" class="gallery-lb-download" id="gallery-lb-download">Download</button>
 			<button type="button" class="gallery-lb-share" id="gallery-lb-share">Share</button>
 			<button type="button" class="gallery-lb-close" id="gallery-lb-close" aria-label="Close">×</button>

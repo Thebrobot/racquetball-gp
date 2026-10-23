@@ -1,0 +1,219 @@
+---
+import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
+import { accountsConfigured, createSessionClient, getSession } from '../lib/accounts/supabase';
+import { getAllPlayers } from '../data/players';
+
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'no-store');
+
+const configured = accountsConfigured();
+const session = configured ? await getSession(Astro.request, Astro.cookies) : null;
+const params = Astro.url.searchParams;
+let next = params.get('next') ?? '/account';
+if (!next.startsWith('/') || next.startsWith('//')) next = '/account';
+const sent = params.get('sent') === '1';
+const saved = params.get('saved') === '1';
+const claimFlag = params.get('claim') ?? '';
+
+type Claim = { id: string; player_slug: string; player_name: string; status: string; created_at: string };
+let claims: Claim[] = [];
+if (session) {
+	const client = createSessionClient(Astro.request, Astro.cookies)!;
+	const { data } = await client
+		.from('profile_claims')
+		.select('id, player_slug, player_name, status, created_at')
+		.eq('user_id', session.user.id)
+		.order('created_at', { ascending: false })
+		.limit(5);
+	claims = (data as Claim[] | null) ?? [];
+}
+const pendingClaim = claims.find((c) => c.status === 'pending') ?? null;
+const rejectedClaim = !pendingClaim && !session?.profile?.player_slug ? claims.find((c) => c.status === 'rejected') : null;
+const players = getAllPlayers();
+const linkedPlayer = session?.profile?.player_slug ? players.find((p) => p.slug === session.profile!.player_slug) : null;
+const displayName = session?.profile?.display_name ?? session?.user.email?.split('@')[0] ?? '';
+
+const claimMessages: Record<string, string> = {
+	sent: 'Claim sent. Kyle will review it and you will see the badge here once it is approved.',
+	pending: 'You already have a claim waiting for review.',
+	invalid: 'That player was not found. Pick a name from the list.',
+	error: 'Could not send the claim. Try again in a moment.',
+};
+---
+
+<GrandPrixLayout title="Your account | Florida Racquetball Grand Prix" description="Sign in to like photos and claim your player profile." noindex hideSponsorSpotlight>
+	<header class="gp-page-head">
+		<div class="gp-page-head-inner">
+			<div>
+				<p class="section-label">Players and fans</p>
+				<h1 class="gp-title">{session ? 'Your ' : 'Sign '}<span>{session ? 'account' : 'in'}</span></h1>
+				<p class="gp-sub">
+					{session
+						? 'Like photos, keep your name on them, and link this account to your player profile.'
+						: 'One email, no password. We send you a link; tap it and you are in.'}
+				</p>
+			</div>
+		</div>
+	</header>
+
+	<section class="gp-band gp-band--tight acct">
+		<div class="gp-band-inner gp-band-inner--narrow">
+			{!configured && (
+				<div class="gp-card acct-card">
+					<p class="acct-msg acct-msg--warn">Accounts are not set up on this deployment yet.</p>
+				</div>
+			)}
+
+			{configured && !session && (
+				<div class="gp-card acct-card">
+					{sent ? (
+						<>
+							<h2 class="acct-h2">Check your email</h2>
+							<p class="acct-p">We sent a sign-in link. Open it on this device to finish signing in. The link works once and expires in an hour.</p>
+							<p class="acct-p acct-p--muted">Nothing there? Check spam, or <a href="/account">request another link</a>.</p>
+						</>
+					) : (
+						<form class="acct-form" id="acct-signin" method="post" action="/api/auth/signin">
+							<input type="hidden" name="next" value={next} />
+							<label class="acct-label" for="acct-email">Email address</label>
+							<input class="acct-input" id="acct-email" name="email" type="email" inputmode="email" autocomplete="email" required placeholder="you@example.com" />
+							<button class="btn-main acct-btn" type="submit">Email me a sign-in link</button>
+							<p class="acct-p acct-p--muted acct-error" id="acct-error" hidden></p>
+							<p class="acct-p acct-p--muted">New here? The same link creates your account. Anyone can sign up; linking to a player profile is reviewed by the series.</p>
+						</form>
+					)}
+				</div>
+			)}
+
+			{configured && session && (
+				<>
+					<div class="gp-card acct-card">
+						<div class="acct-row">
+							<div>
+								<h2 class="acct-h2">{displayName}</h2>
+								<p class="acct-p acct-p--muted">{session.user.email}</p>
+							</div>
+							<div class="acct-badges">
+								{linkedPlayer && <span class="gp-pill gp-pill--done">Verified player</span>}
+								{session.isAdmin && <span class="gp-pill gp-pill--champ">Admin</span>}
+							</div>
+						</div>
+						<form class="acct-form acct-form--inline" method="post" action="/api/account">
+							<label class="acct-label" for="acct-name">Display name</label>
+							<div class="acct-inline">
+								<input class="acct-input" id="acct-name" name="display_name" type="text" maxlength="60" minlength="2" required value={displayName} />
+								<button class="btn-ghost acct-btn" type="submit">Save</button>
+							</div>
+							{saved && <p class="acct-p acct-ok">Saved.</p>}
+						</form>
+					</div>
+
+					<div class="gp-card acct-card">
+						<h2 class="acct-h2">Player profile</h2>
+						{linkedPlayer ? (
+							<>
+								<p class="acct-p">This account is linked to <a href={`/players/${linkedPlayer.slug}`}>{linkedPlayer.name}</a>. Your profile shows a verified badge.</p>
+							</>
+						) : pendingClaim ? (
+							<p class="acct-p">
+								Your claim for <strong>{pendingClaim.player_name}</strong> is waiting for review. You will see the badge here once it is approved.
+							</p>
+						) : (
+							<>
+								<p class="acct-p">Play in the Grand Prix? Pick your name and we will link your results, photos and standings to this account after a quick check.</p>
+								{claimFlag && claimMessages[claimFlag] && <p class:list={['acct-p', claimFlag === 'sent' ? 'acct-ok' : 'acct-error-text']}>{claimMessages[claimFlag]}</p>}
+								{rejectedClaim && <p class="acct-p acct-p--muted">A previous claim for {rejectedClaim.player_name} was not approved. If that was a mistake, send it again with a note.</p>}
+								<form class="acct-form" method="post" action="/api/claims">
+									<label class="acct-label" for="acct-player">Your name in the player list</label>
+									<input class="acct-input" id="acct-player" list="acct-player-list" name="player_name_lookup" placeholder="Start typing your name…" autocomplete="off" />
+									<datalist id="acct-player-list">
+										{players.map((p) => <option value={p.name} data-slug={p.slug} />)}
+									</datalist>
+									<input type="hidden" name="player_slug" id="acct-player-slug" value="" />
+									<label class="acct-label" for="acct-note">Anything that helps us confirm it is you (optional)</label>
+									<input class="acct-input" id="acct-note" name="note" type="text" maxlength="300" placeholder="Club, city, or the division you played" />
+									<button class="btn-main acct-btn" type="submit" id="acct-claim-btn" disabled>Send claim for review</button>
+								</form>
+							</>
+						)}
+					</div>
+
+					<div class="acct-actions">
+						{session.isAdmin && <a class="gp-link" href="/admin">Open the admin queue →</a>}
+						<a class="gp-link gp-link--muted" href="/gallery">Back to the gallery →</a>
+						<form method="post" action="/api/auth/signout"><button class="acct-signout" type="submit">Sign out</button></form>
+					</div>
+				</>
+			)}
+		</div>
+	</section>
+</GrandPrixLayout>
+
+<script>
+	// Sign-in: submit as JSON so we can show errors inline, then show "check your email".
+	const form = document.getElementById('acct-signin') as HTMLFormElement | null;
+	if (form) {
+		form.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const errEl = document.getElementById('acct-error')!;
+			const btn = form.querySelector('button')!;
+			btn.disabled = true;
+			errEl.hidden = true;
+			const fd = new FormData(form);
+			const res = await fetch('/api/auth/signin', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email: fd.get('email'), next: fd.get('next') }),
+			});
+			if (res.ok) {
+				window.location.href = '/account?sent=1';
+				return;
+			}
+			const data = (await res.json().catch(() => ({}))) as { error?: string };
+			errEl.textContent = data.error ?? 'Something went wrong.';
+			errEl.hidden = false;
+			btn.disabled = false;
+		});
+	}
+
+	// Claim: resolve the typed name to a slug from the datalist.
+	const lookup = document.getElementById('acct-player') as HTMLInputElement | null;
+	const slugEl = document.getElementById('acct-player-slug') as HTMLInputElement | null;
+	const claimBtn = document.getElementById('acct-claim-btn') as HTMLButtonElement | null;
+	const list = document.getElementById('acct-player-list');
+	if (lookup && slugEl && claimBtn && list) {
+		const sync = () => {
+			const typed = lookup.value.trim().toLowerCase();
+			const opt = Array.from(list.querySelectorAll('option')).find((o) => o.value.toLowerCase() === typed);
+			slugEl.value = opt?.getAttribute('data-slug') ?? '';
+			claimBtn.disabled = !slugEl.value;
+		};
+		lookup.addEventListener('input', sync);
+		lookup.addEventListener('change', sync);
+	}
+</script>
+
+<style>
+	.acct-card { padding: 22px 22px 20px; margin-bottom: 16px; }
+	.acct-h2 { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 26px; text-transform: uppercase; margin: 0 0 6px; }
+	.acct-p { margin: 0 0 10px; font-size: 15.5px; line-height: 1.55; }
+	.acct-p a { color: var(--orange2); }
+	.acct-p--muted { color: var(--muted); font-size: 14px; }
+	.acct-ok { color: var(--green); }
+	.acct-error-text, .acct-error { color: #ff8a8a; }
+	.acct-row { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 12px; }
+	.acct-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+	.acct-form { display: flex; flex-direction: column; gap: 8px; }
+	.acct-form--inline { margin-top: 6px; }
+	.acct-inline { display: flex; gap: 8px; }
+	.acct-inline .acct-input { flex: 1; }
+	.acct-label { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+	.acct-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.16); border-radius: 10px; color: #fff; font: inherit; font-size: 16px; padding: 12px 14px; }
+	.acct-input:focus { outline: none; border-color: var(--orange); }
+	.acct-btn { margin-top: 6px; align-self: flex-start; }
+	.acct-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+	.acct-actions { display: flex; gap: 12px 24px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+	.acct-signout { background: none; border: none; color: var(--muted); font: inherit; font-size: 14px; cursor: pointer; padding: 0; text-decoration: underline; }
+	.acct-signout:hover { color: #fff; }
+	.acct-msg--warn { color: #ffd166; }
+</style>

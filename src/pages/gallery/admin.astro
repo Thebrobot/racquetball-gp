@@ -3,13 +3,13 @@ import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
 import { GALLERY_ALBUMS, albumLabel } from '../../lib/gallery/albums';
 import {
 	galleryAuthConfigured,
-	isGalleryAuthenticated,
+	isGalleryAuthorized,
 } from '../../lib/gallery/auth';
 import { readGalleryIndex } from '../../lib/gallery/store';
 
 export const prerender = false;
 
-const loggedIn = isGalleryAuthenticated(Astro.request);
+const loggedIn = await isGalleryAuthorized(Astro.request, Astro.cookies);
 const configured = galleryAuthConfigured();
 const index = loggedIn ? await readGalleryIndex() : { version: 1 as const, photos: [] };
 ---

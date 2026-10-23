@@ -1,4 +1,6 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import type { AstroCookies } from 'astro';
+import { accountsConfigured, getSession } from '../accounts/supabase';
 
 export const GALLERY_SESSION_COOKIE = 'gp_gallery_session';
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 14; // 14 days
@@ -76,4 +78,15 @@ export function sessionCookieHeader(token: string): string {
 export function clearSessionCookieHeader(): string {
 	const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
 	return `${GALLERY_SESSION_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure}`;
+}
+
+/**
+ * Upload rights: the photographer password session, or a signed-in account
+ * whose email is in ADMIN_EMAILS. Use this from pages and API routes.
+ */
+export async function isGalleryAuthorized(request: Request, cookies: AstroCookies): Promise<boolean> {
+	if (isGalleryAuthenticated(request)) return true;
+	if (!accountsConfigured()) return false;
+	const session = await getSession(request, cookies);
+	return Boolean(session?.isAdmin);
 }

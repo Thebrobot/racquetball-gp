@@ -1,0 +1,129 @@
+---
+import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
+import { accountsConfigured, createAdminClient, getSession } from '../../lib/accounts/supabase';
+
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'no-store');
+
+const session = accountsConfigured() ? await getSession(Astro.request, Astro.cookies) : null;
+if (!session) return Astro.redirect('/account?next=/admin', 303);
+if (!session.isAdmin) return Astro.redirect('/account', 303);
+
+const admin = createAdminClient();
+type Claim = { id: string; user_id: string; player_slug: string; player_name: string; note: string | null; created_at: string; status: string; profiles: { email: string; display_name: string | null } | null };
+let pending: Claim[] = [];
+let recent: Claim[] = [];
+let counts = { profiles: 0, verified: 0, likes: 0, views: 0 };
+if (admin) {
+	const [{ data: p }, { data: r }, prof, ver, likes, views] = await Promise.all([
+		admin.from('profile_claims').select('id, user_id, player_slug, player_name, note, created_at, status, profiles(email, display_name)').eq('status', 'pending').order('created_at'),
+		admin.from('profile_claims').select('id, user_id, player_slug, player_name, note, created_at, status, profiles(email, display_name)').neq('status', 'pending').order('decided_at', { ascending: false }).limit(10),
+		admin.from('profiles').select('id', { count: 'exact', head: true }),
+		admin.from('profiles').select('id', { count: 'exact', head: true }).not('player_slug', 'is', null),
+		admin.from('photo_likes').select('photo_id', { count: 'exact', head: true }),
+		admin.from('photo_views').select('photo_id', { count: 'exact', head: true }),
+	]);
+	pending = (p as unknown as Claim[] | null) ?? [];
+	recent = (r as unknown as Claim[] | null) ?? [];
+	counts = { profiles: prof.count ?? 0, verified: ver.count ?? 0, likes: likes.count ?? 0, views: views.count ?? 0 };
+}
+const flag = Astro.url.searchParams.get('claims') ?? '';
+const flagText: Record<string, string> = { approved: 'Claim approved and profile linked.', rejectd: 'Claim rejected.', rejected: 'Claim rejected.', already: 'That claim was already decided.' };
+function when(iso: string): string {
+	return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
+---
+
+<GrandPrixLayout title="Admin | Florida Racquetball Grand Prix" description="Series admin." noindex hideSponsorSpotlight>
+	<header class="gp-page-head">
+		<div class="gp-page-head-inner gp-page-head-inner--split">
+			<div>
+				<p class="section-label">Signed in as {session.user.email}</p>
+				<h1 class="gp-title">Admin <span>queue</span></h1>
+				<p class="gp-sub">Profile claims wait here. Approving links the account to the player page and shows the verified badge.</p>
+			</div>
+			<ul class="gp-stat-row">
+				<li><strong>{counts.profiles}</strong><span>Accounts</span></li>
+				<li><strong>{counts.verified}</strong><span>Verified players</span></li>
+				<li><strong>{counts.likes}</strong><span>Likes</span></li>
+				<li><strong>{counts.views}</strong><span>Photo views</span></li>
+			</ul>
+		</div>
+	</header>
+
+	<section class="gp-band gp-band--tight adm">
+		<div class="gp-band-inner">
+			{!admin && <p class="adm-warn">The service role key is missing, so the queue cannot load.</p>}
+			{flag && flagText[flag] && <p class="adm-ok">{flagText[flag]}</p>}
+
+			<h2 class="adm-h2">Pending claims <span class="adm-count">{pending.length}</span></h2>
+			{pending.length === 0 ? (
+				<p class="adm-empty">Nothing waiting. New claims show up here as players sign up.</p>
+			) : (
+				<ul class="adm-list">
+					{pending.map((c) => (
+						<li class="gp-card adm-item">
+							<div class="adm-item-main">
+								<p class="adm-item-title">
+									<a href={`/players/${c.player_slug}`} target="_blank" rel="noopener">{c.player_name}</a>
+									<span class="adm-item-arrow" aria-hidden="true">←</span>
+									<span>{c.profiles?.display_name ?? 'Unnamed'}</span>
+								</p>
+								<p class="adm-item-meta">{c.profiles?.email ?? 'unknown email'} · requested {when(c.created_at)}</p>
+								{c.note && <p class="adm-item-note">“{c.note}”</p>}
+							</div>
+							<form class="adm-item-actions" method="post" action="/api/admin/claims">
+								<input type="hidden" name="id" value={c.id} />
+								<label class="adm-check"><input type="checkbox" name="junior" /> Junior (comments need approval)</label>
+								<button class="btn-main adm-btn" type="submit" name="action" value="approve">Approve</button>
+								<button class="btn-ghost adm-btn" type="submit" name="action" value="reject">Reject</button>
+							</form>
+						</li>
+					))}
+				</ul>
+			)}
+
+			{recent.length > 0 && (
+				<>
+					<h2 class="adm-h2 adm-h2--sub">Recently decided</h2>
+					<ul class="adm-recent">
+						{recent.map((c) => (
+							<li>
+								<span class:list={['gp-pill', c.status === 'approved' ? 'gp-pill--done' : 'gp-pill--next']}>{c.status}</span>
+								<span>{c.player_name}</span>
+								<span class="adm-recent-email">{c.profiles?.email ?? ''}</span>
+							</li>
+						))}
+					</ul>
+				</>
+			)}
+
+			<div class="adm-links">
+				<a class="gp-link" href="/gallery/admin">Gallery uploads →</a>
+				<a class="gp-link gp-link--muted" href="/account">Your account →</a>
+			</div>
+		</div>
+	</section>
+</GrandPrixLayout>
+
+<style>
+	.adm-h2 { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 28px; text-transform: uppercase; margin: 0 0 14px; display: flex; align-items: center; gap: 10px; }
+	.adm-h2--sub { margin-top: 32px; font-size: 22px; }
+	.adm-count { font-size: 14px; background: var(--orange); color: #fff; border-radius: 999px; padding: 2px 10px; }
+	.adm-empty, .adm-warn, .adm-ok { font-size: 15px; color: var(--muted); }
+	.adm-warn { color: #ffd166; }
+	.adm-ok { color: var(--green); }
+	.adm-list, .adm-recent { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+	.adm-item { padding: 16px 18px; display: flex; justify-content: space-between; gap: 16px; align-items: center; flex-wrap: wrap; }
+	.adm-item-title { margin: 0 0 4px; font-weight: 700; font-size: 17px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+	.adm-item-title a { color: var(--orange2); text-decoration: none; }
+	.adm-item-arrow { color: var(--muted); }
+	.adm-item-meta { margin: 0; font-size: 13.5px; color: var(--muted); }
+	.adm-item-note { margin: 6px 0 0; font-size: 14px; color: rgba(255,255,255,0.8); font-style: italic; }
+	.adm-item-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+	.adm-check { font-size: 13px; color: var(--muted); display: inline-flex; gap: 6px; align-items: center; margin-right: 6px; }
+	.adm-btn { padding: 10px 16px; font-size: 14px; }
+	.adm-recent li { display: flex; gap: 12px; align-items: center; font-size: 14.5px; }
+	.adm-recent-email { color: var(--muted); font-size: 13px; }
+	.adm-links { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 32px; }
+</style>
