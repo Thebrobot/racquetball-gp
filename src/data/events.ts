@@ -1285,8 +1285,8 @@ const EVENTS_RAW: EventData[] = [
 export interface MatchResult {
 	score?: string | null;
 	winner?: 1 | 2 | null;
-	player1?: string;
-	player2?: string;
+	player1?: string | null;
+	player2?: string | null;
 }
 
 export type DivisionResult = Record<string, MatchResult>;

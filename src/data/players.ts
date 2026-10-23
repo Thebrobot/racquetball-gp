@@ -1,6 +1,6 @@
 import { LB_CATEGORY_HEADING, LB_DIVISIONS_BY_CATEGORY, LB_OVERVIEW_CATEGORY_ORDER, lbData, leaderboardTotal, type LbCategory, type LbRow } from './leaderboard';
 import playerAliases from './player-aliases.json';
-import { EVENTS, getEventStatus, type EventStatus } from './events';
+import { EVENTS, getEventStatus, type EventData, type EventStatus } from './events';
 import type { EventBracketMatch, EventBracketRound } from './events';
 import { getPlayerImageForDisplay } from './player-images';
 export {
@@ -167,11 +167,13 @@ function scheduleSortKey(time: string | undefined): number {
 export function getPlayerScheduleEntries(
 	playerName: string,
 	profileEvents: PlayerEventCall[],
+	/** Pass live-merged events (see lib/live/event.ts) to reflect results posted since the last deploy. */
+	events: EventData[] = EVENTS,
 ): PlayerScheduleEntry[] {
 	const out: PlayerScheduleEntry[] = [];
 
 	for (const entry of profileEvents) {
-		const event = EVENTS.find((e) => e.name === entry.eventName);
+		const event = events.find((e) => e.name === entry.eventName);
 		if (!event) { out.push(entry); continue; }
 
 		const div = event.divisionDetails.find((d) => d.label === entry.division);
@@ -456,9 +458,9 @@ function resultForSide(
 }
 
 /** Matches from published event brackets (singles elim + round robin). */
-export function getPlayerMatchHistory(playerName: string): PlayerMatchRecord[] {
+export function getPlayerMatchHistory(playerName: string, events: EventData[] = EVENTS): PlayerMatchRecord[] {
 	const out: PlayerMatchRecord[] = [];
-	for (const event of EVENTS) {
+	for (const event of events) {
 		for (const div of event.divisionDetails ?? []) {
 			for (const round of div.rounds ?? []) {
 				for (const m of round.matches ?? []) {
