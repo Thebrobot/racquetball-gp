@@ -8429,6 +8429,7 @@ body.gallery-lb-open .gp-bottom-nav {
 .home-latest-title span,
 .home-timeline-title span,
 .home-photos-title span { color: var(--orange); }
+.home-photos-title .home-photos-num { font-weight: inherit; color: inherit; }
 .home-board-sub,
 .home-latest-sub,
 .home-timeline-sub,
