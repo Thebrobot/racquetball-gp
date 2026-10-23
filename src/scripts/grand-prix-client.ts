@@ -738,7 +738,7 @@ function initHeroVideo() {
 
 // ── LIVE ACTIVITY FEED ─────────────────────────────────────────────────────
 
-const LIVE_ACTIVITY_URL = '/data/live-activity.json';
+const LIVE_ACTIVITY_URL = '/api/live/activity';
 const LIVE_ACTIVITY_SEEN_KEY = 'gp:liveActivitySeenAt';
 const LIVE_ACTIVITY_POLL_MS = 60_000;
 
@@ -891,8 +891,36 @@ function hydrateLiveFeedTimes() {
 	});
 }
 
+function renderHomeLatestLive(feed: LiveActivityFeed) {
+	const root = document.getElementById('home-latest-root');
+	if (!root || !feed.events.length) return;
+	const items = feed.events.slice(0, 3);
+	const cards = items
+		.map((item) => {
+			const detail = item.detail ? `<p class="home-feed-detail">${esc(item.detail)}</p>` : '';
+			return `<article class="home-feed-card">
+				<time class="home-feed-time" datetime="${escAttr(item.at)}">${esc(formatRelativeTime(item.at))}</time>
+				<p class="home-feed-division">${esc(item.divisionLabel)}</p>
+				<h3 class="home-feed-headline">${esc(item.headline)}</h3>
+				${detail}
+				<a class="home-feed-link" href="${escAttr(item.bracketHref)}">View bracket →</a>
+			</article>`;
+		})
+		.join('');
+	root.innerHTML = `<div class="home-latest-inner">
+		<header class="home-latest-head">
+			<p class="section-label"><span class="home-live-dot" aria-hidden="true"></span> Live this weekend</p>
+			<h2 id="home-latest-heading" class="home-latest-title">Latest <span>results</span></h2>
+			<p class="home-latest-sub">Synced from R2 every few minutes during play.</p>
+		</header>
+		<div class="home-latest-feed">${cards}</div>
+		<a class="home-latest-cta" href="/live">Every result as it posts →</a>
+	</div>`;
+}
+
 function onLiveActivityFeed(feed: LiveActivityFeed) {
 	updateBottomNavUnread(feed);
+	renderHomeLatestLive(feed);
 	const page = document.getElementById('live-updates-page');
 	if (!page) return;
 	const prev = livePageLastKnown ?? page.getAttribute('data-last-updated');
@@ -921,7 +949,8 @@ function startLiveActivityPolling() {
 function initLiveActivity() {
 	const tab = document.getElementById('gp-bottom-nav-live');
 	const page = document.getElementById('live-updates-page');
-	if (!tab && !page) return;
+	const home = document.getElementById('home-latest-root');
+	if (!tab && !page && !home) return;
 
 	if (page) {
 		livePageLastKnown = page.getAttribute('data-last-updated');

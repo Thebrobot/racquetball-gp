@@ -2,22 +2,18 @@
 import GrandPrixLayout from '../../../../layouts/GrandPrixLayout.astro';
 import SingleEliminationBracket from '../../../../components/grand-prix/SingleEliminationBracket.astro';
 import OfficialBallChip from '../../../../components/grand-prix/OfficialBallChip.astro';
-import { EVENTS, getEventStatus } from '../../../../data/events';
+import { getEventStatus } from '../../../../data/events';
 import { getAllPlayers, getPlayerSlug } from '../../../../data/players';
 import { resolveTeamMembers } from '../../../../lib/resolve-team-members';
+import { applyLiveCacheHeaders, resolveLiveEvent } from '../../../../lib/live/event';
 
-export async function getStaticPaths() {
-	return EVENTS.flatMap((event) =>
-		(event.divisionDetails ?? []).map((division) => ({
-			params: { slug: event.slug, division: division.id },
-			props: { event, division },
-		})),
-	);
-}
+export const prerender = false;
 
-const { event: routeEvent, division: routeDivision } = Astro.props;
-const event = EVENTS.find((e) => e.slug === routeEvent.slug) ?? routeEvent;
-const division = event.divisionDetails.find((d) => d.id === routeDivision.id) ?? routeDivision;
+const event = await resolveLiveEvent(Astro.params.slug);
+if (!event) return Astro.redirect('/tournaments');
+const division = event.divisionDetails.find((d) => d.id === Astro.params.division);
+if (!division) return Astro.redirect(`/events/${event.slug}`);
+applyLiveCacheHeaders(Astro.response, event);
 const players = division.roundRobinPlayers ?? [];
 const rrMatches = division.roundRobinMatches ?? [];
 const eventHref = `/events/${event.slug}`;

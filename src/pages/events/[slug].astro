@@ -1,18 +1,17 @@
 ---
 import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
 import OfficialBallChip from '../../components/grand-prix/OfficialBallChip.astro';
-import { EVENTS, getEventStatus, type EventDivisionDetail } from '../../data/events';
+import { getEventStatus, type EventDivisionDetail } from '../../data/events';
 import { getPlayerSlug, getPlayerImageForDisplay, getPlayerScheduleEntries, getAllPlayers } from '../../data/players';
 import { formatPlayerInitials } from '../../data/leaderboard';
 import { SEASON_STOPS } from '../../data/season-stops';
+import { applyLiveCacheHeaders, resolveLiveEvent } from '../../lib/live/event';
 
-export async function getStaticPaths() {
-	return EVENTS.map((event) => ({ params: { slug: event.slug }, props: { event } }));
-}
+export const prerender = false;
 
-const { event: routeEvent } = Astro.props;
-// Re-resolve from EVENTS so props stale in dev mode don't mask updated data.
-const event = EVENTS.find((e) => e.slug === routeEvent.slug) ?? routeEvent;
+const event = await resolveLiveEvent(Astro.params.slug);
+if (!event) return Astro.redirect('/tournaments');
+applyLiveCacheHeaders(Astro.response, event);
 const divisionBase = `/events/${event.slug}/divisions`;
 
 // ── Participants data (build-time) ────────────────────────────────────────────

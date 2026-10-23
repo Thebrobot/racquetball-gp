@@ -1,6 +1,6 @@
 /**
- * Live results -> notifications. The bracket sync writes
- * public/data/live-activity.json; this turns its new "result" entries into
+ * Live results -> notifications. The Vercel cron (and GH Action fallback)
+ * write the live activity feed; this turns its new "result" entries into
  * notifications for the players involved and the people following them or
  * the tournament. Idempotent: result_events remembers what was handled.
  */

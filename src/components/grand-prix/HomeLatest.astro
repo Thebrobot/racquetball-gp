@@ -4,9 +4,8 @@
  * activity from the synced live feed; otherwise it shows the champions from
  * the last completed stop, derived from per-lap leaderboard points.
  */
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { EVENTS } from '../../data/events';
+import { readLiveActivity } from '../../lib/live/store';
 import { SEASON_STOPS } from '../../data/season-stops';
 import {
 	lbData,
@@ -31,7 +30,7 @@ type LiveActivityFeed = { lastUpdated: string | null; eventSlug: string; events:
 
 let feed: LiveActivityFeed = { lastUpdated: null, eventSlug: '', events: [] };
 try {
-	feed = JSON.parse(readFileSync(join(process.cwd(), 'public/data/live-activity.json'), 'utf-8'));
+	feed = await readLiveActivity();
 } catch {
 	/* no feed */
 }
@@ -69,7 +68,7 @@ function formatWhen(iso: string): string {
 ---
 
 {hasLive ? (
-	<section class="home-latest" aria-labelledby="home-latest-heading">
+	<section class="home-latest" id="home-latest-root" aria-labelledby="home-latest-heading">
 		<div class="home-latest-inner">
 			<header class="home-latest-head">
 				<p class="section-label"><span class="home-live-dot" aria-hidden="true"></span> Live this weekend</p>
@@ -77,7 +76,7 @@ function formatWhen(iso: string): string {
 					Latest <span>results</span>
 				</h2>
 				<p class="home-latest-sub">
-					{feedEvent?.name ?? 'Tournament'} · synced from R2 every 10 minutes during play.
+					{feedEvent?.name ?? 'Tournament'} · synced from R2 every few minutes during play.
 				</p>
 			</header>
 			<div class="home-latest-feed">
@@ -95,7 +94,7 @@ function formatWhen(iso: string): string {
 		</div>
 	</section>
 ) : lastStop && championsShown.length ? (
-	<section class="home-latest" aria-labelledby="home-latest-heading">
+	<section class="home-latest" id="home-latest-root" aria-labelledby="home-latest-heading">
 		<div class="home-latest-inner">
 			<header class="home-latest-head">
 				<p class="section-label">Last stop · {lastStop.eventName}</p>
