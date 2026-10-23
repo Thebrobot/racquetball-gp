@@ -1,0 +1,156 @@
+---
+/**
+ * The one site-wide pop-up: a once-per-browser welcome for signed-out visitors
+ * with recent gallery photos, player faces and the invitation to claim a
+ * player profile. Hidden on account pages and on shared-photo links; it also
+ * waits while the gallery's expanded view or feed is open.
+ */
+import { Image } from 'astro:assets';
+import { readGalleryIndex } from '../../lib/gallery/store';
+import { getAllPlayers } from '../../data/players';
+import { getPlayerImageForDisplay } from '../../data/player-images';
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const hideHere =
+	['/account', '/signup', '/admin', '/auth', '/gallery/admin', '/gallery/p', '/gallery/s'].some((p) => path === p || path.startsWith(`${p}/`));
+/** Bump to show the pop-up again to people who dismissed an older one. */
+const CAMPAIGN = 'accounts-2026-10b';
+
+// Four most recent gallery photos. Prerendered pages pick these at build time,
+// the gallery picks them per request. The index rarely stores dimensions, so the
+// cards use a fixed 4:5 frame and let object-fit crop.
+let picks: { id: string; url: string }[] = [];
+if (!hideHere) {
+	try {
+		const index = await readGalleryIndex();
+		picks = [...index.photos].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 4);
+	} catch {
+		picks = [];
+	}
+}
+const faces = getAllPlayers()
+	.map((p) => ({ name: p.name, slug: p.slug, photo: getPlayerImageForDisplay(p.name, 56) }))
+	.filter((p): p is typeof p & { photo: string } => Boolean(p.photo))
+	.slice(0, 7);
+const playerCount = getAllPlayers().length;
+---
+
+{!hideHere && picks.length >= 3 && (
+	<div class="gwel" id="accounts-welcome" data-campaign={CAMPAIGN} role="dialog" aria-modal="true" aria-labelledby="gwel-title" hidden>
+		<div class="gwel-backdrop" data-gwel-close></div>
+		<div class="gwel-card">
+			<button type="button" class="gwel-close" aria-label="Not now" data-gwel-close>×</button>
+			<div class="gwel-photos" aria-hidden="true">
+				{picks.map((p, i) => (
+					<div class={`gwel-photo gwel-photo--${i + 1}`}>
+						<Image src={p.url} width={360} height={450} format="webp" quality={70} alt="" loading="lazy" />
+					</div>
+				))}
+			</div>
+			<div class="gwel-body">
+				<div class="gwel-faces">
+					<ul class="gwel-face-row" id="gwel-faces" aria-label="Players">
+						{faces.map((f) => (
+							<li class="gwel-face" data-slug={f.slug} title={f.name}>
+								<img src={f.photo} alt="" width="56" height="56" loading="lazy" decoding="async" />
+							</li>
+						))}
+					</ul>
+					<p class="gwel-face-note" id="gwel-face-note"><strong>{playerCount}</strong> player profiles ready to claim</p>
+				</div>
+				<p class="gwel-kicker">Spot yourself on the court?</p>
+				<h2 class="gwel-title" id="gwel-title">Claim your player profile</h2>
+				<p class="gwel-text">
+					Create a free account to tag yourself in gallery photos, like and comment, and have every shot of you show up on
+					your player page.
+				</p>
+				<div class="gwel-actions">
+					<a class="gwel-btn gwel-btn--primary" href="/signup" data-gwel-go>Create account</a>
+					<a class="gwel-btn" href="/account" data-gwel-go>Sign in</a>
+				</div>
+				<button type="button" class="gwel-skip" data-gwel-close>Just browsing for now</button>
+			</div>
+		</div>
+	</div>
+)}
+
+<script>
+	type Claimed = { total: number; count: number; players: { slug: string; name: string; photo: string | null }[] };
+	const dlg = document.getElementById('accounts-welcome');
+	if (dlg) {
+		const key = `gp:welcome:${dlg.dataset.campaign}`;
+		let dismissed = false;
+		try {
+			dismissed = localStorage.getItem(key) === '1';
+		} catch {
+			/* ignore */
+		}
+		const remember = () => {
+			try {
+				localStorage.setItem(key, '1');
+			} catch {
+				/* ignore */
+			}
+		};
+		const close = () => {
+			dlg.classList.remove('is-in');
+			document.documentElement.classList.remove('gwel-open');
+			setTimeout(() => (dlg.hidden = true), 300);
+			remember();
+		};
+		const sharedPhoto = new URL(location.href).searchParams.has('photo');
+
+		/** Put the players who already claimed a profile at the front of the row, ringed. */
+		const paintFaces = (claimed: Claimed) => {
+			const row = document.getElementById('gwel-faces');
+			const note = document.getElementById('gwel-face-note');
+			if (row) {
+				const existing = new Map([...row.querySelectorAll<HTMLElement>('.gwel-face')].map((el) => [el.dataset.slug ?? '', el]));
+				const lead = claimed.players.filter((p) => p.photo).slice(0, 4);
+				for (const p of [...lead].reverse()) {
+					let el = existing.get(p.slug);
+					if (!el) {
+						el = document.createElement('li');
+						el.className = 'gwel-face';
+						el.dataset.slug = p.slug;
+						el.title = p.name;
+						el.innerHTML = `<img alt="" width="56" height="56" decoding="async" />`;
+						el.querySelector('img')!.src = p.photo!;
+					}
+					el.classList.add('gwel-face--claimed');
+					row.prepend(el);
+				}
+				[...row.querySelectorAll('.gwel-face')].slice(7).forEach((el) => el.remove());
+			}
+			if (note && claimed.count > 0) {
+				note.innerHTML = `<strong>${claimed.count}</strong> of ${claimed.total} players have claimed their profile`;
+			}
+		};
+
+		if (!dismissed && !sharedPhoto) {
+			fetch('/api/me', { cache: 'no-store' })
+				.then((r) => (r.ok ? r.json() : null))
+				.then(async (me: { configured?: boolean; signedIn?: boolean } | null) => {
+					if (!me?.configured || me.signedIn) return;
+					const claimed = await fetch('/api/players/claimed', { cache: 'no-store' })
+						.then((r) => (r.ok ? (r.json() as Promise<Claimed>) : null))
+						.catch(() => null);
+					if (claimed) paintFaces(claimed);
+					setTimeout(() => {
+						// Never on top of an expanded photo or the feed.
+						if (document.querySelector('.gallery-lightbox:not([hidden]), .gfeed:not([hidden])')) return;
+						dlg.hidden = false;
+						document.documentElement.classList.add('gwel-open');
+						requestAnimationFrame(() => dlg.classList.add('is-in'));
+						(dlg.querySelector<HTMLElement>('.gwel-btn--primary') ?? dlg).focus();
+					}, 2500);
+				})
+				.catch(() => undefined);
+		}
+		dlg.querySelectorAll('[data-gwel-close]').forEach((el) => el.addEventListener('click', close));
+		dlg.querySelectorAll('[data-gwel-go]').forEach((el) => el.addEventListener('click', remember));
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape' && !dlg.hidden) close();
+		});
+	}
+</script>
