@@ -106,7 +106,7 @@ export function resolveMatchResult(input: ResolveInput): ResolveOutput {
 		return q('draw advancement disagrees with match page');
 	}
 
-	const score = page.score ?? draw.drawScore ?? advHits.find((h) => h.side === pageSide)?.score ?? undefined;
+	const score = page.score ?? (draw.drawWinner != null || draw.drawWinnerName ? draw.drawScore : undefined);
 	const record: MatchRecord = { ...base, winner: pageSide };
 	if (score) record.score = score;
 	return { record, resolved: true };

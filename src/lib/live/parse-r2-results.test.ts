@@ -7,9 +7,9 @@ import { applyResultsToEvent } from '../../data/events';
 import { PORT_ST_LUCIE_EVENT } from '../../data/port-st-lucie-event';
 import { LIVE_EVENTS } from './config';
 import { parseMatchPage } from './parse-match-page';
-import { extractRoundRobinFromHtml, extractSingleElimFromHtml } from './parse-r2';
+import { extractRoundRobinFromHtml, extractScore, extractSingleElimFromHtml } from './parse-r2';
 import { resolveMatchResult } from './resolve-results';
-import { applyActivityUpdates, applyMatchOverrides, detectActivityChanges, mergeOneMatch } from './scrape';
+import { applyActivityUpdates, applyMatchOverrides, detectActivityChanges, isRetryableStatus, mergeOneMatch } from './scrape';
 
 const fixtures = resolve(dirname(fileURLToPath(import.meta.url)), 'fixtures');
 const read = (name: string) => readFileSync(resolve(fixtures, name), 'utf-8');
@@ -240,5 +240,118 @@ describe('merge keeps an unpublished score-without-winner undecided', () => {
 			{ quarantined: false, resolved: true },
 		);
 		assert.equal(merged.winner, undefined);
+	});
+});
+
+describe('✓ Winner label including doubles and forfeits', () => {
+	it('reads the ✓ Winner badge on live singles, doubles, and forfeit pages', () => {
+		assert.equal(mb10Page.winnerName, 'Ben Mordkovich');
+		assert.match(mb10Page.winnerName ?? '', /✓|Winner|Ben/i);
+		assert.equal(mbd4Page.winnerName, 'Ryan Appleby / Matt Kern');
+		assert.equal(med10Page.winnerName, 'Dirk Huck / John Joseph');
+		assert.equal(med10Page.score, 'WBF - No Show');
+		assert.equal(mcsd6Page.winnerName, null);
+	});
+
+	it('recognizes a ✓ Winner label without relying on classList', () => {
+		const html = `
+			<div class="r2p-versus-side">
+				<div class="r2p-side-heading"><span>✓ Winner</span></div>
+				<div class="r2p-side-names"><a>Ben Mordkovich</a></div>
+			</div>
+			<div class="r2p-versus-side">
+				<div class="r2p-side-heading"></div>
+				<div class="r2p-side-names"><a>Ann Brandt</a></div>
+			</div>
+			<div class="r2p-match-result"><strong>15-13, 15-13</strong></div>`;
+		const page = parseMatchPage(html);
+		assert.equal(page.winnerName, 'Ben Mordkovich');
+		assert.equal(page.score, '15-13, 15-13');
+	});
+});
+
+describe('score leak: next-round slot scores belong to the previous match', () => {
+	it('does not put MB9/MB10/MED10 scores on unplayed MB8/MB7/MED7', () => {
+		assert.equal(mbDraw.matches.MB8?.drawScore, undefined);
+		assert.equal(mbDraw.matches.MB7?.drawScore, undefined);
+		assert.equal(medDraw.matches.MED7?.drawScore, undefined);
+		assert.equal(mbDraw.matches.MB9?.drawScore, '15-9, 15-10');
+		assert.equal(mbDraw.matches.MB10?.drawScore, '15-13, 15-13');
+		assert.equal(medDraw.matches.MED10?.drawScore, 'WBF - No Show');
+
+		const mb8 = resolveMatchResult({ matchId: 'MB8', draw: mbDraw.matches.MB8! });
+		const mb7 = resolveMatchResult({ matchId: 'MB7', draw: mbDraw.matches.MB7! });
+		const med7 = resolveMatchResult({ matchId: 'MED7', draw: medDraw.matches.MED7! });
+		assert.equal(mb8.record.score, undefined);
+		assert.equal(mb7.record.score, undefined);
+		assert.equal(med7.record.score, undefined);
+		assert.doesNotMatch(med7.record.score ?? '', /Haacke|MED7|4:00/);
+	});
+
+	it('does not swallow adjacent cells into a WBF score', () => {
+		assert.equal(extractScore('WBF - No Show MED7 Sa 4:00 P#4 Haacke / Haacke'), 'WBF - No Show');
+	});
+});
+
+describe('short next-round names expand to full roster names', () => {
+	it('maps E Saunders, B Mordkovich, S Gill, and Huck/Joseph from the draw roster', () => {
+		assert.equal(mbDraw.matches.MB8?.player1, 'Scott Gill');
+		assert.equal(mbDraw.matches.MB8?.player2, 'Elijah Saunders');
+		assert.equal(mbDraw.matches.MB7?.player1, 'Ben Mordkovich');
+		assert.match(medDraw.matches.MED7?.player1 ?? '', /Huck/);
+		assert.match(medDraw.matches.MED7?.player1 ?? '', /Joseph/);
+		assert.doesNotMatch(mbDraw.matches.MB8?.player2 ?? '', /^E /);
+
+		const event = applyResultsToEvent(PORT_ST_LUCIE_EVENT, {
+			'mens-singles-b': {
+				MB8: { player1: 'S Gill', player2: 'E Saunders' },
+				MB7: { player1: 'B Mordkovich', player2: 'M Kern' },
+			},
+			'mens-doubles-elite': {
+				MED7: { player1: 'Huck / Joseph', player2: 'Haacke / Haacke' },
+			},
+		});
+		const mb = event.divisionDetails.find((d) => d.id === 'mens-singles-b');
+		const med = event.divisionDetails.find((d) => d.id === 'mens-doubles-elite');
+		const find = (div = mb, id: string) =>
+			div?.rounds?.flatMap((r) => r.matches).find((m) => m.matchId === id);
+		assert.equal(find(mb, 'MB8')?.player2, 'Elijah Saunders');
+		assert.equal(find(mb, 'MB8')?.player1, 'Scott Gill');
+		assert.equal(find(mb, 'MB7')?.player1, 'Ben Mordkovich');
+		assert.match(find(med, 'MED7')?.player1 ?? '', /Huck/);
+	});
+});
+
+describe('page failures keep a published result', () => {
+	it('retries HTTP 500/502/503/504', () => {
+		assert.equal(isRetryableStatus(500), true);
+		assert.equal(isRetryableStatus(503), true);
+		assert.equal(isRetryableStatus(404), false);
+	});
+
+	it('quarantine or missing match page does not wipe the last published winner', () => {
+		const kept = mergeOneMatch(
+			{ player1: 'Ben Mordkovich', player2: 'Ann Brandt', winner: 1, score: '15-13, 15-13' },
+			{ player1: 'Ben Mordkovich', player2: 'Ann Brandt', court: 'Court 1' },
+			{ quarantined: true, resolved: false },
+		);
+		assert.equal(kept.winner, 1);
+		assert.equal(kept.score, '15-13, 15-13');
+		assert.equal(kept.court, 'Court 1');
+
+		const unavailable = resolveMatchResult({
+			matchId: 'MB9',
+			draw: { ...mbDraw.matches.MB9!, drawScore: '15-9, 15-10' },
+			pageError: 'HTTP 500 for https://www.r2sports.com/r2-push.asp',
+		});
+		assert.ok(unavailable.quarantine);
+		assert.equal(unavailable.record.winner, undefined);
+		const merged = mergeOneMatch(
+			{ player1: 'Elijah Saunders', player2: 'Mark Manzano', winner: 1, score: '15-9, 15-10' },
+			unavailable.record,
+			{ quarantined: true, resolved: false },
+		);
+		assert.equal(merged.winner, 1);
+		assert.equal(merged.score, '15-9, 15-10');
 	});
 });

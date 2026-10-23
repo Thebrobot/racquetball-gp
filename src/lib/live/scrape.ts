@@ -45,17 +45,37 @@ export type EventScrapeResult = {
 	audit: Array<{ matchId: string; html: string }>;
 };
 
+const RETRYABLE_STATUS = new Set([500, 502, 503, 504]);
+const FETCH_ATTEMPTS = 3;
+
+export function isRetryableStatus(status: number): boolean {
+	return RETRYABLE_STATUS.has(status);
+}
+
 async function fetchHtml(url: string): Promise<{ html: string; finalUrl: string }> {
-	const res = await fetch(url, {
-		headers: {
-			'user-agent': USER_AGENT,
-			accept: 'text/html,application/xhtml+xml',
-		},
-		redirect: 'follow',
-		signal: AbortSignal.timeout(15_000),
-	});
-	if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
-	return { html: await res.text(), finalUrl: res.url };
+	let lastErr: unknown = null;
+	for (let attempt = 1; attempt <= FETCH_ATTEMPTS; attempt++) {
+		try {
+			const res = await fetch(url, {
+				headers: {
+					'user-agent': USER_AGENT,
+					accept: 'text/html,application/xhtml+xml',
+				},
+				redirect: 'follow',
+				signal: AbortSignal.timeout(15_000),
+			});
+			if (res.ok) return { html: await res.text(), finalUrl: res.url };
+			lastErr = new Error(`HTTP ${res.status} for ${url}`);
+			if (!isRetryableStatus(res.status) || attempt === FETCH_ATTEMPTS) throw lastErr;
+		} catch (err) {
+			lastErr = err;
+			const message = err instanceof Error ? err.message : String(err);
+			const retryable = /HTTP 50[0-4]|network|timeout|fetch/i.test(message);
+			if (!retryable || attempt === FETCH_ATTEMPTS) throw err;
+		}
+		await new Promise((r) => setTimeout(r, 250 * attempt));
+	}
+	throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
 }
 
 async function scrapeDivision(
@@ -225,7 +245,11 @@ export function mergeOneMatch(
 	if (incoming.scheduledTime) next.scheduledTime = incoming.scheduledTime;
 	else if (existing?.scheduledTime) next.scheduledTime = existing.scheduledTime;
 
-	if (opts.quarantined) return next;
+	if (opts.quarantined) {
+		if (existing?.winner != null) next.winner = existing.winner;
+		if (existing?.score) next.score = existing.score;
+		return next;
+	}
 
 	if (incoming.winner != null) {
 		next.winner = incoming.winner;
@@ -239,9 +263,12 @@ export function mergeOneMatch(
 		return next;
 	}
 
-	if (existing?.winner != null) next.winner = existing.winner;
-	if (existing?.score) next.score = existing.score;
-	else if (incoming.score) next.score = incoming.score;
+	if (existing?.winner != null) {
+		next.winner = existing.winner;
+		if (existing.score) next.score = existing.score;
+		return next;
+	}
+	if (incoming.score) next.score = incoming.score;
 	return next;
 }
 
