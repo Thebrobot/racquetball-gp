@@ -44,4 +44,6 @@ export type GalleryClientConfig = {
 	/** Photos the signed-in visitor has liked. */
 	likedIds?: string[];
 	signedIn?: boolean;
+	viewer?: { signedIn: boolean; playerSlug: string | null; displayName: string | null; isAdmin: boolean };
+	players?: { name: string; slug: string }[];
 };

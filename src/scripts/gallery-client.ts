@@ -777,6 +777,135 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		}
 	}
 
+
+	// ── People panel: who is in the photo, who liked it, tagging ─────────────
+	type PhotoPerson = { slug: string; name: string; displayName: string | null };
+	type PhotoLiker = { name: string; slug: string | null };
+	type PeoplePayload = {
+		tags: PhotoPerson[];
+		likers: PhotoLiker[];
+		viewer: { signedIn: boolean; playerSlug: string | null; isAdmin: boolean; tagged: boolean };
+	};
+	const peopleEl = $('#gallery-lb-people');
+	let peopleFor: string | null = null;
+	const viewer = config.viewer ?? { signedIn: Boolean(config.signedIn), playerSlug: null, displayName: null, isAdmin: false };
+
+	function avatarChip(slug: string | null, label: string, cls: string): string {
+		const initials = label.split(' ').slice(0, 2).map((w) => w[0] ?? '').join('').toUpperCase();
+		const inner = `<span class="gallery-chip-avatar" aria-hidden="true">${escapeHtml(initials)}</span><span>${escapeHtml(label)}</span>`;
+		return slug
+			? `<a class="${cls}" href="/players/${encodeURIComponent(slug)}">${inner}</a>`
+			: `<span class="${cls} ${cls}--plain">${inner}</span>`;
+	}
+
+	function renderPeople(photo: GalleryPhoto, data: PeoplePayload): void {
+		if (!peopleEl) return;
+		const parts: string[] = [];
+		const tagChips = data.tags.map((t) => avatarChip(t.slug, t.name, 'gallery-chip')).join('');
+		let action = '';
+		if (viewer.signedIn && data.viewer.playerSlug) {
+			action = data.viewer.tagged
+				? `<button type="button" class="gallery-people-btn" data-people="untag">Remove my tag</button>`
+				: `<button type="button" class="gallery-people-btn gallery-people-btn--primary" data-people="tag">I'm in this photo</button>`;
+		} else if (viewer.signedIn) {
+			action = `<a class="gallery-people-hint" href="/account">Claim your player profile to tag yourself</a>`;
+		} else {
+			action = `<a class="gallery-people-hint" href="/account?next=${encodeURIComponent(window.location.pathname + window.location.search)}">Sign in to tag yourself</a>`;
+		}
+		let adminTag = '';
+		if (data.viewer.isAdmin && config.players?.length) {
+			adminTag = `<form class="gallery-people-admin" data-people="admin-form">
+				<input class="gallery-people-input" list="gallery-player-list" name="player" placeholder="Tag a player…" autocomplete="off" />
+				<datalist id="gallery-player-list">${config.players.map((pl) => `<option value="${escapeHtml(pl.name)}" data-slug="${escapeHtml(pl.slug)}"></option>`).join('')}</datalist>
+				<button type="submit" class="gallery-people-btn">Add</button>
+			</form>`;
+		}
+		const removeAll = data.viewer.isAdmin && data.tags.length
+			? `<div class="gallery-people-remove">${data.tags.map((t) => `<button type="button" class="gallery-people-x" data-people="remove" data-slug="${escapeHtml(t.slug)}" title="Remove ${escapeHtml(t.name)}">× ${escapeHtml(t.name)}</button>`).join('')}</div>`
+			: '';
+		parts.push(`<div class="gallery-people-row">
+			<span class="gallery-people-label">In this photo</span>
+			<div class="gallery-people-chips">${tagChips || '<span class="gallery-people-empty">No one tagged yet</span>'}</div>
+			<div class="gallery-people-actions">${action}${adminTag}</div>
+			${removeAll}
+		</div>`);
+		const shown = data.likers.slice(0, 8);
+		const extra = data.likers.length - shown.length;
+		parts.push(`<div class="gallery-people-row">
+			<span class="gallery-people-label">Liked by</span>
+			<div class="gallery-people-chips">${
+				shown.length
+					? shown.map((l) => avatarChip(l.slug, l.name, 'gallery-chip gallery-chip--liker')).join('') + (extra > 0 ? `<span class="gallery-people-more">+${extra} more</span>` : '')
+					: '<span class="gallery-people-empty">No likes yet</span>'
+			}</div>
+		</div>`);
+		peopleEl.innerHTML = parts.join('');
+		peopleEl.hidden = false;
+		peopleEl.dataset.photo = photo.id;
+	}
+
+	async function loadPeople(photo: GalleryPhoto): Promise<void> {
+		if (!peopleEl) return;
+		peopleFor = photo.id;
+		try {
+			const res = await fetch(`/api/photos/people?id=${encodeURIComponent(photo.id)}`, { cache: 'no-store' });
+			if (!res.ok) throw new Error('people failed');
+			const data = (await res.json()) as PeoplePayload;
+			if (peopleFor !== photo.id) return;
+			renderPeople(photo, data);
+		} catch {
+			peopleEl.hidden = true;
+		}
+	}
+
+	async function changeTag(photo: GalleryPhoto, action: 'add' | 'remove', playerSlug?: string): Promise<string | null> {
+		const res = await fetch('/api/photos/tag', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ photoId: photo.id, action, ...(playerSlug ? { playerSlug } : {}) }),
+		});
+		if (res.status === 401) {
+			window.location.href = `/account?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+			return null;
+		}
+		const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; message?: string };
+		if (!res.ok) return data.message ?? data.error ?? 'Could not update the tag.';
+		await loadPeople(photo);
+		return null;
+	}
+
+	peopleEl?.addEventListener('click', async (e) => {
+		const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-people]');
+		if (!btn || btn.tagName === 'FORM') return;
+		const photo = visible[lbIndex];
+		if (!photo) return;
+		const kind = btn.dataset.people;
+		if (kind === 'tag' || kind === 'untag') {
+			btn.setAttribute('disabled', '');
+			const err = await changeTag(photo, kind === 'tag' ? 'add' : 'remove');
+			if (err) window.alert(err);
+		} else if (kind === 'remove' && btn.dataset.slug) {
+			const err = await changeTag(photo, 'remove', btn.dataset.slug);
+			if (err) window.alert(err);
+		}
+	});
+	peopleEl?.addEventListener('submit', async (e) => {
+		const form = (e.target as HTMLElement).closest<HTMLFormElement>('[data-people="admin-form"]');
+		if (!form) return;
+		e.preventDefault();
+		const photo = visible[lbIndex];
+		const input = form.querySelector<HTMLInputElement>('input[name=player]');
+		if (!photo || !input) return;
+		const typed = input.value.trim().toLowerCase();
+		const match = config.players?.find((pl) => pl.name.toLowerCase() === typed);
+		if (!match) {
+			window.alert('Pick a player name from the list.');
+			return;
+		}
+		const err = await changeTag(photo, 'add', match.slug);
+		if (err) window.alert(err);
+	});
+
 	function showLb(): void {
 		const photo = visible[lbIndex];
 		if (!photo) return;
@@ -786,6 +915,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		if (lbCaption) lbCaption.textContent = captionText(photo);
 		recordView(photo);
 		syncLbLike(photo);
+		void loadPeople(photo);
 		lightbox.hidden = false;
 		lightbox.setAttribute('aria-hidden', 'false');
 		document.body.classList.add('gallery-lb-open');
@@ -802,6 +932,11 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 	}
 
 	function closeLb(opts?: { history?: boolean }): void {
+		if (peopleEl) {
+			peopleEl.hidden = true;
+			peopleEl.innerHTML = '';
+		}
+		peopleFor = null;
 		if (lightbox.hidden) return;
 		lightbox.hidden = true;
 		lightbox.setAttribute('aria-hidden', 'true');
