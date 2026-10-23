@@ -1,6 +1,7 @@
 ---
 import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
 import { accountsConfigured, createAdminClient, getSession } from '../../lib/accounts/supabase';
+import { albumLabel } from '../../lib/gallery/albums';
 
 export const prerender = false;
 Astro.response.headers.set('Cache-Control', 'no-store');
@@ -15,8 +16,17 @@ type Claim = { id: string; user_id: string; player_slug: string; player_name: st
 let pending: Claim[] = [];
 let recent: Claim[] = [];
 let counts = { profiles: 0, verified: 0, likes: 0, views: 0 };
+type Submission = { id: string; album: string; caption: string | null; url: string; width: number | null; height: number | null; created_at: string; profiles: { email: string; display_name: string | null; player_slug: string | null } | null };
+let submissions: Submission[] = [];
 let held: HeldComment[] = [];
 if (admin) {
+	const { data: subs } = await admin
+		.from('photo_submissions')
+		.select('id, album, caption, url, width, height, created_at, profiles!photo_submissions_user_id_fkey(email, display_name, player_slug)')
+		.eq('status', 'pending')
+		.order('created_at')
+		.limit(100);
+	submissions = (subs as unknown as Submission[] | null) ?? [];
 	const { data: hc } = await admin
 		.from('photo_comments')
 		.select('id, photo_id, body, status, created_at, profiles!photo_comments_user_id_fkey(email, display_name, player_slug)')
@@ -45,6 +55,8 @@ if (admin) {
 }
 const flag = Astro.url.searchParams.get('claims') ?? '';
 const commentFlag = Astro.url.searchParams.get('comments') ?? '';
+const photoFlag = Astro.url.searchParams.get('photos') ?? '';
+const photoFlagText: Record<string, string> = { approved: 'Photo approved and added to the gallery.', rejected: 'Photo rejected and removed.', already: 'That photo was already decided.', error: 'Could not move the photo into the gallery. Try again.' };
 const commentFlagText: Record<string, string> = { approved: 'Comment approved and visible.', deleted: 'Comment deleted.' };
 const flagText: Record<string, string> = { approved: 'Claim approved and profile linked.', rejectd: 'Claim rejected.', rejected: 'Claim rejected.', already: 'That claim was already decided.' };
 function when(iso: string): string {
@@ -93,6 +105,37 @@ function when(iso: string): string {
 							<form class="adm-item-actions" method="post" action="/api/admin/claims">
 								<input type="hidden" name="id" value={c.id} />
 								<label class="adm-check"><input type="checkbox" name="junior" /> Junior (comments need approval)</label>
+								<button class="btn-main adm-btn" type="submit" name="action" value="approve">Approve</button>
+								<button class="btn-ghost adm-btn" type="submit" name="action" value="reject">Reject</button>
+							</form>
+						</li>
+					))}
+				</ul>
+			)}
+
+			<h2 class="adm-h2" id="photos">Photos to review <span class="adm-count">{submissions.length}</span></h2>
+			{photoFlag && photoFlagText[photoFlag] && <p class="adm-ok">{photoFlagText[photoFlag]}</p>}
+			{submissions.length === 0 ? (
+				<p class="adm-empty">Nothing waiting. Photos people send from the gallery show up here.</p>
+			) : (
+				<ul class="adm-list">
+					{submissions.map((s) => (
+						<li class="gp-card adm-item adm-item--photo">
+							<a class="adm-thumb" href={s.url} target="_blank" rel="noopener">
+								<img src={`/_image?href=${encodeURIComponent(s.url)}&w=320&h=320&fit=cover&f=webp&q=70`} alt="" width="160" height="160" loading="lazy" />
+							</a>
+							<div class="adm-item-main">
+								<p class="adm-item-title">
+									<span class="gp-pill gp-pill--next">{albumLabel(s.album)}</span>
+									<span>{s.profiles?.display_name ?? 'Unnamed'}</span>
+									{s.profiles?.player_slug && <a href={`/players/${s.profiles.player_slug}`} target="_blank" rel="noopener">Verified player ↗</a>}
+								</p>
+								{s.caption && <p class="adm-comment-body">“{s.caption}”</p>}
+								<p class="adm-item-meta">{s.profiles?.email ?? ''} · {when(s.created_at)}{s.width && s.height ? ` · ${s.width}×${s.height}` : ''}</p>
+							</div>
+							<form class="adm-item-actions" method="post" action="/api/admin/submissions">
+								<input type="hidden" name="id" value={s.id} />
+								<input class="acct-input adm-note" name="note" maxlength="300" placeholder="Note to the uploader (optional)" />
 								<button class="btn-main adm-btn" type="submit" name="action" value="approve">Approve</button>
 								<button class="btn-ghost adm-btn" type="submit" name="action" value="reject">Reject</button>
 							</form>

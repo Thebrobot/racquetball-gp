@@ -9744,3 +9744,55 @@ html.gwel-open { overflow: hidden; }
 .acct-chip a { color: #fff; text-decoration: none; }
 .acct-chip-x { width: 22px; height: 22px; border-radius: 50%; border: none; background: rgba(255,255,255,0.12); color: #fff; cursor: pointer; font-size: 15px; line-height: 1; }
 .acct-chip-x:hover { background: var(--orange); }
+
+/* ───── Gallery: submit sheet ───── */
+.gsub { position: fixed; inset: 0; z-index: 320; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.gsub[hidden] { display: none; }
+.gsub-backdrop { position: absolute; inset: 0; background: rgba(6, 12, 22, 0.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: 0; transition: opacity .25s ease; }
+.gsub-card {
+  position: relative; width: min(520px, 100%); max-height: calc(100vh - 32px); overflow: auto;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 24px 22px 22px; border-radius: 22px;
+  background: linear-gradient(180deg, var(--navy3) 0%, var(--navy2) 100%);
+  border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+  opacity: 0; transform: translateY(18px); transition: opacity .3s ease, transform .3s ease;
+}
+.gsub.is-in .gsub-backdrop { opacity: 1; }
+.gsub.is-in .gsub-card { opacity: 1; transform: none; }
+.gsub-title { margin: 0; font-family: 'Anton', 'Barlow Condensed', sans-serif; font-size: clamp(26px, 5vw, 32px); line-height: 1.05; color: #fff; }
+.gsub-text { margin: 0 0 8px; font-size: 14px; line-height: 1.5; color: rgba(255,255,255,0.72); }
+.gsub-drop { display: block; margin-top: 6px; padding: 18px 16px; border: 1.5px dashed rgba(255,255,255,0.28); border-radius: 14px; text-align: center; cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+.gsub-drop:hover { border-color: var(--orange); background: rgba(240,90,26,0.06); }
+.gsub-drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.gsub-drop-text { display: flex; flex-direction: column; gap: 2px; }
+.gsub-drop-text strong { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 18px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--orange2); }
+.gsub-drop-text span { font-size: 12.5px; color: var(--muted); }
+.gsub-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.gsub-list:empty { display: none; }
+.gsub-file { display: flex; justify-content: space-between; gap: 10px; font-size: 13.5px; padding: 6px 0; border-bottom: 1px solid var(--card-border); }
+.gsub-file-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: rgba(255,255,255,0.85); }
+.gsub-file-state { flex-shrink: 0; color: var(--muted); }
+.gsub-file-state.is-ok { color: var(--green); }
+.gsub-file-state.is-bad { color: #ff8a8a; }
+.gsub .gwel-actions { margin-top: 10px; }
+.gsub button.gwel-btn { background: transparent; font: inherit; font-family: 'Barlow Condensed', sans-serif; cursor: pointer; }
+.gsub button.gwel-btn--primary { background: var(--orange); }
+.gsub button.gwel-btn--primary:hover { background: var(--orange2); }
+@media (max-width: 640px) { .gsub { padding: 10px; align-items: flex-end; } }
+
+/* ───── Admin: photo submissions ───── */
+.adm-item--photo { align-items: flex-start; }
+.adm-thumb { flex: 0 0 auto; width: 120px; height: 120px; border-radius: 12px; overflow: hidden; background: #050b16; border: 1px solid var(--card-border); }
+.adm-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.adm-note { max-width: 320px; font-size: 14px; padding: 8px 10px; }
+@media (max-width: 640px) { .adm-thumb { width: 100%; height: auto; aspect-ratio: 4 / 3; } }
+
+/* ───── Account: your photos ───── */
+.acct-subs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.acct-sub { display: flex; align-items: center; gap: 12px; }
+.acct-sub img { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; flex-shrink: 0; background: #050b16; }
+.acct-sub-main { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.acct-sub-title { font-size: 14px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acct-sub-meta { font-size: 12.5px; color: var(--muted); }
+.acct-sub-meta a { color: var(--orange2); text-decoration: none; }
+.acct-sub .gp-pill { text-transform: capitalize; flex-shrink: 0; }

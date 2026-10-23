@@ -3,6 +3,7 @@ import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
 import { accountsConfigured, createSessionClient, getSession } from '../lib/accounts/supabase';
 import { getAllPlayers } from '../data/players';
 import { EVENTS } from '../data/events';
+import { albumLabel } from '../lib/gallery/albums';
 
 export const prerender = false;
 Astro.response.headers.set('Cache-Control', 'no-store');
@@ -43,6 +44,13 @@ if (session) {
 		.order('created_at', { ascending: false })
 		.limit(5);
 	claims = (data as Claim[] | null) ?? [];
+}
+type Submission = { id: string; album: string; caption: string | null; url: string; status: string; note: string | null; photo_id: string | null; created_at: string };
+let mySubmissions: Submission[] = [];
+if (session) {
+	const client = createSessionClient(Astro.request, Astro.cookies)!;
+	const { data } = await client.from('photo_submissions').select('id, album, caption, url, status, note, photo_id, created_at').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(30);
+	mySubmissions = (data as Submission[] | null) ?? [];
 }
 const pendingClaim = claims.find((c) => c.status === 'pending') ?? null;
 const rejectedClaim = !pendingClaim && !session?.profile?.player_slug ? claims.find((c) => c.status === 'rejected') : null;
@@ -192,6 +200,31 @@ const claimMessages: Record<string, string> = {
 							<button class="btn-ghost acct-btn" type="button" id="acct-push-btn">Turn on</button>
 							<p class="acct-p acct-p--muted acct-error" id="acct-push-error" hidden></p>
 						</div>
+					</div>
+
+					<div class="gp-card acct-card" id="photos">
+						<div class="acct-row">
+							<h2 class="acct-h2">Your photos</h2>
+							<a class="btn-ghost acct-btn" href="/gallery#add">Add photos</a>
+						</div>
+						{mySubmissions.length === 0 ? (
+							<p class="acct-p acct-p--muted">Send photos from the gallery with "+ Add photos". Each one is reviewed before it appears{linkedPlayer ? ', then it also shows on your player profile' : ''}.</p>
+						) : (
+							<ul class="acct-subs">
+								{mySubmissions.map((s) => (
+									<li class="acct-sub">
+										<img src={`/_image?href=${encodeURIComponent(s.url)}&w=160&h=160&fit=cover&f=webp&q=70`} alt="" width="56" height="56" loading="lazy" />
+										<div class="acct-sub-main">
+											<span class="acct-sub-title">{albumLabel(s.album)}{s.caption ? ` · ${s.caption}` : ''}</span>
+											<span class="acct-sub-meta">
+												{s.status === 'approved' && s.photo_id ? <a href={`/gallery/p/${s.photo_id}`}>In the gallery ↗</a> : s.status === 'rejected' ? `Not added${s.note ? `: ${s.note}` : ''}` : 'Waiting for review'}
+											</span>
+										</div>
+										<span class:list={['gp-pill', s.status === 'approved' ? 'gp-pill--done' : s.status === 'rejected' ? 'gp-pill--champ' : 'gp-pill--next']}>{s.status}</span>
+									</li>
+								))}
+							</ul>
+						)}
 					</div>
 
 					<div class="gp-card acct-card" id="follow">
