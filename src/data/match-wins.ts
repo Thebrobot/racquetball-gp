@@ -1,30 +1,9 @@
 import { EVENTS } from './events';
+import { playerAppearsInSlot } from '../lib/live/r2-names';
 
 /** Match entry name (player or "LastA / LastB" team) against a standings/profile name. */
 export function playerMatchesEntry(playerName: string, entryName: string): boolean {
-	const norm = playerName.trim().toLowerCase();
-	const entryNorm = entryName.trim().toLowerCase();
-	if (entryNorm === norm) return true;
-	// Only doubles teams (stored as "LastA / LastB") use last-name matching.
-	// Singles entries must match exactly so same-surname players aren't conflated.
-	if (!entryNorm.includes('/')) return false;
-	const lastName = norm.split(' ').pop() ?? '';
-	const firstInitial = norm[0] ?? '';
-	if (lastName.length > 1) {
-		const parts = entryNorm.split(/\s*\/\s*/);
-		if (
-			parts.some((p) => {
-				const part = p.trim();
-				if (part === lastName) return true;
-				if (!part.endsWith(lastName)) return false;
-				// Initial-prefixed team parts ("K. Artman") must match the player's
-				// first initial so K. Artman and H. Artman aren't conflated.
-				const init = part.match(/^([a-z])\.?\s/);
-				return !init || init[1] === firstInitial;
-			})
-		) return true;
-	}
-	return false;
+	return playerAppearsInSlot(playerName, entryName);
 }
 
 function isGhostOpponent(name: string): boolean {
@@ -60,9 +39,9 @@ export function countPlayerWinsInDivision(playerName: string, divisionId: string
 				for (const m of round.matches ?? []) {
 					const p1 = (m.player1 ?? '').trim();
 					const p2 = (m.player2 ?? '').trim();
-					const side = playerMatchesEntry(playerName, p1)
+					const side = playerAppearsInSlot(playerName, p1)
 						? 1
-						: playerMatchesEntry(playerName, p2)
+						: playerAppearsInSlot(playerName, p2)
 							? 2
 							: null;
 					if (side === null) continue;

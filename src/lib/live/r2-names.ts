@@ -133,3 +133,87 @@ export function formatScore(score: string): string {
 	const compact = score.replace(/–/g, '-').replace(/\s+/g, '');
 	return compact.replace(/,/g, ', ');
 }
+
+function isGhostToken(s: string): boolean {
+	return /^(tbd|bye)$/i.test(s.trim());
+}
+
+/** Live result names may replace a TBD/abbreviated draw slot. */
+export function incomingFillsSlot(slot: string, incoming: string | null | undefined): boolean {
+	const s = cleanPlayerName(slot);
+	const n = cleanPlayerName(incoming ?? '');
+	if (!n || isGhostToken(n)) return false;
+	if (!s || isGhostToken(s)) return true;
+	if (/\btbd\b/i.test(s)) {
+		const known = lastNames(s.replace(/\btbd\b/gi, ' '));
+		const incomingLast = lastNames(n);
+		return (
+			known.length === 0 ||
+			known.every((k) => incomingLast.some((i) => i === k || i.includes(k) || k.includes(i)))
+		);
+	}
+	if (!namesAlign(s, n)) return false;
+	return n.length > s.length;
+}
+
+/** Match a roster player to a singles name or doubles team string. */
+export function playerAppearsInSlot(playerName: string, slot: string, roster: string[] = []): boolean {
+	const player = cleanPlayerName(playerName);
+	const raw = cleanPlayerName(slot);
+	if (!player || !raw || isGhostToken(raw)) return false;
+	if (playerMatchesTeamOrName(player, raw)) return true;
+	if (!roster.length) return false;
+	const expanded = expandFromRoster(raw, roster);
+	if (expanded && expanded !== raw && playerMatchesTeamOrName(player, expanded)) return true;
+	for (const part of raw.split('/')) {
+		const token = cleanPlayerName(part);
+		if (!token || isGhostToken(token)) continue;
+		if (namesAlign(player, token)) return true;
+		const hits = [...new Set(roster.map((r) => cleanPlayerName(r)).filter((r) => r && !r.includes('/') && namesAlign(token, r)))];
+		if (hits.length === 1 && namesAlign(player, hits[0]!)) return true;
+	}
+	return false;
+}
+
+function playerMatchesTeamOrName(playerName: string, entryName: string): boolean {
+	const norm = playerName.trim().toLowerCase();
+	const entryNorm = entryName.trim().toLowerCase();
+	if (entryNorm === norm) return true;
+	if (!entryNorm.includes('/')) return false;
+	const lastName = norm.split(/\s+/).pop() ?? '';
+	const firstInitial = norm[0] ?? '';
+	if (lastName.length <= 1) return false;
+	return entryNorm.split(/\s*\/\s*/).some((p) => {
+		const part = p.trim();
+		if (part === lastName || part === norm) return true;
+		if (!part.endsWith(lastName)) return false;
+		const init = part.match(/^([a-z])\.?\s/);
+		return !init || init[1] === firstInitial;
+	});
+}
+
+/** Expand a match slot into individual roster names (skip TBD/BYE). */
+export function individualsFromSlot(slot: string, roster: string[]): string[] {
+	const raw = cleanPlayerName(slot);
+	if (!raw || isGhostToken(raw)) return [];
+	const tokens = raw.includes('/') ? raw.split(/\s*\/\s*/) : [raw];
+	const out: string[] = [];
+	for (const token of tokens) {
+		const part = cleanPlayerName(token);
+		if (!part || isGhostToken(part)) continue;
+		const people = roster.filter((r) => r && !r.includes('/')).map((r) => cleanPlayerName(r));
+		const aligned = [...new Set(people.filter((r) => namesAlign(part, r)))];
+		if (aligned.length === 1) {
+			out.push(aligned[0]!);
+			continue;
+		}
+		const suffix = [...new Set(people.filter((r) => r.toLowerCase().endsWith(part.toLowerCase())))];
+		if (suffix.length === 1) {
+			out.push(suffix[0]!);
+			continue;
+		}
+		const expanded = expandFromRoster(part, people) ?? part;
+		if (expanded && !expanded.includes('/') && !isGhostToken(expanded) && people.includes(expanded)) out.push(expanded);
+	}
+	return out;
+}

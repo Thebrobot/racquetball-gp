@@ -3,6 +3,7 @@ import playerAliases from './player-aliases.json';
 import { EVENTS, getEventStatus, type EventData, type EventStatus } from './events';
 import type { EventBracketMatch, EventBracketRound } from './events';
 import { getPlayerImageForDisplay } from './player-images';
+import { individualsFromSlot, playerAppearsInSlot } from '../lib/live/r2-names';
 export {
 	PLAYER_IMAGES,
 	getPlayerImageForDisplay,
@@ -104,30 +105,29 @@ export interface PlayerScheduleEntry extends PlayerEventCall {
  * Handles exact-name singles ("Trace Gunsch") and last-name doubles teams ("Gunsch / Smith").
  */
 function playerMatchesEntry(playerName: string, entryName: string): boolean {
-	const norm = playerName.trim().toLowerCase();
-	const entryNorm = entryName.trim().toLowerCase();
-	if (entryNorm === norm) return true;
-	// Only doubles teams (stored as "LastA / LastB") use last-name matching.
-	// Singles entries must match exactly so same-surname players aren't conflated.
-	if (!entryNorm.includes('/')) return false;
-	// Use endsWith to handle compound last names like "Van Zant-Russell".
-	const lastName = norm.split(' ').pop() ?? '';
-	const firstInitial = norm[0] ?? '';
-	if (lastName.length > 1) {
-		const parts = entryNorm.split(/\s*\/\s*/);
-		if (
-			parts.some((p) => {
-				const part = p.trim();
-				if (part === lastName) return true;
-				if (!part.endsWith(lastName)) return false;
-				// Initial-prefixed team parts ("K. Artman") must match the player's
-				// first initial so K. Artman and H. Artman aren't conflated.
-				const init = part.match(/^([a-z])\.?\s/);
-				return !init || init[1] === firstInitial;
-			})
-		) return true;
+	return playerAppearsInSlot(playerName, entryName);
+}
+
+function eventNameRoster(event: EventData): string[] {
+	const names = (event.profiles ?? []).map((p) => p.name);
+	for (const div of event.divisionDetails ?? []) {
+		for (const round of div.rounds ?? []) {
+			for (const m of round.matches ?? []) {
+				names.push(m.player1, m.player2);
+			}
+		}
+		for (const m of div.roundRobinMatches ?? []) {
+			names.push(m.team1, m.team2);
+		}
+		names.push(...(div.roundRobinPlayers ?? []));
 	}
-	return false;
+	return [...new Set(names.filter((n) => n && !/^(tbd|bye)$/i.test(n.trim()) && !n.includes('/')))];
+}
+
+function playerOnMatch(playerName: string, a: string, b: string, roster: string[]): 1 | 2 | null {
+	if (playerAppearsInSlot(playerName, a, roster)) return 1;
+	if (playerAppearsInSlot(playerName, b, roster)) return 2;
+	return null;
 }
 
 function isGhostName(name: string): boolean {
@@ -172,7 +172,25 @@ export function getPlayerScheduleEntries(
 ): PlayerScheduleEntry[] {
 	const out: PlayerScheduleEntry[] = [];
 
-	for (const entry of profileEvents) {
+	const calls = [...profileEvents];
+	const have = new Set(calls.map((e) => `${e.eventName}::${e.division}`));
+	for (const event of events) {
+		const roster = eventNameRoster(event);
+		for (const div of event.divisionDetails ?? []) {
+			const key = `${event.name}::${div.label}`;
+			if (have.has(key)) continue;
+			const appears = [
+				...(div.rounds ?? []).flatMap((r) => r.matches ?? []).flatMap((m) => [m.player1, m.player2]),
+				...(div.roundRobinMatches ?? []).flatMap((m) => [m.team1, m.team2]),
+				...(div.roundRobinPlayers ?? []),
+			].some((slot) => playerAppearsInSlot(playerName, slot, roster));
+			if (!appears) continue;
+			calls.push({ eventName: event.name, division: div.label, time: '' });
+			have.add(key);
+		}
+	}
+
+	for (const entry of calls) {
 		const event = events.find((e) => e.name === entry.eventName);
 		if (!event) { out.push(entry); continue; }
 
@@ -416,6 +434,33 @@ export function getAllPlayers(): PlayerProfile[] {
 			addPlayerDivision(existing.divisions, profile.division);
 			map.set(slug, existing);
 		});
+
+		const roster = eventNameRoster(event);
+		for (const div of event.divisionDetails ?? []) {
+			const slots: string[] = [];
+			for (const round of div.rounds ?? []) {
+				for (const m of round.matches ?? []) slots.push(m.player1, m.player2);
+			}
+			for (const m of div.roundRobinMatches ?? []) slots.push(m.team1, m.team2);
+			slots.push(...(div.roundRobinPlayers ?? []));
+			for (const name of new Set(slots.flatMap((s) => individualsFromSlot(s, roster)))) {
+				if (!isIndividual(name)) continue;
+				const slug = getPlayerSlug(name);
+				const existing = map.get(slug) ?? {
+					name: canonicalPlayerName(name),
+					slug,
+					city: PLAYER_CITIES[slug],
+					imageUrl: getPlayerImageForDisplay(name, 64),
+					divisions: [],
+					events: [],
+				};
+				addPlayerDivision(existing.divisions, div.label);
+				if (!existing.events.some((e) => e.eventName === event.name && e.division === div.label)) {
+					existing.events.push({ eventName: event.name, division: div.label, time: '' });
+				}
+				map.set(slug, existing);
+			}
+		}
 	});
 
 	return Array.from(map.values())
@@ -461,12 +506,13 @@ function resultForSide(
 export function getPlayerMatchHistory(playerName: string, events: EventData[] = EVENTS): PlayerMatchRecord[] {
 	const out: PlayerMatchRecord[] = [];
 	for (const event of events) {
+		const roster = eventNameRoster(event);
 		for (const div of event.divisionDetails ?? []) {
 			for (const round of div.rounds ?? []) {
 				for (const m of round.matches ?? []) {
 					const p1 = (m.player1 ?? '').trim();
 					const p2 = (m.player2 ?? '').trim();
-					const side = playerMatchesEntry(playerName, p1) ? 1 : playerMatchesEntry(playerName, p2) ? 2 : null;
+					const side = playerOnMatch(playerName, p1, p2, roster);
 					if (side === null) continue;
 					const opp = side === 1 ? p2 : p1;
 					out.push({
@@ -484,7 +530,7 @@ export function getPlayerMatchHistory(playerName: string, events: EventData[] = 
 			}
 
 			for (const m of div.roundRobinMatches ?? []) {
-				const side = playerMatchesEntry(playerName, m.team1) ? 1 : playerMatchesEntry(playerName, m.team2) ? 2 : null;
+				const side = playerOnMatch(playerName, m.team1, m.team2, roster);
 				if (side === null) continue;
 				const opp = side === 1 ? m.team2 : m.team1;
 				out.push({
@@ -502,6 +548,44 @@ export function getPlayerMatchHistory(playerName: string, events: EventData[] = 
 		}
 	}
 	return out;
+}
+
+export type MissingDivisionLink = { name: string; division: string };
+
+/** Players who appear in a division's matches but have no profile row for that division. */
+export function missingEventDivisionLinks(event: EventData): MissingDivisionLink[] {
+	const roster = eventNameRoster(event);
+	const profiled = new Set((event.profiles ?? []).map((p) => `${p.name}::${p.division}`));
+	const found = new Map<string, Set<string>>();
+
+	const add = (slot: string, division: string) => {
+		for (const name of individualsFromSlot(slot, roster)) {
+			if (!found.has(name)) found.set(name, new Set());
+			found.get(name)!.add(division);
+		}
+	};
+
+	for (const div of event.divisionDetails ?? []) {
+		for (const round of div.rounds ?? []) {
+			for (const m of round.matches ?? []) {
+				add(m.player1, div.label);
+				add(m.player2, div.label);
+			}
+		}
+		for (const m of div.roundRobinMatches ?? []) {
+			add(m.team1, div.label);
+			add(m.team2, div.label);
+		}
+		for (const p of div.roundRobinPlayers ?? []) add(p, div.label);
+	}
+
+	const missing: MissingDivisionLink[] = [];
+	for (const [name, divisions] of found) {
+		for (const division of divisions) {
+			if (!profiled.has(`${name}::${division}`)) missing.push({ name, division });
+		}
+	}
+	return missing.sort((a, b) => a.name.localeCompare(b.name) || a.division.localeCompare(b.division));
 }
 
 export interface PlayerGrandPrixStanding {

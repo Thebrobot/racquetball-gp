@@ -412,6 +412,7 @@ export const PORT_ST_LUCIE_EVENT: EventData = {
 		{ name: 'Daniel Bray', division: "Men's Singles: B", time: 'Saturday · 11:00 AM', note: 'Court 4' },
 		{ name: 'Timothy Burke', division: "Men's Doubles: Centurion/Super", time: 'Saturday · 11:00 AM', note: 'Court 2' },
 		{ name: 'Timothy Burke', division: "Men's Doubles: A", time: 'Sunday · 10:00 AM', note: 'Court 4' },
+		{ name: 'Greg Caruso', division: "Men's Doubles: Elite", time: 'Friday · 4:30 PM', note: 'Court 4' },
 		{ name: 'Greg Caruso', division: "Men's Singles: Elite", time: 'Friday · 6:30 PM', note: 'Court 3' },
 		{ name: 'Greg Caruso', division: "Men's Doubles: A", time: 'Saturday · 9:00 AM', note: 'Court 1' },
 		{ name: 'Jason Cheng', division: "Men's Age Singles: 24/30/40", time: 'Saturday · 10:00 AM', note: 'Court 3' },
