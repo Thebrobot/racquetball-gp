@@ -3480,7 +3480,8 @@ a.btn-watch-live:hover {
   background: rgba(255, 255, 255, 0.03);
   color: rgba(255, 255, 255, 0.35);
 }
-.btn-brackets {
+.btn-brackets,
+.btn-gallery {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 700;
   font-size: 15px;
@@ -3497,12 +3498,14 @@ a.btn-watch-live:hover {
   white-space: nowrap;
   cursor: pointer;
 }
-a.btn-brackets:hover {
+a.btn-brackets:hover,
+a.btn-gallery:hover {
   border-color: rgba(240, 90, 26, 0.55);
   background: rgba(240, 90, 26, 0.12);
   transform: translateY(-1px);
 }
-.btn-brackets.disabled {
+.btn-brackets.disabled,
+.btn-gallery.disabled {
   border-color: rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.03);
   color: rgba(255, 255, 255, 0.35);
@@ -7821,8 +7824,8 @@ video.dlr-page-hero-video {
   .gallery-profile {
     grid-template-columns: 86px minmax(0, 1fr);
     grid-template-areas:
+      "avatar name"
       "avatar stats"
-      "name name"
       "handle handle"
       "bio bio"
       "actions actions";
@@ -7851,10 +7854,12 @@ video.dlr-page-hero-video {
   }
   .gallery-name {
     grid-area: name;
-    margin-top: 14px;
-    font-size: 15px;
+    align-self: end;
+    margin-top: 0;
+    font-size: 16px;
     font-weight: 600;
     letter-spacing: 0;
+    line-height: 1.15;
   }
   .gallery-handle {
     margin: 1px 0 0;
@@ -7867,12 +7872,12 @@ video.dlr-page-hero-video {
     line-height: 1.5;
   }
   .gallery-stats {
-    align-self: center;
+    align-self: start;
     justify-content: flex-start;
     align-items: center;
-    gap: 28px;
+    gap: 22px;
     width: auto;
-    margin: 0;
+    margin: 8px 0 0;
   }
   .gallery-stats > span {
     flex-direction: column;

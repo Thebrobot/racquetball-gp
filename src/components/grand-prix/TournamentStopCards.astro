@@ -1,5 +1,6 @@
 ---
 import { GRAND_PRIX_FULL_SCHEDULE, TOUR_STOP_COUNT, type SeasonStop } from '../../data/season-stops';
+import { albumById } from '../../lib/gallery/albums';
 
 function pill(kind: SeasonStop['kind']) {
 	if (kind === 'done') return { cls: 'pill-done', label: 'Completed' };
@@ -23,6 +24,8 @@ function registerCtaLabel(url: string): string {
 				: stop.kind === 'next'
 					? `Lap ${index + 1} of ${TOUR_STOP_COUNT} · Marquee`
 					: `Lap ${index + 1} of ${TOUR_STOP_COUNT}`;
+			const album = albumById(stop.id);
+			const galleryHref = album ? `/gallery?event=${album.slug}` : '/gallery';
 			const regClosed = stop.kind === 'done';
 			const regPending = stop.kind === 'upcoming';
 			const watchLiveDisabled = stop.watchLiveDisabled ?? stop.kind === 'upcoming';
@@ -109,6 +112,9 @@ function registerCtaLabel(url: string): string {
 							) : (
 								<span class="btn-participants disabled" aria-disabled="true">Participants</span>
 							)}
+							<a href={galleryHref} class="btn-gallery">
+								Gallery
+							</a>
 						</div>
 					</div>
 				</div>

@@ -121,12 +121,13 @@ function bottomActive(href: string): string {
 		</svg>
 		<span>Standings</span>
 	</a>
-	<a href="/points" class:list={['gp-bottom-nav-item', bottomActive('/points')]} aria-current={path === '/points' ? 'page' : undefined}>
+	<a href="/gallery" class:list={['gp-bottom-nav-item', path.startsWith('/gallery') && !path.startsWith('/gallery/admin') ? 'active' : '']} aria-current={path.startsWith('/gallery') && !path.startsWith('/gallery/admin') ? 'page' : undefined}>
 		<svg viewBox="0 0 24 24" aria-hidden="true">
-			<circle cx="12" cy="12" r="10"/>
-			<line x1="12" y1="8" x2="12" y2="12"/>
-			<line x1="12" y1="16" x2="12.01" y2="16"/>
+			<rect x="3" y="3" width="7" height="7" rx="1"/>
+			<rect x="14" y="3" width="7" height="7" rx="1"/>
+			<rect x="3" y="14" width="7" height="7" rx="1"/>
+			<rect x="14" y="14" width="7" height="7" rx="1"/>
 		</svg>
-		<span>Points</span>
+		<span>Gallery</span>
 	</a>
 </nav>
