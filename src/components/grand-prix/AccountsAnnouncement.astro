@@ -5,7 +5,8 @@
  * and after dismissal.
  */
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
-const hideHere = ['/account', '/signup', '/admin', '/auth'].some((p) => path === p || path.startsWith(`${p}/`));
+const hideHere =
+	path === '/gallery' || ['/account', '/signup', '/admin', '/auth'].some((p) => path === p || path.startsWith(`${p}/`));
 /** Bump to show the card again to people who dismissed an older one. */
 const CAMPAIGN = 'accounts-2026-10';
 ---

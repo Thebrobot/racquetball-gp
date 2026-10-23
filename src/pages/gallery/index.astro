@@ -6,6 +6,7 @@ import type { GalleryClientConfig } from '../../lib/gallery/types';
 import { GRAND_PRIX_FACEBOOK_URL } from '../../data/social';
 
 import { getGallerySocial } from '../../lib/accounts/photo-stats';
+import GalleryWelcome from '../../components/grand-prix/GalleryWelcome.astro';
 
 export const prerender = false;
 
@@ -37,6 +38,7 @@ const clientConfig: GalleryClientConfig = {
 	ogImage="/images/og-default.webp"
 	hideSponsorSpotlight
 >
+	<GalleryWelcome photos={index.photos} show={!social.viewer.signedIn && !openId} />
 	<section class="gallery-page" aria-labelledby="gallery-heading">
 		<div class="gallery-page-inner">
 			<header class="gallery-profile">
