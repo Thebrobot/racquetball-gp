@@ -1,5 +1,6 @@
 ---
 import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
+import GalleryFeed from '../../components/grand-prix/GalleryFeed.astro';
 import { GALLERY_ALBUMS, albumById, albumBySlug } from '../../lib/gallery/albums';
 import { readGalleryIndex } from '../../lib/gallery/store';
 import type { GalleryClientConfig } from '../../lib/gallery/types';
@@ -140,6 +141,7 @@ const clientConfig: GalleryClientConfig = {
 		</div>
 	</section>
 
+	<GalleryFeed />
 	<div
 		class="gallery-lightbox glb"
 		id="gallery-lightbox"

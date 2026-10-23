@@ -81,6 +81,11 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 	const lbLike = $('#gallery-lb-like');
 	const shareMenu = $('#gallery-share-menu');
 	const photoStat = $('#gallery-stat-photos');
+	const feed = $('#gallery-feed');
+	const feedScroll = $('#gallery-feed-scroll');
+	const feedClose = $('#gallery-feed-close');
+	const feedTitle = $('#gallery-feed-title');
+	const feedCount = $('#gallery-feed-count');
 
 	if (!grid || !lightbox || !lbImg) return;
 
@@ -108,6 +113,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 				if (data?.counted) {
 					viewCounts[photo.id] = (viewCounts[photo.id] ?? 0) + 1;
 					if (visible[lbIndex]?.id === photo.id) syncLbLike(photo);
+					paintFeedViews(photo);
 				}
 			})
 			.catch(() => undefined);
@@ -149,6 +155,9 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 	let lastFocus: HTMLElement | null = null;
 	let reorderOnClose = false;
 	let touchX = 0;
+	let feedOpen = false;
+	let feedObserver: IntersectionObserver | null = null;
+	let feedLastTap = { id: '', at: 0 };
 	let io: IntersectionObserver | null = null;
 
 	function albumOf(id: string): GalleryAlbum | undefined {
@@ -239,6 +248,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 			})
 			.finally(() => {
 				syncLbLike(photo);
+				paintFeedLike(photo);
 				const tileBtn = grid.querySelector<HTMLElement>(
 					`.gallery-tile[data-id="${CSS.escape(photo.id)}"] [data-act="like"]`,
 				);
@@ -671,6 +681,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 	function applyLike(photo: GalleryPhoto): void {
 		toggleLike(photo);
 		syncLbLike(photo);
+		paintFeedLike(photo);
 		const tileBtn = grid.querySelector<HTMLElement>(
 			`.gallery-tile[data-id="${CSS.escape(photo.id)}"] [data-act="like"]`,
 		);
@@ -1129,6 +1140,17 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		lightbox.setAttribute('aria-hidden', 'true');
 		document.body.classList.remove('gallery-lb-open');
 		if (shareMenu) shareMenu.hidden = true;
+		if (feedOpen) {
+			// The detail view was opened from the feed: drop back to the feed, not the wall.
+			document.body.classList.add('gallery-lb-open');
+			const current = visible[lbIndex];
+			if (isBrowse && current) {
+				history.replaceState({ galleryEvent: slugFor(albumId), photo: current.id }, '', pageUrl(slugFor(albumId), current.id));
+			}
+			lastFocus?.focus();
+			lastFocus = null;
+			return;
+		}
 		if (opts?.history !== false && isBrowse) {
 			history.replaceState({ galleryEvent: slugFor(albumId) }, '', pageUrl(slugFor(albumId), null));
 		}
@@ -1144,6 +1166,10 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		visible = wallPhotos();
 		const idx = visible.findIndex((photo) => photo.id === id);
 		if (idx < 0) return;
+		if (useFeed() && lightbox.hidden) {
+			openFeed(idx);
+			return;
+		}
 		lbIndex = idx;
 		if (lightbox.hidden) {
 			lastFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -1154,7 +1180,188 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 	function step(delta: number): void {
 		if (visible.length < 2) return;
 		lbIndex = (lbIndex + delta + visible.length) % visible.length;
+		if (feedOpen && lightbox.hidden) {
+			scrollFeedTo(lbIndex, 'smooth');
+			return;
+		}
 		showLb();
+	}
+
+	// ───── Vertical feed (phones): scroll through posts like a social feed ─────
+	function useFeed(): boolean {
+		return Boolean(feed && feedScroll && visible.length > 1 && window.matchMedia('(max-width: 900px)').matches);
+	}
+
+	const FEED_ICONS = {
+		heart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c1.9 0 3.3 1 4.1 2.3L12 9l1.5-1.7C14.3 6 15.7 5 17.6 5 21 5 23.1 8.4 21.6 11.8 19.5 16.4 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+		comment: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C6.9 3 3 6.5 3 10.8c0 2.3 1.1 4.3 2.9 5.7L5 21l4.6-2.2c.8.2 1.6.3 2.4.3 5.1 0 9-3.5 9-7.8S17.1 3 12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+		share: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3L3 10.5l8 2.5 2.5 8L21 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M11 13l10-10" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
+		download: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4-4m4 4l4-4M4 19h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+	};
+
+	function feedDate(photo: GalleryPhoto): string {
+		const d = new Date(photo.createdAt);
+		return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+	}
+
+	function likesText(photo: GalleryPhoto): string {
+		const n = countFor(photo);
+		if (n === 0) return 'Be the first to like this';
+		return `${n.toLocaleString('en-US')} ${n === 1 ? 'like' : 'likes'}`;
+	}
+
+	function commentsText(photo: GalleryPhoto): string {
+		const n = config.stats?.[photo.id]?.comments ?? 0;
+		return n > 0 ? `View all ${n} ${n === 1 ? 'comment' : 'comments'}` : 'Add a comment…';
+	}
+
+	function viewsText(photo: GalleryPhoto): string {
+		const n = viewCounts[photo.id] ?? 0;
+		return n > 0 ? `${n.toLocaleString('en-US')} ${n === 1 ? 'view' : 'views'}` : '';
+	}
+
+	/** Phone-sized webp through the site's image endpoint instead of the multi-MB original. */
+	function feedImageSrc(photo: GalleryPhoto): string {
+		return `/_image?href=${encodeURIComponent(photo.url)}&w=1200&f=webp&q=78`;
+	}
+
+	function feedCardHtml(photo: GalleryPhoto, idx: number): string {
+		const album = albumOf(photo.album)?.label ?? 'Racquetball Grand Prix';
+		const sized = Boolean(photo.width && photo.height);
+		const ratio = sized ? `${photo.width} / ${photo.height}` : '4 / 3';
+		const liked = isLiked(photo.id);
+		const caption = photo.caption?.trim() ?? '';
+		return `<article class="gfeed-post" data-id="${escapeHtml(photo.id)}" data-index="${idx}">
+			<header class="gfeed-head">
+				<img class="gfeed-brand" src="/images/series-logo.webp" alt="" width="32" height="40" />
+				<div class="gfeed-head-text">
+					<span class="gfeed-album">${escapeHtml(album)}</span>
+					<span class="gfeed-date">${feedDate(photo)}</span>
+				</div>
+			</header>
+			<div class="gfeed-media" style="aspect-ratio:${ratio}" data-sized="${sized ? '1' : '0'}">
+				<img src="${feedImageSrc(photo)}" alt="${escapeHtml(altText(photo))}" loading="lazy" decoding="async" />
+				<img class="gallery-watermark gallery-watermark--gp" src="/images/website-logo.webp" alt="" />
+				<img class="gallery-watermark gallery-watermark--credit" src="/images/daniel-bray-photography.png" alt="" />
+				<span class="gfeed-burst" aria-hidden="true">${FEED_ICONS.heart}</span>
+			</div>
+			<div class="gfeed-actions">
+				<button type="button" class="gfeed-act gfeed-act--like${liked ? ' is-liked' : ''}" data-act="like" aria-pressed="${liked ? 'true' : 'false'}" aria-label="${liked ? 'Unlike' : 'Like'}">${FEED_ICONS.heart}</button>
+				<button type="button" class="gfeed-act" data-act="comment" aria-label="Comments">${FEED_ICONS.comment}</button>
+				<button type="button" class="gfeed-act" data-act="share" aria-label="Share">${FEED_ICONS.share}</button>
+				<button type="button" class="gfeed-act gfeed-act--end" data-act="download" aria-label="Download">${FEED_ICONS.download}</button>
+			</div>
+			<p class="gfeed-likes">${likesText(photo)}</p>
+			${caption ? `<p class="gfeed-caption"><strong>${escapeHtml(album)}</strong> ${escapeHtml(caption)}</p>` : ''}
+			<button type="button" class="gfeed-comments" data-act="comment">${commentsText(photo)}</button>
+			<p class="gfeed-views">${viewsText(photo)}</p>
+		</article>`;
+	}
+
+	function feedCard(id: string): HTMLElement | null {
+		return feedScroll?.querySelector<HTMLElement>(`.gfeed-post[data-id="${CSS.escape(id)}"]`) ?? null;
+	}
+
+	function paintFeedLike(photo: GalleryPhoto): void {
+		const card = feedCard(photo.id);
+		if (!card) return;
+		const liked = isLiked(photo.id);
+		const btn = card.querySelector<HTMLElement>('.gfeed-act--like');
+		if (btn) {
+			btn.classList.toggle('is-liked', liked);
+			btn.setAttribute('aria-pressed', liked ? 'true' : 'false');
+			btn.setAttribute('aria-label', liked ? 'Unlike' : 'Like');
+		}
+		const likes = card.querySelector('.gfeed-likes');
+		if (likes) likes.textContent = likesText(photo);
+	}
+
+	function paintFeedViews(photo: GalleryPhoto): void {
+		const el = feedCard(photo.id)?.querySelector('.gfeed-views');
+		if (el) el.textContent = viewsText(photo);
+	}
+
+	function scrollFeedTo(idx: number, behavior: ScrollBehavior): void {
+		const photo = visible[idx];
+		const card = photo ? feedCard(photo.id) : null;
+		card?.scrollIntoView({ block: 'start', behavior });
+	}
+
+	function setFeedCurrent(idx: number): void {
+		const photo = visible[idx];
+		if (!photo) return;
+		lbIndex = idx;
+		if (feedCount) feedCount.textContent = `${idx + 1} of ${visible.length}`;
+		recordView(photo);
+		if (isBrowse) {
+			history.replaceState({ galleryEvent: slugFor(albumId), photo: photo.id }, '', pageUrl(slugFor(albumId), photo.id));
+		}
+	}
+
+	function openFeed(idx: number): void {
+		if (!feed || !feedScroll) return;
+		lastFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+		feedOpen = true;
+		lbIndex = idx;
+		if (feedTitle) feedTitle.textContent = albumId === 'all' || !isBrowse ? 'Racquetball Grand Prix' : albumName(albumId);
+		feedScroll.innerHTML = visible.map((photo, i) => feedCardHtml(photo, i)).join('');
+		feed.hidden = false;
+		feed.setAttribute('aria-hidden', 'false');
+		document.body.classList.add('gallery-lb-open');
+		scrollFeedTo(idx, 'auto');
+		setFeedCurrent(idx);
+		feedObserver?.disconnect();
+		feedObserver = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					if (!entry.isIntersecting) continue;
+					const i = Number((entry.target as HTMLElement).dataset.index);
+					if (Number.isFinite(i) && i !== lbIndex) setFeedCurrent(i);
+				}
+			},
+			// A card is "current" while it crosses the middle band of the viewport.
+			{ root: feedScroll, rootMargin: '-45% 0px -45% 0px', threshold: 0 },
+		);
+		feedScroll.querySelectorAll<HTMLElement>('.gfeed-post').forEach((card) => feedObserver?.observe(card));
+		feedClose?.focus();
+	}
+
+	function closeFeed(opts?: { history?: boolean }): void {
+		if (!feed || !feedScroll || !feedOpen) return;
+		feedOpen = false;
+		if (!lightbox.hidden) closeLb({ history: false });
+		feedObserver?.disconnect();
+		feedObserver = null;
+		feed.hidden = true;
+		feed.setAttribute('aria-hidden', 'true');
+		feedScroll.innerHTML = '';
+		document.body.classList.remove('gallery-lb-open');
+		if (shareMenu) shareMenu.hidden = true;
+		if (opts?.history !== false && isBrowse) {
+			history.replaceState({ galleryEvent: slugFor(albumId) }, '', pageUrl(slugFor(albumId), null));
+		}
+		lastFocus?.focus();
+		lastFocus = null;
+		if (reorderOnClose) {
+			reorderOnClose = false;
+			render();
+		}
+	}
+
+	/** Open the full post (comments, tags) on top of the feed. */
+	function openDetail(idx: number, focusCompose: boolean): void {
+		lbIndex = idx;
+		lastFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+		showLb();
+		if (focusCompose) window.setTimeout(() => ($('#gallery-lb-input') as HTMLInputElement | null)?.focus(), 50);
+	}
+
+	function burstHeart(card: HTMLElement): void {
+		const burst = card.querySelector<HTMLElement>('.gfeed-burst');
+		if (!burst) return;
+		burst.classList.remove('is-on');
+		void burst.offsetWidth;
+		burst.classList.add('is-on');
 	}
 
 	function revealPhoto(id: string): void {
@@ -1377,6 +1584,81 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 	});
 
 	lbClose?.addEventListener('click', () => closeLb());
+	feedClose?.addEventListener('click', () => closeFeed());
+	feedScroll?.addEventListener('click', (e) => {
+		const target = e.target as HTMLElement | null;
+		const actEl = target?.closest<HTMLElement>('[data-act]');
+		const card = target?.closest<HTMLElement>('.gfeed-post');
+		if (!actEl || !card) return;
+		const idx = Number(card.dataset.index);
+		const photo = visible[idx];
+		if (!photo) return;
+		switch (actEl.dataset.act) {
+			case 'like':
+				applyLike(photo);
+				break;
+			case 'comment':
+				openDetail(idx, true);
+				break;
+			case 'share':
+				void shareLink(absoluteUrl(`/gallery/p/${photo.id}`), photo.caption || 'Racquetball Grand Prix');
+				break;
+			case 'download':
+				void downloadPhoto(photo);
+				break;
+		}
+	});
+	// Double-tap a photo to like it (never unlikes, like the apps people know).
+	feedScroll?.addEventListener(
+		'touchend',
+		(e) => {
+			const media = (e.target as HTMLElement | null)?.closest<HTMLElement>('.gfeed-media');
+			const card = media?.closest<HTMLElement>('.gfeed-post');
+			if (!media || !card) return;
+			const id = card.dataset.id ?? '';
+			const now = Date.now();
+			const isDouble = feedLastTap.id === id && now - feedLastTap.at < 320;
+			feedLastTap = { id, at: now };
+			if (!isDouble) return;
+			e.preventDefault();
+			if (!config.signedIn) return;
+			const photo = visible[Number(card.dataset.index)];
+			if (!photo) return;
+			burstHeart(card);
+			if (!isLiked(photo.id)) applyLike(photo);
+		},
+		{ passive: false },
+	);
+	// Photos without stored dimensions start in a 4:3 frame; switch to the real shape once loaded.
+	feedScroll?.addEventListener(
+		'load',
+		(e) => {
+			const img = e.target;
+			if (!(img instanceof HTMLImageElement) || img.classList.contains('gallery-watermark')) return;
+			const media = img.closest<HTMLElement>('.gfeed-media');
+			if (media && media.dataset.sized === '0' && img.naturalWidth && img.naturalHeight && feedScroll) {
+				const before = media.getBoundingClientRect();
+				media.style.aspectRatio = `${img.naturalWidth} / ${img.naturalHeight}`;
+				media.dataset.sized = '1';
+				// A card above the viewport changed height: keep what the reader is looking at in place.
+				const after = media.getBoundingClientRect();
+				if (after.bottom <= feedScroll.getBoundingClientRect().top + 1) feedScroll.scrollTop += after.height - before.height;
+			}
+		},
+		true,
+	);
+	document.addEventListener('keydown', (e) => {
+		if (!feedOpen || !lightbox.hidden) return;
+		const tag = (e.target as HTMLElement | null)?.tagName;
+		if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+		if (e.key === 'Escape') {
+			if (shareMenu && !shareMenu.hidden) {
+				shareMenu.hidden = true;
+				return;
+			}
+			closeFeed();
+		}
+	});
 	lbPrev?.addEventListener('click', () => step(-1));
 	lbNext?.addEventListener('click', () => step(1));
 	lbDownload?.addEventListener('click', () => {
@@ -1445,6 +1727,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		shown = pageSize();
 		selected.clear();
 		const photoId = new URL(location.href).searchParams.get('photo');
+		if (!photoId && feedOpen) closeFeed({ history: false });
 		if (!photoId && !lightbox.hidden) closeLb({ history: false });
 		render();
 		scrollToWall();

@@ -40,7 +40,7 @@ export type GalleryClientConfig = {
 	siteOrigin: string;
 	mode?: 'browse' | 'collection';
 	/** Central like/view/share counts keyed by photo id (from Supabase). */
-	stats?: Record<string, { likes: number; views: number; shares: number }>;
+	stats?: Record<string, { likes: number; views: number; shares: number; comments?: number }>;
 	/** Photos the signed-in visitor has liked. */
 	likedIds?: string[];
 	signedIn?: boolean;
