@@ -9877,58 +9877,59 @@ a.glb-c-name:hover { color: var(--orange2); }
   .nav-pill .nav-links a.nav-account-create { text-align: center; }
 }
 
-/* ───── ACCOUNTS ANNOUNCEMENT STRIP (under the floating nav) ───── */
+/* ───── ACCOUNTS ANNOUNCEMENT (small card, bottom corner, slides in after a beat) ───── */
 .acct-announce {
   position: fixed;
-  top: max(84px, calc(env(safe-area-inset-top) + 76px));
-  left: 0; right: 0; z-index: 190;
-  display: flex; justify-content: center;
-  padding: 0 10px;
-  pointer-events: none;
-}
-.acct-announce[hidden] { display: none; }
-.acct-announce-inner {
-  pointer-events: auto;
-  display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap;
-  max-width: var(--gp-shell-max);
-  width: 100%;
-  padding: 10px 14px 10px 14px;
-  border-radius: 14px;
-  background: rgba(240, 90, 26, 0.96);
+  right: 18px; bottom: max(18px, calc(env(safe-area-inset-bottom) + 14px));
+  z-index: 190;
+  width: min(360px, calc(100vw - 36px));
+  padding: 16px 18px 16px 20px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, var(--navy3) 0%, var(--navy2) 100%);
   color: #fff;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  opacity: 0; transform: translateY(14px);
+  transition: opacity .4s ease, transform .4s ease;
 }
+.acct-announce::before {
+  content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 3px;
+  background: var(--orange);
+}
+.acct-announce.is-in { opacity: 1; transform: none; }
+.acct-announce[hidden] { display: none; }
+.acct-announce-inner { display: grid; gap: 10px; }
+.acct-announce-head { display: flex; align-items: center; gap: 10px; }
 .acct-announce-pill {
-  font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
-  background: #fff; color: var(--orange); padding: 4px 9px; border-radius: 999px;
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--orange2); border: 1px solid rgba(255,122,61,0.45); padding: 3px 8px; border-radius: 999px;
 }
-.acct-announce-text { margin: 0; font-size: 14.5px; line-height: 1.4; flex: 1 1 260px; }
-.acct-announce-actions { display: flex; gap: 8px; }
+.acct-announce-title {
+  margin: 0; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: 0.02em; line-height: 1.1;
+}
+.acct-announce-text { margin: 0; font-size: 13.5px; line-height: 1.45; color: rgba(255,255,255,0.72); }
+.acct-announce-actions { display: flex; gap: 8px; margin-top: 2px; }
 .acct-announce-btn {
   font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase;
-  padding: 8px 14px; border-radius: 8px; text-decoration: none; color: #fff; border: 1px solid rgba(255,255,255,0.5); white-space: nowrap;
+  padding: 8px 14px; border-radius: 8px; text-decoration: none; color: #fff; border: 1px solid rgba(255,255,255,0.22); white-space: nowrap;
+  transition: background .15s ease;
 }
-.acct-announce-btn--primary { background: #fff; color: var(--orange); border-color: #fff; }
-.acct-announce-btn:hover { background: rgba(255,255,255,0.15); }
-.acct-announce-btn--primary:hover { background: #ffe8dc; }
+.acct-announce-btn:hover { background: rgba(255,255,255,0.08); }
+.acct-announce-btn--primary { background: var(--orange); border-color: var(--orange); }
+.acct-announce-btn--primary:hover { background: var(--orange2); }
 .acct-announce-close {
-  background: none; border: none; color: #fff; font-size: 22px; line-height: 1; cursor: pointer; padding: 0 2px; opacity: 0.85;
+  position: absolute; right: 8px; top: 8px;
+  width: 30px; height: 30px; border-radius: 999px;
+  background: none; border: none; color: rgba(255,255,255,0.6); font-size: 20px; line-height: 1; cursor: pointer;
 }
-.acct-announce-close:hover { opacity: 1; }
-/* Push page heads down while the strip is up so it never covers titles */
-html.has-acct-announce .gp-page-head { padding-top: max(196px, calc(env(safe-area-inset-top) + 168px)); }
+.acct-announce-close:hover { color: #fff; background: rgba(255,255,255,0.08); }
 @media (max-width: 640px) {
-  .acct-announce { top: max(80px, calc(env(safe-area-inset-top) + 72px)); }
-  .acct-announce-inner { padding: 10px 12px; gap: 8px 10px; }
-  .acct-announce-text { font-size: 13.5px; }
-  .acct-announce-actions { flex-basis: 100%; }
-  .acct-announce-btn { flex: 1; text-align: center; }
-  .acct-announce-close { position: absolute; right: 18px; top: 8px; }
-  .acct-announce-inner { position: relative; padding-right: 36px; }
-  html.has-acct-announce .gp-page-head { padding-top: max(236px, calc(env(safe-area-inset-top) + 212px)); }
-  html.has-acct-announce .hero--home { padding-top: max(220px, calc(env(safe-area-inset-top) + 200px)); }
+  /* Sit above the bottom tab bar on phones */
+  .acct-announce { right: 12px; left: 12px; width: auto; padding: 14px 16px 14px 18px; bottom: calc(96px + env(safe-area-inset-bottom) + 8px); }
+  .acct-announce-title { font-size: 18px; }
+  .acct-announce-actions .acct-announce-btn { flex: 1; text-align: center; }
 }
+@media (prefers-reduced-motion: reduce) { .acct-announce { transition: none; } }
 /* Desktop pill: keep the account entry compact so the row never wraps */
 @media (min-width: 641px) {
   .nav-pill .nav-links a.nav-account-create { display: none; }
