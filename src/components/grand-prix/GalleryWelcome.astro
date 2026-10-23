@@ -113,7 +113,7 @@ const claimed = verified.size;
 		if (!dismissed) {
 			setTimeout(() => {
 				// Don't interrupt someone who already opened a photo.
-				if (document.querySelector('.gallery-lightbox:not([hidden])')) return;
+				if (document.querySelector('.gallery-lightbox:not([hidden]), .gfeed:not([hidden])')) return;
 				dlg.hidden = false;
 				document.documentElement.classList.add('gwel-open');
 				requestAnimationFrame(() => dlg.classList.add('is-in'));

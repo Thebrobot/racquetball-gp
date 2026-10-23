@@ -7,7 +7,7 @@ import type { AstroCookies } from 'astro';
 import { createAdminClient, createSessionClient, getSession } from './supabase';
 import { getAllPlayers } from '../../data/players';
 
-export type PhotoStat = { likes: number; views: number; shares: number };
+export type PhotoStat = { likes: number; views: number; shares: number; comments: number };
 export type GalleryViewer = {
 	signedIn: boolean;
 	playerSlug: string | null;
@@ -29,13 +29,13 @@ export async function getGallerySocial(request: Request, cookies: AstroCookies):
 	if (!admin) return empty;
 
 	const [statsRes, session] = await Promise.all([
-		admin.from('photo_stats').select('photo_id, likes, views, shares'),
+		admin.from('photo_stats').select('photo_id, likes, views, shares, comments'),
 		getSession(request, cookies),
 	]);
 
 	const stats: Record<string, PhotoStat> = {};
-	for (const row of (statsRes.data ?? []) as { photo_id: string; likes: number; views: number; shares: number }[]) {
-		stats[row.photo_id] = { likes: Number(row.likes) || 0, views: Number(row.views) || 0, shares: Number(row.shares) || 0 };
+	for (const row of (statsRes.data ?? []) as { photo_id: string; likes: number; views: number; shares: number; comments: number }[]) {
+		stats[row.photo_id] = { likes: Number(row.likes) || 0, views: Number(row.views) || 0, shares: Number(row.shares) || 0, comments: Number(row.comments) || 0 };
 	}
 
 	let likedIds: string[] = [];
