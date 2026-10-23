@@ -82,6 +82,19 @@ function newer(a: string | null | undefined, b: string | null | undefined): bool
 	return a > b;
 }
 
+/**
+ * The cron's Blob copy is the source of truth. The repo copy (GitHub fallback
+ * sync) only wins when Blob has fallen more than 30 minutes behind it, which
+ * means the cron has stalled. Otherwise two scrapers would take turns and the
+ * feed would appear to lose history.
+ */
+const FALLBACK_GRACE_MS = 30 * 60 * 1000;
+function preferLive(liveStamp: string | null | undefined, bundledStamp: string | null | undefined): boolean {
+	if (!liveStamp) return false;
+	if (!bundledStamp) return true;
+	return Date.parse(bundledStamp) - Date.parse(liveStamp) < FALLBACK_GRACE_MS;
+}
+
 export function getBundledResults(slug: string): LiveResultsFile {
 	return BUNDLED_RESULTS[slug] ?? emptyResults();
 }
@@ -89,8 +102,7 @@ export function getBundledResults(slug: string): LiveResultsFile {
 export async function readLiveResults(slug: string): Promise<LiveResultsFile> {
 	const bundled = getBundledResults(slug);
 	const live = await readBlobJson<LiveResultsFile>(resultsPath(slug));
-	if (live?.divisions && newer(live.lastUpdated, bundled.lastUpdated)) return live;
-	if (live?.divisions && !bundled.lastUpdated) return live;
+	if (live?.divisions && preferLive(live.lastUpdated, bundled.lastUpdated)) return live;
 	return bundled;
 }
 
@@ -101,8 +113,7 @@ export async function writeLiveResults(slug: string, data: LiveResultsFile): Pro
 export async function readLiveActivity(): Promise<LiveActivityFeed> {
 	const bundled = (bundledActivity as LiveActivityFeed) ?? emptyActivity();
 	const live = await readBlobJson<LiveActivityFeed>(ACTIVITY_PATH);
-	if (live?.events && newer(live.lastUpdated, bundled.lastUpdated)) return live;
-	if (live?.events && !bundled.lastUpdated) return live;
+	if (live?.events && preferLive(live.lastUpdated, bundled.lastUpdated)) return live;
 	return bundled;
 }
 

@@ -17,7 +17,7 @@ import type { LiveActivityEvent, LiveActivityFeed, LiveResultsFile, QuarantinedM
 export const USER_AGENT =
 	'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 const MAX_ATTEMPTS = 3;
-const MAX_ACTIVITY_EVENTS = 80;
+const MAX_ACTIVITY_EVENTS = 600;
 const MATCH_PAGE_CONCURRENCY = 5;
 
 const MATCH_OVERRIDES = overridesJson as Record<string, Record<string, Record<string, MatchRecord>>>;

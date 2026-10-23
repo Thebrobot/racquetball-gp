@@ -861,8 +861,22 @@ function renderLiveFeedList(feed: LiveActivityFeed, prevLastUpdated: string | nu
 	}
 
 	const isNewSync = prevLastUpdated != null && feed.lastUpdated !== prevLastUpdated;
-	list.innerHTML = feed.events
-		.map((item, i) => renderLiveFeedCard(item, isNewSync && i === 0))
+	const dayLabel = (iso: string) =>
+		new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/New_York', weekday: 'long', month: 'long', day: 'numeric' });
+	const days: { label: string; items: LiveActivityEvent[] }[] = [];
+	for (const item of feed.events) {
+		const label = dayLabel(item.at);
+		const last = days[days.length - 1];
+		if (last && last.label === label) last.items.push(item);
+		else days.push({ label, items: [item] });
+	}
+	list.innerHTML = days
+		.map(
+			(day, d) => `<section class="live-feed-day">
+				<h3 class="live-feed-day-head"><span>${esc(day.label)}</span><span class="live-feed-day-count">${day.items.length} ${day.items.length === 1 ? 'result' : 'results'}</span></h3>
+				${day.items.map((item, i) => renderLiveFeedCard(item, isNewSync && d === 0 && i === 0)).join('')}
+			</section>`,
+		)
 		.join('');
 }
 

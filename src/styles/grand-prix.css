@@ -9791,3 +9791,14 @@ a.glb-c-name:hover { color: var(--orange2); }
 .acct-sub-meta { font-size: 12.5px; color: var(--muted); }
 .acct-sub-meta a { color: var(--orange2); text-decoration: none; }
 .acct-sub .gp-pill { text-transform: capitalize; flex-shrink: 0; }
+
+/* ───── Live page: results grouped by day ───── */
+.live-feed-day { display: contents; }
+.live-feed-day-head {
+  grid-column: 1 / -1;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  margin: 18px 0 4px; padding-bottom: 8px; border-bottom: 1px solid var(--card-border);
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 18px; letter-spacing: 0.06em; text-transform: uppercase; color: #fff;
+}
+.live-feed-day:first-child .live-feed-day-head { margin-top: 0; }
+.live-feed-day-count { font-size: 13px; letter-spacing: 0.1em; color: var(--orange2); }
