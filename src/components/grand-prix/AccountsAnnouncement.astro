@@ -1,0 +1,65 @@
+---
+/**
+ * One-time announcement for player accounts: a small card in the bottom corner
+ * that slides in after a beat. Hidden on account pages, for signed-in visitors,
+ * and after dismissal.
+ */
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const hideHere =
+	path === '/gallery' || ['/account', '/signup', '/admin', '/auth'].some((p) => path === p || path.startsWith(`${p}/`));
+/** Bump to show the card again to people who dismissed an older one. */
+const CAMPAIGN = 'accounts-2026-10';
+---
+
+{!hideHere && (
+	<aside class="acct-announce" id="acct-announce" data-campaign={CAMPAIGN} aria-label="New: player accounts" hidden>
+		<div class="acct-announce-inner">
+			<div class="acct-announce-head">
+				<span class="acct-announce-pill">New</span>
+				<h2 class="acct-announce-title">Player accounts are here</h2>
+			</div>
+			<p class="acct-announce-text">Tag yourself in gallery photos, like and comment, and claim your player profile.</p>
+			<div class="acct-announce-actions">
+				<a class="acct-announce-btn acct-announce-btn--primary" href="/signup">Create account</a>
+				<a class="acct-announce-btn" href="/account">Sign in</a>
+			</div>
+		</div>
+		<button type="button" class="acct-announce-close" id="acct-announce-close" aria-label="Dismiss">×</button>
+	</aside>
+)}
+
+<script>
+	const card = document.getElementById('acct-announce');
+	if (card) {
+		const key = `gp:announce:${card.dataset.campaign}`;
+		let dismissed = false;
+		try {
+			dismissed = localStorage.getItem(key) === '1';
+		} catch {
+			/* ignore */
+		}
+		if (!dismissed) {
+			fetch('/api/me', { cache: 'no-store' })
+				.then((r) => (r.ok ? r.json() : null))
+				.then((me: { configured?: boolean; signedIn?: boolean } | null) => {
+					if (me?.configured && !me.signedIn) {
+						// Let the page settle before sliding in.
+						setTimeout(() => {
+							card.hidden = false;
+							requestAnimationFrame(() => card.classList.add('is-in'));
+						}, 2500);
+					}
+				})
+				.catch(() => undefined);
+		}
+		document.getElementById('acct-announce-close')?.addEventListener('click', () => {
+			card.classList.remove('is-in');
+			setTimeout(() => (card.hidden = true), 400);
+			try {
+				localStorage.setItem(key, '1');
+			} catch {
+				/* ignore */
+			}
+		});
+	}
+</script>

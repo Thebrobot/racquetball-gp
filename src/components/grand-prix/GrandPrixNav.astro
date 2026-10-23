@@ -71,6 +71,13 @@ function bottomActive(href: string): string {
 			<a href="/sponsors" class:list={[active('/sponsors')]} data-key="sponsors">Sponsors</a>
 			<a href="/gallery" class:list={[active('/gallery')]} data-key="gallery">Gallery</a>
 			<div class="nav-drawer-sep" aria-hidden="true"></div>
+			<a class:list={['nav-account', active('/account')]} href="/account" id="gp-nav-account" data-signed-out-label="Sign in">
+				<span class="nav-account-avatar" id="gp-nav-account-avatar" aria-hidden="true">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+				</span>
+				<span class="nav-account-label" id="gp-nav-account-label">Sign in</span>
+			</a>
+			<a class="nav-account-create" id="gp-nav-create" href="/signup">Create account</a>
 			<a class:list={['nav-register', active('/contact')]} href="/contact">
 				Get connected with us
 				<svg viewBox="0 0 20 20" fill="none" aria-hidden="true" class="nav-register-arrow"><path d="M4 10h12M11 5l5 5-5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -131,3 +138,31 @@ function bottomActive(href: string): string {
 		<span>Gallery</span>
 	</a>
 </nav>
+
+<script>
+	// Swap "Sign in" for the signed-in name/initials; pages are prerendered so this runs client-side.
+	const link = document.getElementById('gp-nav-account');
+	const label = document.getElementById('gp-nav-account-label');
+	const avatar = document.getElementById('gp-nav-account-avatar');
+	const create = document.getElementById('gp-nav-create');
+	if (link && label && avatar) {
+		fetch('/api/me', { cache: 'no-store' })
+			.then((r) => (r.ok ? r.json() : null))
+			.then((me: { configured?: boolean; signedIn?: boolean; name?: string; initials?: string } | null) => {
+				if (!me?.configured) {
+					link.hidden = true;
+					if (create) create.hidden = true;
+					return;
+				}
+				if (me.signedIn) {
+					label.textContent = me.name ?? 'Account';
+					avatar.textContent = me.initials ?? '';
+					avatar.classList.add('is-initials');
+					link.classList.add('is-signed-in');
+					link.setAttribute('aria-label', `Your account, ${me.name ?? ''}`);
+					if (create) create.hidden = true;
+				}
+			})
+			.catch(() => undefined);
+	}
+</script>

@@ -14,7 +14,7 @@ export const GET: APIRoute = async ({ url }) => {
 
 	const { data } = await admin.from('photo_tags').select('photo_id, created_at').eq('player_slug', slug).order('created_at', { ascending: false }).limit(60);
 	const ids = ((data ?? []) as { photo_id: string }[]).map((t) => t.photo_id);
-	if (!ids.length) return json({ photos: [] }, 200, { 'Cache-Control': 'public, max-age=60, stale-while-revalidate=300' });
+	if (!ids.length) return json({ photos: [] }, 200, { 'Cache-Control': 'no-store' });
 
 	const index = await readGalleryIndex();
 	const byId = new Map(index.photos.map((p) => [p.id, p]));
@@ -35,5 +35,5 @@ export const GET: APIRoute = async ({ url }) => {
 				createdAt: p.createdAt,
 			};
 		});
-	return json({ photos }, 200, { 'Cache-Control': 'public, max-age=60, stale-while-revalidate=300' });
+	return json({ photos }, 200, { 'Cache-Control': 'no-store' });
 };

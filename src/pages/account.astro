@@ -101,16 +101,18 @@ const claimMessages: Record<string, string> = {
 								<input class="acct-input" id="acct-password" name="password" type="password" autocomplete="current-password" required />
 								<button class="btn-main acct-btn acct-btn--full" type="submit">Sign in</button>
 								<p class="acct-p acct-p--muted acct-error" id="acct-error" hidden></p>
-								<div class="acct-row-links">
+								<p class="acct-row-links acct-row-links--center">
 									<a href={`/account?forgot=1`}>Forgot password?</a>
-									<a href={`/signup?next=${encodeURIComponent(next)}`}>Create an account</a>
-								</div>
+								</p>
 							</form>
-							<div class="acct-divider">or</div>
-							<form class="acct-form" id="acct-signin" novalidate>
+							<div class="acct-divider">New here?</div>
+							<a class="btn-ghost acct-btn acct-btn--full acct-btn--create" href={`/signup?next=${encodeURIComponent(next)}`}>Create an account</a>
+							<form class="acct-form acct-form--alt" id="acct-signin" novalidate>
 								<input type="hidden" name="next" value={next} />
-								<p class="acct-p acct-p--muted" style="margin:0;">No password handy? We can email you a one-time sign-in link for this device.</p>
-								<button class="btn-ghost acct-btn" type="submit" id="acct-magic-btn">Email me a sign-in link</button>
+								<p class="acct-p acct-p--muted" style="margin:0;">
+									Have an account but no password handy? Enter your email above and we will send a one-time sign-in link for this device.
+								</p>
+								<button class="acct-textbtn" type="submit" id="acct-magic-btn">Email me a sign-in link</button>
 								<p class="acct-p acct-p--muted acct-error" id="acct-magic-error" hidden></p>
 							</form>
 						</>
@@ -221,6 +223,14 @@ const claimMessages: Record<string, string> = {
 				return;
 			}
 			errEl.textContent = String(data.message ?? data.error ?? 'Something went wrong.');
+			if (data.code === 'no-account') {
+				// Point newcomers at sign-up instead of a dead end.
+				const a = document.createElement('a');
+				a.className = 'acct-link';
+				a.href = `/signup?next=${encodeURIComponent(String(new FormData(form).get('next') ?? '/account'))}`;
+				a.textContent = 'Create one';
+				errEl.append(' ', a, '.');
+			}
 			errEl.hidden = false;
 			btn.disabled = false;
 		});
