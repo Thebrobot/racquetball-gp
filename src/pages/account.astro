@@ -16,6 +16,8 @@ const resetSent = params.get('reset') === '1';
 const showForgot = params.get('forgot') === '1';
 const saved = params.get('saved') === '1';
 const passwordSaved = params.get('password') === 'saved';
+const notifySaved = params.get('notify') === 'saved';
+const notifyEmail = session?.profile?.notify_email ?? true;
 const claimFlag = params.get('claim') ?? '';
 
 type Claim = { id: string; player_slug: string; player_name: string; status: string; created_at: string };
@@ -145,6 +147,27 @@ const claimMessages: Record<string, string> = {
 							{passwordSaved && <p class="acct-p acct-ok">Password updated.</p>}
 						</form>
 						<p class="acct-p acct-p--muted" style="margin:12px 0 0;"><a class="acct-link" href="/account/password">Change password →</a></p>
+					</div>
+
+					<div class="gp-card acct-card" id="notifications">
+						<h2 class="acct-h2">Notifications</h2>
+						<p class="acct-p acct-p--muted">When someone tags you, comments on your photo, or your claim is approved, you hear right away. Likes arrive as one roll-up at the end of the day, only on days you got some.</p>
+						<form class="acct-form acct-form--inline" method="post" action="/api/account/notify">
+							<label class="acct-switch">
+								<input type="checkbox" name="notify_email" checked={notifyEmail} />
+								<span class="acct-switch-track" aria-hidden="true"></span>
+								<span class="acct-switch-text"><strong>Email</strong><span>{session.user.email}</span></span>
+							</label>
+							<div class="acct-inline" style="margin-top:8px;">
+								<button class="btn-ghost acct-btn" type="submit">Save</button>
+								{notifySaved && <p class="acct-p acct-ok" style="margin:0;align-self:center;">Saved.</p>}
+							</div>
+						</form>
+						<div class="acct-push" id="acct-push" hidden>
+							<div class="acct-switch-text acct-push-text"><strong>Browser notifications</strong><span id="acct-push-status">Checking…</span></div>
+							<button class="btn-ghost acct-btn" type="button" id="acct-push-btn">Turn on</button>
+							<p class="acct-p acct-p--muted acct-error" id="acct-push-error" hidden></p>
+						</div>
 					</div>
 
 					<div class="gp-card acct-card">
@@ -283,5 +306,59 @@ const claimMessages: Record<string, string> = {
 		};
 		lookup.addEventListener('input', sync);
 		lookup.addEventListener('change', sync);
+	}
+</script>
+
+<script>
+	import { getPushState, enablePush, disablePush, isIosBrowserTab, pushSupported } from '../scripts/push-client';
+	const box = document.getElementById('acct-push');
+	const status = document.getElementById('acct-push-status');
+	const btn = document.getElementById('acct-push-btn') as HTMLButtonElement | null;
+	const err = document.getElementById('acct-push-error');
+	if (box && status && btn && err) {
+		box.hidden = false;
+		const paint = (state: string) => {
+			btn.hidden = false;
+			if (state === 'on') {
+				status.textContent = 'On in this browser';
+				btn.textContent = 'Turn off';
+			} else if (state === 'denied') {
+				status.textContent = 'Blocked in your browser settings';
+				btn.hidden = true;
+			} else if (state === 'unsupported') {
+				status.textContent = isIosBrowserTab() ? 'On iPhone, add this site to your Home Screen first (Share → Add to Home Screen), then turn these on from there.' : 'Not supported in this browser';
+				btn.hidden = true;
+			} else {
+				status.textContent = 'Off in this browser';
+				btn.textContent = 'Turn on';
+			}
+		};
+		fetch('/api/push/config', { cache: 'no-store' })
+			.then((r) => r.json())
+			.then(async (cfg: { enabled?: boolean }) => {
+				if (!cfg?.enabled) {
+					status.textContent = 'Not available yet';
+					btn.hidden = true;
+					return;
+				}
+				paint(pushSupported() ? await getPushState() : 'unsupported');
+			})
+			.catch(() => (status.textContent = 'Not available yet'));
+		btn.addEventListener('click', async () => {
+			btn.disabled = true;
+			err.hidden = true;
+			const current = await getPushState();
+			if (current === 'on') {
+				paint(await disablePush(true));
+			} else {
+				const r = await enablePush();
+				paint(r.state);
+				if (r.error) {
+					err.textContent = r.error;
+					err.hidden = false;
+				}
+			}
+			btn.disabled = false;
+		});
 	}
 </script>

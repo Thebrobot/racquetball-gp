@@ -1,5 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createAdminClient, getSession, json } from '../../../lib/accounts/supabase';
+import { notify } from '../../../lib/notify/events';
+import { getAllPlayers } from '../../../data/players';
 
 export const prerender = false;
 
@@ -33,6 +35,8 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 			.update({ player_slug: claim.player_slug, is_junior: junior, updated_at: now })
 			.eq('id', claim.user_id);
 		if (profErr) return json({ error: 'Could not link the profile.' }, 500);
+		const playerName = getAllPlayers().find((p) => p.slug === claim.player_slug)?.name ?? claim.player_slug;
+		await notify(admin, { userId: claim.user_id, kind: 'claim_approved', actorId: session.user.id, payload: { playerSlug: claim.player_slug, playerName } });
 	}
 	await admin
 		.from('profile_claims')

@@ -1,4 +1,5 @@
 import type { GalleryAlbum, GalleryClientConfig, GalleryPhoto } from '../lib/gallery/types';
+import { enablePush, getPushState, pushSupported } from './push-client';
 
 export type { GalleryClientConfig };
 
@@ -853,6 +854,35 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		peopleEl.dataset.photo = photo.id;
 	}
 
+	/** After someone tags themselves, offer browser notifications once. */
+	async function offerPush(): Promise<void> {
+		if (!peopleEl || !pushSupported()) return;
+		let seen = false;
+		try {
+			seen = localStorage.getItem('gp:pushOffer') === '1';
+		} catch {
+			/* ignore */
+		}
+		if (seen) return;
+		const state = await getPushState();
+		if (state !== 'off') return;
+		const cfg = (await fetch('/api/push/config', { cache: 'no-store' }).then((r) => r.json()).catch(() => null)) as { enabled?: boolean } | null;
+		if (!cfg?.enabled) return;
+		try {
+			localStorage.setItem('gp:pushOffer', '1');
+		} catch {
+			/* ignore */
+		}
+		peopleEl.insertAdjacentHTML(
+			'beforeend',
+			`<div class="gallery-push-offer">
+				<span class="gallery-people-label">Want a heads-up when this photo gets likes or comments?</span>
+				<button type="button" class="gallery-people-btn gallery-people-btn--primary" data-people="push-on">Turn on notifications</button>
+				<button type="button" class="gallery-people-btn" data-people="push-no">No thanks</button>
+			</div>`,
+		);
+	}
+
 	async function loadPeople(photo: GalleryPhoto): Promise<void> {
 		if (!peopleEl) return;
 		peopleFor = photo.id;
@@ -893,6 +923,14 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 			btn.setAttribute('disabled', '');
 			const err = await changeTag(photo, kind === 'tag' ? 'add' : 'remove');
 			if (err) window.alert(err);
+			else if (kind === 'tag') void offerPush();
+		} else if (kind === 'push-on') {
+			btn.setAttribute('disabled', '');
+			const r = await enablePush();
+			const host = btn.closest<HTMLElement>('.gallery-push-offer');
+			if (host) host.innerHTML = r.state === 'on' ? '<span class="gallery-people-hint">Notifications on. You will hear when this photo gets likes or comments.</span>' : `<span class="gallery-people-hint">${escapeHtml(r.error ?? 'Could not turn notifications on.')}</span>`;
+		} else if (kind === 'push-no') {
+			btn.closest<HTMLElement>('.gallery-push-offer')?.remove();
 		} else if (kind === 'remove' && btn.dataset.slug) {
 			const err = await changeTag(photo, 'remove', btn.dataset.slug);
 			if (err) window.alert(err);

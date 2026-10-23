@@ -10,7 +10,7 @@ import { createClient, type SupabaseClient, type User } from '@supabase/supabase
 import type { AstroCookies } from 'astro';
 
 /** Reads the first defined name; the Vercel project uses the un-prefixed spellings. */
-function env(...names: string[]): string {
+export function env(...names: string[]): string {
 	for (const name of names) {
 		const v = (import.meta.env as Record<string, string | undefined>)[name] ?? process.env[name];
 		if (v && v.trim()) return v.trim();
@@ -45,6 +45,8 @@ export interface Profile {
 	display_name: string | null;
 	player_slug: string | null;
 	is_junior: boolean;
+	notify_email?: boolean;
+	notify_push?: boolean;
 	created_at: string;
 }
 
@@ -96,7 +98,7 @@ export async function getSession(request: Request, cookies: AstroCookies): Promi
 	if (error || !data.user) return null;
 	const { data: profile } = await client
 		.from('profiles')
-		.select('id, email, display_name, player_slug, is_junior, created_at')
+		.select('id, email, display_name, player_slug, is_junior, notify_email, notify_push, created_at')
 		.eq('id', data.user.id)
 		.maybeSingle();
 	return {
