@@ -40,7 +40,7 @@ function albumHref(photo: GalleryPhoto): string {
 			<div>
 				<p class="section-label">From the court</p>
 				<h2 id="home-photos-heading" class="home-photos-title">
-					{total.toLocaleString('en-US')} photos <span>and counting</span>
+					<b class="home-photos-num" id="home-photo-count" data-count={total}>{total.toLocaleString('en-US')}</b> moments captured <span>and counting</span>
 				</h2>
 			</div>
 			<a class="home-photos-link" href="/gallery">Open the gallery →</a>
@@ -69,3 +69,16 @@ function albumHref(photo: GalleryPhoto): string {
 		</div>
 	</section>
 )}
+
+<script>
+	// The home page is prerendered, so refresh the count from the live gallery index.
+	const el = document.getElementById('home-photo-count');
+	if (el) {
+		fetch('/api/photo-count')
+			.then((r) => (r.ok ? r.json() : null))
+			.then((d: { photos?: number } | null) => {
+				if (d?.photos && d.photos !== Number(el.dataset.count)) el.textContent = d.photos.toLocaleString('en-US');
+			})
+			.catch(() => undefined);
+	}
+</script>
