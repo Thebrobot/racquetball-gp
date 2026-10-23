@@ -2,7 +2,7 @@ import ocalaResultsData from './ocala-results.json';
 import sarasotaResultsData from './sarasota-results.json';
 import portStLucieResultsData from './port-st-lucie-results.json';
 import { PORT_ST_LUCIE_EVENT } from './port-st-lucie-event';
-import { expandFromRoster } from '../lib/live/r2-names';
+import { expandFromRoster, incomingFillsSlot, playerAppearsInSlot } from '../lib/live/r2-names';
 import { GRAND_PRIX_FACEBOOK_URL } from './social';
 
 export type EventStatus = 'live' | 'recent' | 'upcoming';
@@ -1303,7 +1303,7 @@ const RESULTS_BY_EVENT: Record<string, { divisions?: Record<string, DivisionResu
 	'port-st-lucie-open': portStLucieResultsData as { divisions?: Record<string, DivisionResult> },
 };
 
-function eventRoster(event: EventData): string[] {
+function eventRoster(event: EventData, divResults?: Record<string, DivisionResult>): string[] {
 	const names: string[] = [];
 	for (const div of event.divisionDetails) {
 		for (const round of div.rounds ?? []) {
@@ -1317,15 +1317,23 @@ function eventRoster(event: EventData): string[] {
 		names.push(...(div.roundRobinPlayers ?? []));
 	}
 	for (const profile of event.profiles ?? []) names.push(profile.name);
+	if (divResults) {
+		for (const matches of Object.values(divResults)) {
+			for (const m of Object.values(matches ?? {})) {
+				if (m.player1) names.push(m.player1);
+				if (m.player2) names.push(m.player2);
+			}
+		}
+	}
 	return names.filter((n) => n && !/^(tbd|bye)$/i.test(n.trim()));
 }
 
 export function applyResultsToEvent(event: EventData, divResults: Record<string, DivisionResult>): EventData {
-	const roster = eventRoster(event);
+	const roster = eventRoster(event, divResults);
 
-	/** Never promote R2 scrape noise (e.g. "BYE") into a real TBD slot on our bracket. */
+	/** Overlay live names onto TBD, "Bartolome / TBD", or last-name-only slots. */
 	const fillFromResult = (slot: string, name: string | null | undefined): string | null => {
-		if (slot !== 'TBD' && slot !== '') return null;
+		if (!incomingFillsSlot(slot, name)) return null;
 		const n = expandFromRoster(name, roster) ?? (name ?? '').trim();
 		if (!n || n.toUpperCase() === 'BYE') return null;
 		return n;
@@ -1425,6 +1433,8 @@ export function applyResultsToEvent(event: EventData, divResults: Record<string,
 				const updatedRR = div.roundRobinMatches.map((m) => {
 					const res = m.matchId ? matchMap[m.matchId] : findByNames(matchMap, m.team1, m.team2);
 					if (!res) return m;
+					const t1Fill = fillFromResult(m.team1, res.player1);
+					const t2Fill = fillFromResult(m.team2, res.player2);
 					return {
 						...m,
 						...(res.score != null ? { score: res.score } : {}),
@@ -1433,6 +1443,8 @@ export function applyResultsToEvent(event: EventData, divResults: Record<string,
 						...(res.scheduledTime != null && res.scheduledTime !== ''
 							? { scheduledTime: res.scheduledTime }
 							: {}),
+						...(t1Fill ? { team1: t1Fill } : {}),
+						...(t2Fill ? { team2: t2Fill } : {}),
 					};
 				});
 				return { ...div, roundRobinMatches: updatedRR };
@@ -1459,12 +1471,7 @@ export function applyResultsToEvent(event: EventData, divResults: Record<string,
 }
 
 function nameInSlot(playerName: string, slot: string): boolean {
-	const n = playerName.trim().toLowerCase();
-	const s = slot.trim().toLowerCase();
-	if (!n || !s) return false;
-	if (s.includes(n)) return true;
-	const last = n.split(/\s+/).pop();
-	return Boolean(last && last.length > 2 && s.includes(last));
+	return playerAppearsInSlot(playerName, slot);
 }
 
 function nextPendingMatchFor(
