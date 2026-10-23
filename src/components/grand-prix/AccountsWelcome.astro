@@ -32,7 +32,6 @@ const faces = getAllPlayers()
 	.map((p) => ({ name: p.name, slug: p.slug, photo: getPlayerImageForDisplay(p.name, 56) }))
 	.filter((p): p is typeof p & { photo: string } => Boolean(p.photo))
 	.slice(0, 7);
-const playerCount = getAllPlayers().length;
 ---
 
 {!hideHere && picks.length >= 3 && (
@@ -56,7 +55,6 @@ const playerCount = getAllPlayers().length;
 							</li>
 						))}
 					</ul>
-					<p class="gwel-face-note" id="gwel-face-note"><strong>{playerCount}</strong> player profiles ready to claim</p>
 				</div>
 				<p class="gwel-kicker">Spot yourself on the court?</p>
 				<h2 class="gwel-title" id="gwel-title">Claim your player profile</h2>
@@ -103,7 +101,6 @@ const playerCount = getAllPlayers().length;
 		/** Put the players who already claimed a profile at the front of the row, ringed. */
 		const paintFaces = (claimed: Claimed) => {
 			const row = document.getElementById('gwel-faces');
-			const note = document.getElementById('gwel-face-note');
 			if (row) {
 				const existing = new Map([...row.querySelectorAll<HTMLElement>('.gwel-face')].map((el) => [el.dataset.slug ?? '', el]));
 				const lead = claimed.players.filter((p) => p.photo).slice(0, 4);
@@ -121,9 +118,6 @@ const playerCount = getAllPlayers().length;
 					row.prepend(el);
 				}
 				[...row.querySelectorAll('.gwel-face')].slice(7).forEach((el) => el.remove());
-			}
-			if (note && claimed.count > 0) {
-				note.innerHTML = `<strong>${claimed.count}</strong> of ${claimed.total} players have claimed their profile`;
 			}
 		};
 

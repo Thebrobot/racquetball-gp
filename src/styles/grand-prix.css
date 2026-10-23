@@ -9586,14 +9586,12 @@ html.gwel-open { overflow: hidden; }
 .gwel-photo--3 { left: 50%; margin-left: -40px; transform: rotate(5deg); z-index: 2; }
 .gwel-photo--4 { left: 50%; margin-left: 65px; transform: rotate(13deg) translateY(16px); }
 .gwel-body { padding: 10px 28px 26px; text-align: center; }
-.gwel-faces { display: grid; gap: 8px; justify-items: center; margin-bottom: 14px; }
+.gwel-faces { display: grid; gap: 8px; justify-items: center; margin-bottom: 16px; }
 .gwel-face-row { list-style: none; margin: 0; padding: 0; display: flex; }
 .gwel-face { width: 44px; height: 44px; border-radius: 50%; overflow: hidden; border: 2px solid var(--navy2); box-shadow: 0 0 0 1px rgba(255,255,255,0.12); background: #0a1628; }
 .gwel-face + .gwel-face { margin-left: -10px; }
 .gwel-face--claimed { box-shadow: 0 0 0 2px var(--orange); }
 .gwel-face img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.gwel-face-note { margin: 0; font-size: 13px; color: rgba(255,255,255,0.62); }
-.gwel-face-note strong { color: var(--orange2); }
 .gwel-kicker { margin: 0 0 4px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--orange2); }
 .gwel-title { margin: 0 0 10px; font-family: 'Anton', 'Barlow Condensed', sans-serif; font-size: clamp(28px, 5vw, 36px); line-height: 1.02; letter-spacing: 0.01em; color: #fff; }
 .gwel-text { margin: 0 auto 18px; max-width: 26rem; font-size: 15px; line-height: 1.5; color: rgba(255,255,255,0.74); }
