@@ -5,7 +5,7 @@
  * matching last names into a later-round slot.
  */
 import { parseHTML } from 'linkedom';
-import { cleanPlayerName, formatScore, isPlayerName, matchWinnerSide } from './r2-names';
+import { cleanPlayerName, expandFromRoster, formatScore, isPlayerName, matchWinnerSide, namesAlign } from './r2-names';
 import { parseR2Schedule } from './r2-schedule';
 
 export type MatchRecord = {
@@ -81,8 +81,9 @@ export function resolveDivCodeFromHtml(html: string): string | null {
 
 export function extractScore(text: string): string | null {
 	const t = String(text ?? '');
-	const wbf = t.match(/WBF[^\n\r]*/i) ?? t.match(/No[\s-]?Show[^\n\r]*/i) ?? t.match(/Forfeit[^\n\r]*/i);
-	if (wbf) return wbf[0].trim();
+	const wbf = t.match(/WBF(?:\s*[-–]\s*(?:No\s*Show|Forfeit|[A-Za-z][A-Za-z .]{0,24}))?/i);
+	if (wbf) return wbf[0].replace(/\s+/g, ' ').trim();
+	if (/\bNo\s*Show\b/i.test(t) && !/\d{1,3}[-–]\d{1,3}/.test(t)) return 'WBF - No Show';
 	const m = t.match(/\d{1,3}[-–]\d{1,3}(?:[,\s]+\d{1,3}[-–]\d{1,3})*/);
 	return m ? formatScore(m[0]) : null;
 }
@@ -100,11 +101,28 @@ function applySchedule(target: ParsedDrawMatch, text: string): void {
 	if (parsed.scheduledTime && !target.scheduledTime) target.scheduledTime = parsed.scheduledTime;
 }
 
+type NameScore = { name: string; score: string };
+
+function nameScorePairs(box: DomEl): NameScore[] {
+	const pairs: NameScore[] = [];
+	for (const nameEl of Array.from(box.querySelectorAll('strong, b'))) {
+		const name = cleanPlayerName(nameEl.textContent ?? '');
+		if (!isPlayerName(name)) continue;
+		const nameTd = nameEl.closest('td');
+		const scoreTr = nameTd?.closest('tr')?.nextElementSibling;
+		if (!scoreTr) continue;
+		const score = extractScore(textOf(scoreTr));
+		if (score) pairs.push({ name, score });
+	}
+	return pairs;
+}
+
 export function extractSingleElimFromHtml(html: string): DrawPageParse {
 	const document = asDoc(html);
 	const allTables = Array.from(document.querySelectorAll('table'));
 	const matchBoxes = allTables.filter((t) => t.querySelector('a[href*="viewAppMatch"]'));
 	const matches: Record<string, ParsedDrawMatch> = {};
+	const feederScores: NameScore[] = [];
 
 	for (const box of matchBoxes) {
 		const link = box.querySelector('a[href*="viewAppMatch"]');
@@ -133,47 +151,56 @@ export function extractSingleElimFromHtml(html: string): DrawPageParse {
 			entry.drawWinnerName = winnerName;
 			entry.drawWinnerSource = 'box-border';
 			const scoreTr = nameTd.closest('tr')?.nextElementSibling;
-			const score = scoreTr ? extractScore(textOf(scoreTr)) : extractScore(textOf(nameTd));
+			const score = scoreTr ? extractScore(textOf(scoreTr)) : null;
 			if (score) entry.drawScore = score;
 			break;
 		}
 
-		if (!entry.drawScore) {
-			const boxScore = extractScore(textOf(box));
-			if (boxScore) entry.drawScore = boxScore;
+		const pairs = nameScorePairs(box);
+		if (entry.drawWinner != null) {
+			const own = pairs.find(
+				(p) =>
+					namesAlign(p.name, entry.drawWinnerName) ||
+					matchWinnerSide(p.name, entry.player1, entry.player2) === entry.drawWinner,
+			);
+			if (own && !entry.drawScore) entry.drawScore = own.score;
+		} else {
+			// Scores under names in an unfinished box belong to the previous-round match.
+			feederScores.push(...pairs);
 		}
 
 		matches[matchId] = entry;
 	}
 
-	const advancements: DrawAdvancement[] = [];
-	const cells = Array.from(document.querySelectorAll('td')).filter((td) => !td.querySelector('table'));
-	for (const cell of cells) {
-		const strong = cell.querySelector('strong, b');
-		if (!strong) continue;
-		const name = cleanPlayerName(strong.textContent ?? '');
-		if (!isPlayerName(name)) continue;
-		const own = extractScore(textOf(cell));
-		const next = cell.closest('tr')?.nextElementSibling
-			? extractScore(textOf(cell.closest('tr')?.nextElementSibling))
-			: null;
-		const score = own ?? next;
-		if (!score) continue;
-		const inMatchBox = Boolean(cell.closest('table')?.querySelector('a[href*="viewAppMatch"]'));
-		if (inMatchBox && namesAlignBox(cell, name)) continue;
-		advancements.push({ name, score });
-	}
-
-	return { matches, advancements };
-}
-
-function namesAlignBox(cell: DomEl, name: string): boolean {
-	const box = cell.closest('table');
-	if (!box?.querySelector('a[href*="viewAppMatch"]')) return false;
-	const names = Array.from(box.querySelectorAll('strong, b'))
+	const pageNames = Array.from(document.querySelectorAll('strong, b'))
 		.map((el) => cleanPlayerName(el.textContent ?? ''))
 		.filter(isPlayerName);
-	return names.some((n) => n.toLowerCase() === name.toLowerCase());
+	const roster = [
+		...pageNames,
+		...Object.values(matches).flatMap((m) => [m.player1, m.player2, m.drawWinnerName]),
+	];
+	const fullRoster = roster.filter((n): n is string => Boolean(n));
+	for (const entry of Object.values(matches)) {
+		const p1 = expandFromRoster(entry.player1, fullRoster);
+		const p2 = expandFromRoster(entry.player2, fullRoster);
+		if (p1) entry.player1 = p1;
+		if (p2) entry.player2 = p2;
+		if (entry.drawWinnerName) {
+			entry.drawWinnerName = expandFromRoster(entry.drawWinnerName, fullRoster) ?? entry.drawWinnerName;
+		}
+	}
+
+	for (const hint of feederScores) {
+		const full = expandFromRoster(hint.name, fullRoster) ?? hint.name;
+		const targets = Object.values(matches).filter((entry) => {
+			const side = matchWinnerSide(full, entry.player1, entry.player2);
+			return side != null && entry.drawWinner === side;
+		});
+		if (targets.length !== 1) continue;
+		if (!targets[0]!.drawScore) targets[0]!.drawScore = hint.score;
+	}
+
+	return { matches, advancements: [] };
 }
 
 export function extractRoundRobinFromHtml(html: string): DrawPageParse {

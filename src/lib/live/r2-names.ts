@@ -79,11 +79,34 @@ export function namesAlign(a: string | null | undefined, b: string | null | unde
 			return rln === ln || rln?.includes(ln) || ln.includes(rln ?? '');
 		});
 		if (!rp) return false;
+		const leftLastOnly = wordsOf(lp).length === 1;
+		const rightLastOnly = wordsOf(rp).length === 1;
+		if (leftLastOnly || rightLastOnly) return true;
 		const li = firstInitial(lp);
 		const ri = firstInitial(rp);
 		if (!li || !ri) return true;
 		return li === ri;
 	});
+}
+
+function isFullName(name: string): boolean {
+	return partsOf(name).every((p) => {
+		const words = wordsOf(p);
+		return words.length >= 2 && (words[0]?.length ?? 0) > 1;
+	});
+}
+
+/** Map "E Saunders" / "Huck / Joseph" onto a unique full roster name. */
+export function expandFromRoster(name: string | null | undefined, roster: string[]): string | null {
+	const raw = cleanPlayerName(name ?? '');
+	if (!raw) return null;
+	const hits = roster.map((r) => cleanPlayerName(r)).filter((r) => r && namesAlign(raw, r));
+	const unique = [...new Set(hits)];
+	if (!unique.length) return raw;
+	if (unique.length === 1) return unique[0]!.length >= raw.length ? unique[0]! : raw;
+	const fuller = unique.filter(isFullName);
+	if (fuller.length === 1) return fuller[0]!;
+	return raw;
 }
 
 export function matchWinnerSide(

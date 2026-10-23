@@ -2,6 +2,7 @@ import ocalaResultsData from './ocala-results.json';
 import sarasotaResultsData from './sarasota-results.json';
 import portStLucieResultsData from './port-st-lucie-results.json';
 import { PORT_ST_LUCIE_EVENT } from './port-st-lucie-event';
+import { expandFromRoster } from '../lib/live/r2-names';
 import { GRAND_PRIX_FACEBOOK_URL } from './social';
 
 export type EventStatus = 'live' | 'recent' | 'upcoming';
@@ -1302,12 +1303,30 @@ const RESULTS_BY_EVENT: Record<string, { divisions?: Record<string, DivisionResu
 	'port-st-lucie-open': portStLucieResultsData as { divisions?: Record<string, DivisionResult> },
 };
 
+function eventRoster(event: EventData): string[] {
+	const names: string[] = [];
+	for (const div of event.divisionDetails) {
+		for (const round of div.rounds ?? []) {
+			for (const match of round.matches) {
+				names.push(match.player1, match.player2);
+			}
+		}
+		for (const match of div.roundRobinMatches ?? []) {
+			names.push(match.team1, match.team2);
+		}
+		names.push(...(div.roundRobinPlayers ?? []));
+	}
+	for (const profile of event.profiles ?? []) names.push(profile.name);
+	return names.filter((n) => n && !/^(tbd|bye)$/i.test(n.trim()));
+}
+
 export function applyResultsToEvent(event: EventData, divResults: Record<string, DivisionResult>): EventData {
+	const roster = eventRoster(event);
 
 	/** Never promote R2 scrape noise (e.g. "BYE") into a real TBD slot on our bracket. */
 	const fillFromResult = (slot: string, name: string | null | undefined): string | null => {
-		if (slot !== 'TBD') return null;
-		const n = (name ?? '').trim();
+		if (slot !== 'TBD' && slot !== '') return null;
+		const n = expandFromRoster(name, roster) ?? (name ?? '').trim();
 		if (!n || n.toUpperCase() === 'BYE') return null;
 		return n;
 	};
