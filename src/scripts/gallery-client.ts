@@ -831,14 +831,12 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		</div>`);
 		const shown = data.likers.slice(0, 8);
 		const extra = data.likers.length - shown.length;
-		parts.push(`<div class="gallery-people-row">
-			<span class="gallery-people-label">Liked by</span>
-			<div class="gallery-people-chips">${
-				shown.length
-					? shown.map((l) => avatarChip(l.slug, l.name, 'gallery-chip gallery-chip--liker')).join('') + (extra > 0 ? `<span class="gallery-people-more">+${extra} more</span>` : '')
-					: '<span class="gallery-people-empty">No likes yet</span>'
-			}</div>
-		</div>`);
+		const likersHtml = shown.length
+			? `<span class="gallery-people-label">Liked by</span><div class="gallery-people-chips">${shown.map((l) => avatarChip(l.slug, l.name, 'gallery-chip gallery-chip--liker')).join('')}${extra > 0 ? `<span class="gallery-people-more">+${extra} more</span>` : ''}</div>`
+			: '';
+		const likersEl = $('#gallery-lb-likers');
+		if (likersEl) likersEl.innerHTML = likersHtml;
+		else parts.push(`<div class="gallery-people-row">${likersHtml}</div>`);
 		peopleEl.innerHTML = parts.join('');
 		peopleEl.hidden = false;
 		peopleEl.dataset.photo = photo.id;
@@ -906,16 +904,202 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		if (err) window.alert(err);
 	});
 
+
+	// ── Comments ─────────────────────────────────────────────────────────────
+	type CommentView = {
+		id: string;
+		body: string;
+		createdAt: string;
+		status: 'visible' | 'pending' | 'hidden';
+		mine: boolean;
+		author: { name: string; slug: string | null; verified: boolean };
+	};
+	type CommentsPayload = {
+		comments: CommentView[];
+		moderation: { isJunior: boolean; commentsOff: boolean };
+		viewer: { signedIn: boolean; canComment: boolean; isAdmin: boolean };
+	};
+	const commentsEl = $('#gallery-lb-comments');
+	const composeEl = $('#gallery-lb-compose') as HTMLFormElement | null;
+	const composeInput = $('#gallery-lb-input') as HTMLInputElement | null;
+	const composeNote = $('#gallery-lb-compose-note');
+	const adminEl = $('#gallery-lb-admin');
+	let commentsFor: string | null = null;
+
+	function timeAgo(iso: string): string {
+		const d = new Date(iso);
+		if (Number.isNaN(d.getTime())) return '';
+		const sec = Math.floor((Date.now() - d.getTime()) / 1000);
+		if (sec < 60) return 'now';
+		if (sec < 3600) return `${Math.floor(sec / 60)}m`;
+		if (sec < 86400) return `${Math.floor(sec / 3600)}h`;
+		if (sec < 86400 * 7) return `${Math.floor(sec / 86400)}d`;
+		return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+	}
+
+	function commentHtml(c: CommentView, isAdmin: boolean): string {
+		const who = c.author.slug
+			? `<a class="glb-c-name" href="/players/${encodeURIComponent(c.author.slug)}">${escapeHtml(c.author.name)}${c.author.verified ? '<span class="glb-c-verified" title="Verified player">✓</span>' : ''}</a>`
+			: `<span class="glb-c-name">${escapeHtml(c.author.name)}</span>`;
+		const pending = c.status === 'pending' ? `<span class="glb-c-pending">Waiting for review</span>` : '';
+		const actions = c.mine || isAdmin
+			? `<button type="button" class="glb-c-act" data-comment="delete" data-id="${c.id}">Delete</button>`
+			: `<button type="button" class="glb-c-act" data-comment="report" data-id="${c.id}">Report</button>`;
+		return `<div class="glb-c${c.status === 'pending' ? ' glb-c--pending' : ''}" data-id="${c.id}">
+			<span class="gallery-chip-avatar glb-c-avatar" aria-hidden="true">${escapeHtml(initials(c.author.name))}</span>
+			<div class="glb-c-main">
+				<p class="glb-c-text">${who} ${escapeHtml(c.body)}</p>
+				<p class="glb-c-meta"><time datetime="${escapeHtml(c.createdAt)}">${escapeHtml(timeAgo(c.createdAt))}</time>${pending}${actions}</p>
+			</div>
+		</div>`;
+	}
+
+	function renderComments(data: CommentsPayload): void {
+		if (!commentsEl) return;
+		commentsEl.innerHTML = data.comments.length
+			? data.comments.map((c) => commentHtml(c, data.viewer.isAdmin)).join('')
+			: `<p class="glb-c-empty">No comments yet. ${data.viewer.canComment ? 'Start the conversation.' : ''}</p>`;
+		if (composeEl && composeInput) {
+			if (data.moderation.commentsOff) {
+				composeInput.disabled = true;
+				composeInput.placeholder = 'Comments are off for this photo';
+			} else if (!data.viewer.signedIn) {
+				composeInput.disabled = true;
+				composeInput.placeholder = 'Sign in to comment';
+			} else {
+				composeInput.disabled = false;
+				composeInput.placeholder = data.moderation.isJunior ? 'Add a comment (reviewed before it shows)…' : 'Add a comment…';
+			}
+		}
+		if (adminEl) {
+			if (data.viewer.isAdmin) {
+				adminEl.hidden = false;
+				adminEl.innerHTML = `<label class="glb-admin-toggle"><input type="checkbox" data-flag="junior" ${data.moderation.isJunior ? 'checked' : ''}/> Junior photo</label>
+					<label class="glb-admin-toggle"><input type="checkbox" data-flag="off" ${data.moderation.commentsOff ? 'checked' : ''}/> Comments off</label>`;
+			} else {
+				adminEl.hidden = true;
+				adminEl.innerHTML = '';
+			}
+		}
+		const body = $('#gallery-lb-body');
+		if (body) body.scrollTop = body.scrollHeight;
+	}
+
+	async function loadComments(photo: GalleryPhoto): Promise<void> {
+		if (!commentsEl) return;
+		commentsFor = photo.id;
+		commentsEl.innerHTML = '<p class="glb-c-empty">Loading…</p>';
+		try {
+			const res = await fetch(`/api/photos/comments?id=${encodeURIComponent(photo.id)}`, { cache: 'no-store' });
+			if (!res.ok) throw new Error('comments failed');
+			const data = (await res.json()) as CommentsPayload;
+			if (commentsFor !== photo.id) return;
+			renderComments(data);
+		} catch {
+			commentsEl.innerHTML = '<p class="glb-c-empty">Comments are unavailable right now.</p>';
+		}
+	}
+
+	function showComposeNote(text: string, ok = false): void {
+		if (!composeNote) return;
+		composeNote.textContent = text;
+		composeNote.classList.toggle('is-ok', ok);
+		composeNote.hidden = !text;
+	}
+
+	composeEl?.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		const photo = visible[lbIndex];
+		if (!photo || !composeInput) return;
+		if (!viewer.signedIn) {
+			window.location.href = `/account?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+			return;
+		}
+		const text = composeInput.value.trim();
+		if (!text) return;
+		const btn = composeEl.querySelector('button') as HTMLButtonElement | null;
+		if (btn) btn.disabled = true;
+		showComposeNote('');
+		try {
+			const res = await fetch('/api/photos/comments', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ photoId: photo.id, body: text }),
+			});
+			const data = (await res.json().catch(() => ({}))) as { ok?: boolean; held?: boolean; error?: string };
+			if (res.status === 401) {
+				window.location.href = `/account?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+				return;
+			}
+			if (!res.ok) {
+				showComposeNote(data.error ?? 'Could not post.');
+				return;
+			}
+			composeInput.value = '';
+			if (data.held) showComposeNote('Posted. It will show once Kyle approves it.', true);
+			await loadComments(photo);
+		} finally {
+			if (btn) btn.disabled = false;
+		}
+	});
+
+	commentsEl?.addEventListener('click', async (e) => {
+		const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-comment]');
+		if (!btn) return;
+		const photo = visible[lbIndex];
+		const id = btn.dataset.id;
+		if (!photo || !id) return;
+		const action = btn.dataset.comment === 'delete' ? 'delete' : 'report';
+		if (action === 'delete' && !window.confirm('Delete this comment?')) return;
+		if (action === 'report' && !window.confirm('Report this comment? It will be hidden until Kyle reviews it.')) return;
+		btn.setAttribute('disabled', '');
+		const res = await fetch('/api/photos/comment-action', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ commentId: id, action }),
+		});
+		if (res.status === 401) {
+			window.location.href = `/account?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+			return;
+		}
+		await loadComments(photo);
+	});
+
+	adminEl?.addEventListener('change', async (e) => {
+		const box = e.target as HTMLInputElement;
+		const photo = visible[lbIndex];
+		if (!photo || !box.dataset.flag) return;
+		const payload = box.dataset.flag === 'junior' ? { isJunior: box.checked } : { commentsOff: box.checked };
+		await fetch('/api/admin/photo-flag', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ photoId: photo.id, ...payload }),
+		});
+		await loadComments(photo);
+	});
+
+	$('#gallery-lb-comment-btn')?.addEventListener('click', () => {
+		composeInput?.focus();
+	});
+
 	function showLb(): void {
 		const photo = visible[lbIndex];
 		if (!photo) return;
 		const opening = lightbox.hidden;
 		lbImg.src = photo.url;
 		lbImg.alt = altText(photo);
-		if (lbCaption) lbCaption.textContent = captionText(photo);
+		if (lbCaption) lbCaption.textContent = photo.caption?.trim() ?? '';
+		const albumEl = $('#gallery-lb-album');
+		if (albumEl) albumEl.textContent = albumOf(photo.album)?.label ?? 'Racquetball Grand Prix';
+		const dateEl = $('#gallery-lb-date');
+		if (dateEl) {
+			const d = new Date(photo.createdAt);
+			dateEl.textContent = Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+		}
 		recordView(photo);
 		syncLbLike(photo);
 		void loadPeople(photo);
+		void loadComments(photo);
 		lightbox.hidden = false;
 		lightbox.setAttribute('aria-hidden', 'false');
 		document.body.classList.add('gallery-lb-open');
@@ -937,6 +1121,9 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 			peopleEl.innerHTML = '';
 		}
 		peopleFor = null;
+		commentsFor = null;
+		const commentsHost = $('#gallery-lb-comments');
+		if (commentsHost) commentsHost.innerHTML = '';
 		if (lightbox.hidden) return;
 		lightbox.hidden = true;
 		lightbox.setAttribute('aria-hidden', 'true');
@@ -1232,14 +1419,15 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		if (e.key === 'Tab') trapTab(e);
 	});
 
-	lightbox.addEventListener(
+	const swipeArea = $('#gallery-lb-media') ?? lightbox;
+	swipeArea.addEventListener(
 		'touchstart',
 		(e) => {
 			touchX = e.changedTouches[0]?.screenX ?? 0;
 		},
 		{ passive: true },
 	);
-	lightbox.addEventListener(
+	swipeArea.addEventListener(
 		'touchend',
 		(e) => {
 			const x = e.changedTouches[0]?.screenX ?? 0;

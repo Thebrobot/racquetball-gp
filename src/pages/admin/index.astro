@@ -10,11 +10,27 @@ if (!session) return Astro.redirect('/account?next=/admin', 303);
 if (!session.isAdmin) return Astro.redirect('/account', 303);
 
 const admin = createAdminClient();
+type HeldComment = { id: string; photo_id: string; body: string; status: string; created_at: string; profiles: { email: string; display_name: string | null; player_slug: string | null } | null; reports: number };
 type Claim = { id: string; user_id: string; player_slug: string; player_name: string; note: string | null; created_at: string; status: string; profiles: { email: string; display_name: string | null } | null };
 let pending: Claim[] = [];
 let recent: Claim[] = [];
 let counts = { profiles: 0, verified: 0, likes: 0, views: 0 };
+let held: HeldComment[] = [];
 if (admin) {
+	const { data: hc } = await admin
+		.from('photo_comments')
+		.select('id, photo_id, body, status, created_at, profiles!photo_comments_user_id_fkey(email, display_name, player_slug)')
+		.in('status', ['pending', 'hidden'])
+		.order('created_at', { ascending: false })
+		.limit(50);
+	const rows = (hc as unknown as Omit<HeldComment, 'reports'>[] | null) ?? [];
+	const ids = rows.map((r) => r.id);
+	const reportCounts = new Map<string, number>();
+	if (ids.length) {
+		const { data: reps } = await admin.from('comment_reports').select('comment_id').in('comment_id', ids);
+		for (const r of (reps ?? []) as { comment_id: string }[]) reportCounts.set(r.comment_id, (reportCounts.get(r.comment_id) ?? 0) + 1);
+	}
+	held = rows.map((r) => ({ ...r, reports: reportCounts.get(r.id) ?? 0 }));
 	const [{ data: p }, { data: r }, prof, ver, likes, views] = await Promise.all([
 		admin.from('profile_claims').select('id, user_id, player_slug, player_name, note, created_at, status, profiles(email, display_name)').eq('status', 'pending').order('created_at'),
 		admin.from('profile_claims').select('id, user_id, player_slug, player_name, note, created_at, status, profiles(email, display_name)').neq('status', 'pending').order('decided_at', { ascending: false }).limit(10),
@@ -28,6 +44,8 @@ if (admin) {
 	counts = { profiles: prof.count ?? 0, verified: ver.count ?? 0, likes: likes.count ?? 0, views: views.count ?? 0 };
 }
 const flag = Astro.url.searchParams.get('claims') ?? '';
+const commentFlag = Astro.url.searchParams.get('comments') ?? '';
+const commentFlagText: Record<string, string> = { approved: 'Comment approved and visible.', deleted: 'Comment deleted.' };
 const flagText: Record<string, string> = { approved: 'Claim approved and profile linked.', rejectd: 'Claim rejected.', rejected: 'Claim rejected.', already: 'That claim was already decided.' };
 function when(iso: string): string {
 	return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
@@ -40,7 +58,7 @@ function when(iso: string): string {
 			<div>
 				<p class="section-label">Signed in as {session.user.email}</p>
 				<h1 class="gp-title">Admin <span>queue</span></h1>
-				<p class="gp-sub">Profile claims wait here. Approving links the account to the player page and shows the verified badge.</p>
+				<p class="gp-sub">Profile claims and comments that need a look wait here. Approving a claim links the account to the player page and shows the verified badge.</p>
 			</div>
 			<ul class="gp-stat-row">
 				<li><strong>{counts.profiles}</strong><span>Accounts</span></li>
@@ -77,6 +95,33 @@ function when(iso: string): string {
 								<label class="adm-check"><input type="checkbox" name="junior" /> Junior (comments need approval)</label>
 								<button class="btn-main adm-btn" type="submit" name="action" value="approve">Approve</button>
 								<button class="btn-ghost adm-btn" type="submit" name="action" value="reject">Reject</button>
+							</form>
+						</li>
+					))}
+				</ul>
+			)}
+
+			<h2 class="adm-h2" id="comments">Comments to review <span class="adm-count">{held.length}</span></h2>
+			{commentFlag && commentFlagText[commentFlag] && <p class="adm-ok">{commentFlagText[commentFlag]}</p>}
+			{held.length === 0 ? (
+				<p class="adm-empty">Nothing to review. Comments on junior photos and reported comments show up here.</p>
+			) : (
+				<ul class="adm-list">
+					{held.map((c) => (
+						<li class="gp-card adm-item">
+							<div class="adm-item-main">
+								<p class="adm-item-title">
+									<span class:list={['gp-pill', c.status === 'pending' ? 'gp-pill--next' : 'gp-pill--champ']}>{c.status === 'pending' ? 'Junior photo' : `Reported${c.reports > 1 ? ` ×${c.reports}` : ''}`}</span>
+									<span>{c.profiles?.display_name ?? 'Unnamed'}</span>
+									<a href={`/gallery?photo=${c.photo_id}`} target="_blank" rel="noopener">View photo ↗</a>
+								</p>
+								<p class="adm-comment-body">“{c.body}”</p>
+								<p class="adm-item-meta">{c.profiles?.email ?? ''} · {when(c.created_at)}</p>
+							</div>
+							<form class="adm-item-actions" method="post" action="/api/admin/comments">
+								<input type="hidden" name="id" value={c.id} />
+								<button class="btn-main adm-btn" type="submit" name="action" value="approve">Approve</button>
+								<button class="btn-ghost adm-btn" type="submit" name="action" value="delete">Delete</button>
 							</form>
 						</li>
 					))}
@@ -120,6 +165,8 @@ function when(iso: string): string {
 	.adm-item-arrow { color: var(--muted); }
 	.adm-item-meta { margin: 0; font-size: 13.5px; color: var(--muted); }
 	.adm-item-note { margin: 6px 0 0; font-size: 14px; color: rgba(255,255,255,0.8); font-style: italic; }
+	.adm-comment-body { margin: 6px 0; font-size: 15px; color: #fff; }
+	.adm-item-title a { color: var(--orange2); text-decoration: none; font-size: 13px; }
 	.adm-item-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 	.adm-check { font-size: 13px; color: var(--muted); display: inline-flex; gap: 6px; align-items: center; margin-right: 6px; }
 	.adm-btn { padding: 10px 16px; font-size: 14px; }

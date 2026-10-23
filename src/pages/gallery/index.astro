@@ -139,7 +139,7 @@ const clientConfig: GalleryClientConfig = {
 	</section>
 
 	<div
-		class="gallery-lightbox"
+		class="gallery-lightbox glb"
 		id="gallery-lightbox"
 		hidden
 		aria-hidden="true"
@@ -147,24 +147,48 @@ const clientConfig: GalleryClientConfig = {
 		aria-modal="true"
 		aria-label="Expanded photo"
 	>
-		<div class="gallery-lb-top">
-			<button type="button" class="gallery-lb-like" id="gallery-lb-like" aria-pressed="false">Like</button>
-			<span class="gallery-lb-views" id="gallery-lb-views" aria-live="polite"></span>
-			<button type="button" class="gallery-lb-download" id="gallery-lb-download">Download</button>
-			<button type="button" class="gallery-lb-share" id="gallery-lb-share">Share</button>
-			<button type="button" class="gallery-lb-close" id="gallery-lb-close" aria-label="Close">×</button>
+		<button type="button" class="glb-close" id="gallery-lb-close" aria-label="Close">×</button>
+		<div class="glb-post">
+			<div class="glb-media" id="gallery-lb-media">
+				<button type="button" class="glb-nav glb-prev" id="gallery-lb-prev" aria-label="Previous photo">‹</button>
+				<span class="glb-frame">
+					<img id="gallery-lb-img" class="glb-photo" src="" alt="" />
+					<img class="gallery-watermark gallery-watermark--gp" src="/images/website-logo.webp" alt="" />
+					<img class="gallery-watermark gallery-watermark--credit" src="/images/daniel-bray-photography.png" alt="" />
+				</span>
+				<button type="button" class="glb-nav glb-next" id="gallery-lb-next" aria-label="Next photo">›</button>
+			</div>
+			<aside class="glb-side">
+				<header class="glb-head">
+					<img class="glb-brand" src="/images/series-logo.webp" alt="" width="40" height="50" />
+					<div class="glb-head-text">
+						<span class="glb-album" id="gallery-lb-album">Racquetball Grand Prix</span>
+						<span class="glb-date" id="gallery-lb-date"></span>
+					</div>
+					<div class="glb-admin" id="gallery-lb-admin" hidden></div>
+				</header>
+				<div class="glb-people" id="gallery-lb-people" hidden></div>
+				<div class="glb-body" id="gallery-lb-body">
+					<p class="glb-caption" id="gallery-lb-caption"></p>
+					<div class="glb-comments" id="gallery-lb-comments"></div>
+				</div>
+				<div class="glb-actions">
+					<div class="glb-action-row">
+						<button type="button" class="glb-act glb-act--like" id="gallery-lb-like" aria-pressed="false">Like</button>
+						<button type="button" class="glb-act" id="gallery-lb-comment-btn">Comment</button>
+						<button type="button" class="glb-act" id="gallery-lb-share">Share</button>
+						<button type="button" class="glb-act" id="gallery-lb-download">Download</button>
+					</div>
+					<div class="glb-likers" id="gallery-lb-likers"></div>
+					<span class="glb-views" id="gallery-lb-views" aria-live="polite"></span>
+				</div>
+				<form class="glb-compose" id="gallery-lb-compose">
+					<input class="glb-input" id="gallery-lb-input" name="body" maxlength="500" placeholder="Add a comment…" autocomplete="off" />
+					<button class="glb-post-btn" type="submit">Post</button>
+					<p class="glb-compose-note" id="gallery-lb-compose-note" hidden></p>
+				</form>
+			</aside>
 		</div>
-		<button type="button" class="gallery-lb-nav gallery-lb-prev" id="gallery-lb-prev" aria-label="Previous photo">‹</button>
-		<figure class="gallery-lb-figure">
-			<span class="gallery-lb-frame">
-				<img id="gallery-lb-img" class="gallery-lb-photo" src="" alt="" />
-				<img class="gallery-watermark gallery-watermark--gp" src="/images/website-logo.webp" alt="" />
-				<img class="gallery-watermark gallery-watermark--credit" src="/images/daniel-bray-photography.png" alt="" />
-			</span>
-			<figcaption id="gallery-lb-caption"></figcaption>
-			<div class="gallery-lb-people" id="gallery-lb-people" hidden></div>
-		</figure>
-		<button type="button" class="gallery-lb-nav gallery-lb-next" id="gallery-lb-next" aria-label="Next photo">›</button>
 	</div>
 
 	<div class="gallery-share-menu" id="gallery-share-menu" hidden role="dialog" aria-label="Share options">
