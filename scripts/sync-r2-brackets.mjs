@@ -707,6 +707,7 @@ function detectActivityChanges(prevDivisions, nextDivisions, at) {
 				headline: `${names.winnerName} def ${names.loserName}`,
 				detail: newMatch.score ?? undefined,
 				bracketHref: `/events/${EVENT_SLUG}/divisions/${divId}`,
+				players: [names.winnerName, names.loserName],
 			});
 		}
 	}

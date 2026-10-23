@@ -47,6 +47,7 @@ const clientConfig: GalleryClientConfig = {
 				<div class="gallery-name-row">
 					<h1 id="gallery-heading" class="gallery-name">Racquetball Grand Prix</h1>
 					<div class="gallery-name-actions">
+						<button type="button" class="gallery-share-btn gallery-add-btn" id="gallery-add-btn">+ Add photos</button>
 						<button type="button" class="gallery-share-btn" id="gallery-share-profile">Share</button>
 						<a
 							class="gallery-social"
@@ -139,6 +140,31 @@ const clientConfig: GalleryClientConfig = {
 		</div>
 	</section>
 
+	<div class="gsub" id="gallery-submit" role="dialog" aria-modal="true" aria-labelledby="gsub-title" hidden>
+		<div class="gsub-backdrop" data-gsub-close></div>
+		<form class="gsub-card" id="gsub-form">
+			<button type="button" class="gwel-close" aria-label="Close" data-gsub-close>×</button>
+			<p class="gwel-kicker">From your phone or camera</p>
+			<h2 class="gsub-title" id="gsub-title">Add your photos</h2>
+			<p class="gsub-text">Kyle reviews every photo before it appears in the gallery. Approved photos also land on your player profile if you are verified.</p>
+			<label class="acct-label" for="gsub-album">Which event</label>
+			<select class="acct-input" id="gsub-album" name="album" required>
+				{GALLERY_ALBUMS.map((a) => <option value={a.id} selected={a.id === (initialEvent?.id ?? '')}>{a.label}</option>)}
+			</select>
+			<label class="acct-label" for="gsub-caption">Caption (optional)</label>
+			<input class="acct-input" id="gsub-caption" name="caption" maxlength="200" placeholder="Who, what, which court…" autocomplete="off" />
+			<label class="gsub-drop" for="gsub-files">
+				<input type="file" id="gsub-files" name="files" accept="image/*" multiple />
+				<span class="gsub-drop-text"><strong>Choose photos</strong><span>JPG, PNG or HEIC, up to 12MB each</span></span>
+			</label>
+			<ul class="gsub-list" id="gsub-list"></ul>
+			<p class="acct-p acct-p--muted acct-error" id="gsub-error" hidden></p>
+			<div class="gwel-actions">
+				<button class="gwel-btn gwel-btn--primary" type="submit" id="gsub-send">Send for review</button>
+				<button class="gwel-btn" type="button" data-gsub-close>Done</button>
+			</div>
+		</form>
+	</div>
 	<GalleryFeed />
 	<div
 		class="gallery-lightbox glb"
@@ -205,3 +231,90 @@ const clientConfig: GalleryClientConfig = {
 	</script>
 	<script src="../../scripts/gallery-client.ts"></script>
 </GrandPrixLayout>
+
+<script>
+	const sheet = document.getElementById('gallery-submit');
+	const openBtn = document.getElementById('gallery-add-btn');
+	const form = document.getElementById('gsub-form') as HTMLFormElement | null;
+	const files = document.getElementById('gsub-files') as HTMLInputElement | null;
+	const list = document.getElementById('gsub-list');
+	const err = document.getElementById('gsub-error');
+	const send = document.getElementById('gsub-send') as HTMLButtonElement | null;
+	if (sheet && openBtn && form && files && list && err && send) {
+		const signedIn = () => Boolean((window as Window & { __GP_GALLERY__?: { viewer?: { signedIn?: boolean } } }).__GP_GALLERY__?.viewer?.signedIn);
+		const open = () => {
+			if (!signedIn()) {
+				window.location.href = `/account?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+				return;
+			}
+			sheet.hidden = false;
+			document.documentElement.classList.add('gwel-open');
+			requestAnimationFrame(() => sheet.classList.add('is-in'));
+		};
+		const close = () => {
+			sheet.classList.remove('is-in');
+			document.documentElement.classList.remove('gwel-open');
+			setTimeout(() => (sheet.hidden = true), 250);
+		};
+		openBtn.addEventListener('click', open);
+		if (location.hash === '#add') setTimeout(open, 300);
+		sheet.querySelectorAll('[data-gsub-close]').forEach((el) => el.addEventListener('click', close));
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape' && !sheet.hidden) close();
+		});
+		const row = (name: string) => {
+			const li = document.createElement('li');
+			li.className = 'gsub-file';
+			li.innerHTML = `<span class="gsub-file-name"></span><span class="gsub-file-state">Waiting</span>`;
+			li.querySelector('.gsub-file-name')!.textContent = name;
+			list.append(li);
+			return li.querySelector<HTMLElement>('.gsub-file-state')!;
+		};
+		files.addEventListener('change', () => {
+			list.innerHTML = '';
+			err.hidden = true;
+			for (const f of Array.from(files.files ?? [])) row(f.name);
+		});
+		form.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			err.hidden = true;
+			const chosen = Array.from(files.files ?? []);
+			if (!chosen.length) {
+				err.textContent = 'Choose at least one photo.';
+				err.hidden = false;
+				return;
+			}
+			send.disabled = true;
+			list.innerHTML = '';
+			const states = chosen.map((f) => row(f.name));
+			let sent = 0;
+			for (let i = 0; i < chosen.length; i++) {
+				states[i].textContent = 'Uploading…';
+				const fd = new FormData();
+				fd.set('album', (document.getElementById('gsub-album') as HTMLSelectElement).value);
+				fd.set('caption', (document.getElementById('gsub-caption') as HTMLInputElement).value);
+				fd.set('file', chosen[i]);
+				try {
+					const res = await fetch('/api/photos/submit', { method: 'POST', body: fd });
+					const data = (await res.json().catch(() => ({}))) as { error?: string };
+					if (res.ok) {
+						states[i].textContent = 'Sent for review';
+						states[i].classList.add('is-ok');
+						sent += 1;
+					} else {
+						states[i].textContent = data.error ?? 'Failed';
+						states[i].classList.add('is-bad');
+					}
+				} catch {
+					states[i].textContent = 'Failed';
+					states[i].classList.add('is-bad');
+				}
+			}
+			send.disabled = false;
+			if (sent) {
+				files.value = '';
+				send.textContent = sent === chosen.length ? 'Sent. Add more?' : 'Send for review';
+			}
+		});
+	}
+</script>

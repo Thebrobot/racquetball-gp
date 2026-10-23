@@ -2,6 +2,8 @@
 import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
 import { accountsConfigured, createSessionClient, getSession } from '../lib/accounts/supabase';
 import { getAllPlayers } from '../data/players';
+import { EVENTS } from '../data/events';
+import { albumLabel } from '../lib/gallery/albums';
 
 export const prerender = false;
 Astro.response.headers.set('Cache-Control', 'no-store');
@@ -19,6 +21,16 @@ const passwordSaved = params.get('password') === 'saved';
 const notifySaved = params.get('notify') === 'saved';
 const notifyEmail = session?.profile?.notify_email ?? true;
 const marketingOptIn = session?.profile?.marketing_opt_in ?? false;
+const notifyResults = session?.profile?.notify_results ?? true;
+// The tournament to offer for following: the one on now (with a day either side), else the next one.
+const today = new Date();
+const dayMs = 86_400_000;
+const liveEvent = EVENTS.find((e) => {
+	const start = new Date(`${e.startDate}T00:00:00-04:00`).getTime() - dayMs;
+	const end = new Date(`${e.endDate}T23:59:59-04:00`).getTime() + dayMs;
+	return today.getTime() >= start && today.getTime() <= end;
+});
+const followEvent = liveEvent ?? [...EVENTS].filter((e) => new Date(`${e.startDate}T00:00:00-04:00`).getTime() > today.getTime()).sort((a, b) => a.startDate.localeCompare(b.startDate))[0] ?? null;
 const claimFlag = params.get('claim') ?? '';
 
 type Claim = { id: string; player_slug: string; player_name: string; status: string; created_at: string };
@@ -32,6 +44,13 @@ if (session) {
 		.order('created_at', { ascending: false })
 		.limit(5);
 	claims = (data as Claim[] | null) ?? [];
+}
+type Submission = { id: string; album: string; caption: string | null; url: string; status: string; note: string | null; photo_id: string | null; created_at: string };
+let mySubmissions: Submission[] = [];
+if (session) {
+	const client = createSessionClient(Astro.request, Astro.cookies)!;
+	const { data } = await client.from('photo_submissions').select('id, album, caption, url, status, note, photo_id, created_at').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(30);
+	mySubmissions = (data as Submission[] | null) ?? [];
 }
 const pendingClaim = claims.find((c) => c.status === 'pending') ?? null;
 const rejectedClaim = !pendingClaim && !session?.profile?.player_slug ? claims.find((c) => c.status === 'rejected') : null;
@@ -159,6 +178,13 @@ const claimMessages: Record<string, string> = {
 								<span class="acct-switch-track" aria-hidden="true"></span>
 								<span class="acct-switch-text"><strong>Activity email</strong><span>Tags, comments, claim approvals and the likes roll-up, to {session.user.email}</span></span>
 							</label>
+							{linkedPlayer && (
+								<label class="acct-switch" style="margin-top:10px;">
+									<input type="checkbox" name="notify_results" checked={notifyResults} />
+									<span class="acct-switch-track" aria-hidden="true"></span>
+									<span class="acct-switch-text"><strong>My results</strong><span>Each of your match results as it is posted during a tournament.</span></span>
+								</label>
+							)}
 							<label class="acct-switch" style="margin-top:10px;">
 								<input type="checkbox" name="marketing_opt_in" checked={marketingOptIn} />
 								<span class="acct-switch-track" aria-hidden="true"></span>
@@ -173,6 +199,55 @@ const claimMessages: Record<string, string> = {
 							<div class="acct-switch-text acct-push-text"><strong>Browser notifications</strong><span id="acct-push-status">Checking…</span></div>
 							<button class="btn-ghost acct-btn" type="button" id="acct-push-btn">Turn on</button>
 							<p class="acct-p acct-p--muted acct-error" id="acct-push-error" hidden></p>
+						</div>
+					</div>
+
+					<div class="gp-card acct-card" id="photos">
+						<div class="acct-row">
+							<h2 class="acct-h2">Your photos</h2>
+							<a class="btn-ghost acct-btn" href="/gallery#add">Add photos</a>
+						</div>
+						{mySubmissions.length === 0 ? (
+							<p class="acct-p acct-p--muted">Send photos from the gallery with "+ Add photos". Each one is reviewed before it appears{linkedPlayer ? ', then it also shows on your player profile' : ''}.</p>
+						) : (
+							<ul class="acct-subs">
+								{mySubmissions.map((s) => (
+									<li class="acct-sub">
+										<img src={`/_image?href=${encodeURIComponent(s.url)}&w=160&h=160&fit=cover&f=webp&q=70`} alt="" width="56" height="56" loading="lazy" />
+										<div class="acct-sub-main">
+											<span class="acct-sub-title">{albumLabel(s.album)}{s.caption ? ` · ${s.caption}` : ''}</span>
+											<span class="acct-sub-meta">
+												{s.status === 'approved' && s.photo_id ? <a href={`/gallery/p/${s.photo_id}`}>In the gallery ↗</a> : s.status === 'rejected' ? `Not added${s.note ? `: ${s.note}` : ''}` : 'Waiting for review'}
+											</span>
+										</div>
+										<span class:list={['gp-pill', s.status === 'approved' ? 'gp-pill--done' : s.status === 'rejected' ? 'gp-pill--champ' : 'gp-pill--next']}>{s.status}</span>
+									</li>
+								))}
+							</ul>
+						)}
+					</div>
+
+					<div class="gp-card acct-card" id="follow">
+						<h2 class="acct-h2">Live results</h2>
+						<p class="acct-p acct-p--muted">Follow players to hear each of their results as the brackets update, by push and email. Follow a tournament to get every result from it as a push notification.</p>
+						{followEvent && (
+							<label class="acct-switch">
+								<input type="checkbox" id="acct-follow-event" data-kind="event" data-key={followEvent.slug} />
+								<span class="acct-switch-track" aria-hidden="true"></span>
+								<span class="acct-switch-text"><strong>{followEvent.name}</strong><span>{liveEvent ? 'On now' : 'Next stop'} · every result, push only</span></span>
+							</label>
+						)}
+						<div class="acct-follow" style="margin-top:14px;">
+							<label class="acct-label" for="acct-follow-input">Follow players</label>
+							<div class="acct-inline">
+								<input class="acct-input" id="acct-follow-input" list="acct-follow-list" placeholder="Start typing a name…" autocomplete="off" />
+								<datalist id="acct-follow-list">
+									{players.map((p) => <option value={p.name} data-slug={p.slug} />)}
+								</datalist>
+								<button class="btn-ghost acct-btn" type="button" id="acct-follow-add">Follow</button>
+							</div>
+							<div class="acct-chips" id="acct-follow-chips" aria-live="polite"></div>
+							<p class="acct-p acct-p--muted acct-error" id="acct-follow-error" hidden></p>
 						</div>
 					</div>
 
@@ -365,6 +440,69 @@ const claimMessages: Record<string, string> = {
 				}
 			}
 			btn.disabled = false;
+		});
+	}
+</script>
+
+<script>
+	type Follow = { kind: 'player' | 'event'; key: string; name: string };
+	const chips = document.getElementById('acct-follow-chips');
+	const input = document.getElementById('acct-follow-input') as HTMLInputElement | null;
+	const addBtn = document.getElementById('acct-follow-add') as HTMLButtonElement | null;
+	const errEl = document.getElementById('acct-follow-error');
+	const eventBox = document.getElementById('acct-follow-event') as HTMLInputElement | null;
+	const list = document.getElementById('acct-follow-list');
+	if (chips && input && addBtn && errEl) {
+		const showErr = (msg: string) => {
+			errEl.textContent = msg;
+			errEl.hidden = false;
+		};
+		const post = (body: Record<string, string>) =>
+			fetch('/api/follows', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async (r) => ({ ok: r.ok, data: (await r.json().catch(() => ({}))) as { error?: string } }));
+		const paint = (follows: Follow[]) => {
+			const playersFollowed = follows.filter((f) => f.kind === 'player');
+			chips.innerHTML = playersFollowed.length
+				? playersFollowed.map((f) => `<span class="acct-chip"><a href="/players/${encodeURIComponent(f.key)}">${f.name.replace(/</g, '&lt;')}</a><button type="button" class="acct-chip-x" data-key="${f.key}" aria-label="Unfollow ${f.name.replace(/"/g, '&quot;')}">×</button></span>`).join('')
+				: '<span class="acct-p acct-p--muted" style="margin:0;">Not following anyone yet.</span>';
+			if (eventBox) eventBox.checked = follows.some((f) => f.kind === 'event' && f.key === eventBox.dataset.key);
+		};
+		const load = () =>
+			fetch('/api/follows', { cache: 'no-store' })
+				.then((r) => (r.ok ? r.json() : { follows: [] }))
+				.then((d: { follows?: Follow[] }) => paint(d.follows ?? []))
+				.catch(() => undefined);
+		void load();
+		addBtn.addEventListener('click', async () => {
+			errEl.hidden = true;
+			const typed = input.value.trim().toLowerCase();
+			const opt = [...(list?.querySelectorAll('option') ?? [])].find((o) => o.value.toLowerCase() === typed);
+			const slug = opt?.dataset.slug;
+			if (!slug) {
+				showErr('Pick a player from the list.');
+				return;
+			}
+			addBtn.disabled = true;
+			const r = await post({ kind: 'player', key: slug, action: 'add' });
+			addBtn.disabled = false;
+			if (!r.ok) {
+				showErr(r.data.error ?? 'Could not follow.');
+				return;
+			}
+			input.value = '';
+			void load();
+		});
+		chips.addEventListener('click', async (e) => {
+			const x = (e.target as HTMLElement).closest<HTMLElement>('.acct-chip-x');
+			if (!x?.dataset.key) return;
+			await post({ kind: 'player', key: x.dataset.key, action: 'remove' });
+			void load();
+		});
+		eventBox?.addEventListener('change', async () => {
+			const r = await post({ kind: 'event', key: eventBox.dataset.key ?? '', action: eventBox.checked ? 'add' : 'remove' });
+			if (!r.ok) {
+				eventBox.checked = !eventBox.checked;
+				showErr(r.data.error ?? 'Could not save.');
+			}
 		});
 	}
 </script>
