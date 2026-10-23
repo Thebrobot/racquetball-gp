@@ -465,9 +465,10 @@ function ordinal(n: number): string {
 				if (!photos.length) return;
 				photosGrid.innerHTML = photos
 					.map((p) => {
-						const ratio = p.width && p.height ? (p.width / p.height).toFixed(3) : '1.333';
 						const alt = (p.caption || `${p.albumLabel} photo`).replace(/"/g, '&quot;');
-						return `<a class="player-photo" href="${p.href}" style="--ratio:${ratio}"><img src="${p.url}" alt="${alt}" loading="lazy" decoding="async" /><span class="player-photo-tag">${p.albumLabel}</span></a>`;
+						// Square 480px thumbnail through the site's image endpoint instead of the multi-MB original.
+						const thumb = `/_image?href=${encodeURIComponent(p.url)}&w=480&h=480&fit=cover&f=webp&q=72`;
+						return `<a class="player-photo" href="${p.href}"><img src="${thumb}" alt="${alt}" width="480" height="480" loading="lazy" decoding="async" /><span class="player-photo-tag">${p.albumLabel}</span></a>`;
 					})
 					.join('');
 				photosSection.hidden = false;
@@ -671,13 +672,14 @@ function ordinal(n: number): string {
 	.player-photos-grid {
 		display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 22px;
 	}
-	.player-photo {
+	/* Tiles are created at runtime, so they sit outside Astro's scoped selectors: use :global. */
+	.player-photos-grid :global(.player-photo) {
 		position: relative; display: block; border-radius: 12px; overflow: hidden; background: var(--navy3);
 		aspect-ratio: 1; border: 1px solid var(--card-border);
 	}
-	.player-photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease; }
-	.player-photo:hover img { transform: scale(1.04); }
-	.player-photo-tag {
+	.player-photos-grid :global(.player-photo img) { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease; }
+	.player-photos-grid :global(.player-photo:hover img) { transform: scale(1.04); }
+	.player-photos-grid :global(.player-photo-tag) {
 		position: absolute; left: 8px; bottom: 8px;
 		font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
 		color: #fff; background: rgba(6, 14, 27, 0.7); padding: 3px 8px; border-radius: 999px;
