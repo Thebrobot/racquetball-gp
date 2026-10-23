@@ -3,6 +3,7 @@ import { createAdminClient, createSessionClient, getSession, json } from '../../
 import { isValidPhotoId } from '../../../lib/accounts/visitor';
 import { COMMENT_MAX, getPhotoModeration, toCommentView, type CommentView } from '../../../lib/accounts/comments';
 import { getPhotoById } from '../../../lib/gallery/store';
+import { notifyMany, taggedUserIds } from '../../../lib/notify/events';
 
 export const prerender = false;
 
@@ -77,6 +78,12 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		.select('id, body, created_at, status, user_id')
 		.single();
 	if (error || !data) return json({ error: 'Could not post the comment.' }, 500);
+
+	// Tell the people in the photo. Held comments notify on approval instead.
+	if (status === 'visible') {
+		const recipients = await taggedUserIds(admin, body.photoId, [session.user.id]);
+		await notifyMany(admin, recipients, { kind: 'comment', photoId: body.photoId, actorId: session.user.id, payload: { body: text, commentId: data.id } });
+	}
 
 	const view = toCommentView(
 		{ ...data, display_name: session.profile?.display_name ?? null, player_slug: session.profile?.player_slug ?? null },

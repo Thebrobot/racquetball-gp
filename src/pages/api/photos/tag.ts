@@ -3,6 +3,7 @@ import { createAdminClient, createSessionClient, getSession, json } from '../../
 import { isValidPhotoId } from '../../../lib/accounts/visitor';
 import { getAllPlayers } from '../../../data/players';
 import { getPhotoById } from '../../../lib/gallery/store';
+import { notify } from '../../../lib/notify/events';
 
 export const prerender = false;
 
@@ -45,6 +46,15 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 			.from('photo_tags')
 			.upsert({ photo_id: photoId, player_slug: slug, tagged_by: session.user.id }, { onConflict: 'photo_id,player_slug', ignoreDuplicates: true });
 		if (error) return json({ error: 'Could not add the tag.' }, 500);
+		// Someone else tagged this player: let them know (self-tags stay quiet).
+		if (useAdmin) {
+			const admin = createAdminClient();
+			const { data: owner } = admin ? await admin.from('profiles').select('id').eq('player_slug', slug).maybeSingle() : { data: null };
+			const ownerId = (owner as { id: string } | null)?.id;
+			if (admin && ownerId && ownerId !== session.user.id) {
+				await notify(admin, { userId: ownerId, kind: 'tagged', photoId, actorId: session.user.id, payload: { playerSlug: slug } });
+			}
+		}
 	} else {
 		const { error } = await client.from('photo_tags').delete().eq('photo_id', photoId).eq('player_slug', slug);
 		if (error) return json({ error: 'Could not remove the tag.' }, 500);

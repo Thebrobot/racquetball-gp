@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createSessionClient, createAdminClient, getSession, json } from '../../../lib/accounts/supabase';
 import { isValidPhotoId } from '../../../lib/accounts/visitor';
+import { notifyMany, taggedUserIds } from '../../../lib/notify/events';
 
 export const prerender = false;
 
@@ -30,6 +31,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 		const { error } = await client.from('photo_likes').insert({ photo_id: photoId, user_id: session.user.id });
 		if (error) return json({ error: 'Could not update like.' }, 500);
 		liked = true;
+		const admin = createAdminClient();
+		if (admin) {
+			const recipients = await taggedUserIds(admin, photoId, [session.user.id]);
+			await notifyMany(admin, recipients, { kind: 'like', photoId, actorId: session.user.id });
+		}
 	}
 
 	const counter = createAdminClient() ?? client;
