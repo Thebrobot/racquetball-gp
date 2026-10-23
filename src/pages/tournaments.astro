@@ -1,23 +1,64 @@
 ---
 import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
 import TournamentStopCards from '../components/grand-prix/TournamentStopCards.astro';
-import { titleSponsor } from '../data/ocala-sponsors';
+import StopStatusStrip from '../components/grand-prix/StopStatusStrip.astro';
+import { SEASON_STOPS, TOUR_STOP_COUNT } from '../data/season-stops';
+import { LB_DIVISIONS_BY_CATEGORY } from '../data/leaderboard';
+import { getAllPlayers } from '../data/players';
+
+const stopsDone = SEASON_STOPS.filter((s) => s.kind === 'done').length;
+const divisionCount = Object.values(LB_DIVISIONS_BY_CATEGORY).reduce((n, list) => n + list.length, 0);
+const playerCount = getAllPlayers().length;
+const nextStop = SEASON_STOPS.find((s) => s.kind === 'next') ?? SEASON_STOPS.find((s) => s.kind === 'upcoming');
+const nextCity = nextStop?.cityLine.split(',')[0] ?? 'TBD';
 ---
 
 <GrandPrixLayout
 	title="Tournaments | Florida Racquetball Grand Prix 2026"
-	description="2026 Grand Prix stops across Florida: dates, R2 registration, and season points at every stop."
-	spotlightLabel="Title sponsor"
-	spotlightName={titleSponsor.name}
-	spotlightBlurb={titleSponsor.blurb}
-	spotlightLogoUrl={titleSponsor.logoUrl}
+	description="2026 Grand Prix stops across Florida: dates, venues, R2 registration, brackets and season points at every stop."
 >
-	<div class="page-hero page-hero--tournaments">
-		<div class="section-label">2026 Schedule</div>
-		<h1 class="section-title">Tournament <span style="color:var(--orange)">Stops</span></h1>
-	</div>
+	<header class="gp-page-head">
+		<div class="gp-page-head-inner gp-page-head-inner--split">
+			<div>
+				<p class="section-label">2026 schedule</p>
+				<h1 class="gp-title">Tournament <span>stops</span></h1>
+				<p class="gp-sub">
+					Four scored weekends across Florida, then a series championship. Every finish feeds the same
+					statewide leaderboard.
+				</p>
+			</div>
+			<StopStatusStrip compact />
+		</div>
+	</header>
 
-	<div class="tournaments-page-wrap">
-		<TournamentStopCards />
-	</div>
+	<section class="gp-band gp-band--tight tour-stats-band" aria-label="Series at a glance">
+		<div class="gp-band-inner">
+			<ul class="gp-stat-row">
+				<li><strong>{stopsDone}<span class="gp-stat-of">/{TOUR_STOP_COUNT}</span></strong><span>Stops played</span></li>
+				<li><strong>{divisionCount}</strong><span>Divisions</span></li>
+				<li><strong>{playerCount}</strong><span>Players</span></li>
+				<li><strong><em>{nextCity}</em></strong><span>Next stop</span></li>
+			</ul>
+		</div>
+	</section>
+
+	<section class="gp-band tour-cards-band" aria-labelledby="tour-cards-heading">
+		<div class="gp-band-inner">
+			<h2 id="tour-cards-heading" class="visually-hidden">All stops</h2>
+			<TournamentStopCards />
+		</div>
+	</section>
 </GrandPrixLayout>
+
+<style>
+.gp-page-head :global(.hero-status) {
+	grid-column: auto;
+	align-self: center;
+}
+.tour-stats-band {
+	border-bottom: 1px solid var(--card-border);
+}
+.tour-cards-band {
+	padding-top: clamp(32px, 4vw, 56px);
+}
+</style>

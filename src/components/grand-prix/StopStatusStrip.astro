@@ -1,0 +1,91 @@
+---
+/**
+ * Live / next-stop status strip. Reads event dates, so it flips to "Live now"
+ * during a tournament weekend and counts down beforehand. Used in the home
+ * hero and at the top of schedule-style pages.
+ */
+import { EVENTS, getEventStatus } from '../../data/events';
+import { SEASON_STOPS } from '../../data/season-stops';
+
+interface Props {
+	/** Compact variant for page headers (smaller type, no backdrop blur). */
+	compact?: boolean;
+	/** Extra class names for placement (e.g. grid-column spans). */
+	class?: string;
+}
+const { compact = false, class: className } = Astro.props;
+
+const now = new Date();
+const liveEvent = EVENTS.find((e) => getEventStatus(e, now) === 'live') ?? null;
+const nextEvent =
+	EVENTS.filter((e) => getEventStatus(e, now) === 'upcoming').sort((a, b) =>
+		a.startDate.localeCompare(b.startDate),
+	)[0] ?? null;
+const nextStop = SEASON_STOPS.find((s) => s.kind === 'next') ?? null;
+
+function daysUntil(iso: string): number {
+	const start = new Date(`${iso}T00:00:00`);
+	const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+	return Math.round((start.getTime() - today.getTime()) / 86_400_000);
+}
+function countdownLabel(days: number): string {
+	if (days <= 0) return 'Starts today';
+	if (days === 1) return 'Starts tomorrow';
+	if (days <= 14) return `Starts in ${days} days`;
+	return 'Next stop';
+}
+
+const statusEvent = liveEvent ?? nextEvent;
+const kind: 'live' | 'soon' | 'next' | null = liveEvent
+	? 'live'
+	: nextEvent
+		? daysUntil(nextEvent.startDate) <= 14
+			? 'soon'
+			: 'next'
+		: null;
+const pill = liveEvent ? 'Live now' : nextEvent ? countdownLabel(daysUntil(nextEvent.startDate)) : '';
+const venue = statusEvent?.spotlightVenue ?? nextStop?.venue ?? '';
+const registerUrl = !liveEvent && nextStop ? nextStop.registerUrl : null;
+const watchUrl = statusEvent?.spotlightWatchLiveUrl ?? nextStop?.watchLiveUrl ?? null;
+const eventHref = statusEvent ? `/events/${statusEvent.slug}` : '/tournaments';
+---
+
+{statusEvent && kind && (
+	<aside
+		class:list={['hero-status', `hero-status--${kind}`, { 'hero-status--compact': compact }, className]}
+		aria-label="Tournament status"
+	>
+		<div class="hero-status-main">
+			<span class="hero-status-pill">
+				<span class="hero-status-dot" aria-hidden="true"></span>
+				{pill}
+			</span>
+			<a class="hero-status-name" href={eventHref}>{statusEvent.name}</a>
+			<p class="hero-status-meta">
+				<strong>{statusEvent.dateRange}</strong>
+				<span aria-hidden="true"> · </span>
+				{statusEvent.cityLine}
+				{venue && (
+					<>
+						<span aria-hidden="true"> · </span>
+						{venue}
+					</>
+				)}
+			</p>
+		</div>
+		<div class="hero-status-actions">
+			<a class="hero-status-btn hero-status-btn--primary" href={`${eventHref}#brackets`}>Brackets</a>
+			<a class="hero-status-btn" href={`${eventHref}#participants`}>Participants</a>
+			{watchUrl && (
+				<a class="hero-status-btn hero-status-btn--watch" href={watchUrl} target="_blank" rel="noopener noreferrer">
+					Watch live
+				</a>
+			)}
+			{registerUrl && (
+				<a class="hero-status-btn" href={registerUrl} target="_blank" rel="noopener noreferrer">
+					Register on R2
+				</a>
+			)}
+		</div>
+	</aside>
+)}

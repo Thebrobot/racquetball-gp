@@ -1,8 +1,7 @@
 ---
 import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
-import { getAllPlayers, getPlayerMatchHistory, getPlayerScheduleEntries, getPlayerGrandPrixStandings, GP_SERIES_POSTS, getPlayerImageForDisplay, getPlayerImageSrcSet } from '../../data/players';
+import { getAllPlayers, getPlayerMatchHistory, getPlayerScheduleEntries, getPlayerGrandPrixStandings, GP_SERIES_POSTS, getPlayerImageSrcSet } from '../../data/players';
 import { resolveTeamMembers, type TeamResolveCtx } from '../../lib/resolve-team-members';
-import { titleSponsor } from '../../data/ocala-sponsors';
 
 export async function getStaticPaths() {
 	return getAllPlayers().map((player) => ({ params: { slug: player.slug }, props: { player } }));
@@ -16,7 +15,7 @@ const player = allPlayers.find((p) => p.slug === routePlayer.slug) ?? routePlaye
 
 const bio =
 	player.bio ||
-	`Grand Prix competitor from ${player.city ?? 'Florida'}. Focused on steady finishes and building points across every stop.`;
+	`Grand Prix competitor from ${player.city || 'Florida'}. Focused on steady finishes and building points across every stop.`;
 const matchHistory = getPlayerMatchHistory(player.name);
 const gpStandings = getPlayerGrandPrixStandings(player.name);
 const scheduleEntries = getPlayerScheduleEntries(player.name, player.events ?? []);
@@ -25,6 +24,10 @@ const profilePhoto = getPlayerImageSrcSet(player.name, 140);
 const wins = matchHistory.filter((m) => m.result === 'win').length;
 const losses = matchHistory.filter((m) => m.result === 'loss').length;
 const pending = matchHistory.filter((m) => m.result === 'pending').length;
+
+// Best season standing (highest total) for the head card.
+const bestStanding = gpStandings[0] ?? null;
+const eventsPlayed = new Set(matchHistory.map((m) => m.eventSlug)).size;
 
 // ── Hierarchy split ──────────────────────────────────────────────────────────
 // Upcoming/live entries → full ticket cards (current stop)
@@ -66,127 +69,154 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 	}
 	return { court: null, rest: note };
 }
+
+function ordinal(n: number): string {
+	const s = ['th', 'st', 'nd', 'rd'];
+	const v = n % 100;
+	return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`;
+}
 ---
 
 <GrandPrixLayout
 	title={`${player.name} | Florida Racquetball Grand Prix 2026`}
 	description={metaDescription}
-	spotlightLabel="Title sponsor"
-	spotlightName={titleSponsor.name}
-	spotlightBlurb={titleSponsor.blurb}
-	spotlightLogoUrl={titleSponsor.logoUrl}
 >
-	<!-- ── HERO ── -->
-	<section class="event-hero player-hero">
-		<div class="section-label">Player profile</div>
-		<div class="player-hero-media">
-	{profilePhoto ? (
-			<img
-				class="player-avatar"
-				src={profilePhoto.src}
-				srcset={profilePhoto.srcSet}
-				sizes="140px"
-				alt={`${player.name} profile photo`}
-				width="140"
-				height="140"
-				loading="lazy"
-				decoding="async"
-			/>
-		) : (
-				<div class="player-avatar player-avatar--fallback" aria-hidden="true">
-					{player.name
-						.split(' ')
-						.slice(0, 2)
-						.map((part) => part[0])
-						.join('')
-						.toUpperCase()}
-				</div>
-			)}
-		</div>
-		<h1 class="section-title">{player.name}</h1>
-		{player.city && <p class="section-sub player-city">{player.city}</p>}
-
-		{matchHistory.length > 0 && (
-			<div class="player-record-row" aria-label="Season record">
-				<span class="player-record-chip player-record-chip--win">
-					<span class="player-record-num">{wins}</span>
-					<span class="player-record-label">Win{wins !== 1 ? 's' : ''}</span>
-				</span>
-				<span class="player-record-sep">·</span>
-				<span class="player-record-chip player-record-chip--loss">
-					<span class="player-record-num">{losses}</span>
-					<span class="player-record-label">Loss{losses !== 1 ? 'es' : ''}</span>
-				</span>
-				{pending > 0 && (
-					<>
-						<span class="player-record-sep">·</span>
-						<span class="player-record-chip player-record-chip--pending">
-							<span class="player-record-num">{pending}</span>
-							<span class="player-record-label">Pending</span>
-						</span>
-					</>
+	<!-- ── PAGE HEAD ── -->
+	<header class="gp-page-head player-head">
+		<div class="gp-page-head-inner gp-page-head-inner--split player-head-inner">
+			<div class="player-head-copy">
+				<p class="section-label">Player profile</p>
+				<h1 class="gp-title player-head-name">{player.name}</h1>
+				{player.city && <p class="gp-sub player-head-city">{player.city}</p>}
+				<p class="player-bio player-head-bio">{bio}</p>
+				{(player.divisions ?? []).length > 0 && (
+					<div class="player-divisions-inline player-head-divisions" aria-label="Divisions entered">
+						{(player.divisions ?? []).map((division) => (
+							<span class="player-div-tag">{division}</span>
+						))}
+					</div>
 				)}
 			</div>
-		)}
 
-		<!-- ── DIVISIONS ── -->
-		<div class="player-divisions-inline">
-			{(player.divisions ?? []).map((division, i, arr) => (
-				<>
-					<span class="player-div-tag">{division}</span>
-					{i < arr.length - 1 && <span class="player-div-sep" aria-hidden="true">·</span>}
-				</>
-			))}
+			<div class="gp-card player-head-card">
+				<div class="player-head-media">
+					{profilePhoto ? (
+						<img
+							class="player-avatar"
+							src={profilePhoto.src}
+							srcset={profilePhoto.srcSet}
+							sizes="140px"
+							alt={`${player.name} profile photo`}
+							width="140"
+							height="140"
+							loading="eager"
+							decoding="async"
+						/>
+					) : (
+						<div class="player-avatar player-avatar--fallback" aria-hidden="true">
+							{player.name
+								.split(' ')
+								.slice(0, 2)
+								.map((part) => part[0])
+								.join('')
+								.toUpperCase()}
+						</div>
+					)}
+				</div>
+				<div class="player-head-facts">
+					{matchHistory.length > 0 ? (
+						<div class="player-record-row player-head-record" aria-label="Season record">
+							<span class="player-record-chip player-record-chip--win">
+								<span class="player-record-num">{wins}</span>
+								<span class="player-record-label">Win{wins !== 1 ? 's' : ''}</span>
+							</span>
+							<span class="player-record-chip player-record-chip--loss">
+								<span class="player-record-num">{losses}</span>
+								<span class="player-record-label">Loss{losses !== 1 ? 'es' : ''}</span>
+							</span>
+							{pending > 0 && (
+								<span class="player-record-chip player-record-chip--pending">
+									<span class="player-record-num">{pending}</span>
+									<span class="player-record-label">Pending</span>
+								</span>
+							)}
+						</div>
+					) : (
+						<p class="player-head-norecord">No matches on record yet.</p>
+					)}
+					{bestStanding ? (
+						<a class="player-head-standing" href={`/leaderboard/${bestStanding.divisionId}`}>
+							<span class="player-head-standing-label">Season standing · {bestStanding.divisionLabel}</span>
+							<span class="player-head-standing-value">
+								<strong>{ordinal(bestStanding.place)}</strong>
+								<span class="player-head-standing-pts">{bestStanding.total} pts</span>
+							</span>
+							<span class="player-head-standing-link">View division standings →</span>
+						</a>
+					) : (
+						<p class="player-head-norecord">Not yet on the season leaderboard.</p>
+					)}
+					{eventsPlayed > 0 && (
+						<p class="player-head-events">
+							{eventsPlayed}{' '}Grand Prix{' '}{eventsPlayed === 1 ? 'stop' : 'stops'} played
+						</p>
+					)}
+				</div>
+			</div>
 		</div>
-
-	</section>
+	</header>
 
 	<!-- ── GRAND PRIX POINTS ── -->
 	{gpStandings.length > 0 && (
-		<section class="event-section player-gp-points-section" aria-labelledby="player-gp-points-title">
-			<header class="event-section-header">
-				<h2 id="player-gp-points-title">Grand Prix points</h2>
-			</header>
-			<div class="player-gp-points-grid">
-				{gpStandings.map((entry) => (
-					<article class="player-gp-points-card">
-						<div class="player-gp-points-division">{entry.divisionLabel}</div>
-						<dl class="player-gp-points-stats">
-							<div class="player-gp-points-stat">
-								<dt>Finish</dt>
-								<dd>#{entry.place}</dd>
-							</div>
-							<div class="player-gp-points-stat">
-								<dt>Lap 1</dt>
-								<dd>{entry.s1}</dd>
-							</div>
-							<div class="player-gp-points-stat">
-								<dt>Lap 2</dt>
-								<dd>{entry.s2}</dd>
-							</div>
-							<div class="player-gp-points-stat player-gp-points-stat--total">
-								<dt>Total</dt>
-								<dd>{entry.total}</dd>
-							</div>
-						</dl>
-					</article>
-				))}
+		<section class="gp-band gp-band--court player-band" aria-labelledby="player-gp-points-title">
+			<div class="gp-band-inner">
+				<header class="player-band-head">
+					<p class="section-label">Season points</p>
+					<h2 id="player-gp-points-title" class="player-band-title">Grand Prix <span>points</span></h2>
+					<p class="gp-sub">Points per lap in every division entered, with the current season finish.</p>
+				</header>
+				<div class="player-gp-points-grid">
+					{gpStandings.map((entry) => (
+						<article class="player-gp-points-card">
+							<div class="player-gp-points-division">{entry.divisionLabel}</div>
+							<dl class="player-gp-points-stats">
+								<div class="player-gp-points-stat">
+									<dt>Finish</dt>
+									<dd>#{entry.place}</dd>
+								</div>
+								<div class="player-gp-points-stat">
+									<dt>Lap 1</dt>
+									<dd>{entry.s1}</dd>
+								</div>
+								<div class="player-gp-points-stat">
+									<dt>Lap 2</dt>
+									<dd>{entry.s2}</dd>
+								</div>
+								<div class="player-gp-points-stat player-gp-points-stat--total">
+									<dt>Total</dt>
+									<dd>{entry.total}</dd>
+								</div>
+							</dl>
+						</article>
+					))}
+				</div>
 			</div>
 		</section>
 	)}
 
 	<!-- ── UPCOMING SCHEDULE ── -->
 	{upcomingEntries.length > 0 && (
-	<section class="event-section player-schedule-section" aria-labelledby="player-events-title">
-		<header class="event-section-header">
-			<h2 id="player-events-title">
-				{upcomingEntries[0]?.eventName ?? 'Upcoming'}
-			</h2>
-			{upcomingEntries[0]?.eventDateRange && (
-				<p class="player-schedule-daterange">{upcomingEntries[0].eventDateRange}</p>
-			)}
-		</header>
-		{upcomingEntries.length ? (
+	<section class="gp-band player-band" aria-labelledby="player-events-title">
+		<div class="gp-band-inner">
+			<header class="player-band-head">
+				<p class="section-label">Next up</p>
+				<h2 id="player-events-title" class="player-band-title">
+					{upcomingEntries[0]?.eventName ?? 'Upcoming'}
+				</h2>
+				{upcomingEntries[0]?.eventDateRange && (
+					<p class="gp-sub">{upcomingEntries[0].eventDateRange}</p>
+				)}
+			</header>
 			<div class="player-ticket-grid">
 				{upcomingEntries.map((entry) => {
 					const { court, rest } = parseCourtFromNote(entry.note);
@@ -300,110 +330,116 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 					);
 				})}
 			</div>
-		) : (
-			<p class="player-section-empty">No call times published yet for this stop. Check back as the schedule is released.</p>
-		)}
+		</div>
 	</section>
 	)}
 
 	<!-- ── TOURNAMENT HISTORY ── -->
 	{historyGroups.length > 0 && (
-	<section class="event-section player-matches-section" aria-labelledby="player-matches-title">
-		<header class="event-section-header">
-			<h2 id="player-matches-title">Tournament history</h2>
-			{(wins > 0 || losses > 0) && (
-				<span class="player-record-summary-inline">
-					<strong class="player-record-summary-w">{wins}W</strong>
-					{' – '}
-					<strong class="player-record-summary-l">{losses}L</strong>
-					{pending > 0 && <span class="player-record-summary-p"> · {pending} pending</span>}
-				</span>
-			)}
-		</header>
-		{historyGroups.map((group) => (
-			<div class="player-history-event-group">
-				<div class="player-history-event-group-header">
-					<a class="player-history-event-link" href={`/events/${group.eventSlug}`}>
-						{group.eventName}
-					</a>
-					{group.eventDateRange && (
-						<span class="player-history-event-date">· {group.eventDateRange}</span>
-					)}
+	<section class="gp-band gp-band--navy2 player-band" aria-labelledby="player-matches-title">
+		<div class="gp-band-inner">
+			<header class="player-band-head player-band-head--row">
+				<div>
+					<p class="section-label">Results</p>
+					<h2 id="player-matches-title" class="player-band-title">Tournament <span>history</span></h2>
 				</div>
-				<div class="player-history-stack">
-					{group.records.map((row) => (
-						<article class="player-history-row">
-							<div class="player-history-content">
-								<div class="player-history-meta">
-									<a class="player-history-division-link" href={`/events/${row.eventSlug}/divisions/${row.divisionId}`}>
-										{row.divisionLabel}
-									</a>
-									<span class="player-history-meta-sep">·</span>
-									<span>{row.roundLabel}</span>
+				{(wins > 0 || losses > 0) && (
+					<span class="player-record-summary-inline">
+						<strong class="player-record-summary-w">{wins}W</strong>
+						{' – '}
+						<strong class="player-record-summary-l">{losses}L</strong>
+						{pending > 0 && <span class="player-record-summary-p"> · {pending} pending</span>}
+					</span>
+				)}
+			</header>
+			{historyGroups.map((group) => (
+				<div class="player-history-event-group">
+					<div class="player-history-event-group-header">
+						<a class="player-history-event-link" href={`/events/${group.eventSlug}`}>
+							{group.eventName}
+						</a>
+						{group.eventDateRange && (
+							<span class="player-history-event-date">· {group.eventDateRange}</span>
+						)}
+					</div>
+					<div class="player-history-stack">
+						{group.records.map((row) => (
+							<article class="player-history-row">
+								<div class="player-history-content">
+									<div class="player-history-meta">
+										<a class="player-history-division-link" href={`/events/${row.eventSlug}/divisions/${row.divisionId}`}>
+											{row.divisionLabel}
+										</a>
+										<span class="player-history-meta-sep">·</span>
+										<span>{row.roundLabel}</span>
+									</div>
+									<div class="player-history-opponent">
+										vs <strong>{row.opponent}</strong>
+										{row.score && <span class="player-history-score">{row.score}</span>}
+									</div>
 								</div>
-								<div class="player-history-opponent">
-									vs <strong>{row.opponent}</strong>
-									{row.score && <span class="player-history-score">{row.score}</span>}
-								</div>
-							</div>
-							<div
-								class:list={[
-									'player-history-badge',
-									row.result === 'win' ? 'player-history-badge--win' : '',
-									row.result === 'loss' ? 'player-history-badge--loss' : '',
-									row.result === 'pending' ? 'player-history-badge--pending' : '',
-									row.result === 'bye' ? 'player-history-badge--bye' : '',
-									row.result === 'walkover' ? 'player-history-badge--walkover' : '',
-								]}
-								title={
-									row.result === 'bye'
-										? 'Bye (does not count as a match win)'
-										: row.result === 'walkover'
-											? 'Opponent no-show (does not count as a match win)'
-											: undefined
-								}
-							>
-								{row.result === 'win'
-									? 'W'
-									: row.result === 'loss'
-										? 'L'
-										: row.result === 'bye'
-											? 'Bye'
+								<div
+									class:list={[
+										'player-history-badge',
+										row.result === 'win' ? 'player-history-badge--win' : '',
+										row.result === 'loss' ? 'player-history-badge--loss' : '',
+										row.result === 'pending' ? 'player-history-badge--pending' : '',
+										row.result === 'bye' ? 'player-history-badge--bye' : '',
+										row.result === 'walkover' ? 'player-history-badge--walkover' : '',
+									]}
+									title={
+										row.result === 'bye'
+											? 'Bye (does not count as a match win)'
 											: row.result === 'walkover'
-												? 'WBF'
-												: row.result === 'pending'
-													? 'P'
-													: 'TBD'}
-							</div>
-						</article>
-					))}
+												? 'Opponent no-show (does not count as a match win)'
+												: undefined
+									}
+								>
+									{row.result === 'win'
+										? 'W'
+										: row.result === 'loss'
+											? 'L'
+											: row.result === 'bye'
+												? 'Bye'
+												: row.result === 'walkover'
+													? 'WBF'
+													: row.result === 'pending'
+														? 'P'
+														: 'TBD'}
+								</div>
+							</article>
+						))}
+					</div>
 				</div>
-			</div>
-		))}
+			))}
+		</div>
 	</section>
 	)}
 
 	<!-- ── SERIES WIRE ── -->
-	<section class="event-section player-news-section" aria-labelledby="player-series-title">
-		<header class="event-section-header">
-			<h2 id="player-series-title">Series news</h2>
-		</header>
-		<div class="player-series-list">
-			{GP_SERIES_POSTS.map((post) => (
-				<article class="player-series-card">
-					<div class="player-series-date">{post.date}</div>
-					{post.href ? (
-						<h3 class="player-series-title">
-							<a class="player-series-link" href={post.href}>
-								{post.title}
-							</a>
-						</h3>
-					) : (
-						<h3 class="player-series-title">{post.title}</h3>
-					)}
-					<p class="player-series-excerpt">{post.excerpt}</p>
-				</article>
-			))}
+	<section class="gp-band player-band" aria-labelledby="player-series-title">
+		<div class="gp-band-inner">
+			<header class="player-band-head">
+				<p class="section-label">Around the series</p>
+				<h2 id="player-series-title" class="player-band-title">Series <span>news</span></h2>
+			</header>
+			<div class="player-series-list">
+				{GP_SERIES_POSTS.map((post) => (
+					<article class="player-series-card">
+						<div class="player-series-date">{post.date}</div>
+						{post.href ? (
+							<h3 class="player-series-title">
+								<a class="player-series-link" href={post.href}>
+									{post.title}
+								</a>
+							</h3>
+						) : (
+							<h3 class="player-series-title">{post.title}</h3>
+						)}
+						<p class="player-series-excerpt">{post.excerpt}</p>
+					</article>
+				))}
+			</div>
 		</div>
 	</section>
 </GrandPrixLayout>
@@ -421,3 +457,162 @@ function parseCourtFromNote(note?: string): { court: string | null; rest: string
 		"url": "https://www.racquetballgp.com"
 	}
 })} />
+
+<style>
+/* ── Page head ── */
+.player-head-inner {
+	align-items: start;
+}
+.player-head-name {
+	overflow-wrap: anywhere;
+}
+.player-head-city {
+	font-size: 18px;
+	color: #fff;
+	font-weight: 500;
+}
+.player-head-bio {
+	margin: 14px 0 0;
+	max-width: 560px;
+	color: var(--muted);
+}
+.player-head-divisions {
+	justify-content: flex-start;
+	margin-top: 18px;
+}
+
+.player-head-card {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	gap: 18px 22px;
+	align-items: center;
+	padding: 20px 22px;
+}
+.player-head-media {
+	display: flex;
+	justify-content: center;
+}
+.player-head-card :global(.player-avatar) {
+	width: 120px;
+	height: 120px;
+}
+.player-head-facts {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	min-width: 0;
+}
+.player-head-record {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0;
+}
+.player-head-norecord {
+	margin: 0;
+	font-size: 14px;
+	color: var(--muted);
+}
+.player-head-standing {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	text-decoration: none;
+	color: inherit;
+	padding: 12px 14px;
+	border-radius: 12px;
+	background: rgba(255, 255, 255, 0.04);
+	border: 1px solid var(--card-border);
+	transition: border-color 0.15s, background 0.15s;
+}
+.player-head-standing:hover {
+	border-color: rgba(240, 90, 26, 0.5);
+	background: rgba(240, 90, 26, 0.07);
+}
+.player-head-standing-label {
+	font-family: 'Barlow Condensed', sans-serif;
+	font-weight: 700;
+	font-size: 12px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+.player-head-standing-value {
+	display: flex;
+	align-items: baseline;
+	gap: 10px;
+}
+.player-head-standing-value strong {
+	font-family: 'Barlow Condensed', sans-serif;
+	font-weight: 900;
+	font-size: 34px;
+	line-height: 1;
+	color: var(--orange);
+}
+.player-head-standing-pts {
+	font-weight: 600;
+	font-size: 15px;
+	color: #fff;
+}
+.player-head-standing-link {
+	font-family: 'Barlow Condensed', sans-serif;
+	font-weight: 700;
+	font-size: 13px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--orange);
+}
+.player-head-events {
+	margin: 0;
+	font-size: 13.5px;
+	color: var(--muted);
+}
+
+/* ── Bands ── */
+.player-band-head {
+	margin-bottom: clamp(20px, 3vw, 30px);
+}
+.player-band-head--row {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 12px 24px;
+	flex-wrap: wrap;
+}
+.player-band-title {
+	font-family: 'Barlow Condensed', sans-serif;
+	font-weight: 900;
+	font-size: clamp(30px, 4vw, 44px);
+	line-height: 0.95;
+	text-transform: uppercase;
+	margin: 0 0 10px;
+}
+.player-band-title span {
+	color: var(--orange);
+}
+.player-band :global(.player-history-event-group) {
+	margin-top: 0;
+}
+.player-band :global(.player-record-summary-inline) {
+	padding-bottom: 12px;
+}
+
+@media (max-width: 640px) {
+	.player-head-card {
+		grid-template-columns: 1fr;
+		justify-items: center;
+		text-align: center;
+		padding: 18px 16px;
+	}
+	.player-head-record {
+		justify-content: center;
+	}
+	.player-head-standing {
+		width: 100%;
+		align-items: center;
+	}
+	.player-head-divisions {
+		justify-content: flex-start;
+	}
+}
+</style>

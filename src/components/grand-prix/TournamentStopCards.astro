@@ -1,124 +1,330 @@
 ---
 import { GRAND_PRIX_FULL_SCHEDULE, TOUR_STOP_COUNT, type SeasonStop } from '../../data/season-stops';
+import { EVENTS, getEventStatus } from '../../data/events';
 import { albumById } from '../../lib/gallery/albums';
 
-function pill(kind: SeasonStop['kind']) {
-	if (kind === 'done') return { cls: 'pill-done', label: 'Completed' };
-	if (kind === 'next') return { cls: 'pill-next', label: 'Register Now' };
-	if (kind === 'champ') return { cls: 'pill-pending', label: 'Details TBD' };
-	return { cls: 'pill-pending', label: 'Registration Pending' };
+type CardState = 'done' | 'live' | 'next' | 'upcoming' | 'champ';
+
+const now = new Date();
+const liveSlugs = new Set(EVENTS.filter((e) => getEventStatus(e, now) === 'live').map((e) => `/events/${e.slug}`));
+
+function stateOf(stop: SeasonStop): CardState {
+	if (stop.kind === 'champ') return 'champ';
+	if (stop.bracketsHref && liveSlugs.has(stop.bracketsHref.replace('#brackets', ''))) return 'live';
+	return stop.kind;
 }
 
-function registerCtaLabel(url: string): string {
-	return url.includes('r2sports.com') ? 'Register on R2' : 'Register →';
+const PILL: Record<CardState, { cls: string; label: string }> = {
+	done: { cls: 'gp-pill--done', label: 'Played' },
+	live: { cls: 'gp-pill--live', label: 'Live now' },
+	next: { cls: 'gp-pill--next', label: 'Up next' },
+	upcoming: { cls: '', label: 'Coming up' },
+	champ: { cls: 'gp-pill--champ', label: 'Finale' },
+};
+
+function lapLabel(stop: SeasonStop, index: number): string {
+	if (stop.kind === 'champ') return 'Series championship · 2027';
+	return `Lap ${index + 1} of ${TOUR_STOP_COUNT}`;
+}
+
+function isExternal(href: string): boolean {
+	return /^https?:/i.test(href);
 }
 ---
 
-<div class="tournaments-grid tournaments-grid--tiles">
+<div class="stop-cards">
 	{
 		GRAND_PRIX_FULL_SCHEDULE.map((stop, index) => {
-			const p = pill(stop.kind);
-			const isChamp = stop.kind === 'champ';
-			const badge = isChamp
-				? 'Series championship · 2027'
-				: stop.kind === 'next'
-					? `Lap ${index + 1} of ${TOUR_STOP_COUNT} · Marquee`
-					: `Lap ${index + 1} of ${TOUR_STOP_COUNT}`;
+			const state = stateOf(stop);
+			const pill = PILL[state];
+			const isChamp = state === 'champ';
 			const album = albumById(stop.id);
 			const galleryHref = album ? `/gallery?event=${album.slug}` : '/gallery';
-			const regClosed = stop.kind === 'done';
-			const regPending = stop.kind === 'upcoming';
-			const watchLiveDisabled = stop.watchLiveDisabled ?? stop.kind === 'upcoming';
+			const eventHub = stop.bracketsHref?.replace('#brackets', '');
+
+			// One primary action per state
+			let primary: { href: string; label: string } | null = null;
+			if (state === 'done' && stop.bracketsHref) primary = { href: stop.bracketsHref, label: 'Brackets & results' };
+			else if (state === 'live' && stop.bracketsHref) primary = { href: stop.bracketsHref, label: 'Live brackets' };
+			else if ((state === 'next' || state === 'upcoming') && stop.registerUrl && stop.registerUrl !== '#')
+				primary = { href: stop.registerUrl, label: 'Register on R2' };
+
+			const secondary: { href: string; label: string }[] = [];
+			if (state !== 'done' && state !== 'live' && stop.bracketsHref) secondary.push({ href: stop.bracketsHref, label: 'Brackets' });
+			if (stop.participantsHref) secondary.push({ href: stop.participantsHref, label: 'Participants' });
+			if (stop.watchLiveUrl && !stop.watchLiveDisabled && (state === 'live' || state === 'next'))
+				secondary.push({ href: stop.watchLiveUrl, label: 'Watch live' });
+			if (!isChamp) secondary.push({ href: galleryHref, label: 'Gallery' });
+			if ((state === 'done' || state === 'live') && stop.registerUrl && stop.registerUrl !== '#')
+				secondary.push({ href: stop.registerUrl, label: 'R2 page' });
+
 			return (
-				<div
-					class:list={[
-						't-card',
-						't-card--with-stop-img',
-						{ featured: stop.kind === 'next', 't-card--champ': isChamp },
-					]}
+				<article
+					class:list={['stop-card', 'gp-card', `stop-card--${state}`, { 'stop-card--champ': isChamp }]}
 					data-stop-id={stop.id}
-					style={{ '--stop-img': `url("${stop.image}")` }}
 				>
-					<div class="t-card-media" aria-hidden="true">
-						<div class="t-card-media-bg" />
-					</div>
-					<div class="t-card-head">
-						<div>
-							<div class="t-stop-badge">{badge}</div>
-							<div class="t-name">{stop.eventName}</div>
-							<div class="t-date">{stop.dateFull}</div>
-						</div>
-						<span class:list={['t-pill', p.cls]}>{p.label}</span>
-					</div>
-					<div class="t-body">
-						<div class="t-meta">
-							<div class="t-meta-item">
-								<strong>{stop.venue}</strong>Venue
-							</div>
-							<div class="t-meta-item">
-								<strong>{isChamp ? 'Season finale' : 'Grand Prix points'}</strong>
-								{isChamp ? 'Format & scoring TBD' : 'Awarded at this stop'}
-							</div>
-						</div>
-						<div class="t-actions">
-							{isChamp ? (
-								<span class="btn-register disabled" aria-disabled="true">Details TBD</span>
-							) : regClosed ? (
-								<span class="btn-register disabled">Registration Closed</span>
-							) : regPending ? (
+					<a class="stop-card-media" href={primary?.href ?? eventHub ?? '/tournaments'} tabindex="-1" aria-hidden="true">
+						<img src={stop.image} alt="" width="1376" height="768" loading="lazy" decoding="async" />
+						<span class="stop-card-media-scrim" />
+						<span class:list={['gp-pill', pill.cls, 'stop-card-pill']}>{pill.label}</span>
+					</a>
+					<div class="stop-card-body">
+						<p class="stop-card-lap">{lapLabel(stop, index)}</p>
+						<h3 class="stop-card-name">
+							{eventHub ? <a href={eventHub}>{stop.eventName}</a> : stop.eventName}
+						</h3>
+						<p class="stop-card-when">
+							<strong>{stop.dateFull.split('·')[0]?.trim()}</strong>
+							<span aria-hidden="true"> · </span>
+							{stop.cityLine}
+						</p>
+						<p class="stop-card-venue">
+							<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 18s6-5.2 6-10A6 6 0 0 0 4 8c0 4.8 6 10 6 10Z" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="8" r="2.2" stroke="currentColor" stroke-width="1.6"/></svg>
+							{stop.venue}
+						</p>
+						{stop.teaser && <p class="stop-card-teaser">{stop.teaser}</p>}
+						<div class="stop-card-actions">
+							{primary ? (
 								<a
-									href={stop.registerUrl}
-									class="btn-register-pending"
-									target="_blank"
-									rel="noopener noreferrer"
+									class="stop-card-primary"
+									href={primary.href}
+									{...(isExternal(primary.href) ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
 								>
-									View on R2
+									{primary.label}
 								</a>
 							) : (
-								<a
-									href={stop.registerUrl}
-									class="btn-register"
-									target={stop.registerUrl.startsWith('http') ? '_blank' : undefined}
-									rel={stop.registerUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
-								>
-									{registerCtaLabel(stop.registerUrl)}
-								</a>
+								<span class="stop-card-primary stop-card-primary--disabled" aria-disabled="true">
+									{isChamp ? 'Details to be announced' : 'Details coming soon'}
+								</span>
 							)}
-							{stop.watchLiveUrl && !isChamp && !regClosed ? (
-								watchLiveDisabled ? (
-									<span class="btn-watch-live disabled" aria-disabled="true">Watch live</span>
-								) : (
-									<a
-										href={stop.watchLiveUrl}
-										class="btn-watch-live"
-										target="_blank"
-										rel="noopener noreferrer"
-									>
-										Watch live
-									</a>
-								)
-							) : null}
-							{stop.bracketsHref ? (
-								<a href={stop.bracketsHref} class="btn-brackets">
-									Brackets
-								</a>
-							) : (
-								<span class="btn-brackets disabled" aria-disabled="true">Brackets</span>
+							{secondary.length > 0 && (
+								<div class="stop-card-links">
+									{secondary.map((l) => (
+										<a
+											class="gp-link stop-card-link"
+											href={l.href}
+											{...(isExternal(l.href) ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+										>
+											{l.label}
+										</a>
+									))}
+								</div>
 							)}
-							{stop.participantsHref ? (
-								<a href={stop.participantsHref} class="btn-participants">
-									Participants
-								</a>
-							) : (
-								<span class="btn-participants disabled" aria-disabled="true">Participants</span>
-							)}
-							<a href={galleryHref} class="btn-gallery">
-								Gallery
-							</a>
 						</div>
+						{stop.photoCredit && <p class="stop-card-credit">{stop.photoCredit}</p>}
 					</div>
-				</div>
+				</article>
 			);
 		})
 	}
 </div>
+
+<style>
+.stop-cards {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 20px;
+}
+.stop-card {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	transition: transform 0.18s, border-color 0.18s;
+}
+.stop-card:hover {
+	transform: translateY(-3px);
+	border-color: rgba(255, 255, 255, 0.22);
+}
+.stop-card--next {
+	border-color: rgba(240, 90, 26, 0.5);
+}
+.stop-card--live {
+	border-color: var(--orange);
+	box-shadow: 0 0 0 4px rgba(240, 90, 26, 0.16);
+}
+.stop-card--champ {
+	grid-column: 1 / -1;
+	flex-direction: row;
+}
+.stop-card-media {
+	position: relative;
+	display: block;
+	aspect-ratio: 16 / 9;
+	overflow: hidden;
+	background: var(--navy3);
+}
+.stop-card--champ .stop-card-media {
+	flex: 0 0 42%;
+	aspect-ratio: auto;
+	min-height: 240px;
+}
+.stop-card-media img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+	transition: transform 0.4s ease;
+}
+.stop-card:hover .stop-card-media img {
+	transform: scale(1.04);
+}
+.stop-card--done .stop-card-media img {
+	filter: saturate(0.8);
+}
+.stop-card-media-scrim {
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(180deg, rgba(10, 22, 40, 0.05) 40%, rgba(10, 22, 40, 0.75) 100%);
+}
+.stop-card-pill {
+	position: absolute;
+	top: 14px;
+	left: 14px;
+}
+.stop-card-body {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 20px 22px 20px;
+	flex: 1;
+}
+.stop-card-lap {
+	margin: 0;
+	font-family: 'Barlow Condensed', sans-serif;
+	font-weight: 700;
+	font-size: 12.5px;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+.stop-card--done .stop-card-lap { color: var(--green); }
+.stop-card--next .stop-card-lap,
+.stop-card--live .stop-card-lap { color: var(--orange2); }
+.stop-card--champ .stop-card-lap { color: #ffd166; }
+.stop-card-name {
+	margin: 0;
+	font-family: 'Barlow Condensed', sans-serif;
+	font-weight: 900;
+	font-size: clamp(26px, 2.4vw, 34px);
+	line-height: 1;
+	text-transform: uppercase;
+}
+.stop-card-name a {
+	color: #fff;
+	text-decoration: none;
+}
+.stop-card-name a:hover {
+	color: var(--orange2);
+}
+.stop-card-when {
+	margin: 2px 0 0;
+	font-size: 15.5px;
+	color: rgba(255, 255, 255, 0.75);
+}
+.stop-card-when strong {
+	color: #fff;
+	font-weight: 600;
+}
+.stop-card-venue {
+	margin: 0;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 14px;
+	color: var(--muted);
+}
+.stop-card-venue svg {
+	width: 15px;
+	height: 15px;
+	flex-shrink: 0;
+}
+.stop-card-teaser {
+	margin: 8px 0 0;
+	font-size: 15px;
+	line-height: 1.55;
+	color: rgba(255, 255, 255, 0.7);
+}
+.stop-card-actions {
+	margin-top: auto;
+	padding-top: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+.stop-card-primary {
+	align-self: flex-start;
+	font-family: 'Barlow Condensed', sans-serif;
+	font-weight: 700;
+	font-size: 16px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	padding: 12px 22px;
+	border-radius: 8px;
+	background: var(--orange);
+	color: #fff;
+	text-decoration: none;
+	transition: background 0.15s, transform 0.15s;
+}
+.stop-card-primary:hover {
+	background: var(--orange2);
+	transform: translateY(-1px);
+}
+.stop-card--done .stop-card-primary {
+	background: transparent;
+	border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.stop-card--done .stop-card-primary:hover {
+	border-color: #fff;
+	background: rgba(255, 255, 255, 0.06);
+}
+.stop-card-primary--disabled {
+	background: rgba(255, 255, 255, 0.06);
+	color: var(--muted);
+	cursor: default;
+	border: 1px solid var(--card-border);
+}
+.stop-card-primary--disabled:hover {
+	background: rgba(255, 255, 255, 0.06);
+	transform: none;
+}
+.stop-card-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 18px;
+}
+.stop-card-link {
+	font-size: 14px;
+	color: rgba(255, 255, 255, 0.72);
+}
+.stop-card-link:hover {
+	color: var(--orange2);
+}
+.stop-card-credit {
+	margin: 14px 0 0;
+	font-size: 11px;
+	line-height: 1.4;
+	color: rgba(255, 255, 255, 0.35);
+}
+@media (max-width: 900px) {
+	.stop-cards {
+		grid-template-columns: 1fr;
+	}
+	.stop-card--champ {
+		flex-direction: column;
+	}
+	.stop-card--champ .stop-card-media {
+		flex: none;
+		aspect-ratio: 16 / 9;
+		min-height: 0;
+	}
+}
+@media (max-width: 640px) {
+	.stop-card-body {
+		padding: 16px 16px 18px;
+	}
+	.stop-card-primary {
+		align-self: stretch;
+		text-align: center;
+	}
+}
+</style>

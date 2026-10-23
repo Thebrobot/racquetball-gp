@@ -12,7 +12,7 @@ const liveWeekendPayload = EVENTS.map((e) => ({
 }));
 ---
 
-<script type="application/json" id="gp-live-weekend-data">{JSON.stringify(liveWeekendPayload)}</script>
+<script type="application/json" id="gp-live-weekend-data" set:html={JSON.stringify(liveWeekendPayload)} />
 <aside
 	class="gp-live-weekend-promo"
 	id="gp-live-weekend-promo"
