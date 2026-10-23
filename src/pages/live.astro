@@ -33,6 +33,16 @@ try {
 Astro.response.headers.set('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=60');
 
 const event = EVENTS.find((e) => e.slug === feed.eventSlug);
+function dayLabel(iso: string): string {
+	return new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/New_York', weekday: 'long', month: 'long', day: 'numeric' });
+}
+const days: { label: string; items: typeof feed.events }[] = [];
+for (const item of feed.events) {
+	const label = dayLabel(item.at);
+	const last = days[days.length - 1];
+	if (last && last.label === label) last.items.push(item);
+	else days.push({ label, items: [item] });
+}
 const eventName = event?.name ?? 'Ocala Open';
 const eventDateRange = event?.dateRange ?? '';
 const eventHub = event ? `/events/${event.slug}` : '/tournaments';
@@ -76,7 +86,7 @@ function formatSyncedAt(iso: string | null): string {
 	<section class="gp-band live-feed-section live-band" aria-labelledby="live-feed-heading">
 		<div class="gp-band-inner">
 			<div class="live-band-head">
-				<h2 id="live-feed-heading" class="live-band-title">Recent bracket activity</h2>
+				<h2 id="live-feed-heading" class="live-band-title">Results log</h2>
 				<div class="live-band-links">
 					<a class="gp-link" href={`${eventHub}#brackets`}>Brackets →</a>
 					<a class="gp-link gp-link--muted" href={`${eventHub}#participants`}>Participants →</a>
@@ -89,18 +99,26 @@ function formatSyncedAt(iso: string | null): string {
 						Waiting for bracket updates… Check back during match play.
 					</p>
 				) : (
-					feed.events.map((item, i) => (
-						<article class:list={['live-feed-card', { 'live-feed-card--fresh': i === 0 }]} data-at={item.at} data-id={item.id}>
-							<time class="live-feed-time" datetime={item.at} data-live-time={item.at}>
-								{item.at}
-							</time>
-							<p class="live-feed-division">{item.divisionLabel}</p>
-							<h3 class="live-feed-headline">{item.headline}</h3>
-							{item.detail && <p class="live-feed-detail">{item.detail}</p>}
-							<a class="live-feed-link" href={item.bracketHref}>
-								View bracket →
-							</a>
-						</article>
+					days.map((day, d) => (
+						<section class="live-feed-day">
+							<h3 class="live-feed-day-head">
+								<span>{day.label}</span>
+								<span class="live-feed-day-count">{day.items.length} {day.items.length === 1 ? 'result' : 'results'}</span>
+							</h3>
+							{day.items.map((item, i) => (
+								<article class:list={['live-feed-card', { 'live-feed-card--fresh': d === 0 && i === 0 }]} data-at={item.at} data-id={item.id}>
+									<time class="live-feed-time" datetime={item.at} data-live-time={item.at}>
+										{item.at}
+									</time>
+									<p class="live-feed-division">{item.divisionLabel}</p>
+									<h3 class="live-feed-headline">{item.headline}</h3>
+									{item.detail && <p class="live-feed-detail">{item.detail}</p>}
+									<a class="live-feed-link" href={item.bracketHref}>
+										View bracket →
+									</a>
+								</article>
+							))}
+						</section>
 					))
 				)}
 			</div>
