@@ -1,8 +1,9 @@
 /**
  * Combine the draw page and the per-match page into a publishable result.
- * The match page winner badge is required to publish a winner. Draw signals
- * (same-box border, RR "- W", later-round advancement) may only confirm or
- * quarantine — they never assign a winner on their own.
+ * The match page winner badge is the normal source. Draw signals (same-box
+ * border, RR "- W") may confirm, quarantine, or — only when the match page
+ * HTML has no versus/result markup — supply that match's own winner+score.
+ * Later-round advancement never assigns a winner.
  */
 import { matchWinnerSide, scoresEqual } from './r2-names';
 import type { ParsedMatchPage } from './parse-match-page';
@@ -34,6 +35,17 @@ function pickSchedule(draw: ParsedDrawMatch, page?: ParsedMatchPage | null): { c
 	return out;
 }
 
+/** Own-box draw result only — never later-round advancement. */
+export function ownDrawFinal(draw: ParsedDrawMatch): { winner: 1 | 2; score: string } | null {
+	if (!draw.drawScore) return null;
+	if (draw.drawWinnerSource !== 'box-border' && draw.drawWinnerSource !== 'round-robin-w') return null;
+	const named = draw.drawWinnerName ? matchWinnerSide(draw.drawWinnerName, draw.player1, draw.player2) : null;
+	const winner = named ?? draw.drawWinner ?? null;
+	if (winner !== 1 && winner !== 2) return null;
+	if (draw.drawWinner != null && draw.drawWinner !== winner) return null;
+	return { winner, score: draw.drawScore };
+}
+
 function advancementSides(
 	advancements: DrawAdvancement[],
 	player1: string | null | undefined,
@@ -61,6 +73,14 @@ export function resolveMatchResult(input: ResolveInput): ResolveOutput {
 		resolved: Boolean(page),
 		quarantine: { matchId, divisionId, reason },
 	});
+
+	const missingMarkup = /missing versus\/result markup/i.test(pageError ?? '');
+	if (missingMarkup) {
+		const own = ownDrawFinal(draw);
+		if (own) {
+			return { record: { ...base, winner: own.winner, score: own.score }, resolved: true };
+		}
+	}
 
 	if (pageError && drawLooksFinished) {
 		return q(`match page unavailable: ${pageError}`);
