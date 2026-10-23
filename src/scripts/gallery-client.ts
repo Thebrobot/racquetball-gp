@@ -10,7 +10,6 @@ declare global {
 
 const ROW = 8;
 const GAP = 4;
-const LIKE_KEY = 'gp-gallery-likes';
 
 type SortKey = 'newest' | 'oldest' | 'liked';
 type LikeStore = { counts: Record<string, number>; liked: string[] };
@@ -29,26 +28,6 @@ function escapeHtml(s: string): string {
 		.replace(/</g, '&lt;')
 		.replace(/>/g, '&gt;')
 		.replace(/"/g, '&quot;');
-}
-
-function loadLikes(): LikeStore {
-	try {
-		const raw = JSON.parse(localStorage.getItem(LIKE_KEY) || '') as LikeStore;
-		return {
-			counts: raw?.counts && typeof raw.counts === 'object' ? raw.counts : {},
-			liked: Array.isArray(raw?.liked) ? raw.liked.filter((id) => typeof id === 'string') : [],
-		};
-	} catch {
-		return { counts: {}, liked: [] };
-	}
-}
-
-function saveLikes(store: LikeStore): void {
-	try {
-		localStorage.setItem(LIKE_KEY, JSON.stringify(store));
-	} catch {
-		/* private mode */
-	}
 }
 
 function columnCount(): number {
@@ -106,7 +85,49 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 	if (!grid || !lightbox || !lbImg) return;
 
 	const isBrowse = config.mode !== 'collection';
-	const likeStore = loadLikes();
+	const likeStore: LikeStore = {
+		counts: Object.fromEntries(Object.entries(config.stats ?? {}).map(([id, st]) => [id, st.likes])),
+		liked: [...(config.likedIds ?? [])],
+	};
+	const viewCounts: Record<string, number> = Object.fromEntries(
+		Object.entries(config.stats ?? {}).map(([id, st]) => [id, st.views]),
+	);
+	const viewedThisSession = new Set<string>();
+
+	function recordView(photo: GalleryPhoto): void {
+		if (viewedThisSession.has(photo.id)) return;
+		viewedThisSession.add(photo.id);
+		viewCounts[photo.id] = (viewCounts[photo.id] ?? 0) + 1;
+		void fetch('/api/photos/view', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ photoId: photo.id }),
+			keepalive: true,
+		}).catch(() => undefined);
+	}
+
+	function photoIdFromUrl(url: string): string | null {
+		try {
+			const u = new URL(url, config.siteOrigin);
+			const fromQuery = u.searchParams.get('photo');
+			if (fromQuery) return fromQuery;
+			const m = u.pathname.match(/\/gallery\/p\/([A-Za-z0-9_-]+)/);
+			return m?.[1] ?? null;
+		} catch {
+			return null;
+		}
+	}
+
+	function recordShare(urlOrId: string, channel: string): void {
+		const photoId = /^[A-Za-z0-9_-]{4,80}$/.test(urlOrId) && !urlOrId.includes('/') ? urlOrId : photoIdFromUrl(urlOrId);
+		if (!photoId) return;
+		void fetch('/api/photos/share', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ photoId, channel }),
+			keepalive: true,
+		}).catch(() => undefined);
+	}
 
 	let albumId = albumIdFromUrl();
 	let sort: SortKey = 'newest';
@@ -167,9 +188,15 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 	}
 
 	function toggleLike(photo: GalleryPhoto): void {
+		if (!config.signedIn) {
+			const next = `${window.location.pathname}${window.location.search}`;
+			window.location.href = `/account?next=${encodeURIComponent(next)}`;
+			return;
+		}
 		const liked = new Set(likeStore.liked);
 		const current = countFor(photo);
-		if (liked.has(photo.id)) {
+		const wasLiked = liked.has(photo.id);
+		if (wasLiked) {
 			liked.delete(photo.id);
 			likeStore.counts[photo.id] = Math.max(0, current - 1);
 		} else {
@@ -177,7 +204,39 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 			likeStore.counts[photo.id] = current + 1;
 		}
 		likeStore.liked = [...liked];
-		saveLikes(likeStore);
+		void fetch('/api/photos/like', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ photoId: photo.id }),
+		})
+			.then(async (res) => {
+				if (res.status === 401) {
+					window.location.href = `/account?next=${encodeURIComponent(window.location.pathname)}`;
+					return;
+				}
+				if (!res.ok) throw new Error('like failed');
+				const data = (await res.json()) as { liked: boolean; likes: number };
+				likeStore.counts[photo.id] = data.likes;
+				const set = new Set(likeStore.liked);
+				if (data.liked) set.add(photo.id);
+				else set.delete(photo.id);
+				likeStore.liked = [...set];
+			})
+			.catch(() => {
+				// Roll back the optimistic change.
+				const set = new Set(likeStore.liked);
+				if (wasLiked) set.add(photo.id);
+				else set.delete(photo.id);
+				likeStore.liked = [...set];
+				likeStore.counts[photo.id] = current;
+			})
+			.finally(() => {
+				syncLbLike(photo);
+				const tileBtn = grid.querySelector<HTMLElement>(
+					`.gallery-tile[data-id="${CSS.escape(photo.id)}"] [data-act="like"]`,
+				);
+				if (tileBtn) paintLike(tileBtn, photo);
+			});
 	}
 
 	function yearOf(photo: GalleryPhoto): number {
@@ -595,6 +654,11 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		lbLike.classList.toggle('is-liked', liked);
 		lbLike.setAttribute('aria-pressed', liked ? 'true' : 'false');
 		lbLike.textContent = liked ? `Liked ${likes}` : `Like ${likes}`;
+		const viewsEl = document.getElementById('gallery-lb-views');
+		if (viewsEl) {
+			const views = viewCounts[photo.id] ?? 0;
+			viewsEl.textContent = views > 0 ? `${views.toLocaleString('en-US')} ${views === 1 ? 'view' : 'views'}` : '';
+		}
 	}
 
 	function applyLike(photo: GalleryPhoto): void {
@@ -670,6 +734,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 	}
 
 	async function downloadPhoto(photo: GalleryPhoto): Promise<void> {
+		recordShare(photo.id, 'download');
 		let revoke = () => {};
 		try {
 			const [photoImage, gpMark, creditMark] = await Promise.all([
@@ -713,6 +778,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		lbImg.alt = altText(photo);
 		if (lbCaption) lbCaption.textContent = captionText(photo);
 		syncLbLike(photo);
+		recordView(photo);
 		lightbox.hidden = false;
 		lightbox.setAttribute('aria-hidden', 'false');
 		document.body.classList.add('gallery-lb-open');
@@ -789,6 +855,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		if (typeof navigator.share === 'function') {
 			try {
 				await navigator.share({ url });
+				recordShare(url, 'native');
 				return;
 			} catch (err) {
 				if (isAbort(err)) return;
@@ -839,6 +906,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 				return;
 			}
 			if (kind === 'copy') {
+				recordShare(url, 'copy');
 				await navigator.clipboard.writeText(url);
 				target.textContent = 'Copied!';
 				window.setTimeout(() => {
@@ -848,6 +916,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 				return;
 			}
 			if (kind === 'facebook') {
+				recordShare(url, 'facebook');
 				window.open(
 					`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
 					'_blank',
@@ -855,6 +924,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 				);
 			}
 			if (kind === 'x') {
+				recordShare(url, 'x');
 				window.open(
 					`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
 					'_blank',

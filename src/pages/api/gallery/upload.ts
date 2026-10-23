@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import type { APIRoute } from 'astro';
 import { put } from '@vercel/blob';
 import { isValidAlbumId } from '../../../lib/gallery/albums';
-import { isGalleryAuthenticated } from '../../../lib/gallery/auth';
+import { isGalleryAuthorized } from '../../../lib/gallery/auth';
 import { readImageSize } from '../../../lib/gallery/image-size';
 import { addPhoto } from '../../../lib/gallery/store';
 import type { GalleryPhoto } from '../../../lib/gallery/types';
@@ -23,8 +23,8 @@ function extFor(type: string, name: string): string {
 	return 'jpg';
 }
 
-export const POST: APIRoute = async ({ request }) => {
-	if (!isGalleryAuthenticated(request)) {
+export const POST: APIRoute = async ({ request, cookies }) => {
+	if (!(await isGalleryAuthorized(request, cookies))) {
 		return new Response(JSON.stringify({ error: 'Unauthorized.' }), {
 			status: 401,
 			headers: { 'Content-Type': 'application/json' },

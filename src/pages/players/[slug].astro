@@ -86,7 +86,7 @@ function ordinal(n: number): string {
 		<div class="gp-page-head-inner gp-page-head-inner--split player-head-inner">
 			<div class="player-head-copy">
 				<p class="section-label">Player profile</p>
-				<h1 class="gp-title player-head-name">{player.name}</h1>
+				<h1 class="gp-title player-head-name">{player.name} <span class="player-verified" id="player-verified" data-slug={player.slug} hidden title="This player has claimed their profile">✓ Verified</span></h1>
 				{player.city && <p class="gp-sub player-head-city">{player.city}</p>}
 				<p class="player-bio player-head-bio">{bio}</p>
 				{(player.divisions ?? []).length > 0 && (
@@ -444,6 +444,20 @@ function ordinal(n: number): string {
 	</section>
 </GrandPrixLayout>
 
+<script>
+	// Verified badge: profiles are prerendered, so ask the server whether this slug is claimed.
+	const badge = document.getElementById('player-verified');
+	const slug = badge?.getAttribute('data-slug');
+	if (badge && slug) {
+		fetch(`/api/players/verified?slug=${encodeURIComponent(slug)}`)
+			.then((r) => (r.ok ? r.json() : null))
+			.then((d) => {
+				if (d?.verified) badge.hidden = false;
+			})
+			.catch(() => undefined);
+	}
+</script>
+
 <script type="application/ld+json" set:html={JSON.stringify({
 	"@context": "https://schema.org",
 	"@type": "Person",
@@ -615,4 +629,10 @@ function ordinal(n: number): string {
 		justify-content: flex-start;
 	}
 }
+	.player-verified {
+		display: inline-flex; align-items: center; vertical-align: middle;
+		font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 0.26em; letter-spacing: 0.12em;
+		color: var(--green); background: rgba(132, 204, 22, 0.12); border: 1px solid rgba(132, 204, 22, 0.4);
+		border-radius: 999px; padding: 4px 10px; margin-left: 8px; text-transform: uppercase;
+	}
 </style>

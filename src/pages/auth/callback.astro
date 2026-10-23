@@ -1,0 +1,59 @@
+---
+/**
+ * Magic-link landing. Handles both link styles Supabase can send:
+ * `?code=` (PKCE, same browser) and `?token_hash=&type=` (works across devices).
+ */
+import { createSessionClient } from '../../lib/accounts/supabase';
+
+export const prerender = false;
+
+const client = createSessionClient(Astro.request, Astro.cookies);
+const params = Astro.url.searchParams;
+let next = params.get('next') ?? '/account';
+if (!next.startsWith('/') || next.startsWith('//')) next = '/account';
+
+let errorMessage: string;
+if (!client) {
+	errorMessage = 'Accounts are not set up yet.';
+} else {
+	const code = params.get('code');
+	const tokenHash = params.get('token_hash');
+	const type = params.get('type');
+	if (code) {
+		const { error } = await client.auth.exchangeCodeForSession(code);
+		if (!error) return Astro.redirect(next, 303);
+		errorMessage = 'That sign-in link has expired or was already used.';
+	} else if (tokenHash && type) {
+		const { error } = await client.auth.verifyOtp({
+			token_hash: tokenHash,
+			type: type as 'magiclink' | 'email' | 'signup' | 'recovery' | 'invite' | 'email_change',
+		});
+		if (!error) return Astro.redirect(next, 303);
+		errorMessage = 'That sign-in link has expired or was already used.';
+	} else {
+		errorMessage = params.get('error_description') ?? 'Missing sign-in code.';
+	}
+}
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="robots" content="noindex" />
+		<title>Sign in | Florida Racquetball Grand Prix</title>
+		<style>
+			body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #0a1628; color: #fff; font-family: system-ui, sans-serif; }
+			main { max-width: 420px; padding: 32px; text-align: center; }
+			a { color: #ff7a3d; }
+		</style>
+	</head>
+	<body>
+		<main>
+			<h1>Sign-in link problem</h1>
+			<p>{errorMessage}</p>
+			<p><a href="/account">Request a new link</a></p>
+		</main>
+	</body>
+</html>

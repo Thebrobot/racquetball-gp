@@ -4,6 +4,8 @@ import { GALLERY_ALBUMS, albumLabel } from '../../../lib/gallery/albums';
 import { getPhotoById, readGalleryIndex } from '../../../lib/gallery/store';
 import type { GalleryClientConfig } from '../../../lib/gallery/types';
 
+import { getGallerySocial } from '../../../lib/accounts/photo-stats';
+
 export const prerender = false;
 
 const { id } = Astro.params;
@@ -20,7 +22,9 @@ const description = `${titleBit} — Florida Racquetball Grand Prix 2026 photo g
 // Same-origin preview URL — Messages/Facebook often ignore cross-origin Blob og:image
 const ogImage = `${siteOrigin}/api/gallery/og/${photo.id}`;
 
+const social = await getGallerySocial(Astro.request, Astro.cookies);
 const clientConfig: GalleryClientConfig = {
+	...social,
 	photos: index.photos.filter((p) => p.album === photo.album),
 	albums: GALLERY_ALBUMS,
 	initialOpenId: photo.id,
@@ -81,6 +85,7 @@ const clientConfig: GalleryClientConfig = {
 	>
 		<div class="gallery-lb-top">
 			<button type="button" class="gallery-lb-like" id="gallery-lb-like" aria-pressed="false">Like</button>
+			<span class="gallery-lb-views" id="gallery-lb-views" aria-live="polite"></span>
 			<button type="button" class="gallery-lb-download" id="gallery-lb-download">Download</button>
 			<button type="button" class="gallery-lb-share" id="gallery-lb-share">Share</button>
 			<button type="button" class="gallery-lb-close" id="gallery-lb-close" aria-label="Close">×</button>

@@ -1,11 +1,11 @@
 import type { APIRoute } from 'astro';
-import { isGalleryAuthenticated } from '../../../lib/gallery/auth';
+import { isGalleryAuthorized } from '../../../lib/gallery/auth';
 import { removePhoto } from '../../../lib/gallery/store';
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request }) => {
-	if (!isGalleryAuthenticated(request)) {
+export const POST: APIRoute = async ({ request, cookies }) => {
+	if (!(await isGalleryAuthorized(request, cookies))) {
 		return new Response(JSON.stringify({ error: 'Unauthorized.' }), {
 			status: 401,
 			headers: { 'Content-Type': 'application/json' },

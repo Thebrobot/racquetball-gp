@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { APIRoute } from 'astro';
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { isValidAlbumId } from '../../../lib/gallery/albums';
-import { isGalleryAuthenticated } from '../../../lib/gallery/auth';
+import { isGalleryAuthorized } from '../../../lib/gallery/auth';
 
 export const prerender = false;
 
@@ -29,8 +29,8 @@ function parseMeta(raw: string | null | undefined): UploadMeta | null {
 	}
 }
 
-export const POST: APIRoute = async ({ request }) => {
-	if (!isGalleryAuthenticated(request)) {
+export const POST: APIRoute = async ({ request, cookies }) => {
+	if (!(await isGalleryAuthorized(request, cookies))) {
 		return new Response(JSON.stringify({ error: 'Unauthorized.' }), {
 			status: 401,
 			headers: { 'Content-Type': 'application/json' },

@@ -1,14 +1,14 @@
 import type { APIRoute } from 'astro';
 import { albumLabel, isValidAlbumId } from '../../../lib/gallery/albums';
-import { isGalleryAuthenticated } from '../../../lib/gallery/auth';
+import { isGalleryAuthorized } from '../../../lib/gallery/auth';
 import { asPositiveInt } from '../../../lib/gallery/image-size';
 import { addPhoto } from '../../../lib/gallery/store';
 
 export const prerender = false;
 
 /** Register a photo in the gallery index after a client-side Blob upload. */
-export const POST: APIRoute = async ({ request }) => {
-	if (!isGalleryAuthenticated(request)) {
+export const POST: APIRoute = async ({ request, cookies }) => {
+	if (!(await isGalleryAuthorized(request, cookies))) {
 		return new Response(JSON.stringify({ error: 'Unauthorized.' }), {
 			status: 401,
 			headers: { 'Content-Type': 'application/json' },
