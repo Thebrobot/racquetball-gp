@@ -29,9 +29,21 @@ function textOf(el: DomEl | null | undefined): string {
 }
 
 const WINNER_LABEL = /(?:✓|✔|√|&#10003;|&#10004;)\s*Winner|\bWinner\b/i;
+const WINNER_CHECK = /(?:✓|✔|√|&#10003;|&#10004;)\s*Winner/i;
+const WINNER_MARK_IN_HTML = /r2p-side-winner|r2p-winner-badge|✓\s*Winner|&#10003;\s*Winner/i;
+const VERSUS_SIDE_OPEN = /<div[^>]*class=['"][^'"]*r2p-versus-side[^'"]*['"][^>]*>/gi;
+const VERSUS_CHIP = /<div[^>]*class=['"][^'"]*r2p-versus-chip[^'"]*['"][^>]*>[\s\S]*?<\/div>/i;
 
 function classAttr(el: DomEl | null | undefined): string {
 	return el?.getAttribute?.('class') ?? '';
+}
+
+function namesFromChunk(inner: string): string | null {
+	const parts = [...inner.matchAll(/<(?:a|span)[^>]*>([^<]+)<\//gi)]
+		.map((m) => cleanPlayerName(m[1] ?? ''))
+		.filter((n) => n.length >= 2 && !WINNER_LABEL.test(n));
+	const joined = parts.join(' / ') || cleanPlayerName(inner.replace(/<[^>]+>/g, ' '));
+	return joined || null;
 }
 
 function sideName(side: DomEl | null): string | null {
@@ -46,15 +58,17 @@ function sideName(side: DomEl | null): string | null {
 }
 
 export function extractMatchScore(text: string): string | null {
-	const t = String(text ?? '');
+	const t = String(text ?? '').replace(/\s+/g, ' ').trim();
+	const games = t.match(/\d{1,3}[-–]\d{1,3}(?:[,\s]+\d{1,3}[-–]\d{1,3})*/);
+	const winByForfeit = /\bWin by forfeit\b/i.test(t);
 	const wbf = t.match(/WBF(?:\s*[-–]\s*(?:No\s*Show|Forfeit|[A-Za-z][A-Za-z .]{0,24}))?/i);
-	if (wbf) return wbf[0].replace(/\s+/g, ' ').trim();
-	const noShow = t.match(/\bNo\s*Show\b/i);
-	if (noShow) return 'WBF - No Show';
-	const forfeit = t.match(/\bForfeit\b/i);
-	if (forfeit) return 'Forfeit';
-	const m = t.match(/\d{1,3}[-–]\d{1,3}(?:[,\s]+\d{1,3}[-–]\d{1,3})*/);
-	return m ? formatScore(m[0]) : null;
+	if (games && winByForfeit) return `${formatScore(games[0]!)}, Win by forfeit`;
+	if (wbf && !games) return wbf[0]!.replace(/\s+/g, ' ').trim();
+	if (games) return formatScore(games[0]!);
+	if (winByForfeit) return 'Win by forfeit';
+	if (/\bNo\s*Show\b/i.test(t)) return 'WBF - No Show';
+	if (/\bForfeit\b/i.test(t)) return 'Win by forfeit';
+	return null;
 }
 
 function sideHasWinnerLabel(side: DomEl): boolean {
@@ -64,26 +78,72 @@ function sideHasWinnerLabel(side: DomEl): boolean {
 	if (side.querySelector('.r2p-winner-badge')) return true;
 	const heading = side.querySelector('.r2p-side-heading');
 	if (heading && WINNER_LABEL.test(textOf(heading))) return true;
-	return WINNER_LABEL.test(textOf(side.querySelector('.r2p-winner-badge')));
+	if (WINNER_LABEL.test(textOf(side.querySelector('.r2p-winner-badge')))) return true;
+	// Player-2 winners put ✓ Winner on the side after VS; read the side text too.
+	return WINNER_CHECK.test(textOf(side));
 }
 
-function parseWinnerFromRawHtml(html: string): { winnerName: string | null; ambiguous: boolean } {
-	const blocks = [...html.matchAll(/<div[^>]*class=['"][^'"]*r2p-versus-side[^'"]*['"][^>]*>[\s\S]*?(?=<div[^>]*class=['"][^'"]*r2p-versus-side|<\/div>\s*<div class="r2p-versus-chip"|<div class="r2p-match-result")/gi)];
-	const marked: string[] = [];
-	for (const block of blocks) {
-		const chunk = block[0] ?? '';
-		if (!/r2p-side-winner|r2p-winner-badge|✓\s*Winner|&#10003;\s*Winner/i.test(chunk)) continue;
-		const names = chunk.match(/r2p-side-names['"][^>]*>([\s\S]*?)<\/div>/i);
-		const inner = names?.[1] ?? '';
-		const parts = [...inner.matchAll(/<(?:a|span)[^>]*>([^<]+)<\//gi)]
-			.map((m) => cleanPlayerName(m[1] ?? ''))
-			.filter((n) => n.length >= 2 && !WINNER_LABEL.test(n));
-		const joined = parts.join(' / ') || cleanPlayerName(inner.replace(/<[^>]+>/g, ' '));
-		if (joined) marked.push(joined);
+function lastVersusChunk(html: string): string | null {
+	const opens = [...html.matchAll(new RegExp(VERSUS_SIDE_OPEN.source, 'gi'))];
+	const last = opens[opens.length - 1];
+	if (!last || last.index == null) return null;
+	return html.slice(last.index);
+}
+
+function firstVersusChunk(html: string): string | null {
+	const open = new RegExp(VERSUS_SIDE_OPEN.source, 'i').exec(html);
+	if (!open || open.index == null) return null;
+	return html.slice(open.index);
+}
+
+/** Each versus card, including the side after the VS chip (player 2). */
+function versusSideChunks(html: string): string[] {
+	const parts = html.split(VERSUS_CHIP);
+	if (parts.length >= 2) {
+		const left = lastVersusChunk(parts[0] ?? '');
+		const right = firstVersusChunk(parts.slice(1).join('\n'));
+		const sides = [left, right].filter((s): s is string => Boolean(s));
+		if (sides.length) return sides;
 	}
-	if (marked.length > 1) return { winnerName: null, ambiguous: true };
-	if (marked.length === 1 && isPlayerName(marked[0]!)) return { winnerName: marked[0]!, ambiguous: false };
+	return [...html.matchAll(new RegExp(VERSUS_SIDE_OPEN.source, 'gi'))]
+		.map((m) => (m.index == null ? null : html.slice(m.index)))
+		.filter((s): s is string => Boolean(s));
+}
+
+function nameFromSideChunk(chunk: string): string | null {
+	const names = chunk.match(/r2p-side-names['"][^>]*>([\s\S]*?)<\/div>/i);
+	return namesFromChunk(names?.[1] ?? '');
+}
+
+function chunkHasWinner(chunk: string): boolean {
+	return WINNER_MARK_IN_HTML.test(chunk) || WINNER_CHECK.test(chunk);
+}
+
+/** Pull the ✓ Winner side from raw HTML so linkedom class bugs cannot hide it. */
+export function winnerNameFromHtml(html: string): { winnerName: string | null; ambiguous: boolean } {
+	const marked = versusSideChunks(html)
+		.filter(chunkHasWinner)
+		.map(nameFromSideChunk)
+		.filter((n): n is string => Boolean(n) && isPlayerName(n));
+	const unique = [...new Set(marked)];
+	if (unique.length > 1) return { winnerName: null, ambiguous: true };
+	if (unique.length === 1) return { winnerName: unique[0]!, ambiguous: false };
+
+	// Badge-first: names follow ✓ Winner, including when that badge is after VS.
+	const badge = html.match(
+		/(?:r2p-winner-badge[^>]*>[\s\S]{0,160}?(?:✓|✔|√|&#10003;|&#10004;)\s*Winner|(?:✓|✔|√|&#10003;|&#10004;)\s*Winner)[\s\S]{0,500}?r2p-side-names['"][^>]*>([\s\S]*?)<\/div>/i,
+	);
+	const joined = namesFromChunk(badge?.[1] ?? '');
+	if (joined && isPlayerName(joined)) return { winnerName: joined, ambiguous: false };
 	return { winnerName: null, ambiguous: false };
+}
+
+export function htmlLooksLikeMatchPage(html: string): boolean {
+	return /r2p-versus-side|r2p-versus-grid|r2p-match-result/i.test(html);
+}
+
+export function htmlHasWinnerMark(html: string): boolean {
+	return WINNER_MARK_IN_HTML.test(html);
 }
 
 export type ParsedMatchPage = {
@@ -120,8 +180,10 @@ export function parseMatchPage(html: string): ParsedMatchPage {
 			ambiguous = true;
 			winnerName = null;
 		}
-	} else {
-		const raw = parseWinnerFromRawHtml(html);
+	}
+
+	if (!winnerName && !ambiguous) {
+		const raw = winnerNameFromHtml(html);
 		winnerName = raw.winnerName;
 		ambiguous = raw.ambiguous;
 	}

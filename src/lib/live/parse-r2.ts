@@ -120,7 +120,12 @@ function nameScorePairs(box: DomEl): NameScore[] {
 export function extractSingleElimFromHtml(html: string): DrawPageParse {
 	const document = asDoc(html);
 	const allTables = Array.from(document.querySelectorAll('table'));
-	const matchBoxes = allTables.filter((t) => t.querySelector('a[href*="viewAppMatch"]'));
+	// Innermost boxes only — a parent table lists several match codes and its
+	// first viewAppMatch() is the wrong numeric id for later-round matches.
+	const matchBoxes = allTables.filter((t) => {
+		const links = t.querySelectorAll('a[href*="viewAppMatch"]');
+		return links.length === 1;
+	});
 	const matches: Record<string, ParsedDrawMatch> = {};
 	const feederScores: NameScore[] = [];
 
