@@ -10,6 +10,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 	const form = await request.formData();
 	const notifyEmail = form.get('notify_email') === 'on';
 	const marketing = form.get('marketing_opt_in') === 'on';
+	const results = form.get('notify_results') === 'on';
 	const wasOptedIn = session.profile?.marketing_opt_in === true;
 	const client = createSessionClient(request, cookies)!;
 	const { error } = await client
@@ -17,6 +18,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 		.update({
 			notify_email: notifyEmail,
 			marketing_opt_in: marketing,
+			notify_results: results,
 			...(marketing && !wasOptedIn ? { marketing_opt_in_at: new Date().toISOString() } : {}),
 			...(!marketing ? { marketing_opt_in_at: null } : {}),
 			updated_at: new Date().toISOString(),

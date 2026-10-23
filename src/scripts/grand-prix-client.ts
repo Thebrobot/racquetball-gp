@@ -812,11 +812,22 @@ function hasUnreadLiveActivity(feed: LiveActivityFeed): boolean {
 	return latest > seen;
 }
 
+let scanAskedFor: string | null = null;
+/** New results in the feed: ask the server to turn them into notifications (idempotent, cheap). */
+function requestResultScan(feed: LiveActivityFeed): void {
+	if (!feed.lastUpdated || feed.lastUpdated === scanAskedFor) return;
+	if (Date.now() - new Date(feed.lastUpdated).getTime() > 30 * 60_000) return;
+	scanAskedFor = feed.lastUpdated;
+	void fetch('/api/notify/results-scan', { method: 'POST', keepalive: true }).catch(() => undefined);
+}
+
 async function fetchLiveActivity(): Promise<LiveActivityFeed | null> {
 	try {
 		const res = await fetch(`${LIVE_ACTIVITY_URL}?t=${Date.now()}`, { cache: 'no-store' });
 		if (!res.ok) return null;
-		return (await res.json()) as LiveActivityFeed;
+		const feed = (await res.json()) as LiveActivityFeed;
+		requestResultScan(feed);
+		return feed;
 	} catch {
 		return null;
 	}
