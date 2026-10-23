@@ -1,0 +1,41 @@
+---
+import { getAllPlayers } from '../../data/players';
+import { getPlayerImageForDisplay } from '../../data/player-images';
+
+const players = getAllPlayers();
+const withPhotos = players
+	.map((p) => ({ ...p, photo: getPlayerImageForDisplay(p.name, 64) }))
+	.filter((p): p is typeof p & { photo: string } => Boolean(p.photo));
+
+// Shuffle deterministically by slug so the wall is stable between builds.
+const faces = [...withPhotos]
+	.sort((a, b) => a.slug.localeCompare(b.slug))
+	.slice(0, 36);
+const cities = new Set(players.map((p) => p.city).filter(Boolean)).size;
+---
+
+<section class="home-faces" aria-labelledby="home-faces-heading">
+	<div class="home-faces-inner">
+		<div class="home-faces-copy">
+			<p class="section-label">The field</p>
+			<h2 id="home-faces-heading" class="home-faces-title">
+				<span class="home-faces-num">{players.length}</span> players<br />
+				<span class="home-faces-accent">from {cities} Florida cities</span>
+			</h2>
+			<p class="home-faces-sub">
+				Every competitor has a profile: divisions entered, match history, and where they stand on the
+				season board.
+			</p>
+			<a class="home-faces-cta" href="/players">Browse the player directory →</a>
+		</div>
+		<ul class="home-faces-wall" aria-label="Player photos">
+			{faces.map((p) => (
+				<li>
+					<a href={`/players/${p.slug}`} title={p.name}>
+						<img src={p.photo} alt={p.name} width="64" height="64" loading="lazy" decoding="async" />
+					</a>
+				</li>
+			))}
+		</ul>
+	</div>
+</section>

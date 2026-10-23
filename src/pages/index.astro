@@ -1,54 +1,85 @@
 ---
 import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
-import SeriesManifesto from '../components/grand-prix/SeriesManifesto.astro';
-import PlayerSpotlight from '../components/grand-prix/PlayerSpotlight.astro';
 import SeasonStopsBar from '../components/grand-prix/SeasonStopsBar.astro';
-import SeasonStopsBento from '../components/grand-prix/SeasonStopsBento.astro';
-import { HOME_SPOTLIGHT_TRACKS, getTopN, leaderboardDivisionHref } from '../data/leaderboard';
-import { getFeaturedEvent } from '../data/events';
-import { getNextSeasonStop } from '../data/season-stops';
-import { titleSponsor } from '../data/ocala-sponsors';
+import HomeScoreboard from '../components/grand-prix/HomeScoreboard.astro';
+import HomeLatest from '../components/grand-prix/HomeLatest.astro';
+import HomeTimeline from '../components/grand-prix/HomeTimeline.astro';
+import HomePhotoStrip from '../components/grand-prix/HomePhotoStrip.astro';
+import HomeFacesWall from '../components/grand-prix/HomeFacesWall.astro';
+import SponsorLogoMarquee from '../components/grand-prix/SponsorLogoMarquee.astro';
 import HeroMediaCredit from '../components/grand-prix/HeroMediaCredit.astro';
 import { heroVideoCredit } from '../data/hero-video-credit';
 import heroVideo from '../partials/grand-prix-hero-video.html?raw';
+import { EVENTS, getEventStatus } from '../data/events';
+import { SEASON_STOPS } from '../data/season-stops';
+import { readGalleryIndex } from '../lib/gallery/store';
 
-const spotlightSpots = HOME_SPOTLIGHT_TRACKS.map((t) => ({
-	trackLabel: t.label,
-	leader: getTopN(t.category, t.division, 1)[0],
-	standingsHref: leaderboardDivisionHref(t.division),
-}));
+// ── Hero status: live event beats next upcoming stop ─────────────────────────
+const now = new Date();
+const liveEvent = EVENTS.find((e) => getEventStatus(e, now) === 'live') ?? null;
+const upcomingEvents = EVENTS.filter((e) => getEventStatus(e, now) === 'upcoming').sort((a, b) =>
+	a.startDate.localeCompare(b.startDate),
+);
+const nextEvent = upcomingEvents[0] ?? null;
+const nextStop = SEASON_STOPS.find((s) => s.kind === 'next') ?? null;
 
-const featured = getFeaturedEvent();
-const liveEvent = featured?.status === 'live' ? featured.event : null;
-const nextStop = getNextSeasonStop();
-const eventPage = liveEvent ? `/events/${liveEvent.slug}` : '';
-const spotlightImage = liveEvent?.spotlightImage ?? nextStop?.image;
+function daysUntil(iso: string): number {
+	const start = new Date(`${iso}T00:00:00`);
+	const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+	return Math.round((start.getTime() - today.getTime()) / 86_400_000);
+}
+
+function countdownLabel(days: number): string {
+	if (days <= 0) return 'Starts today';
+	if (days === 1) return 'Starts tomorrow';
+	if (days <= 14) return `Starts in ${days} days`;
+	return 'Next stop';
+}
+
+const statusEvent = liveEvent ?? nextEvent;
+const statusKind: 'live' | 'soon' | 'next' | null = liveEvent
+	? 'live'
+	: nextEvent
+		? daysUntil(nextEvent.startDate) <= 14
+			? 'soon'
+			: 'next'
+		: null;
+const statusPill = liveEvent
+	? 'Live now'
+	: nextEvent
+		? countdownLabel(daysUntil(nextEvent.startDate))
+		: '';
+const statusVenue = statusEvent?.spotlightVenue ?? nextStop?.venue ?? '';
+const statusRegisterUrl = !liveEvent && nextStop ? nextStop.registerUrl : null;
+const statusWatchUrl = statusEvent?.spotlightWatchLiveUrl ?? nextStop?.watchLiveUrl ?? null;
+const statusEventHref = statusEvent ? `/events/${statusEvent.slug}` : '/tournaments';
+
+// ── Gallery photos for the strip (build-time; falls back to nothing) ─────────
+let galleryPhotoCount = 0;
+let stripPhotos: Awaited<ReturnType<typeof readGalleryIndex>>['photos'] = [];
+try {
+	const index = await readGalleryIndex();
+	galleryPhotoCount = index.photos.length;
+	// Newest ten; the strip resizes them with astro:assets at build time.
+	stripPhotos = index.photos.slice(0, 10);
+} catch {
+	/* gallery unavailable at build: strip is hidden */
+}
 ---
 
 <GrandPrixLayout
 	title="Florida Racquetball Grand Prix 2026"
-	description="The premier racquetball tournament series in Florida. Compete for prizes, points, and the Grand Prix title."
-	spotlightLabel="Title sponsor"
-	spotlightName={titleSponsor.name}
-	spotlightBlurb={titleSponsor.blurb}
-	spotlightLogoUrl={titleSponsor.logoUrl}
-	imagePreloads={[
-		...(spotlightImage ? [spotlightImage] : []),
-		'/images/website-logo.webp',
-		'/images/series-logo.webp',
-	]}
+	description="Florida's first statewide racquetball Grand Prix: four tour stops, live brackets, season standings, player profiles, and photos from every weekend."
+	hideSponsorSpotlight
+	imagePreloads={['/images/website-logo.webp', '/images/series-logo.webp']}
 >
 	<div class="hero-viewport">
-		<div class="hero">
+		<div class="hero hero--home">
 			<div set:html={heroVideo} />
-			<div
-				style="position:absolute;inset:0;z-index:1;background:linear-gradient(180deg, rgba(10,22,40,0.48) 0%, rgba(10,22,40,0.36) 40%, rgba(10,22,40,0.52) 80%, rgba(10,22,40,0.68) 100%);"
-				aria-hidden="true"
-			>
-			</div>
+			<div class="hero-scrim" aria-hidden="true"></div>
 			<div class="hero-grid" style="z-index:2;" aria-hidden="true"></div>
 			<HeroMediaCredit credit={heroVideoCredit} />
-			<div class="hero-layout" style="z-index:3;">
+			<div class="hero-layout hero-layout--home" style="z-index:3;">
 				<div class="hero-copy">
 					<div class="hero-eyebrow">Season 1 · Florida Statewide Series</div>
 					<h1 class="hero-title">
@@ -56,11 +87,8 @@ const spotlightImage = liveEvent?.spotlightImage ?? nextStop?.image;
 						<span class="line2">Grand Prix</span>
 						<span class="line3">Florida · 2026</span>
 					</h1>
-					<p class="hero-sub">
-						Four tour stops across Florida. The first-ever racquetball Grand Prix in the state. Earn
-						points at every stop, from Ocala in May through the outdoor event in Eustis in December, and
-						chase the statewide leaderboard. A series championship is planned for early 2027 (dates TBD,
-						pending USA Racquetball approval).
+					<p class="hero-sub hero-sub--short">
+						Four stops. One statewide leaderboard. Florida's first racquetball Grand Prix.
 					</p>
 					<div class="hero-ctas">
 						<a class="btn-main" href="/leaderboard">View Standings</a>
@@ -78,172 +106,65 @@ const spotlightImage = liveEvent?.spotlightImage ?? nextStop?.image;
 						decoding="async"
 					/>
 				</div>
+
+				{statusEvent && statusKind && (
+					<aside class:list={['hero-status', `hero-status--${statusKind}`]} aria-label="Tournament status">
+						<div class="hero-status-main">
+							<span class="hero-status-pill">
+								<span class="hero-status-dot" aria-hidden="true"></span>
+								{statusPill}
+							</span>
+							<a class="hero-status-name" href={statusEventHref}>{statusEvent.name}</a>
+							<p class="hero-status-meta">
+								<strong>{statusEvent.dateRange}</strong>
+								<span aria-hidden="true"> · </span>
+								{statusEvent.cityLine}
+								{statusVenue && (
+									<>
+										<span aria-hidden="true"> · </span>
+										{statusVenue}
+									</>
+								)}
+							</p>
+						</div>
+						<div class="hero-status-actions">
+							<a class="hero-status-btn hero-status-btn--primary" href={`${statusEventHref}#brackets`}>
+								Brackets
+							</a>
+							<a class="hero-status-btn" href={`${statusEventHref}#participants`}>Participants</a>
+							{statusWatchUrl && (
+								<a class="hero-status-btn hero-status-btn--watch" href={statusWatchUrl} target="_blank" rel="noopener noreferrer">
+									Watch live
+								</a>
+							)}
+							{statusRegisterUrl && (
+								<a class="hero-status-btn" href={statusRegisterUrl} target="_blank" rel="noopener noreferrer">
+									Register on R2
+								</a>
+							)}
+						</div>
+					</aside>
+				)}
 			</div>
 		</div>
 
 		<SeasonStopsBar />
 	</div>
 
-	<SeriesManifesto />
+	<HomeScoreboard photoCount={galleryPhotoCount} />
 
-	{(liveEvent || nextStop) && (
-		<section
-			class:list={['event-spotlight', liveEvent ? 'event-spotlight--live' : 'event-spotlight--upcoming']}
-			aria-labelledby="event-spotlight-title"
-		>
-			<div
-				class:list={[
-					'event-spotlight-inner',
-					spotlightImage && 'event-spotlight-inner--media',
-				]}
-			>
-				{
-					spotlightImage && (
-						<div
-							class="event-spotlight-visual"
-							style={{ '--es-img': `url("${spotlightImage}")` }}
-							aria-hidden="true"
-						>
-							<div class="event-spotlight-media" />
-						</div>
-					)
-				}
-				<div class="event-spotlight-body">
-					{liveEvent ? (
-						<>
-							<span class="event-spotlight-pill event-spotlight-pill--live">Live now</span>
-							<h2 id="event-spotlight-title" class="event-spotlight-title">{liveEvent.name}</h2>
-							<p class="event-spotlight-meta">
-								<span class="event-spotlight-meta-strong">{liveEvent.dateRange}</span>
-								<span class="event-spotlight-meta-sep" aria-hidden="true"> · </span>
-								<span>{liveEvent.cityLine}</span>
-							</p>
-							{liveEvent.spotlightVenue && (
-								<p class="event-spotlight-venue">{liveEvent.spotlightVenue}</p>
-							)}
-							<div class="event-spotlight-ctas">
-								<a class="event-spotlight-cta event-spotlight-cta--primary" href={`${eventPage}#brackets`}>
-									View brackets
-								</a>
-								<a class="event-spotlight-cta event-spotlight-cta--participants" href={`${eventPage}#participants`}>
-									View participants
-								</a>
-								{liveEvent.spotlightWatchLiveUrl && (
-									<a
-										class="event-spotlight-cta event-spotlight-cta--watch"
-										href={liveEvent.spotlightWatchLiveUrl}
-										target="_blank"
-										rel="noopener noreferrer"
-									>
-										Watch live
-									</a>
-								)}
-							</div>
-						</>
-					) : (
-						nextStop && (
-							<>
-								<span class="event-spotlight-pill event-spotlight-pill--upcoming">Next stop</span>
-								<h2 id="event-spotlight-title" class="event-spotlight-title">{nextStop.eventName}</h2>
-								<p class="event-spotlight-meta">
-									<span class="event-spotlight-meta-strong">{nextStop.dateHint}, 2026</span>
-									<span class="event-spotlight-meta-sep" aria-hidden="true"> · </span>
-									<span>{nextStop.cityLine}</span>
-								</p>
-								<p class="event-spotlight-venue">{nextStop.venue}</p>
-								{nextStop.teaser && <p class="event-spotlight-teaser">{nextStop.teaser}</p>}
-								<div class="event-spotlight-ctas">
-									{nextStop.bracketsHref ? (
-										<a class="event-spotlight-cta event-spotlight-cta--primary" href={nextStop.bracketsHref}>
-											View brackets
-										</a>
-									) : (
-										<a
-											class="event-spotlight-cta event-spotlight-cta--primary"
-											href={nextStop.registerUrl}
-											target="_blank"
-											rel="noopener noreferrer"
-										>
-											Register on R2
-										</a>
-									)}
-									{nextStop.participantsHref && (
-										<a class="event-spotlight-cta event-spotlight-cta--participants" href={nextStop.participantsHref}>
-											View participants
-										</a>
-									)}
-									{nextStop.watchLiveUrl && !nextStop.watchLiveDisabled && (
-										<a
-											class="event-spotlight-cta event-spotlight-cta--watch"
-											href={nextStop.watchLiveUrl}
-											target="_blank"
-											rel="noopener noreferrer"
-										>
-											Watch live
-										</a>
-									)}
-									{nextStop.bracketsHref && (
-										<a
-											class="event-spotlight-cta event-spotlight-cta--schedule"
-											href={nextStop.registerUrl}
-											target="_blank"
-											rel="noopener noreferrer"
-										>
-											Register on R2
-										</a>
-									)}
-									<a class="event-spotlight-cta event-spotlight-cta--schedule" href="/tournaments">
-										See schedule
-									</a>
-								</div>
-							</>
-						)
-					)}
-				</div>
-			</div>
-		</section>
-	)}
+	<HomeLatest />
 
-	<div class="home-bento-shell">
-		<div class="home-bento-shell-inner">
-			<SeasonStopsBento />
-		</div>
-	</div>
+	<HomeTimeline />
 
-	<PlayerSpotlight spots={spotlightSpots} />
+	{stripPhotos.length >= 6 && <HomePhotoStrip photos={stripPhotos} total={galleryPhotoCount} />}
 
-	<section class="site-explore">
-		<div class="section-label">Explore</div>
-		<div class="section-title">The <span style="color:var(--orange)">Grand Prix</span></div>
-		<p class="section-sub">
-			Everything you need (schedule, points rules, live standings, and partners) lives on its own page.
+	<HomeFacesWall />
+
+	<div class="home-sponsors-band">
+		<SponsorLogoMarquee />
+		<p class="home-sponsors-cta">
+			<a href="/sponsors">Meet every partner behind the series →</a>
 		</p>
-		<div class="site-explore-grid">
-			<a class="site-explore-card" href="/tournaments">
-				<span class="site-explore-card-kicker">Schedule</span>
-				<span class="site-explore-card-title">Tournaments</span>
-				<span class="site-explore-card-desc">All stops in tiles: dates, venues, and registration.</span>
-			</a>
-			<a class="site-explore-card" href="/points">
-				<span class="site-explore-card-kicker">Rules</span>
-				<span class="site-explore-card-title">How points work</span>
-				<span class="site-explore-card-desc">Singles, doubles, and partnership bonuses explained.</span>
-			</a>
-			<a class="site-explore-card" href="/leaderboard">
-				<span class="site-explore-card-kicker">Live</span>
-				<span class="site-explore-card-title">Leaderboard</span>
-				<span class="site-explore-card-desc">Season standings updated after every stop.</span>
-			</a>
-			<a class="site-explore-card" href="/sponsors">
-				<span class="site-explore-card-kicker">Partners</span>
-				<span class="site-explore-card-title">Sponsors</span>
-				<span class="site-explore-card-desc">Brands backing Florida racquetball.</span>
-			</a>
-			<a class="site-explore-card" href="/gallery">
-				<span class="site-explore-card-kicker">Photos</span>
-				<span class="site-explore-card-title">Gallery</span>
-				<span class="site-explore-card-desc">Action shots from every stop. Share and explore.</span>
-			</a>
-		</div>
-	</section>
+	</div>
 </GrandPrixLayout>

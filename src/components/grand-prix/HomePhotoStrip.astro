@@ -1,0 +1,71 @@
+---
+import { Image, inferRemoteSize } from 'astro:assets';
+import type { GalleryPhoto } from '../../lib/gallery/types';
+import { albumLabel, albumBySlug, albumById } from '../../lib/gallery/albums';
+
+interface Props {
+	photos: GalleryPhoto[];
+	total: number;
+}
+const { photos, total } = Astro.props;
+
+const STRIP_HEIGHT = 680; // 2x the tallest rendered strip height (340px)
+
+type SizedPhoto = GalleryPhoto & { width: number; height: number };
+
+/** Use stored dimensions when the index has them; otherwise read them from the file once at build. */
+const sized = (
+	await Promise.all(
+		photos.map(async (p): Promise<SizedPhoto | null> => {
+			if (p.width && p.height) return p as SizedPhoto;
+			try {
+				const { width, height } = await inferRemoteSize(p.url);
+				return { ...p, width, height };
+			} catch {
+				return null;
+			}
+		}),
+	)
+).filter((p): p is SizedPhoto => p !== null);
+
+function albumHref(photo: GalleryPhoto): string {
+	const album = albumById(photo.album) ?? albumBySlug(photo.album);
+	return album ? `/gallery?event=${album.slug}&photo=${photo.id}` : `/gallery?photo=${photo.id}`;
+}
+---
+
+{sized.length >= 6 && (
+	<section class="home-photos" aria-labelledby="home-photos-heading">
+		<header class="home-photos-head">
+			<div>
+				<p class="section-label">From the court</p>
+				<h2 id="home-photos-heading" class="home-photos-title">
+					{total.toLocaleString('en-US')} photos <span>and counting</span>
+				</h2>
+			</div>
+			<a class="home-photos-link" href="/gallery">Open the gallery →</a>
+		</header>
+		<div class="home-photos-strip" aria-label="Recent gallery photos">
+			{sized.map((p) => {
+				const ratio = p.width / p.height;
+				const outH = Math.min(STRIP_HEIGHT, p.height);
+				const outW = Math.round(outH * ratio);
+				return (
+					<a class="home-photo" href={albumHref(p)} style={{ '--ratio': ratio.toFixed(4) }}>
+						<Image
+							src={p.url}
+							width={outW}
+							height={outH}
+							format="webp"
+							quality={74}
+							alt={p.caption || `${albumLabel(p.album)} photo`}
+							loading="lazy"
+							decoding="async"
+						/>
+						<span class="home-photo-tag">{albumLabel(p.album)}</span>
+					</a>
+				);
+			})}
+		</div>
+	</section>
+)}

@@ -12,6 +12,9 @@ const site = env.PUBLIC_SITE_URL || 'https://www.racquetballgp.com';
 export default defineConfig({
 	site,
 	adapter: vercel(),
+	image: {
+		remotePatterns: [{ protocol: 'https', hostname: '**.public.blob.vercel-storage.com' }],
+	},
 	integrations: [
 		sitemap({
 			filter: (page) => !page.includes('/gallery/admin') && !page.includes('/api/'),
