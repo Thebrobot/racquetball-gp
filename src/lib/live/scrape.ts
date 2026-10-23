@@ -1,6 +1,12 @@
 import overridesJson from '../../../scripts/match-result-overrides.json';
 import { drawOutUrl, type LiveEventConfig } from './config';
-import { matchPageUrl, parseMatchPage, type ParsedMatchPage } from './parse-match-page';
+import {
+	htmlHasWinnerMark,
+	htmlLooksLikeMatchPage,
+	matchPageUrl,
+	parseMatchPage,
+	type ParsedMatchPage,
+} from './parse-match-page';
 import {
 	parseBracketPage,
 	resolveDivCodeFromHtml,
@@ -18,7 +24,7 @@ export const USER_AGENT =
 	'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 const MAX_ATTEMPTS = 3;
 const MAX_ACTIVITY_EVENTS = 600;
-const MATCH_PAGE_CONCURRENCY = 5;
+const MATCH_PAGE_CONCURRENCY = 3;
 
 const MATCH_OVERRIDES = overridesJson as Record<string, Record<string, Record<string, MatchRecord>>>;
 
@@ -197,15 +203,48 @@ export async function scrapeEvent(event: LiveEventConfig): Promise<EventScrapeRe
 type PageHit = { page: ParsedMatchPage | null; html?: string; error?: string };
 
 async function fetchMatchPages(tid: string, matches: ParsedDrawMatch[]): Promise<Map<string, PageHit>> {
+	const finishedIds = new Set(
+		matches
+			.filter((m) => m.drawWinner != null || Boolean(m.drawWinnerName) || Boolean(m.drawScore))
+			.map((m) => m.r2MatchId)
+			.filter((id): id is string => Boolean(id)),
+	);
 	const ids = [...new Set(matches.map((m) => m.r2MatchId).filter((id): id is string => Boolean(id)))];
 	const out = new Map<string, PageHit>();
 	await mapPool(ids, MATCH_PAGE_CONCURRENCY, async (r2MatchId) => {
-		try {
-			const { html } = await fetchHtml(matchPageUrl(tid, r2MatchId));
-			out.set(r2MatchId, { page: parseMatchPage(html), html });
-		} catch (err) {
-			out.set(r2MatchId, { page: null, error: err instanceof Error ? err.message : String(err) });
+		const expectFinished = finishedIds.has(r2MatchId);
+		let lastErr: string | null = null;
+		for (let attempt = 1; attempt <= FETCH_ATTEMPTS; attempt++) {
+			try {
+				const { html } = await fetchHtml(matchPageUrl(tid, r2MatchId));
+				if (!htmlLooksLikeMatchPage(html)) {
+					lastErr = 'match page HTML missing versus/result markup';
+					if (attempt < FETCH_ATTEMPTS) {
+						await new Promise((r) => setTimeout(r, 300 * attempt));
+						continue;
+					}
+					out.set(r2MatchId, { page: null, error: lastErr, html });
+					return;
+				}
+				const page = parseMatchPage(html);
+				if (expectFinished && !page.winnerName && !htmlHasWinnerMark(html) && attempt < FETCH_ATTEMPTS) {
+					lastErr = 'finished draw but fetched page has no Winner';
+					await new Promise((r) => setTimeout(r, 300 * attempt));
+					continue;
+				}
+				out.set(r2MatchId, { page, html });
+				return;
+			} catch (err) {
+				lastErr = err instanceof Error ? err.message : String(err);
+				if (attempt < FETCH_ATTEMPTS) {
+					await new Promise((r) => setTimeout(r, 300 * attempt));
+					continue;
+				}
+				out.set(r2MatchId, { page: null, error: lastErr });
+				return;
+			}
 		}
+		out.set(r2MatchId, { page: null, error: lastErr ?? 'match page unavailable' });
 	});
 	return out;
 }
@@ -360,6 +399,28 @@ export function applyActivityUpdates(
 	};
 }
 
+/** Drop quarantine rows once the match has a published winner (MED10 stale list). */
+export function dropPublishedQuarantine(
+	quarantined: QuarantinedMatch[],
+	divisions: Record<string, MatchMap>,
+	extraDropIds: Set<string> = new Set(),
+): QuarantinedMatch[] {
+	return quarantined.filter((q) => {
+		if (extraDropIds.has(q.matchId)) return false;
+		const published = Object.values(divisions).some((div) => div[q.matchId]?.winner != null);
+		if (!published) return true;
+		// Keep real conflicts visible; "couldn't reconfirm" is not a quarantine once published.
+		return /disagree|ambiguous|uniquely match/i.test(q.reason);
+	});
+}
+
+export function countPublishedResults(divisions: Record<string, MatchMap>): number {
+	return Object.values(divisions).reduce(
+		(n, div) => n + Object.values(div).filter((m) => m.winner != null).length,
+		0,
+	);
+}
+
 export function mergeScrapedResults(
 	event: LiveEventConfig,
 	existing: LiveResultsFile,
@@ -378,7 +439,7 @@ export function mergeScrapedResults(
 	const overrideIds = new Set(
 		Object.values(MATCH_OVERRIDES[event.slug] ?? {}).flatMap((div) => Object.keys(div ?? {})),
 	);
-	const quarantined = scraped.quarantined.filter((q) => !overrideIds.has(q.matchId));
+	const quarantined = dropPublishedQuarantine(scraped.quarantined, mergedDivisions, overrideIds);
 
 	const changed = JSON.stringify(mergedDivisions) !== JSON.stringify(existing.divisions ?? {});
 	const stamp = changed ? at : existing.lastUpdated;

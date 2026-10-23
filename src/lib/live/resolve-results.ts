@@ -78,6 +78,9 @@ export function resolveMatchResult(input: ResolveInput): ResolveOutput {
 
 	if (!page.winnerName) {
 		if (draw.drawWinner != null || draw.drawWinnerName) {
+			if (!page.isFinal) {
+				return q('match page unavailable: fetched page has no Final/Winner');
+			}
 			return q('draw marks a winner but the match page does not');
 		}
 		if (advSides.size === 1) {

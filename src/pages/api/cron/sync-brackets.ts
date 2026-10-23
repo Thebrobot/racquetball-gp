@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createAdminClient, env, json } from '../../../lib/accounts/supabase';
 import { eventsInWindow, isAnyEventInWindow, type LiveEventConfig } from '../../../lib/live/config';
-import { buildMergedResults, scrapeEvent } from '../../../lib/live/scrape';
+import { buildMergedResults, countPublishedResults, scrapeEvent } from '../../../lib/live/scrape';
 import { liveStoreConfigured, readSyncStatus, writeLiveActivity, writeLiveResults, writeSyncStatus } from '../../../lib/live/store';
 import type { EventSyncStatus, SyncStatus } from '../../../lib/live/types';
 import { processResultFeed } from '../../../lib/notify/results';
@@ -48,7 +48,7 @@ async function syncOne(event: LiveEventConfig, at: string): Promise<EventSyncSta
 		lastError: error,
 		lastUpdated: results.lastUpdated,
 		divisionsScraped: scraped.scraped,
-		matchesWithResults: scraped.matchesWithResults,
+		matchesWithResults: countPublishedResults(results.divisions),
 		quarantined,
 		...(notified ? { notified } : {}),
 	};
