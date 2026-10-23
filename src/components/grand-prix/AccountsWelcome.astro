@@ -73,6 +73,7 @@ const faces = getAllPlayers()
 )}
 
 <script>
+	import { lockScroll, unlockScroll } from '../../scripts/scroll-lock';
 	type Claimed = { total: number; count: number; players: { slug: string; name: string; photo: string | null }[] };
 	const dlg = document.getElementById('accounts-welcome');
 	if (dlg) {
@@ -93,6 +94,7 @@ const faces = getAllPlayers()
 		const close = () => {
 			dlg.classList.remove('is-in');
 			document.documentElement.classList.remove('gwel-open');
+			unlockScroll('welcome');
 			setTimeout(() => (dlg.hidden = true), 300);
 			remember();
 		};
@@ -135,6 +137,7 @@ const faces = getAllPlayers()
 						if (document.querySelector('.gallery-lightbox:not([hidden]), .gfeed:not([hidden])')) return;
 						dlg.hidden = false;
 						document.documentElement.classList.add('gwel-open');
+						lockScroll('welcome');
 						requestAnimationFrame(() => dlg.classList.add('is-in'));
 						(dlg.querySelector<HTMLElement>('.gwel-btn--primary') ?? dlg).focus();
 					}, 2500);

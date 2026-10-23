@@ -15,6 +15,8 @@
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
+/* Page frozen behind an overlay (see src/scripts/scroll-lock.ts). Body is pinned so iOS cannot drag it. */
+html.scroll-locked body { position: fixed; left: 0; right: 0; width: 100%; overflow: hidden; }
 body {
   background: var(--navy);
   color: var(--white);
@@ -32,9 +34,6 @@ body {
     font-size: 18px;
     line-height: 1.65;
   }
-}
-html.nav-drawer-open {
-  overflow: hidden;
 }
 @media (prefers-reduced-motion: reduce) {
   #hero-video {
@@ -7874,9 +7873,6 @@ video.dlr-page-hero-video {
     transition: none;
   }
 }
-body.gallery-lb-open {
-  overflow: hidden;
-}
 body.gallery-lb-open .gp-bottom-nav {
   visibility: hidden;
   pointer-events: none;
@@ -9556,7 +9552,6 @@ a.glb-c-name:hover { color: var(--orange2); }
 }
 
 /* ───── GALLERY WELCOME (one-time modal for signed-out gallery visitors) ───── */
-html.gwel-open { overflow: hidden; }
 .gwel { position: fixed; inset: 0; z-index: 250; display: flex; align-items: center; justify-content: center; padding: 16px; }
 .gwel[hidden] { display: none; }
 .gwel-backdrop { position: absolute; inset: 0; background: rgba(6, 12, 22, 0.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: 0; transition: opacity .3s ease; }
