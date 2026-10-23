@@ -128,6 +128,8 @@ const claimMessages: Record<string, string> = {
 							</div>
 							<div class="acct-badges">
 								{linkedPlayer && <span class="gp-pill gp-pill--done">Verified player</span>}
+								{!linkedPlayer && !pendingClaim && <span class="gp-pill">Fan</span>}
+								{!linkedPlayer && pendingClaim && <span class="gp-pill gp-pill--next">Claim pending</span>}
 								{session.isAdmin && <span class="gp-pill gp-pill--champ">Admin</span>}
 							</div>
 						</div>
@@ -155,7 +157,7 @@ const claimMessages: Record<string, string> = {
 							</p>
 						) : (
 							<>
-								<p class="acct-p">Play in the Grand Prix? Pick your name and we will link your results, photos and standings to this account after a quick check.</p>
+								<p class="acct-p">You are set up as a fan: you can like photos and follow the season. Play in the Grand Prix? Pick your name and we will link your results, photos and standings to this account after a quick check.</p>
 								{claimFlag && claimMessages[claimFlag] && <p class:list={['acct-p', claimFlag === 'sent' ? 'acct-ok' : 'acct-error-text']}>{claimMessages[claimFlag]}</p>}
 								{rejectedClaim && <p class="acct-p acct-p--muted">A previous claim for {rejectedClaim.player_name} was not approved. If that was a mistake, send it again with a note.</p>}
 								<form class="acct-form" method="post" action="/api/claims">

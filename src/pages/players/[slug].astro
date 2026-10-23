@@ -442,9 +442,39 @@ function ordinal(n: number): string {
 			</div>
 		</div>
 	</section>
+	<section class="gp-band gp-band--tight player-photos" id="player-photos" data-slug={player.slug} hidden aria-labelledby="player-photos-heading">
+		<div class="gp-band-inner">
+			<p class="section-label">Gallery</p>
+			<h2 id="player-photos-heading" class="gp-title player-photos-title">Photos of <span>{player.name.split(' ')[0]}</span></h2>
+			<p class="gp-sub">Tagged in the Grand Prix gallery. Tap a photo to open it.</p>
+			<div class="player-photos-grid" id="player-photos-grid"></div>
+		</div>
+	</section>
 </GrandPrixLayout>
 
 <script>
+	// Tagged photos: fetched at runtime so new tags appear without a redeploy.
+	const photosSection = document.getElementById('player-photos');
+	const photosGrid = document.getElementById('player-photos-grid');
+	const photosSlug = photosSection?.getAttribute('data-slug');
+	if (photosSection && photosGrid && photosSlug) {
+		fetch(`/api/players/photos?slug=${encodeURIComponent(photosSlug)}`)
+			.then((r) => (r.ok ? r.json() : null))
+			.then((d: { photos?: { id: string; url: string; href: string; albumLabel: string; caption: string | null; width: number | null; height: number | null }[] } | null) => {
+				const photos = d?.photos ?? [];
+				if (!photos.length) return;
+				photosGrid.innerHTML = photos
+					.map((p) => {
+						const ratio = p.width && p.height ? (p.width / p.height).toFixed(3) : '1.333';
+						const alt = (p.caption || `${p.albumLabel} photo`).replace(/"/g, '&quot;');
+						return `<a class="player-photo" href="${p.href}" style="--ratio:${ratio}"><img src="${p.url}" alt="${alt}" loading="lazy" decoding="async" /><span class="player-photo-tag">${p.albumLabel}</span></a>`;
+					})
+					.join('');
+				photosSection.hidden = false;
+			})
+			.catch(() => undefined);
+	}
+
 	// Verified badge: profiles are prerendered, so ask the server whether this slug is claimed.
 	const badge = document.getElementById('player-verified');
 	const slug = badge?.getAttribute('data-slug');
@@ -636,4 +666,20 @@ function ordinal(n: number): string {
 		border-radius: 999px; padding: 4px 10px; margin-left: 8px; text-transform: uppercase;
 	}
 	.player-verified[hidden] { display: none; }
+	.player-photos[hidden] { display: none; }
+	.player-photos-title { font-size: clamp(30px, 4vw, 44px); }
+	.player-photos-grid {
+		display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 22px;
+	}
+	.player-photo {
+		position: relative; display: block; border-radius: 12px; overflow: hidden; background: var(--navy3);
+		aspect-ratio: 1; border: 1px solid var(--card-border);
+	}
+	.player-photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease; }
+	.player-photo:hover img { transform: scale(1.04); }
+	.player-photo-tag {
+		position: absolute; left: 8px; bottom: 8px;
+		font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+		color: #fff; background: rgba(6, 14, 27, 0.7); padding: 3px 8px; border-radius: 999px;
+	}
 </style>

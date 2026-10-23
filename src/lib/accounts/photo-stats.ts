@@ -5,16 +5,26 @@
  */
 import type { AstroCookies } from 'astro';
 import { createAdminClient, createSessionClient, getSession } from './supabase';
+import { getAllPlayers } from '../../data/players';
 
 export type PhotoStat = { likes: number; views: number; shares: number };
+export type GalleryViewer = {
+	signedIn: boolean;
+	playerSlug: string | null;
+	displayName: string | null;
+	isAdmin: boolean;
+};
 export type GallerySocial = {
 	stats: Record<string, PhotoStat>;
 	likedIds: string[];
 	signedIn: boolean;
+	viewer: GalleryViewer;
+	/** Player list for the admin "tag a player" picker (admins only). */
+	players?: { name: string; slug: string }[];
 };
 
 export async function getGallerySocial(request: Request, cookies: AstroCookies): Promise<GallerySocial> {
-	const empty: GallerySocial = { stats: {}, likedIds: [], signedIn: false };
+	const empty: GallerySocial = { stats: {}, likedIds: [], signedIn: false, viewer: { signedIn: false, playerSlug: null, displayName: null, isAdmin: false } };
 	const admin = createAdminClient();
 	if (!admin) return empty;
 
@@ -34,5 +44,17 @@ export async function getGallerySocial(request: Request, cookies: AstroCookies):
 		const { data } = await client.from('photo_likes').select('photo_id').eq('user_id', session.user.id);
 		likedIds = ((data ?? []) as { photo_id: string }[]).map((r) => r.photo_id);
 	}
-	return { stats, likedIds, signedIn: Boolean(session) };
+	const viewer: GalleryViewer = {
+		signedIn: Boolean(session),
+		playerSlug: session?.profile?.player_slug ?? null,
+		displayName: session?.profile?.display_name ?? null,
+		isAdmin: Boolean(session?.isAdmin),
+	};
+	return {
+		stats,
+		likedIds,
+		signedIn: Boolean(session),
+		viewer,
+		...(viewer.isAdmin ? { players: getAllPlayers().map((p) => ({ name: p.name, slug: p.slug })) } : {}),
+	};
 }
