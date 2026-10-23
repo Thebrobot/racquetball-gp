@@ -3,9 +3,10 @@ import BaseLayout from './BaseLayout.astro';
 import '../styles/grand-prix.css';
 import GrandPrixNav from '../components/grand-prix/GrandPrixNav.astro';
 import TournamentWeekendPromo from '../components/grand-prix/TournamentWeekendPromo.astro';
-import LeaderboardUpdateModal from '../components/grand-prix/LeaderboardUpdateModal.astro';
 import GrandPrixFooter from '../components/grand-prix/GrandPrixFooter.astro';
 import SponsorSpotlight from '../components/grand-prix/SponsorSpotlight.astro';
+import { GRAND_PRIX_FACEBOOK_URL } from '../data/social';
+import { tournamentDirector, registrationContact } from '../data/contacts';
 
 interface Props {
 	title: string;
@@ -38,13 +39,55 @@ const {
 	hideSponsorSpotlight = false,
 	noindex = false,
 } = Astro.props;
+
+const siteOrigin = Astro.site?.origin ?? 'https://www.racquetballgp.com';
+const isHome = (Astro.url.pathname.replace(/\/$/, '') || '/') === '/';
+const organizationJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'SportsOrganization',
+	'@id': `${siteOrigin}/#organization`,
+	name: 'Florida Racquetball Grand Prix',
+	alternateName: 'Racquetball GP',
+	url: siteOrigin,
+	logo: `${siteOrigin}/images/series-logo.webp`,
+	image: `${siteOrigin}/images/og-default.webp`,
+	description:
+		'A season-long racquetball tournament series across Florida. Players earn Grand Prix points at every stop and chase a statewide leaderboard.',
+	sport: 'Racquetball',
+	areaServed: { '@type': 'State', name: 'Florida' },
+	sameAs: [GRAND_PRIX_FACEBOOK_URL],
+	contactPoint: [
+		{
+			'@type': 'ContactPoint',
+			contactType: tournamentDirector.role,
+			name: tournamentDirector.name,
+			email: tournamentDirector.email,
+		},
+		{
+			'@type': 'ContactPoint',
+			contactType: registrationContact.role,
+			name: registrationContact.name,
+			email: registrationContact.email,
+		},
+	],
+};
+const webSiteJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'WebSite',
+	'@id': `${siteOrigin}/#website`,
+	name: 'Florida Racquetball Grand Prix',
+	url: siteOrigin,
+	publisher: { '@id': `${siteOrigin}/#organization` },
+	inLanguage: 'en-US',
+};
 ---
 
 <BaseLayout {title} {description} {siteName} {ogImage} {ogImageWidth} {ogImageHeight} {noindex} fullBleed imagePreloads={imagePreloads}>
+	<script type="application/ld+json" set:html={JSON.stringify(organizationJsonLd)} />
+	{isHome && <script type="application/ld+json" set:html={JSON.stringify(webSiteJsonLd)} />}
 	<div class="gp-site">
 		<GrandPrixNav />
 		<TournamentWeekendPromo />
-		<LeaderboardUpdateModal />
 		<slot />
 		{
 			!hideSponsorSpotlight && spotlightName && spotlightBlurb && (

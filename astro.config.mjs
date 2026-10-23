@@ -12,5 +12,9 @@ const site = env.PUBLIC_SITE_URL || 'https://www.racquetballgp.com';
 export default defineConfig({
 	site,
 	adapter: vercel(),
-	integrations: [sitemap()],
+	integrations: [
+		sitemap({
+			filter: (page) => !page.includes('/gallery/admin') && !page.includes('/api/'),
+		}),
+	],
 });

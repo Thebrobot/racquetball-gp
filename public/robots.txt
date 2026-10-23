@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /gallery/admin
+Disallow: /api/
 
 Sitemap: https://www.racquetballgp.com/sitemap-index.xml
