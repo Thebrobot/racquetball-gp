@@ -8,17 +8,17 @@ import {
 	DEFAULT_LEADERBOARD_DIVISION,
 	getDivisionLeaders,
 	getSortedRows,
+	assignLeaderboardPlaces,
 	getDivisionDisplayMeta,
 	leaderboardDivisionHref,
 	leaderboardTotal,
 	formatPlayerInitials,
-	isPendingPlaceholder,
 	type LbCategory,
 } from '../../data/leaderboard';
 import { getPlayerImageForDisplay } from '../../data/player-images';
-import { getPlayerSlug } from '../../data/players';
 import { SEASON_STOPS } from '../../data/season-stops';
 import { EVENTS } from '../../data/events';
+import { renderStandingsRow, renderPodium } from '../../lib/leaderboard-render';
 import StopStatusStrip from './StopStatusStrip.astro';
 
 interface Props {
@@ -49,12 +49,27 @@ const initialContextLabel = initialMeta
 	: `${LB_CATEGORY_HEADING[initialCategory]} · ${LB_DIVISIONS_BY_CATEGORY[initialCategory][0]?.label ?? 'Open'}`;
 
 const badgeLabel = { q: 'Qualified', pace: 'On Pace', chase: 'Chasing' } as const;
-const badgeMap = { q: 'badge-q', pace: 'badge-pace', chase: 'badge-chase' } as const;
 function badgeClass(status: keyof typeof badgeLabel): string {
 	return status === 'q' ? 'badge-q' : status === 'pace' ? 'badge-pace' : 'badge-chase';
 }
 
 const lbInitialState = JSON.stringify({ category: initialCategory, division: initialDivision });
+
+const initialPlaced = assignLeaderboardPlaces(initialRows);
+const initialRowsHtml = initialPlaced
+	.map((r, i) => renderStandingsRow(r, r.place || i + 1, initialMaxPts))
+	.join('');
+const initialPodiumHtml = renderPodium(initialPlaced);
+
+/** Division ladder: one row per division, ties collapsed into one entry. */
+const ladder = LB_OVERVIEW_CATEGORY_ORDER.map((cat) => ({
+	category: cat,
+	heading: LB_CATEGORY_HEADING[cat],
+	rows: LB_DIVISIONS_BY_CATEGORY[cat].map((d) => {
+		const leaders = getDivisionLeaders(cat, d.id);
+		return { division: d, leader: leaders[0] ?? null, others: leaders.slice(1) };
+	}),
+}));
 ---
 
 <GrandPrixLayout
@@ -75,228 +90,106 @@ const lbInitialState = JSON.stringify({ category: initialCategory, division: ini
 					<li><strong>Dec <em>'26</em></strong><span>Last 2026 stop</span></li>
 				</ul>
 			</div>
-			<StopStatusStrip compact />
+			<div class="lb-head-strip"><StopStatusStrip compact /></div>
 		</div>
 	</header>
 
-	<div id="lb-detail" class="lb-detail">
-		<div class="lb-standings-panel">
-			<header class="lb-panel-header">
-				<h2 class="lb-panel-title">Full standings</h2>
-				<p class="lb-panel-desc">Choose event type and division, then scroll the table for everyone with points.</p>
-			</header>
-
-			<div class="lb-detail-toolbar">
+	<div id="lb-detail" class="lb-detail lb2-detail">
+		<div class="lb2-panel">
+			<div class="lb-detail-toolbar lb2-toolbar">
 				<div class="lb-tabs-row" role="tablist" aria-label="Standings category">
-					<button
-						class:list={['lb-tab', { active: initialCategory === 'singles' }]}
-						type="button"
-						data-lb-tab="singles"
-						onclick="setLbTab('singles')"
-					>
-						Singles
-					</button>
-					<button
-						class:list={['lb-tab', { active: initialCategory === 'doubles' }]}
-						type="button"
-						data-lb-tab="doubles"
-						onclick="setLbTab('doubles')"
-					>
-						Doubles
-					</button>
-					<button
-						class:list={['lb-tab', { active: initialCategory === 'mixed' }]}
-						type="button"
-						data-lb-tab="mixed"
-						onclick="setLbTab('mixed')"
-					>
-						Mixed Doubles
-					</button>
+					<button class:list={['lb-tab', { active: initialCategory === 'singles' }]} type="button" data-lb-tab="singles" onclick="setLbTab('singles')">Singles</button>
+					<button class:list={['lb-tab', { active: initialCategory === 'doubles' }]} type="button" data-lb-tab="doubles" onclick="setLbTab('doubles')">Doubles</button>
+					<button class:list={['lb-tab', { active: initialCategory === 'mixed' }]} type="button" data-lb-tab="mixed" onclick="setLbTab('mixed')">Mixed</button>
 				</div>
 				<div class="lb-division-row">
 					<label class="lb-division-label" for="divSelect">Division</label>
 					<select class="lb-select" id="divSelect" onchange="onLbDivisionChange()">
-						{
-							LB_DIVISIONS_BY_CATEGORY[initialCategory].map((d) => (
-								<option value={d.id} selected={d.id === initialDivision}>{d.label}</option>
-							))
-						}
+						{LB_DIVISIONS_BY_CATEGORY[initialCategory].map((d) => (
+							<option value={d.id} selected={d.id === initialDivision}>{d.label}</option>
+						))}
 					</select>
 				</div>
 			</div>
 
-			<p class="lb-context" id="lb-context-line" aria-live="polite">
-				{initialContextLabel}
-			</p>
+			<div class="lb2-panel-body">
+				<header class="lb2-panel-head">
+					<h2 class="lb2-panel-title" id="lb-context-line" aria-live="polite">{initialContextLabel}</h2>
+					<p class="lb2-panel-desc">Season points for this division. Tap a name for the player's profile.</p>
+				</header>
 
-			<section class="lb-spotlight" aria-label="Top three in selected division" aria-live="polite">
-				<div class="lb-spotlight-inner">
-					<p class="lb-spotlight-kicker">Top 3 in this bracket</p>
-					<div class="lb-spotlight-podium" id="lb-spotlight-cards"></div>
+				<section class="lb2-podium-wrap" aria-label="Top three in selected division" aria-live="polite">
+					<div class="lb2-podium" id="lb-spotlight-cards" set:html={initialPodiumHtml} />
+				</section>
+
+				<div class="lb2-table" role="table" aria-label="Full standings">
+					<div class="lb2-head" role="row">
+						<span role="columnheader">#</span>
+						<span role="columnheader">Player</span>
+						<span class="lb2-cell--wide" role="columnheader">Lap 1</span>
+						<span class="lb2-cell--wide" role="columnheader">Lap 2</span>
+						<span role="columnheader">Total</span>
+						<span class="lb2-cell--wide" role="columnheader">Wins</span>
+						<span class="lb2-cell--wide" role="columnheader">Place</span>
+						<span class="lb2-cell--wide" role="columnheader">Stops</span>
+						<span class="lb2-cell--wide" role="columnheader">Status</span>
+					</div>
+					<div class="lb2-rows" id="lb-rows" role="rowgroup" set:html={initialRowsHtml} />
 				</div>
-			</section>
 
-			<div class="lb-table-wrap">
-			<table class="lb-table">
-				<thead>
-					<tr>
-						<th style="width:48px">#</th>
-						<th>Player</th>
-						<th class="right hide-mobile">Lap 1</th>
-						<th class="right hide-mobile">Lap 2</th>
-						<th class="right">Total</th>
-						<th class="right hide-mobile">Wins</th>
-						<th class="right hide-mobile">Place</th>
-						<th class="right hide-mobile">Stops</th>
-						<th class="right">Status</th>
-					</tr>
-				</thead>
-				<tbody id="lb-tbody">
-					{initialRows.map((r) => {
-						const total = leaderboardTotal(r);
-						const place = r.place || 0;
-						const pctFill = initialMaxPts > 0 ? Math.round((total / initialMaxPts) * 100) : 0;
-						return (
-							<tr>
-								<td class="lb-rank-cell">
-									{place === 1 ? (
-										<span class="lb-medal">🥇</span>
-									) : place === 2 ? (
-										<span class="lb-medal">🥈</span>
-									) : place === 3 ? (
-										<span class="lb-medal">🥉</span>
-									) : (
-										<span class="rank-other">{place || '-'}</span>
-									)}
-								</td>
-								<td>
-									<div class="lb-player-cell">
-										{getPlayerImageForDisplay(r.name, 40) ? (
-											<img
-												class="lb-player-avatar"
-												src={getPlayerImageForDisplay(r.name, 40)}
-												alt=""
-												width="40"
-												height="40"
-												loading="lazy"
-												decoding="async"
-											/>
-										) : (
-											<span class="lb-player-avatar lb-player-avatar--fallback" aria-hidden="true">
-												{formatPlayerInitials(r.name)}
-											</span>
-										)}
-										<div class="lb-player-text">
-											{isPendingPlaceholder(r) ? (
-												<span class="lb-player-name">{r.name}</span>
-											) : (
-												<a class="lb-player-name lb-player-name-link" href={`/players/${getPlayerSlug(r.name)}`}>{r.name}</a>
-											)}
-											{r.city && <span class="lb-player-city">{r.city}</span>}
-											{r.note && <span style="font-size:13px;color:var(--green);display:block;">{r.note}</span>}
-											<div class="lb-progress-bar"><div class="lb-progress-fill" style={`width:${pctFill}%`}></div></div>
-										</div>
-									</div>
-								</td>
-								<td class="lb-stops right hide-mobile">{r.s1 || '-'}</td>
-								<td class="lb-stops right hide-mobile">{r.s2 || '-'}</td>
-								<td class:list={['lb-pts-cell', place === 1 ? 'leader' : '']}>{total}</td>
-								<td class="lb-stops right hide-mobile">{r.wins ?? 0}</td>
-								<td class="lb-stops right hide-mobile">{place || '-'}</td>
-								<td class="lb-stops right hide-mobile">{r.attendance ?? 0}/4</td>
-								<td class="lb-status-cell">
-									<span class:list={['lb-badge', badgeMap[r.status]]}>{badgeLabel[r.status]}</span>
-								</td>
-							</tr>
-						);
-					})}
-				</tbody>
-			</table>
-			<div class="lb-legend">
-				<span
-					><span class="lb-badge badge-q" style="font-size:13px;">Qualified</span> · Division leader / strong position</span
-				>
-				<span
-					><span class="lb-badge badge-pace" style="font-size:13px;">On Pace</span> · Projected to qualify</span
-				>
-				<span><span class="lb-badge badge-chase" style="font-size:13px;">Chasing</span> · Points needed</span>
-			</div>
+				<div class="lb2-legend">
+					<span><span class="lb-badge badge-q">Qualified</span> Division leader / strong position</span>
+					<span><span class="lb-badge badge-pace">On Pace</span> Projected to qualify</span>
+					<span><span class="lb-badge badge-chase">Chasing</span> Points needed</span>
+				</div>
 			</div>
 		</div>
+
+		<div class="lb-strip-mobile"><StopStatusStrip compact /></div>
 	</div>
 
-	<section class="lb-overview" id="lb-overview" aria-labelledby="lb-overview-heading">
-		<h2 id="lb-overview-heading" class="lb-overview-title">Leaders by division</h2>
-		<p class="lb-overview-lede">
-			Points are separate for singles, doubles, and mixed; each card highlights a player at the top of that bracket. Tap
-			a card to jump to that division's standings.
-		</p>
-		{
-			LB_OVERVIEW_CATEGORY_ORDER.map((cat: LbCategory) => (
-				<div class="lb-overview-block">
-					<h3 class="lb-overview-cat">{LB_CATEGORY_HEADING[cat]}</h3>
-					<div class="lb-overview-grid">
-						{LB_DIVISIONS_BY_CATEGORY[cat].flatMap((d) => {
-							const leaders = getDivisionLeaders(cat, d.id);
-							const label = `${LB_CATEGORY_HEADING[cat]} · ${d.label}`;
-							if (!leaders.length) {
-								return [{ division: d, leader: null as null, label }];
-							}
-							return leaders.map((leader) => ({ division: d, leader, label }));
-						}).map(({ division: d, leader }) => (
-								<a
-									class="lb-overview-card"
-									href={leaderboardDivisionHref(d.id)}
-									data-lb-event={cat}
-									data-lb-division={d.id}
-								>
-									<span class="lb-overview-div">{d.label}</span>
-									{leader ? (
-										<>
-											<div class="lb-overview-leader">
+	<section class="gp-band gp-band--navy2 lb2-ladder" id="lb-overview" aria-labelledby="lb-overview-heading">
+		<div class="gp-band-inner">
+			<p class="section-label">Every division</p>
+			<h2 id="lb-overview-heading" class="gp-title lb2-ladder-title">Leaders by <span>division</span></h2>
+			<p class="gp-sub">One line per division. Tap a row to load that division's full standings above.</p>
+			<div class="lb2-ladder-grid">
+				{ladder.map((block) => (
+					<div class="lb2-ladder-block">
+						<h3 class="lb2-ladder-cat">{block.heading}</h3>
+						<ul class="lb2-ladder-list">
+							{block.rows.map(({ division: d, leader, others }) => (
+								<li>
+									<a class="lb2-ladder-row" href={leaderboardDivisionHref(d.id)} data-lb-event={block.category} data-lb-division={d.id}>
+										<span class="lb2-ladder-div">{d.label}</span>
+										{leader ? (
+											<>
 												{getPlayerImageForDisplay(leader.name, 36) ? (
-													<img
-														class="lb-overview-avatar"
-														src={getPlayerImageForDisplay(leader.name, 36)}
-														alt=""
-														width="36"
-														height="36"
-														loading="lazy"
-														decoding="async"
-													/>
+													<img class="lb2-ladder-avatar" src={getPlayerImageForDisplay(leader.name, 36)} alt="" width="36" height="36" loading="lazy" decoding="async" />
 												) : (
-													<span class="lb-overview-avatar lb-overview-avatar--fallback" aria-hidden="true">
-														{formatPlayerInitials(leader.name)}
-													</span>
+													<span class="lb2-ladder-avatar lb2-ladder-avatar--fallback" aria-hidden="true">{formatPlayerInitials(leader.name)}</span>
 												)}
-												<span
-													class="lb-overview-name lb-overview-name-link"
-													onclick={`event.preventDefault(); event.stopPropagation(); window.location.href='/players/${getPlayerSlug(leader.name)}';`}
-													role="link"
-													tabindex="0"
-												>
+												<span class="lb2-ladder-name">
 													{leader.name}
+													{others.length > 0 && (
+														<small>{others.length + 1}-way tie · {others.map((o) => o.name).join(', ')}</small>
+													)}
 												</span>
-											</div>
-											<span class="lb-overview-meta">
-												<span class="lb-overview-pts">
-													<strong>{leaderboardTotal(leader)}</strong> pts
-												</span>
-												<span class:list={['lb-badge', badgeClass(leader.status)]}>
-													{badgeLabel[leader.status]}
-												</span>
-											</span>
-										</>
-									) : (
-										<span class="lb-overview-empty">No results yet</span>
-									)}
-									<span class="lb-overview-hint">View standings →</span>
-								</a>
-						))}
+												<span class="lb2-ladder-pts"><b>{leaderboardTotal(leader)}</b> pts</span>
+												<span class:list={['lb-badge', badgeClass(leader.status), 'lb2-ladder-badge']}>{badgeLabel[leader.status]}</span>
+											</>
+										) : (
+											<span class="lb2-ladder-name lb2-ladder-name--empty">No results yet</span>
+										)}
+										<span class="lb2-ladder-chev" aria-hidden="true">›</span>
+									</a>
+								</li>
+							))}
+						</ul>
 					</div>
-				</div>
-			))
-		}
+				))}
+			</div>
+		</div>
 	</section>
 </GrandPrixLayout>
 
