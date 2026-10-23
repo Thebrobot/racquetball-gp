@@ -1,10 +1,9 @@
 ---
 import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
 import OfficialBallChip from '../../components/grand-prix/OfficialBallChip.astro';
-import { EVENTS, getEventStatus } from '../../data/events';
-import { getPlayerSlug, getPlayerImageForDisplay, getPlayerScheduleEntries } from '../../data/players';
+import { EVENTS, getEventStatus, type EventDivisionDetail } from '../../data/events';
+import { getPlayerSlug, getPlayerImageForDisplay, getPlayerScheduleEntries, getAllPlayers } from '../../data/players';
 import { formatPlayerInitials } from '../../data/leaderboard';
-import { titleSponsor } from '../../data/ocala-sponsors';
 import { SEASON_STOPS } from '../../data/season-stops';
 
 export async function getStaticPaths() {
@@ -25,7 +24,8 @@ const totalParticipants = uniqueNames.size;
 // Live/upcoming events advance each entry to the player's next pending match
 // as results come in ("Complete" once their division run is over); past
 // events keep their original call times.
-const isPastEvent = getEventStatus(event) === 'recent';
+const eventStatus = getEventStatus(event);
+const isPastEvent = eventStatus === 'recent';
 
 type DivEntry = { division: string; time: string; court: string | null; done: boolean };
 type PlayerRow = { name: string; slug: string; entries: DivEntry[] };
@@ -63,12 +63,75 @@ for (const d of event.divisionDetails ?? []) {
 	divisionLabelToId.set(d.label, d.id);
 }
 
+// ── Division cards: entrants, decided matches, champion ──────────────────────
+const entrantsByDivision = new Map<string, number>();
+for (const profile of event.profiles ?? []) {
+	entrantsByDivision.set(profile.division, (entrantsByDivision.get(profile.division) ?? 0) + 1);
+}
+
+function decidedMatches(d: EventDivisionDetail): number {
+	let n = 0;
+	for (const r of d.rounds ?? []) for (const m of r.matches ?? []) if (m.winner) n++;
+	for (const m of d.roundRobinMatches ?? []) if (m.winner) n++;
+	return n;
+}
+
+/** Champion when the draw is decided: final-round winner, or the round-robin leader once every match is in. */
+function divisionChampion(d: EventDivisionDetail): string | null {
+	if (d.format === 'single') {
+		const rounds = d.rounds ?? [];
+		const last = rounds[rounds.length - 1];
+		const m = last?.matches?.[0];
+		if (!m?.winner || (last?.matches?.length ?? 0) !== 1) return null;
+		const name = (m.winner === 1 ? m.player1 : m.player2)?.trim();
+		return name && !/^(bye|tbd)$/i.test(name) ? name : null;
+	}
+	const ms = d.roundRobinMatches ?? [];
+	if (!ms.length || !ms.every((m) => m.winner)) return null;
+	const wins = new Map<string, number>();
+	for (const m of ms) {
+		const w = m.winner === 1 ? m.team1 : m.team2;
+		wins.set(w, (wins.get(w) ?? 0) + 1);
+	}
+	let best: string | null = null;
+	let bestWins = -1;
+	for (const [name, n] of wins) {
+		if (n > bestWins) {
+			best = name;
+			bestWins = n;
+		}
+	}
+	return best;
+}
+
+const allPlayers = getAllPlayers();
+function championHref(name: string): string | null {
+	if (name.includes('/')) return null;
+	const slug = getPlayerSlug(name);
+	return allPlayers.some((p) => p.slug === slug) ? `/players/${slug}` : null;
+}
+
+const divisionCards = (event.divisionDetails ?? []).map((d) => ({
+	...d,
+	entrants: entrantsByDivision.get(d.label) ?? (d.roundRobinPlayers?.length ?? 0),
+	decided: decidedMatches(d),
+	champion: divisionChampion(d),
+}));
+const matchesDecided = divisionCards.reduce((n, d) => n + d.decided, 0);
+const championsCrowned = divisionCards.filter((d) => d.champion).length;
+
+const statusPill =
+	eventStatus === 'live'
+		? { cls: 'gp-pill--live', label: 'Live now' }
+		: eventStatus === 'recent'
+			? { cls: 'gp-pill--done', label: 'Completed' }
+			: { cls: 'gp-pill--next', label: 'Upcoming' };
+
 // ── Structured data (schema.org SportsEvent) ──────────────────────────────────
 const siteOrigin = Astro.site?.origin ?? 'https://www.racquetballgp.com';
 const eventUrl = `${siteOrigin}/events/${event.slug}`;
 const [eventLocality, eventRegion] = event.cityLine.split(',').map((s) => s.trim());
 const seasonStop = SEASON_STOPS.find((s) => s.bracketsHref?.includes(`/events/${event.slug}`));
-const eventStatus = getEventStatus(event);
 const eventJsonLd = {
 	'@context': 'https://schema.org',
 	'@type': 'SportsEvent',
@@ -117,150 +180,200 @@ const eventJsonLd = {
 <GrandPrixLayout
 	title={`${event.name} | Florida Racquetball Grand Prix 2026`}
 	description={`Brackets, results, and ${totalParticipants} participants for the ${event.name}, ${event.dateRange}, ${event.cityLine}. Part of the 2026 Florida Racquetball Grand Prix series.`}
-	spotlightLabel="Title sponsor"
-	spotlightName={titleSponsor.name}
-	spotlightBlurb={titleSponsor.blurb}
-	spotlightLogoUrl={titleSponsor.logoUrl}
 >
-	<!-- ── HERO + TAB BAR ── -->
-	<section class="event-hero">
-		<div class="section-label">Event</div>
-		<h1 class="section-title">{event.name}</h1>
-		<p class="section-sub">{event.dateRange} · {event.cityLine}</p>
-		<OfficialBallChip />
-		<div class="event-tab-bar" role="tablist" aria-label="Event views">
-			<button
-				class="event-tab event-tab--active"
-				role="tab"
-				aria-selected="true"
-				aria-controls="panel-brackets"
-				data-panel="brackets"
-			>
-				Brackets
-			</button>
-			{totalParticipants > 0 && (
-				<button
-					class="event-tab"
-					role="tab"
-					aria-selected="false"
-					aria-controls="panel-participants"
-					data-panel="participants"
-				>
-					Participants
-					<span class="event-tab-count">{totalParticipants}</span>
-				</button>
-			)}
-			<a
-				class="event-tab event-tab--watch-live"
-				href={event.spotlightWatchLiveUrl ?? '/live'}
-				target={event.spotlightWatchLiveUrl ? '_blank' : undefined}
-				rel={event.spotlightWatchLiveUrl ? 'noopener noreferrer' : undefined}
-				aria-label="Watch live on Facebook"
-			>
-				<span class="event-tab-live-dot" aria-hidden="true"></span>
-				Watch Live
-			</a>
+	<!-- ── PAGE HEAD + TAB BAR ── -->
+	<header class="gp-page-head event-head">
+		<div class="gp-page-head-inner gp-page-head-inner--split">
+			<div class="event-head-copy">
+				<p class="section-label event-head-label">
+					<span class:list={['gp-pill', statusPill.cls]}>{statusPill.label}</span>
+					<span>Grand Prix stop</span>
+				</p>
+				<h1 class="gp-title">{event.name}</h1>
+				<p class="gp-sub">
+					<strong>{event.dateRange}</strong>
+					<span aria-hidden="true"> · </span>
+					{event.cityLine}
+					{event.spotlightVenue && (
+						<>
+							<span aria-hidden="true"> · </span>
+							{event.spotlightVenue}
+						</>
+					)}
+				</p>
+				<OfficialBallChip />
+			</div>
+			<div class="gp-card event-head-stats">
+				<ul class="gp-stat-row">
+					<li><strong>{divisionCards.length}</strong><span>Divisions</span></li>
+					{totalParticipants > 0 && <li><strong>{totalParticipants}</strong><span>Players</span></li>}
+					{matchesDecided > 0 && <li><strong>{matchesDecided}</strong><span>Matches decided</span></li>}
+					{championsCrowned > 0 && <li><strong><em>{championsCrowned}</em></strong><span>Champions</span></li>}
+				</ul>
+			</div>
 		</div>
-	</section>
+		<div class="gp-page-head-inner">
+			<div class="event-tab-bar" role="tablist" aria-label="Event views">
+				<button
+					class="event-tab event-tab--active"
+					role="tab"
+					aria-selected="true"
+					aria-controls="panel-brackets"
+					data-panel="brackets"
+				>
+					Brackets
+				</button>
+				{totalParticipants > 0 && (
+					<button
+						class="event-tab"
+						role="tab"
+						aria-selected="false"
+						aria-controls="panel-participants"
+						data-panel="participants"
+					>
+						Participants
+						<span class="event-tab-count">{totalParticipants}</span>
+					</button>
+				)}
+				<a
+					class="event-tab event-tab--watch-live"
+					href={event.spotlightWatchLiveUrl ?? '/live'}
+					target={event.spotlightWatchLiveUrl ? '_blank' : undefined}
+					rel={event.spotlightWatchLiveUrl ? 'noopener noreferrer' : undefined}
+					aria-label="Watch live on Facebook"
+				>
+					<span class="event-tab-live-dot" aria-hidden="true"></span>
+					Watch Live
+				</a>
+			</div>
+		</div>
+	</header>
 
 	<!-- ── BRACKETS PANEL ── -->
 	<div id="panel-brackets" class="event-panel" role="tabpanel" aria-labelledby="tab-brackets">
-		<section class="event-section" aria-label="Brackets">
-			<div class="division-list">
-				{(event.divisionDetails ?? []).map((division) => (
-					<a class="division-card" href={`${divisionBase}/${division.id}`}>
-						<div>
-							<div class="division-name">{division.label}</div>
-							<div class="division-meta">
-								{division.format === 'single' ? 'Single elimination' : 'Round robin'}
-							</div>
-						</div>
-						<span class:list={['division-badge', division.format === 'single' ? 'badge-single' : 'badge-rr']}>
-							{division.format === 'single' ? 'Bracket' : 'Round robin'}
-						</span>
-					</a>
-				))}
+		<section class="gp-band gp-band--tight" aria-label="Brackets">
+			<div class="gp-band-inner">
+				<div class="division-list event-division-grid">
+					{divisionCards.map((division) => {
+						const champHref = division.champion ? championHref(division.champion) : null;
+						return (
+							<a class="division-card event-division-card" href={`${divisionBase}/${division.id}`}>
+								<div class="event-division-main">
+									<div class="division-name">{division.label}</div>
+									<div class="division-meta">
+										{division.format === 'single' ? 'Single elimination' : 'Round robin'}
+										{division.entrants > 0 && (
+											<>
+												<span aria-hidden="true"> · </span>
+												{division.entrants}{' '}{division.entrants === 1 ? 'entrant' : 'entrants'}
+											</>
+										)}
+									</div>
+									{division.champion ? (
+										<div class="event-division-champ">
+											<span class="event-division-champ-icon" aria-hidden="true">🏆</span>
+											<span class="event-division-champ-label">Champion</span>
+											{champHref ? (
+												<span class="event-division-champ-name">{division.champion}</span>
+											) : (
+												<span class="event-division-champ-name">{division.champion}</span>
+											)}
+										</div>
+									) : division.decided > 0 ? (
+										<div class="event-division-progress">{division.decided} matches decided</div>
+									) : null}
+								</div>
+								<span class:list={['division-badge', division.format === 'single' ? 'badge-single' : 'badge-rr']}>
+									{division.format === 'single' ? 'Bracket' : 'Round robin'}
+								</span>
+							</a>
+						);
+					})}
+				</div>
 			</div>
 		</section>
 	</div>
 
 	<!-- ── PARTICIPANTS PANEL ── -->
 	<div id="panel-participants" class="event-panel" role="tabpanel" aria-labelledby="tab-participants" hidden>
-
-		<!-- Player search -->
-		<div class="participants-search-wrap">
-			<div class="player-search-field">
-				<svg class="player-search-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-					<circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.75"/>
-					<path d="M13 13l3.5 3.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
-				</svg>
-				<input
-					id="player-search"
-					class="player-search-input"
-					type="search"
-					placeholder="Search players…"
-					autocomplete="off"
-					spellcheck="false"
-					aria-label="Search players"
-				/>
-				<button id="player-search-clear" class="player-search-clear" type="button" aria-label="Clear search" hidden>
-					<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-						<path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
-					</svg>
-				</button>
-			</div>
-		</div>
-
-		<div class="participants-panel-stats">
-			<span class="participants-stat">
-				<span class="participants-stat-num">{totalParticipants}</span>
-				<span class="participants-stat-label">Players</span>
-			</span>
-			<span class="participants-stat">
-				<span class="participants-stat-num">{divisionOrder.length}</span>
-				<span class="participants-stat-label">Divisions</span>
-			</span>
-		</div>
-
-		<section class="event-section participants-flat-section">
-			<div class="participants-table">
-				<div class="participants-thead">
-					<span>Division</span>
-					<span>Next Call</span>
-					<span>Court</span>
+		<section class="gp-band gp-band--tight" aria-label="Participants">
+			<div class="gp-band-inner">
+				<!-- Player search -->
+				<div class="participants-search-wrap">
+					<div class="player-search-field">
+						<svg class="player-search-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+							<circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.75"/>
+							<path d="M13 13l3.5 3.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+						</svg>
+						<input
+							id="player-search"
+							class="player-search-input"
+							type="search"
+							placeholder="Search players…"
+							autocomplete="off"
+							spellcheck="false"
+							aria-label="Search players"
+						/>
+						<button id="player-search-clear" class="player-search-clear" type="button" aria-label="Clear search" hidden>
+							<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+								<path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+							</svg>
+						</button>
+					</div>
 				</div>
-				{allParticipants.map((p) => {
-					const imgUrl = getPlayerImageForDisplay(p.name, 40);
-					const initials = formatPlayerInitials(p.name);
-					return (
-						<div class="participants-player-group">
-							<a class="participants-name-row" href={`/players/${p.slug}`}>
-								{imgUrl ? (
-									<img class="participants-avatar" src={imgUrl} alt={p.name} width="34" height="34" loading="lazy" decoding="async" />
-								) : (
-									<span class="participants-avatar participants-avatar--fallback" aria-hidden="true">{initials}</span>
-								)}
-								<span class="participants-name">{p.name}</span>
-								<svg class="participants-name-arrow" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-									<path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-								</svg>
-							</a>
-							{p.entries.map((e) => {
-								const divId = divisionLabelToId.get(e.division);
-								const href = divId ? `${divisionBase}/${divId}` : `/players/${p.slug}`;
-								return (
-									<a class="participants-div-row" href={href}>
-										<span class="participants-td--division">{e.division}</span>
-										<span class={`participants-td--time${e.done ? ' participants-td--time-done' : ''}`}>{e.time || 'TBD'}</span>
-										<span class="participants-td--court">{e.done ? '—' : e.court ? `Court ${e.court}` : 'TBD'}</span>
-									</a>
-								);
-							})}
+
+				<div class="participants-panel-stats">
+					<span class="participants-stat">
+						<span class="participants-stat-num">{totalParticipants}</span>
+						<span class="participants-stat-label">Players</span>
+					</span>
+					<span class="participants-stat">
+						<span class="participants-stat-num">{divisionOrder.length}</span>
+						<span class="participants-stat-label">Divisions</span>
+					</span>
+				</div>
+
+				<div class="participants-flat-section">
+					<div class="participants-table">
+						<div class="participants-thead">
+							<span>Division</span>
+							<span>Next Call</span>
+							<span>Court</span>
 						</div>
-					);
-				})}
+						{allParticipants.map((p) => {
+							const imgUrl = getPlayerImageForDisplay(p.name, 40);
+							const initials = formatPlayerInitials(p.name);
+							return (
+								<div class="participants-player-group">
+									<a class="participants-name-row" href={`/players/${p.slug}`}>
+										{imgUrl ? (
+											<img class="participants-avatar" src={imgUrl} alt={p.name} width="34" height="34" loading="lazy" decoding="async" />
+										) : (
+											<span class="participants-avatar participants-avatar--fallback" aria-hidden="true">{initials}</span>
+										)}
+										<span class="participants-name">{p.name}</span>
+										<svg class="participants-name-arrow" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+											<path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+										</svg>
+									</a>
+									{p.entries.map((e) => {
+										const divId = divisionLabelToId.get(e.division);
+										const href = divId ? `${divisionBase}/${divId}` : `/players/${p.slug}`;
+										return (
+											<a class="participants-div-row" href={href}>
+												<span class="participants-td--division">{e.division}</span>
+												<span class={`participants-td--time${e.done ? ' participants-td--time-done' : ''}`}>{e.time || 'TBD'}</span>
+												<span class="participants-td--court">{e.done ? '—' : e.court ? `Court ${e.court}` : 'TBD'}</span>
+											</a>
+										);
+									})}
+								</div>
+							);
+						})}
+					</div>
+					<p id="player-search-empty" class="player-search-empty" hidden>No players found.</p>
+				</div>
 			</div>
-			<p id="player-search-empty" class="player-search-empty" hidden>No players found.</p>
 		</section>
 	</div>
 </GrandPrixLayout>
@@ -342,47 +455,106 @@ const eventJsonLd = {
 </script>
 
 <style>
+/* ── Page head ── */
+.event-head-label {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 10px 12px;
+}
+.event-head-copy .gp-sub strong {
+	color: #fff;
+	font-weight: 600;
+}
+.event-head-copy :global(.official-ball-chip) {
+	margin-left: 0;
+	margin-right: 0;
+	margin-top: 18px;
+}
+.event-head-stats {
+	padding: 18px 22px;
+}
+.event-head .event-tab-bar {
+	justify-content: flex-start;
+	margin-top: 26px;
+}
+
+/* ── Division cards ── */
+.event-division-grid {
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+}
+.event-division-card {
+	align-items: flex-start;
+	gap: 14px;
+}
+.event-division-main {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+}
+.event-division-champ {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px 8px;
+	margin-top: 6px;
+	font-size: 14px;
+}
+.event-division-champ-icon {
+	font-size: 15px;
+}
+.event-division-champ-label {
+	font-family: 'Barlow Condensed', sans-serif;
+	font-weight: 700;
+	font-size: 12px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: #ffd166;
+}
+.event-division-champ-name {
+	font-weight: 700;
+	color: #fff;
+}
+.event-division-progress {
+	margin-top: 4px;
+	font-size: 13px;
+	color: rgba(255, 255, 255, 0.55);
+}
+
 /* ── Player search ── */
 .participants-search-wrap {
-	max-width: 1200px;
-	margin: 0 auto;
-	padding: 24px 22px 0;
+	padding: 0 0 4px;
 }
 .participants-search-wrap .player-search-field {
 	max-width: 400px;
-	margin-left: auto;
-	margin-right: auto;
-}
-@media (max-width: 600px) {
-	.participants-search-wrap {
-		padding: 16px 16px 0;
-	}
 }
 
 /* ── Participants panel stats strip ── */
 .participants-panel-stats {
 	display: flex;
 	gap: 32px;
-	padding: 24px 0 8px;
-	justify-content: center;
+	padding: 18px 0 8px;
 }
 .participants-stat {
 	display: flex;
 	flex-direction: column;
-	align-items: center;
 	gap: 2px;
 }
 .participants-stat-num {
+	font-family: 'Barlow Condensed', sans-serif;
 	font-size: 2rem;
-	font-weight: 700;
+	font-weight: 900;
 	color: var(--orange);
 	line-height: 1;
 }
 .participants-stat-label {
+	font-family: 'Barlow Condensed', sans-serif;
 	font-size: 0.75rem;
+	font-weight: 700;
 	text-transform: uppercase;
-	letter-spacing: 0.08em;
-	color: #fff;
+	letter-spacing: 0.12em;
+	color: rgba(255, 255, 255, 0.55);
 }
 
 /* ── Participants table ── */
@@ -510,6 +682,9 @@ const eventJsonLd = {
 
 /* ── Mobile ── */
 @media (max-width: 640px) {
+	.event-head-stats {
+		padding: 14px 16px;
+	}
 	.participants-thead { display: none; }
 
 	.participants-name-row {

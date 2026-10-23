@@ -1,9 +1,9 @@
 ---
 import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
+import StopStatusStrip from '../components/grand-prix/StopStatusStrip.astro';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { EVENTS } from '../data/events';
-import { titleSponsor } from '../data/ocala-sponsors';
 
 type LiveActivityEvent = {
 	id: string;
@@ -34,6 +34,7 @@ try {
 const event = EVENTS.find((e) => e.slug === feed.eventSlug);
 const eventName = event?.name ?? 'Ocala Open';
 const eventDateRange = event?.dateRange ?? '';
+const eventHub = event ? `/events/${event.slug}` : '/tournaments';
 
 function formatSyncedAt(iso: string | null): string {
 	if (!iso) return 'Not yet synced';
@@ -52,45 +53,138 @@ function formatSyncedAt(iso: string | null): string {
 <GrandPrixLayout
 	title="Live Updates | Florida Racquetball Grand Prix"
 	description="Live bracket updates from the Florida Racquetball Grand Prix — match results and advancing players as scores are posted."
-	spotlightLabel="Title sponsor"
-	spotlightName={titleSponsor.name}
-	spotlightBlurb={titleSponsor.blurb}
-	spotlightLogoUrl={titleSponsor.logoUrl}
 >
-	<div class="page-hero" id="live-updates-page" data-last-updated={feed.lastUpdated ?? ''}>
-		<div class="section-label">Tournament weekend</div>
-		<h1 class="section-title">Live <span style="color:var(--orange)">updates</span></h1>
-		<p class="section-sub live-page-sub">
-			{eventName}{eventDateRange ? ` · ${eventDateRange}` : ''}. Results appear here as bracket automation
-			syncs from R2 Sports (typically every 10 minutes during play).
-		</p>
-		<p class="live-sync-label" id="live-sync-label">
-			Last synced <span id="live-sync-time">{formatSyncedAt(feed.lastUpdated)}</span>
-		</p>
-	</div>
-
-	<section class="live-feed-section" aria-labelledby="live-feed-heading">
-		<h2 id="live-feed-heading" class="visually-hidden">Recent bracket activity</h2>
-		<div class="live-feed-list" id="live-feed-list">
-			{feed.events.length === 0 ? (
-				<p class="live-feed-empty" id="live-feed-empty">
-					Waiting for bracket updates… Check back during match play.
+	<header class="gp-page-head" id="live-updates-page" data-last-updated={feed.lastUpdated ?? ''}>
+		<div class="gp-page-head-inner gp-page-head-inner--split">
+			<div>
+				<p class="section-label">Tournament weekend</p>
+				<h1 class="gp-title">Live <span>updates</span></h1>
+				<p class="gp-sub live-page-sub">
+					{eventName}{eventDateRange ? ` · ${eventDateRange}` : ''}. Results land here as the bracket sync
+					pulls scores from R2 Sports, typically every 10 minutes during play.
 				</p>
-			) : (
-				feed.events.map((item, i) => (
-					<article class:list={['live-feed-card', { 'live-feed-card--fresh': i === 0 }]} data-at={item.at} data-id={item.id}>
-						<time class="live-feed-time" datetime={item.at} data-live-time={item.at}>
-							{item.at}
-						</time>
-						<p class="live-feed-division">{item.divisionLabel}</p>
-						<h3 class="live-feed-headline">{item.headline}</h3>
-						{item.detail && <p class="live-feed-detail">{item.detail}</p>}
-						<a class="live-feed-link" href={item.bracketHref}>
-							View bracket →
-						</a>
-					</article>
-				))
-			)}
+				<p class="live-sync-label live-head-sync" id="live-sync-label">
+					<span class="live-head-sync-dot" aria-hidden="true"></span>
+					Last synced <span id="live-sync-time">{formatSyncedAt(feed.lastUpdated)}</span>
+				</p>
+			</div>
+			<StopStatusStrip compact />
+		</div>
+	</header>
+
+	<section class="gp-band live-feed-section live-band" aria-labelledby="live-feed-heading">
+		<div class="gp-band-inner">
+			<div class="live-band-head">
+				<h2 id="live-feed-heading" class="live-band-title">Recent bracket activity</h2>
+				<div class="live-band-links">
+					<a class="gp-link" href={`${eventHub}#brackets`}>Brackets →</a>
+					<a class="gp-link gp-link--muted" href={`${eventHub}#participants`}>Participants →</a>
+				</div>
+			</div>
+
+			<div class="live-feed-list" id="live-feed-list">
+				{feed.events.length === 0 ? (
+					<p class="live-feed-empty" id="live-feed-empty">
+						Waiting for bracket updates… Check back during match play.
+					</p>
+				) : (
+					feed.events.map((item, i) => (
+						<article class:list={['live-feed-card', { 'live-feed-card--fresh': i === 0 }]} data-at={item.at} data-id={item.id}>
+							<time class="live-feed-time" datetime={item.at} data-live-time={item.at}>
+								{item.at}
+							</time>
+							<p class="live-feed-division">{item.divisionLabel}</p>
+							<h3 class="live-feed-headline">{item.headline}</h3>
+							{item.detail && <p class="live-feed-detail">{item.detail}</p>}
+							<a class="live-feed-link" href={item.bracketHref}>
+								View bracket →
+							</a>
+						</article>
+					))
+				)}
+			</div>
+
+			<aside class="live-how gp-card" aria-label="How live updates work">
+				<p class="live-how-label">How this works</p>
+				<p class="live-how-text">
+					During a tournament weekend, bracket results are scraped from R2 Sports every 10 minutes and
+					posted here and on each bracket page. This page refreshes itself every minute while it is open, so
+					there is nothing to reload. Between stops the feed stays quiet.
+				</p>
+			</aside>
 		</div>
 	</section>
 </GrandPrixLayout>
+
+<style>
+.gp-page-head :global(.hero-status) {
+	grid-column: auto;
+	align-self: center;
+}
+.live-head-sync {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin: 16px 0 0;
+	font-size: 14px;
+	color: var(--muted);
+}
+.live-head-sync-dot {
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: var(--green);
+}
+.live-band {
+	padding-top: clamp(28px, 4vw, 48px);
+}
+.live-band-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 12px 24px;
+	flex-wrap: wrap;
+	margin-bottom: 20px;
+}
+.live-band-title {
+	margin: 0;
+	font-family: 'Barlow Condensed', sans-serif;
+	font-weight: 900;
+	font-size: clamp(24px, 2.6vw, 32px);
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+.live-band-links {
+	display: flex;
+	gap: 20px;
+}
+/* The client script replaces #live-feed-list with the same markup, so only the container is styled here */
+.live-band :global(.live-feed-empty) {
+	margin: 0;
+	padding: 28px 24px;
+	border: 1px dashed rgba(255, 255, 255, 0.2);
+	border-radius: 16px;
+	text-align: center;
+	color: var(--muted);
+	font-size: 16px;
+}
+.live-how {
+	margin-top: 24px;
+	padding: 18px 22px;
+}
+.live-how-label {
+	margin: 0 0 6px;
+	font-family: 'Barlow Condensed', sans-serif;
+	font-weight: 700;
+	font-size: 12.5px;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--orange);
+}
+.live-how-text {
+	margin: 0;
+	font-size: 15px;
+	line-height: 1.6;
+	color: var(--muted);
+}
+</style>

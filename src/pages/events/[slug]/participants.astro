@@ -4,7 +4,6 @@ import OfficialBallChip from '../../../components/grand-prix/OfficialBallChip.as
 import { EVENTS, getEventStatus } from '../../../data/events';
 import { getPlayerSlug, getPlayerImageForDisplay, getPlayerScheduleEntries } from '../../../data/players';
 import { formatPlayerInitials } from '../../../data/leaderboard';
-import { titleSponsor } from '../../../data/ocala-sponsors';
 
 export async function getStaticPaths() {
 	return EVENTS.map((event) => ({ params: { slug: event.slug }, props: { event } }));
@@ -23,7 +22,8 @@ for (const div of divisionOrder) {
 
 // Past events keep their original call times; live/upcoming events advance
 // each row to the player's next pending match as results come in.
-const isPastEvent = getEventStatus(event) === 'recent';
+const eventStatus = getEventStatus(event);
+const isPastEvent = eventStatus === 'recent';
 
 for (const profile of event.profiles ?? []) {
 	const list = byDivision.get(profile.division);
@@ -59,134 +59,179 @@ for (const [, list] of byDivision) {
 // Unique player count
 const uniqueNames = new Set((event.profiles ?? []).map((p) => p.name));
 const totalParticipants = uniqueNames.size;
+const divisionsWithPlayers = divisionOrder.filter((d) => (byDivision.get(d)?.length ?? 0) > 0).length;
 
-const bracketsHref = `/events/${event.slug}#brackets`;
+const eventHref = `/events/${event.slug}`;
+const bracketsHref = `${eventHref}#brackets`;
+
+const statusPill =
+	eventStatus === 'live'
+		? { cls: 'gp-pill--live', label: 'Live now' }
+		: eventStatus === 'recent'
+			? { cls: 'gp-pill--done', label: 'Completed' }
+			: { cls: 'gp-pill--next', label: 'Upcoming' };
 ---
 
 <GrandPrixLayout
 	title={`${event.name} Participants | Florida Racquetball Grand Prix 2026`}
 	description={`Full participant list for the ${event.name}. See who is competing, which divisions they entered, and their next call times.`}
-	spotlightLabel="Title sponsor"
-	spotlightName={titleSponsor.name}
-	spotlightBlurb={titleSponsor.blurb}
-	spotlightLogoUrl={titleSponsor.logoUrl}
 >
-	<!-- ── HERO ── -->
-	<section class="event-hero">
-		<div class="section-label">Event · {event.name}</div>
-		<h1 class="section-title">Participants</h1>
-		<p class="section-sub">
-			{event.dateRange} · {event.cityLine}
-			{event.spotlightVenue && <> · {event.spotlightVenue}</>}
-		</p>
-		<OfficialBallChip />
-		<div class="participants-hero-stats">
-			<span class="participants-stat">
-				<span class="participants-stat-num">{totalParticipants}</span>
-				<span class="participants-stat-label">Players</span>
-			</span>
-			<span class="participants-stat">
-				<span class="participants-stat-num">{divisionOrder.length}</span>
-				<span class="participants-stat-label">Divisions</span>
-			</span>
+	<!-- ── PAGE HEAD ── -->
+	<header class="gp-page-head">
+		<div class="gp-page-head-inner gp-page-head-inner--split">
+			<div class="participants-head-copy">
+				<p class="section-label participants-head-label">
+					<span class:list={['gp-pill', statusPill.cls]}>{statusPill.label}</span>
+					<a class="participants-head-event" href={eventHref}>{event.name}</a>
+				</p>
+				<h1 class="gp-title">Who is <span>playing</span></h1>
+				<p class="gp-sub">
+					<strong>{event.dateRange}</strong>
+					<span aria-hidden="true"> · </span>
+					{event.cityLine}
+					{event.spotlightVenue && (
+						<>
+							<span aria-hidden="true"> · </span>
+							{event.spotlightVenue}
+						</>
+					)}
+				</p>
+				<OfficialBallChip />
+			</div>
+			<div class="gp-card participants-head-card">
+				<ul class="gp-stat-row">
+					<li><strong>{totalParticipants}</strong><span>Players</span></li>
+					<li><strong>{divisionsWithPlayers}</strong><span>Divisions</span></li>
+				</ul>
+				<div class="participants-head-links">
+					<a class="gp-link" href={bracketsHref}>Brackets →</a>
+					<a class="gp-link gp-link--muted" href={`${eventHref}/divisions`}>Division list →</a>
+				</div>
+			</div>
 		</div>
-		<div class="participants-hero-ctas">
-			<a class="btn-ghost" href={bracketsHref}>View brackets</a>
-		</div>
-	</section>
+	</header>
 
 	<!-- ── DIVISION TABLES ── -->
-	{divisionOrder.map((divLabel) => {
-		const players = byDivision.get(divLabel) ?? [];
-		if (!players.length) return null;
-		return (
-			<section class="event-section participants-division-section" aria-labelledby={`div-${divLabel.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`}>
-				<header class="event-section-header">
-					<h2 id={`div-${divLabel.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`}>{divLabel}</h2>
-					<p>{players.length} player{players.length !== 1 ? 's' : ''}</p>
-				</header>
-				<div class="participants-table">
-					<div class="participants-table-head">
-						<span>Name</span>
-						<span>Next call</span>
-						<span>Court</span>
-					</div>
-					{players.map((p) => {
-						const imgUrl = getPlayerImageForDisplay(p.name, 40);
-						const initials = formatPlayerInitials(p.name);
-						return (
-							<a class="participants-row" href={`/players/${getPlayerSlug(p.name)}`}>
-								<span class="participants-row-identity">
-									{imgUrl ? (
-										<img
-											class="participants-avatar"
-											src={imgUrl}
-											alt={p.name}
-											width="40"
-											height="40"
-											loading="lazy"
-											decoding="async"
-										/>
-									) : (
-										<span class="participants-avatar participants-avatar--fallback" aria-hidden="true">
-											{initials}
+	<section class="gp-band gp-band--tight" aria-label="Participants by division">
+		<div class="gp-band-inner">
+			{divisionOrder.map((divLabel) => {
+				const players = byDivision.get(divLabel) ?? [];
+				if (!players.length) return null;
+				const headingId = `div-${divLabel.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`;
+				return (
+					<section class="participants-division-section" aria-labelledby={headingId}>
+						<header class="event-section-header participants-division-header">
+							<h2 id={headingId}>{divLabel}</h2>
+							<p>{players.length} player{players.length !== 1 ? 's' : ''}</p>
+						</header>
+						<div class="participants-table">
+							<div class="participants-table-head">
+								<span>Name</span>
+								<span>Next call</span>
+								<span>Court</span>
+							</div>
+							{players.map((p) => {
+								const imgUrl = getPlayerImageForDisplay(p.name, 40);
+								const initials = formatPlayerInitials(p.name);
+								return (
+									<a class="participants-row" href={`/players/${getPlayerSlug(p.name)}`}>
+										<span class="participants-row-identity">
+											{imgUrl ? (
+												<img
+													class="participants-avatar"
+													src={imgUrl}
+													alt={p.name}
+													width="40"
+													height="40"
+													loading="lazy"
+													decoding="async"
+												/>
+											) : (
+												<span class="participants-avatar participants-avatar--fallback" aria-hidden="true">
+													{initials}
+												</span>
+											)}
+											<span class="participants-row-name">{p.name}</span>
 										</span>
-									)}
-									<span class="participants-row-name">{p.name}</span>
-								</span>
-								<span class={`participants-row-time${p.done ? ' participants-row-time--done' : ''}`}>{p.time}</span>
-								<span class="participants-row-court">{p.done ? '—' : p.court ? `Court ${p.court}` : 'TBD'}</span>
-							</a>
-						);
-					})}
-				</div>
-			</section>
-		);
-	})}
+										<span class={`participants-row-time${p.done ? ' participants-row-time--done' : ''}`}>{p.time}</span>
+										<span class="participants-row-court">{p.done ? '—' : p.court ? `Court ${p.court}` : 'TBD'}</span>
+									</a>
+								);
+							})}
+						</div>
+					</section>
+				);
+			})}
+		</div>
+	</section>
 </GrandPrixLayout>
 
 <style>
-/* ── Hero stats ── */
-.participants-hero-stats {
+/* ── Page head ── */
+.participants-head-label {
 	display: flex;
-	gap: 32px;
-	margin-top: 20px;
-	justify-content: center;
-}
-.participants-stat {
-	display: flex;
-	flex-direction: column;
 	align-items: center;
-	gap: 2px;
-}
-.participants-stat-num {
-	font-size: 2rem;
-	font-weight: 700;
-	color: var(--orange);
-	line-height: 1;
-}
-.participants-stat-label {
-	font-size: 0.75rem;
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
-	color: var(--text-muted, rgba(255,255,255,0.5));
-}
-.participants-hero-ctas {
-	margin-top: 24px;
-	display: flex;
-	gap: 12px;
-	justify-content: center;
 	flex-wrap: wrap;
+	gap: 10px 12px;
+}
+.participants-head-event {
+	color: inherit;
+	text-decoration: none;
+}
+.participants-head-event:hover {
+	color: #fff;
+}
+.participants-head-copy .gp-sub strong {
+	color: #fff;
+	font-weight: 600;
+}
+.participants-head-copy :global(.official-ball-chip) {
+	margin-left: 0;
+	margin-right: 0;
+	margin-top: 18px;
+}
+.participants-head-card {
+	padding: 18px 22px;
+}
+.participants-head-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 22px;
+	margin-top: 16px;
+}
+
+/* ── Division sections (generic `section` box rules do not apply inside the band) ── */
+.participants-division-section {
+	max-width: none;
+	margin: 0 0 28px;
+	padding: 0;
+}
+.participants-division-section:last-child {
+	margin-bottom: 0;
+}
+.participants-division-header {
+	flex-direction: row;
+	align-items: baseline;
+	gap: 12px;
+	margin-bottom: 12px;
+}
+.participants-division-header h2 {
+	font-family: 'Barlow Condensed', sans-serif;
+	font-weight: 900;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+.participants-division-header p {
+	font-size: 14px;
+	color: rgba(255, 255, 255, 0.55);
 }
 
 /* ── Division table ── */
-.participants-division-section {
-	margin-bottom: 8px;
-}
 .participants-table {
 	border: 1px solid rgba(255,255,255,0.08);
 	border-radius: 12px;
 	overflow: hidden;
+	background: var(--card-bg);
 }
 .participants-table-head {
 	display: grid;
@@ -266,6 +311,9 @@ const bracketsHref = `/events/${event.slug}#brackets`;
 }
 
 @media (max-width: 600px) {
+	.participants-head-card {
+		padding: 14px 16px;
+	}
 	.participants-table-head {
 		grid-template-columns: 1fr 1fr;
 	}

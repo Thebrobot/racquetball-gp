@@ -1,58 +1,169 @@
 ---
 import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
-import { titleSponsor } from '../data/ocala-sponsors';
 import { tournamentDirector, registrationContact } from '../data/contacts';
+import { SEASON_STOPS } from '../data/season-stops';
 
 const enc = encodeURIComponent;
 
 const mailKeith = `mailto:${tournamentDirector.email}?subject=${enc('Florida Racquetball Grand Prix: question')}`;
 const mailKeithSponsor = `mailto:${tournamentDirector.email}?subject=${enc('Florida Grand Prix: sponsorship inquiry')}`;
 const mailLeo = `mailto:${registrationContact.email}?subject=${enc('Florida Grand Prix: registration / tournament question')}`;
+
+const nextStop = SEASON_STOPS.find((s) => s.kind === 'next') ?? SEASON_STOPS.find((s) => s.kind === 'upcoming');
+const firstName = (name: string) => name.split(' ')[0];
 ---
 
 <GrandPrixLayout
 	title="Contact Us | Florida Racquetball Grand Prix"
 	description="Contact tournament director Keith Lewis or registration lead Leo Vasquez for Florida Racquetball Grand Prix questions, registration help, and sponsorship inquiries."
-	spotlightLabel="Title sponsor"
-	spotlightName={titleSponsor.name}
-	spotlightBlurb={titleSponsor.blurb}
-	spotlightLogoUrl={titleSponsor.logoUrl}
 >
-	<div class="page-hero">
-		<div class="section-label">Get in touch</div>
-		<h1 class="section-title">Contact <span style="color:var(--orange)">Us</span></h1>
-		<p class="section-sub" style="margin-bottom:0;">
-			Tournament director Keith Lewis and registration contact Leo Vasquez are your points of contact for the
-			series. We read every message and typically reply within a few business days.
-		</p>
-	</div>
+	<header class="gp-page-head">
+		<div class="gp-page-head-inner">
+			<div>
+				<p class="section-label">Get in touch</p>
+				<h1 class="gp-title">Contact <span>us</span></h1>
+				<p class="gp-sub">
+					Two people run the series day to day. We read every message and typically reply within a few
+					business days.
+				</p>
+			</div>
+		</div>
+	</header>
 
-	<section class="contact-page-section" aria-labelledby="contact-options-heading">
-		<h2 id="contact-options-heading" class="visually-hidden">Ways to reach us</h2>
-		<div class="contact-grid contact-grid--two">
-			<article class="contact-card">
-				<p class="contact-card-role">{tournamentDirector.role}</p>
-				<h3 class="contact-card-title">{tournamentDirector.name}</h3>
-				<p class="contact-card-text">
-					Sponsorships, partnerships, season format, points, stops, and other questions about the Grand Prix
-					as a whole.
-				</p>
-				<div class="contact-card-actions contact-card-actions--stack">
-					<a class="btn-main contact-card-cta" href={mailKeith}>Email {tournamentDirector.name.split(' ')[0]}</a>
-					<a class="btn-ghost contact-card-cta" href={mailKeithSponsor}>Sponsorship inquiry</a>
-				</div>
-			</article>
-			<article class="contact-card">
-				<p class="contact-card-role">{registrationContact.role}</p>
-				<h3 class="contact-card-title">{registrationContact.name}</h3>
-				<p class="contact-card-text">
-					R2 Sports sign-up, divisions, which event to enter, or questions about a specific tournament.
-				</p>
-				<div class="contact-card-actions contact-card-actions--stack">
-					<a class="btn-main contact-card-cta" href={mailLeo}>Email {registrationContact.name.split(' ')[0]}</a>
-					<a class="btn-ghost contact-card-cta" href="/tournaments">View schedule</a>
-				</div>
-			</article>
+	<section class="gp-band gp-band--court" aria-labelledby="contact-options-heading">
+		<div class="gp-band-inner">
+			<h2 id="contact-options-heading" class="visually-hidden">Ways to reach us</h2>
+			<div class="contact-cards">
+				<article class="contact-card gp-card">
+					<p class="contact-role">{tournamentDirector.role}</p>
+					<h3 class="contact-name">{tournamentDirector.name}</h3>
+					<p class="contact-text">
+						Sponsorships, partnerships, season format, points, stops, and anything about the Grand Prix as a
+						whole.
+					</p>
+					<div class="contact-actions">
+						<a class="contact-btn" href={mailKeith}>Email {firstName(tournamentDirector.name)}</a>
+						<a class="gp-link" href={mailKeithSponsor}>Sponsorship inquiry →</a>
+					</div>
+				</article>
+
+				<article class="contact-card gp-card">
+					<p class="contact-role">{registrationContact.role}</p>
+					<h3 class="contact-name">{registrationContact.name}</h3>
+					<p class="contact-text">
+						R2 Sports sign-up, divisions, which event to enter, or a question about a specific tournament.
+					</p>
+					<div class="contact-actions">
+						<a class="contact-btn" href={mailLeo}>Email {firstName(registrationContact.name)}</a>
+						<a class="gp-link" href="/tournaments">View schedule →</a>
+					</div>
+				</article>
+
+				<article class="contact-card gp-card contact-card--quick">
+					<p class="contact-role">Registration and schedule</p>
+					<h3 class="contact-name">Sign up on R2 Sports</h3>
+					<p class="contact-text">
+						{nextStop
+							? `${nextStop.eventName} is the next stop, ${nextStop.dateHint}, 2026 in ${nextStop.cityLine}. Registration runs through R2 Sports.`
+							: 'Every stop registers through R2 Sports. Dates and venues are on the schedule.'}
+					</p>
+					<div class="contact-actions">
+						{nextStop && nextStop.registerUrl !== '#' ? (
+							<a class="contact-btn contact-btn--ghost" href={nextStop.registerUrl} target="_blank" rel="noopener noreferrer">
+								Register on R2
+							</a>
+						) : null}
+						<a class="gp-link" href="/tournaments">All stops →</a>
+					</div>
+				</article>
+			</div>
 		</div>
 	</section>
 </GrandPrixLayout>
+
+<style>
+.contact-cards {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 18px;
+}
+.contact-card {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 24px 24px 22px;
+	color: var(--court-ink);
+}
+.contact-card--quick {
+	background: var(--court-ink);
+	color: #fff;
+	border-color: var(--court-ink);
+}
+.contact-role {
+	margin: 0;
+	font-family: 'Barlow Condensed', sans-serif;
+	font-weight: 700;
+	font-size: 12.5px;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--orange);
+}
+.contact-name {
+	margin: 0;
+	font-family: 'Barlow Condensed', sans-serif;
+	font-weight: 900;
+	font-size: clamp(26px, 2.4vw, 32px);
+	line-height: 1;
+	text-transform: uppercase;
+}
+.contact-text {
+	margin: 4px 0 0;
+	font-size: 15.5px;
+	line-height: 1.55;
+	color: var(--court-muted);
+}
+.contact-card--quick .contact-text {
+	color: rgba(255, 255, 255, 0.72);
+}
+.contact-actions {
+	margin-top: auto;
+	padding-top: 18px;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 12px;
+}
+.contact-btn {
+	font-family: 'Barlow Condensed', sans-serif;
+	font-weight: 700;
+	font-size: 16px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	padding: 12px 22px;
+	border-radius: 8px;
+	background: var(--orange);
+	color: #fff;
+	text-decoration: none;
+	transition: background 0.15s, transform 0.15s;
+}
+.contact-btn:hover {
+	background: var(--orange2);
+	transform: translateY(-1px);
+}
+.contact-btn--ghost {
+	background: transparent;
+	border: 1px solid rgba(255, 255, 255, 0.35);
+}
+.contact-btn--ghost:hover {
+	background: rgba(255, 255, 255, 0.08);
+	border-color: #fff;
+}
+.contact-card--quick .gp-link:hover {
+	color: #fff;
+}
+@media (max-width: 900px) {
+	.contact-cards {
+		grid-template-columns: 1fr;
+	}
+}
+</style>

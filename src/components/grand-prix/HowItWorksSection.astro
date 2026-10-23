@@ -1,49 +1,137 @@
 ---
-
+const steps = [
+	{
+		num: '01',
+		title: 'Play the stops',
+		text: 'Register for any of the four Grand Prix tour stops across Florida. Each stop is a standalone event with full brackets across all divisions.',
+	},
+	{
+		num: '02',
+		title: 'Earn GP points',
+		text: 'Finish positions award GP points in singles, doubles, and mixed doubles. Doubles and mixed points go to the team and split equally between partners.',
+	},
+	{
+		num: '03',
+		title: 'Climb the board',
+		text: 'Points accumulate across the season. The leaderboard updates after each stop, so your ranking can rise through the final tour weekend in December.',
+	},
+	{
+		num: '04',
+		title: 'Win the title',
+		text: 'Top point earners in each division lead the statewide standings across four scored stops from Ocala through Eustis. A series championship is planned for early 2027 (dates TBD, pending USA Racquetball approval).',
+	},
+];
 ---
 
-<section class="hiw-page-section">
-	<div class="section-label">How it works</div>
-	<div class="section-title">
-		Compete. <span style="color:var(--orange)">Accumulate.</span><br />Champion.
-	</div>
-	<p class="section-sub">
-		The Florida Racquetball Grand Prix is a first-of-its-kind season series. Play in any or all stops:
-		every match you win builds your points total toward the season standings.
-	</p>
-	<div class="hiw-grid">
-		<div class="hiw-card">
-			<div class="hiw-num">01</div>
-			<div class="hiw-title">Play the stops</div>
-			<div class="hiw-desc">
-				Register for any of the four Grand Prix tour stops across Florida. Each stop is a standalone event
-				with full brackets across all divisions.
-			</div>
-		</div>
-		<div class="hiw-card">
-			<div class="hiw-num">02</div>
-			<div class="hiw-title">Earn GP points</div>
-			<div class="hiw-desc">
-				Finish positions award GP points in singles, doubles, and mixed doubles. Doubles and mixed points
-				are awarded to the team and split equally between partners.
-			</div>
-		</div>
-		<div class="hiw-card">
-			<div class="hiw-num">03</div>
-			<div class="hiw-title">Climb the board</div>
-			<div class="hiw-desc">
-				Points accumulate across the season. The leaderboard updates live after each stop. Watch your
-				ranking rise through the final tour weekend in December.
-			</div>
-		</div>
-		<div class="hiw-card">
-			<div class="hiw-num">04</div>
-			<div class="hiw-title">Win the title</div>
-			<div class="hiw-desc">
-				Top point earners in each division lead the statewide standings across four scored stops from Ocala
-				through Eustis. A series championship event is planned for early 2027 (dates TBD, pending USA Racquetball
-				approval). Consistency and deep runs put you in the hunt.
-			</div>
-		</div>
+<section class="gp-band gp-band--navy2 hiwv2" aria-labelledby="hiw-heading">
+	<div class="gp-band-inner">
+		<p class="section-label">How it works</p>
+		<h2 id="hiw-heading" class="gp-title hiwv2-title">
+			Compete. <span>Accumulate.</span> Champion.
+		</h2>
+		<p class="gp-sub hiwv2-sub">
+			A first-of-its-kind season series. Play any or all stops: every finish builds your points total toward
+			the season standings.
+		</p>
+		<ol class="hiwv2-track">
+			{steps.map((s) => (
+				<li class="hiwv2-step">
+					<span class="hiwv2-step-marker" aria-hidden="true"></span>
+					<span class="hiwv2-step-num">{s.num}</span>
+					<h3 class="hiwv2-step-title">{s.title}</h3>
+					<p class="hiwv2-step-text">{s.text}</p>
+				</li>
+			))}
+		</ol>
 	</div>
 </section>
+
+<style>
+.hiwv2-title {
+	font-size: clamp(34px, 4.8vw, 56px);
+}
+.hiwv2-sub {
+	margin-bottom: clamp(28px, 4vw, 44px);
+}
+.hiwv2-track {
+	list-style: none;
+	margin: 0;
+	padding: 18px 0 0;
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 18px;
+	position: relative;
+}
+.hiwv2-track::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 24px;
+	height: 2px;
+	background: linear-gradient(90deg, var(--orange) 0%, rgba(240, 90, 26, 0.5) 60%, rgba(255, 255, 255, 0.14) 100%);
+}
+.hiwv2-step {
+	position: relative;
+	padding: 30px 0 0;
+}
+.hiwv2-step-marker {
+	position: absolute;
+	top: 17px;
+	left: 0;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background: var(--navy2);
+	border: 3px solid var(--orange);
+}
+.hiwv2-step-num {
+	display: block;
+	font-family: 'Barlow Condensed', sans-serif;
+	font-weight: 900;
+	font-size: 44px;
+	line-height: 1;
+	color: rgba(255, 255, 255, 0.16);
+	margin-bottom: 6px;
+}
+.hiwv2-step-title {
+	margin: 0 0 8px;
+	font-family: 'Barlow Condensed', sans-serif;
+	font-weight: 800;
+	font-size: 22px;
+	line-height: 1.1;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #fff;
+}
+.hiwv2-step-text {
+	margin: 0;
+	font-size: 15px;
+	line-height: 1.6;
+	color: var(--muted);
+}
+@media (max-width: 1024px) {
+	.hiwv2-track {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		row-gap: 28px;
+	}
+	.hiwv2-track::before {
+		display: none;
+	}
+}
+@media (max-width: 640px) {
+	.hiwv2-track {
+		grid-template-columns: 1fr;
+		padding-top: 0;
+	}
+	.hiwv2-step {
+		padding: 0 0 0 30px;
+	}
+	.hiwv2-step-marker {
+		top: 4px;
+	}
+	.hiwv2-step-num {
+		font-size: 34px;
+	}
+}
+</style>

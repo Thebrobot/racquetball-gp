@@ -2,27 +2,223 @@
 import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
 import HowItWorksSection from '../components/grand-prix/HowItWorksSection.astro';
 import PointsSystemSection from '../components/grand-prix/PointsSystemSection.astro';
-import { titleSponsor } from '../data/ocala-sponsors';
+import StopStatusStrip from '../components/grand-prix/StopStatusStrip.astro';
+import { EVENTS, getEventStatus } from '../data/events';
+import { SEASON_STOPS, TOUR_STOP_COUNT } from '../data/season-stops';
+
+// ── FAQ content (rendered as <details> and emitted as FAQPage JSON-LD) ───────
+const now = new Date();
+const liveEvent = EVENTS.find((e) => getEventStatus(e, now) === 'live') ?? null;
+const nextEvent =
+	EVENTS.filter((e) => getEventStatus(e, now) === 'upcoming').sort((a, b) =>
+		a.startDate.localeCompare(b.startDate),
+	)[0] ?? null;
+const nextStop = SEASON_STOPS.find((s) => s.kind === 'next') ?? null;
+const stopsDone = SEASON_STOPS.filter((s) => s.kind === 'done').length;
+
+const stopList = SEASON_STOPS.map((s) => `${s.eventName} in ${s.cityLine.replace(', FL', '')} (${s.dateHint})`).join(', ');
+
+const nextStopAnswer = liveEvent
+	? `The ${liveEvent.name} is happening right now (${liveEvent.dateRange}, ${liveEvent.cityLine}). Brackets and results update on the site throughout the weekend.`
+	: nextEvent
+		? `The next stop is the ${nextEvent.name}, ${nextEvent.dateRange} in ${nextEvent.cityLine}${nextStop?.venue ? ` at the ${nextStop.venue}` : ''}. ${stopsDone} of ${TOUR_STOP_COUNT} tour stops have been played so far.`
+		: `All ${TOUR_STOP_COUNT} tour stops for 2026 have been played. The series championship follows in 2027.`;
+
+const faqs: { q: string; a: string; href?: string; hrefLabel?: string }[] = [
+	{
+		q: 'What is the Florida Racquetball Grand Prix?',
+		a: `A season-long racquetball series across Florida, the first of its kind in the state. There are ${TOUR_STOP_COUNT} tour stops in 2026: ${stopList}. Every stop is a full tournament weekend with brackets in singles, doubles, and mixed doubles, and every finish earns Grand Prix points toward one statewide leaderboard.`,
+	},
+	{
+		q: 'How do I earn Grand Prix points?',
+		a: 'Points are awarded at each stop based on where you finish in your division. In singles, the champion earns 100 points, the finalist 75, semifinalists 50, and quarterfinalists or better 25. Points from every stop you play are added together for the season standings.',
+	},
+	{
+		q: 'How are doubles and mixed doubles points split?',
+		a: 'Doubles and mixed points go to the team and are split equally between the two partners: 100 points (50 each) for the champions, 75 (37.5 each) for finalists, 50 (25 each) for quarterfinalists, and 25 (12.5 each) for teams in the consolation bracket, which applies to teams that did not advance past their first match.',
+	},
+	{
+		q: 'Do I have to play every stop?',
+		a: 'No. You can enter any or all of the four stops and your points carry over. Playing more stops gives you more chances to score, and consistent deep runs are what move you up the board, but one strong weekend still puts you on the leaderboard.',
+	},
+	{
+		q: 'How often is the leaderboard updated?',
+		a: 'Official standings are updated after each Grand Prix stop once results are final. During a tournament weekend, brackets and match results sync from R2 Sports roughly every 10 minutes, and the Live page shows results as they post.',
+		href: '/leaderboard',
+		hrefLabel: 'See the season leaderboard',
+	},
+	{
+		q: 'How do I register for a stop?',
+		a: `Registration for every stop runs through R2 Sports. ${nextStop ? `The ${nextStop.eventName} is open for registration on R2 now.` : 'Each stop opens for registration on R2 ahead of its weekend.'} The Tournaments page lists every stop with its R2 link, dates, and venue.`,
+		href: nextStop?.registerUrl ?? '/tournaments',
+		hrefLabel: nextStop ? `Register for the ${nextStop.eventName} on R2` : 'See the schedule',
+	},
+	{
+		q: 'When is the next stop?',
+		a: nextStopAnswer,
+		href: '/tournaments',
+		hrefLabel: 'Full schedule',
+	},
+	{
+		q: 'What is the series championship?',
+		a: 'A season-capping championship weekend planned for early 2027 after the four scored tour stops. The host city and exact dates are still to be announced and are pending USA Racquetball approval. Points from the 2026 tour stops decide the season standings that lead into it.',
+	},
+];
+
+const faqJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'FAQPage',
+	mainEntity: faqs.map((f) => ({
+		'@type': 'Question',
+		name: f.q,
+		acceptedAnswer: { '@type': 'Answer', text: f.a },
+	})),
+};
 ---
 
 <GrandPrixLayout
 	title="How Points Work | Florida Racquetball Grand Prix"
-	description="Grand Prix points for singles, doubles, and mixed doubles: finish positions, team splits, and season standings."
-	spotlightLabel="Title sponsor"
-	spotlightName={titleSponsor.name}
-	spotlightBlurb={titleSponsor.blurb}
-	spotlightLogoUrl={titleSponsor.logoUrl}
+	description="Grand Prix points for singles, doubles, and mixed doubles: finish positions, team splits, season standings, and answers to common questions about the Florida series."
 >
-	<div class="page-hero">
-		<div class="section-label">Season format</div>
-		<h1 class="section-title">Points &amp; <span style="color:var(--orange)">qualification</span></h1>
-		<p class="section-sub" style="margin-bottom:0;">
-			How the season works from registration through the four tour stops and the tentative early-2027 series
-			championship (dates TBD, pending USA Racquetball approval), and exactly how points are awarded at every
-			stop.
-		</p>
-	</div>
+	<header class="gp-page-head">
+		<div class="gp-page-head-inner gp-page-head-inner--split">
+			<div>
+				<p class="section-label">Season format</p>
+				<h1 class="gp-title">Points &amp; <span>qualification</span></h1>
+				<p class="gp-sub">
+					How the season runs from registration through the four tour stops to the 2027 series championship,
+					and exactly how points are awarded at every stop.
+				</p>
+			</div>
+			<StopStatusStrip compact />
+		</div>
+	</header>
 
 	<HowItWorksSection />
 	<PointsSystemSection />
+
+	<section class="gp-band points-faq" aria-labelledby="points-faq-heading">
+		<div class="gp-band-inner gp-band-inner--narrow">
+			<p class="section-label">Common questions</p>
+			<h2 id="points-faq-heading" class="gp-title points-faq-title">Quick <span>answers</span></h2>
+			<p class="gp-sub points-faq-sub">Plain-language answers about the series, points, registration, and the schedule.</p>
+			<div class="points-faq-list">
+				{faqs.map((f, i) => (
+					<details class="points-faq-item" open={i === 0}>
+						<summary class="points-faq-q">
+							<span>{f.q}</span>
+							<span class="points-faq-icon" aria-hidden="true"></span>
+						</summary>
+						<div class="points-faq-a">
+							<p>{f.a}</p>
+							{f.href && (
+								<a
+									class="gp-link"
+									href={f.href}
+									{...(/^https?:/.test(f.href) ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+								>
+									{f.hrefLabel} →
+								</a>
+							)}
+						</div>
+					</details>
+				))}
+			</div>
+		</div>
+	</section>
 </GrandPrixLayout>
+
+<script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
+
+<style>
+.points-faq-title {
+	font-size: clamp(34px, 4.5vw, 52px);
+}
+.points-faq-sub {
+	margin-bottom: 28px;
+}
+.points-faq-list {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+.points-faq-item {
+	background: var(--card-bg);
+	border: 1px solid var(--card-border);
+	border-radius: 14px;
+	overflow: hidden;
+	transition: border-color 0.15s;
+}
+.points-faq-item[open] {
+	border-color: rgba(240, 90, 26, 0.45);
+}
+.points-faq-q {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 16px 20px;
+	cursor: pointer;
+	list-style: none;
+	font-family: 'Barlow Condensed', sans-serif;
+	font-weight: 700;
+	font-size: 20px;
+	line-height: 1.2;
+	letter-spacing: 0.01em;
+	color: #fff;
+}
+.points-faq-q::-webkit-details-marker {
+	display: none;
+}
+.points-faq-q:hover {
+	color: var(--orange2);
+}
+.points-faq-icon {
+	position: relative;
+	flex-shrink: 0;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.points-faq-icon::before,
+.points-faq-icon::after {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 10px;
+	height: 2px;
+	background: var(--orange);
+	transform: translate(-50%, -50%);
+	transition: transform 0.2s;
+}
+.points-faq-icon::after {
+	transform: translate(-50%, -50%) rotate(90deg);
+}
+.points-faq-item[open] .points-faq-icon::after {
+	transform: translate(-50%, -50%) rotate(0deg);
+}
+.points-faq-a {
+	padding: 0 20px 18px;
+	color: rgba(255, 255, 255, 0.78);
+	font-size: 16px;
+	line-height: 1.65;
+}
+.points-faq-a p {
+	margin: 0 0 10px;
+}
+.points-faq-a .gp-link {
+	font-size: 14px;
+}
+@media (max-width: 640px) {
+	.points-faq-q {
+		font-size: 18px;
+		padding: 14px 16px;
+	}
+	.points-faq-a {
+		padding: 0 16px 16px;
+		font-size: 15px;
+	}
+}
+</style>

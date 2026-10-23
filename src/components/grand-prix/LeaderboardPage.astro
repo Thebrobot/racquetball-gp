@@ -19,7 +19,7 @@ import { getPlayerImageForDisplay } from '../../data/player-images';
 import { getPlayerSlug } from '../../data/players';
 import { SEASON_STOPS } from '../../data/season-stops';
 import { EVENTS } from '../../data/events';
-import { titleSponsor } from '../../data/ocala-sponsors';
+import StopStatusStrip from './StopStatusStrip.astro';
 
 interface Props {
 	initialCategory?: LbCategory;
@@ -60,39 +60,24 @@ const lbInitialState = JSON.stringify({ category: initialCategory, division: ini
 <GrandPrixLayout
 	title={pageTitle}
 	description={pageDescription}
-	spotlightLabel="Title sponsor"
-	spotlightName={titleSponsor.name}
-	spotlightBlurb={titleSponsor.blurb}
-	spotlightLogoUrl={titleSponsor.logoUrl}
 >
 	<script type="application/json" id="lb-initial-state" set:html={lbInitialState} />
 
-	<div class="lb-hero">
-		<img
-			class="lb-hero-series-img"
-			src="/images/series-logo.webp"
-			alt="Florida Racquetball Grand Prix series emblem"
-			width="1080"
-			height="1350"
-			decoding="async"
-		/>
-		<div class="section-label">Season 2026</div>
-		<h1 class="lb-hero-title">Season <span>Standings</span></h1>
-		<div class="lb-hero-sub">
-			Updated after every Grand Prix stop · Season opens May 2026
+	<header class="gp-page-head">
+		<div class="gp-page-head-inner gp-page-head-inner--split">
+			<div>
+				<p class="section-label">Season 2026</p>
+				<h1 class="gp-title">Season <span>standings</span></h1>
+				<p class="gp-sub">Updated after every Grand Prix stop. Points are separate for singles, doubles, and mixed.</p>
+				<ul class="gp-stat-row lb-head-stats" aria-label="Season at a glance">
+					<li><strong><em>{stopsComplete}</em><span class="gp-stat-of">/{totalStops}</span></strong><span>Stops complete</span></li>
+					<li><strong>{registeredCount > 0 ? registeredCount : 'TBD'}</strong><span>Players registered</span></li>
+					<li><strong>Dec <em>'26</em></strong><span>Last 2026 stop</span></li>
+				</ul>
+			</div>
+			<StopStatusStrip compact />
 		</div>
-		<div class="lb-stats">
-			<div class="lb-stat">
-				<span class="lb-stat-val"><em>{stopsComplete}</em> / {totalStops}</span><span class="lb-stat-label">Tour Stops Complete</span>
-			</div>
-			<div class="lb-stat">
-				<span class="lb-stat-val">{registeredCount > 0 ? registeredCount : 'TBD'}</span><span class="lb-stat-label">Players Registered</span>
-			</div>
-			<div class="lb-stat">
-				<span class="lb-stat-val">Dec <em>'26</em></span><span class="lb-stat-label">Last 2026 tour stop</span>
-			</div>
-		</div>
-	</div>
+	</header>
 
 	<div id="lb-detail" class="lb-detail">
 		<div class="lb-standings-panel">
@@ -258,7 +243,7 @@ const lbInitialState = JSON.stringify({ category: initialCategory, division: ini
 								return [{ division: d, leader: null as null, label }];
 							}
 							return leaders.map((leader) => ({ division: d, leader, label }));
-						}).map(({ division: d, leader, label }) => (
+						}).map(({ division: d, leader }) => (
 								<a
 									class="lb-overview-card"
 									href={leaderboardDivisionHref(d.id)}
@@ -314,3 +299,9 @@ const lbInitialState = JSON.stringify({ category: initialCategory, division: ini
 		}
 	</section>
 </GrandPrixLayout>
+
+<style>
+	.lb-head-stats {
+		margin-top: 22px;
+	}
+</style>

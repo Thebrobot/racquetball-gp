@@ -1,8 +1,7 @@
 ---
 import GrandPrixLayout from '../../../layouts/GrandPrixLayout.astro';
 import OfficialBallChip from '../../../components/grand-prix/OfficialBallChip.astro';
-import { EVENTS } from '../../../data/events';
-import { titleSponsor } from '../../../data/ocala-sponsors';
+import { EVENTS, getEventStatus } from '../../../data/events';
 
 export async function getStaticPaths() {
 	return EVENTS.map((event) => ({ params: { slug: event.slug }, props: { event } }));
@@ -10,43 +9,127 @@ export async function getStaticPaths() {
 
 const { event: routeEvent } = Astro.props;
 const event = EVENTS.find((e) => e.slug === routeEvent.slug) ?? routeEvent;
+const eventHref = `/events/${event.slug}`;
+const divisions = event.divisionDetails ?? [];
+const singleCount = divisions.filter((d) => d.format === 'single').length;
+const rrCount = divisions.length - singleCount;
+
+const entrantsByDivision = new Map<string, number>();
+for (const profile of event.profiles ?? []) {
+	entrantsByDivision.set(profile.division, (entrantsByDivision.get(profile.division) ?? 0) + 1);
+}
+
+const eventStatus = getEventStatus(event);
+const statusPill =
+	eventStatus === 'live'
+		? { cls: 'gp-pill--live', label: 'Live now' }
+		: eventStatus === 'recent'
+			? { cls: 'gp-pill--done', label: 'Completed' }
+			: { cls: 'gp-pill--next', label: 'Upcoming' };
 ---
 
 <GrandPrixLayout
 	title={`${event.name} Divisions | Florida Racquetball Grand Prix 2026`}
 	description={`Division list for ${event.name}. Choose a bracket to view the draw or round robin.`}
-	spotlightLabel="Title sponsor"
-	spotlightName={titleSponsor.name}
-	spotlightBlurb={titleSponsor.blurb}
-	spotlightLogoUrl={titleSponsor.logoUrl}
 >
-	<section class="event-hero">
-		<div class="section-label">Divisions</div>
-		<h1 class="section-title">{event.name}</h1>
-		<p class="section-sub">{event.dateRange} · {event.cityLine}</p>
-		<OfficialBallChip />
-		<div class="event-section-cta">
-			<a class="btn-ghost" href={`/events/${event.slug}#brackets`}>Event page</a>
+	<header class="gp-page-head">
+		<div class="gp-page-head-inner gp-page-head-inner--split">
+			<div class="divisions-head-copy">
+				<p class="section-label divisions-head-label">
+					<span class:list={['gp-pill', statusPill.cls]}>{statusPill.label}</span>
+					<a class="divisions-head-event" href={eventHref}>{event.name}</a>
+				</p>
+				<h1 class="gp-title">Every <span>division</span></h1>
+				<p class="gp-sub">
+					<strong>{event.dateRange}</strong>
+					<span aria-hidden="true"> · </span>
+					{event.cityLine}. Pick a division to open its single-elimination draw or round-robin grid.
+				</p>
+				<OfficialBallChip />
+			</div>
+			<div class="gp-card divisions-head-card">
+				<ul class="gp-stat-row">
+					<li><strong>{divisions.length}</strong><span>Divisions</span></li>
+					{singleCount > 0 && <li><strong>{singleCount}</strong><span>Brackets</span></li>}
+					{rrCount > 0 && <li><strong>{rrCount}</strong><span>Round robins</span></li>}
+				</ul>
+				<div class="divisions-head-links">
+					<a class="gp-link" href={`${eventHref}#brackets`}>Event hub →</a>
+					<a class="gp-link gp-link--muted" href={`${eventHref}/participants`}>Participants →</a>
+				</div>
+			</div>
 		</div>
-	</section>
+	</header>
 
-	<section class="event-section" aria-labelledby="division-list-title">
-		<header class="event-section-header">
-			<h2 id="division-list-title">Division list</h2>
-			<p>Select a division to view its single-elimination draw or round-robin grid.</p>
-		</header>
-		<div class="division-list">
-			{(event.divisionDetails ?? []).map((division) => (
-				<a class="division-card" href={`/events/${event.slug}/divisions/${division.id}`}>
-					<div>
-						<div class="division-name">{division.label}</div>
-						<div class="division-meta">{division.format === 'single' ? 'Single elimination' : 'Round robin'}</div>
-					</div>
-					<span class:list={['division-badge', division.format === 'single' ? 'badge-single' : 'badge-rr']}>
-						{division.format === 'single' ? 'Bracket' : 'Round robin'}
-					</span>
-				</a>
-			))}
+	<section class="gp-band gp-band--tight" aria-labelledby="division-list-title">
+		<div class="gp-band-inner">
+			<h2 id="division-list-title" class="visually-hidden">Division list</h2>
+			<div class="division-list divisions-grid">
+				{divisions.map((division) => {
+					const entrants = entrantsByDivision.get(division.label) ?? division.roundRobinPlayers?.length ?? 0;
+					return (
+						<a class="division-card" href={`${eventHref}/divisions/${division.id}`}>
+							<div>
+								<div class="division-name">{division.label}</div>
+								<div class="division-meta">
+									{division.format === 'single' ? 'Single elimination' : 'Round robin'}
+									{entrants > 0 && (
+										<>
+											<span aria-hidden="true"> · </span>
+											{entrants}{' '}{entrants === 1 ? 'entrant' : 'entrants'}
+										</>
+									)}
+								</div>
+							</div>
+							<span class:list={['division-badge', division.format === 'single' ? 'badge-single' : 'badge-rr']}>
+								{division.format === 'single' ? 'Bracket' : 'Round robin'}
+							</span>
+						</a>
+					);
+				})}
+			</div>
 		</div>
 	</section>
 </GrandPrixLayout>
+
+<style>
+.divisions-head-label {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 10px 12px;
+}
+.divisions-head-event {
+	color: inherit;
+	text-decoration: none;
+}
+.divisions-head-event:hover {
+	color: #fff;
+}
+.divisions-head-copy .gp-sub strong {
+	color: #fff;
+	font-weight: 600;
+}
+.divisions-head-copy :global(.official-ball-chip) {
+	margin-left: 0;
+	margin-right: 0;
+	margin-top: 18px;
+}
+.divisions-head-card {
+	padding: 18px 22px;
+}
+.divisions-head-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 22px;
+	margin-top: 16px;
+}
+.divisions-grid {
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+}
+@media (max-width: 600px) {
+	.divisions-head-card {
+		padding: 14px 16px;
+	}
+}
+</style>

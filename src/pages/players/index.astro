@@ -1,36 +1,30 @@
 ---
 import GrandPrixLayout from '../../layouts/GrandPrixLayout.astro';
 import { getAllPlayers, getPlayerImageForDisplay } from '../../data/players';
-import { titleSponsor } from '../../data/ocala-sponsors';
 
 const players = getAllPlayers();
 const totalCount = players.length;
-
-// Collect unique division labels for filter chips
-const allDivisions = Array.from(
-	new Set(players.flatMap((p) => p.divisions ?? []))
-).sort();
 ---
 
 <GrandPrixLayout
 	title="Players | Florida Racquetball Grand Prix 2026"
 	description={`Browse all ${totalCount} competitors registered in the 2026 Florida Racquetball Grand Prix. Find player profiles, match history, and season standings.`}
-	spotlightLabel="Title sponsor"
-	spotlightName={titleSponsor.name}
-	spotlightBlurb={titleSponsor.blurb}
-	spotlightLogoUrl={titleSponsor.logoUrl}
 >
-	<!-- ── HERO ── -->
-	<section class="event-hero">
-		<div class="section-label">2026 Season</div>
-		<h1 class="section-title">Player <span style="color:var(--orange)">Directory</span></h1>
-		<p class="section-sub">
-			{totalCount} competitors registered across the Florida Grand Prix series.
-		</p>
-	</section>
+	<header class="gp-page-head">
+		<div class="gp-page-head-inner">
+			<div>
+				<p class="section-label">2026 season</p>
+				<h1 class="gp-title">Player <span>directory</span></h1>
+				<p class="gp-sub">
+					{totalCount} competitors registered across the Florida Grand Prix series. Every profile shows
+					divisions entered, match history, and season standing.
+				</p>
+			</div>
+		</div>
+	</header>
 
 	<!-- ── DIRECTORY ── -->
-	<section class="event-section players-dir-section" aria-labelledby="players-dir-heading">
+	<section class="gp-band gp-band--tight players-dir-section" aria-labelledby="players-dir-heading">
 		<h2 id="players-dir-heading" class="visually-hidden">All players</h2>
 
 		<!-- Search + filter -->
@@ -168,13 +162,9 @@ const allDivisions = Array.from(
 </script>
 
 <style>
-.players-dir-section {
-	padding-top: 0;
-}
 .players-dir-toolbar {
 	max-width: 480px;
 	margin: 0 auto 16px;
-	padding: 0 16px;
 }
 .players-dir-stats {
 	text-align: center;
@@ -193,9 +183,8 @@ const allDivisions = Array.from(
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
 	gap: 12px;
-	max-width: 1200px;
+	max-width: var(--home-max);
 	margin: 0 auto;
-	padding: 0 16px;
 }
 .players-dir-card {
 	display: flex;

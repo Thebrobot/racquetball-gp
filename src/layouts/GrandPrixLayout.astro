@@ -4,7 +4,7 @@ import '../styles/grand-prix.css';
 import GrandPrixNav from '../components/grand-prix/GrandPrixNav.astro';
 import TournamentWeekendPromo from '../components/grand-prix/TournamentWeekendPromo.astro';
 import GrandPrixFooter from '../components/grand-prix/GrandPrixFooter.astro';
-import SponsorSpotlight from '../components/grand-prix/SponsorSpotlight.astro';
+import SponsorLogoMarquee from '../components/grand-prix/SponsorLogoMarquee.astro';
 import { GRAND_PRIX_FACEBOOK_URL } from '../data/social';
 import { tournamentDirector, registrationContact } from '../data/contacts';
 
@@ -31,10 +31,6 @@ const {
 	ogImage = '/images/og-default.webp',
 	ogImageWidth = 1200,
 	ogImageHeight = 630,
-	spotlightName,
-	spotlightBlurb,
-	spotlightLabel,
-	spotlightLogoUrl,
 	imagePreloads,
 	hideSponsorSpotlight = false,
 	noindex = false,
@@ -90,13 +86,13 @@ const webSiteJsonLd = {
 		<TournamentWeekendPromo />
 		<slot />
 		{
-			!hideSponsorSpotlight && spotlightName && spotlightBlurb && (
-				<SponsorSpotlight
-					label={spotlightLabel}
-					name={spotlightName}
-					blurb={spotlightBlurb}
-					logoUrl={spotlightLogoUrl}
-				/>
+			!hideSponsorSpotlight && (
+				<div class="home-sponsors-band">
+					<SponsorLogoMarquee />
+					<p class="home-sponsors-cta">
+						<a href="/sponsors">Meet every partner behind the series →</a>
+					</p>
+				</div>
 			)
 		}
 		<GrandPrixFooter />

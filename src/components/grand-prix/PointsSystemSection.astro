@@ -1,40 +1,60 @@
 ---
+type Row = { rank: string; tone: '1' | '2' | '3' | '4'; place: string; pts: string; split?: string };
 
+const singles: Row[] = [
+	{ rank: '1', tone: '1', place: 'Champion', pts: '100 pts' },
+	{ rank: '2', tone: '2', place: 'Finalist', pts: '75 pts' },
+	{ rank: '3', tone: '3', place: 'Semifinal', pts: '50 pts' },
+	{ rank: '4', tone: '4', place: 'Quarterfinal+', pts: '25 pts' },
+];
+const teams: Row[] = [
+	{ rank: '1', tone: '1', place: 'Champion', pts: '100 pts', split: '(50 ea)' },
+	{ rank: '2', tone: '2', place: 'Finalist', pts: '75 pts', split: '(37.5 ea)' },
+	{ rank: '3', tone: '3', place: 'Quarterfinal', pts: '50 pts', split: '(25 ea)' },
+	{ rank: 'C', tone: '4', place: 'Consolation bracket', pts: '25 pts', split: '(12.5 ea)' },
+];
 ---
 
-<div id="points" class="pts-section">
-	<div class="pts-inner">
-		<div class="section-label">Points structure</div>
-		<div class="section-title">How Points <span style="color:var(--orange)">Work</span></div>
-		<p class="section-sub">
+<section id="points" class="gp-band gp-band--court pts" aria-labelledby="pts-heading">
+	<div class="gp-band-inner">
+		<p class="section-label">Points structure</p>
+		<h2 id="pts-heading" class="gp-title ptsv2-title">How points <span>work</span></h2>
+		<p class="gp-sub ptsv2-sub">
 			Points are awarded at every stop based on your finish position across singles, doubles, and mixed
-			doubles. Official standings are updated after each Grand Prix stop — see the
-			<a href="/leaderboard" class="pts-link">season leaderboard</a>.
+			doubles. Official standings are updated after each Grand Prix stop on the
+			<a href="/leaderboard" class="ptsv2-link">season leaderboard</a>.
 		</p>
-		<div class="pts-grid pts-grid--two">
-			<div class="pts-card">
-				<div class="pts-card-head">
-					<span class="pts-card-icon-svg" aria-hidden="true">
+
+		<div class="ptsv2-grid">
+			<article class="gp-card ptsv2-card">
+				<header class="ptsv2-card-head">
+					<span class="ptsv2-card-icon" aria-hidden="true">
 						<svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
 							<circle cx="16" cy="11" r="6" stroke="currentColor" stroke-width="2"/>
 							<path d="M4 28c0-6.627 5.373-12 12-12s12 5.373 12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
 						</svg>
 					</span>
 					<div>
-						<div class="pts-card-title">Singles</div>
-						<div class="pts-card-sub">All divisions · individual points</div>
+						<h3 class="ptsv2-card-title">Singles</h3>
+						<p class="ptsv2-card-sub">All divisions · individual points</p>
 					</div>
-				</div>
-				<div class="pts-rows">
-					<div class="pts-row"><span class="pts-place"><span class="pts-rank pts-rank--1">1</span> Champion</span><span class="pts-val gold">100 pts</span></div>
-					<div class="pts-row"><span class="pts-place"><span class="pts-rank pts-rank--2">2</span> Finalist</span><span class="pts-val silver2">75 pts</span></div>
-					<div class="pts-row"><span class="pts-place"><span class="pts-rank pts-rank--3">3</span> Semifinal</span><span class="pts-val bronze">50 pts</span></div>
-					<div class="pts-row"><span class="pts-place"><span class="pts-rank pts-rank--4">4</span> Quarterfinal+</span><span class="pts-val normal">25 pts</span></div>
-				</div>
-			</div>
-			<div class="pts-card">
-				<div class="pts-card-head">
-					<span class="pts-card-icon-svg" aria-hidden="true">
+				</header>
+				<ul class="ptsv2-rows">
+					{singles.map((r) => (
+						<li class="ptsv2-row">
+							<span class="ptsv2-place">
+								<span class:list={['ptsv2-rank', `ptsv2-rank--${r.tone}`]}>{r.rank}</span>
+								{r.place}
+							</span>
+							<span class:list={['ptsv2-val', `ptsv2-val--${r.tone}`]}>{r.pts}</span>
+						</li>
+					))}
+				</ul>
+			</article>
+
+			<article class="gp-card ptsv2-card">
+				<header class="ptsv2-card-head">
+					<span class="ptsv2-card-icon" aria-hidden="true">
 						<svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
 							<circle cx="11" cy="11" r="5" stroke="currentColor" stroke-width="2"/>
 							<circle cx="21" cy="11" r="5" stroke="currentColor" stroke-width="2"/>
@@ -42,69 +62,158 @@
 						</svg>
 					</span>
 					<div>
-						<div class="pts-card-title">Doubles &amp; Mixed</div>
-						<div class="pts-card-sub">Team total · split equally between partners</div>
+						<h3 class="ptsv2-card-title">Doubles &amp; Mixed</h3>
+						<p class="ptsv2-card-sub">Team total · split equally between partners</p>
 					</div>
-				</div>
-				<div class="pts-rows">
-					<div class="pts-row"><span class="pts-place"><span class="pts-rank pts-rank--1">1</span> Champion</span><span class="pts-val gold">100 pts <span class="pts-split">(50 ea)</span></span></div>
-					<div class="pts-row"><span class="pts-place"><span class="pts-rank pts-rank--2">2</span> Finalist</span><span class="pts-val silver2">75 pts <span class="pts-split">(37.5 ea)</span></span></div>
-					<div class="pts-row"><span class="pts-place"><span class="pts-rank pts-rank--3">3</span> Quarterfinal</span><span class="pts-val bronze">50 pts <span class="pts-split">(25 ea)</span></span></div>
-					<div class="pts-row"><span class="pts-place"><span class="pts-rank pts-rank--4">C</span> Consolation bracket</span><span class="pts-val normal">25 pts <span class="pts-split">(12.5 ea)</span></span></div>
-				</div>
-				<div class="pts-note">Doubles and mixed points are awarded to the team and split equally between partners. Consolation bracket points apply to teams that did not advance past their first match.</div>
-			</div>
+				</header>
+				<ul class="ptsv2-rows">
+					{teams.map((r) => (
+						<li class="ptsv2-row">
+							<span class="ptsv2-place">
+								<span class:list={['ptsv2-rank', `ptsv2-rank--${r.tone}`]}>{r.rank}</span>
+								{r.place}
+							</span>
+							<span class:list={['ptsv2-val', `ptsv2-val--${r.tone}`]}>
+								{r.pts} {r.split && <span class="ptsv2-split">{r.split}</span>}
+							</span>
+						</li>
+					))}
+				</ul>
+				<p class="ptsv2-note">
+					Doubles and mixed points are awarded to the team and split equally between partners. Consolation
+					bracket points apply to teams that did not advance past their first match.
+				</p>
+			</article>
 		</div>
 	</div>
-</div>
+</section>
 
 <style>
-.pts-card-icon-svg {
+.ptsv2-title {
+	font-size: clamp(34px, 4.8vw, 56px);
+}
+.ptsv2-sub {
+	margin-bottom: clamp(24px, 3vw, 36px);
+}
+.ptsv2-link {
+	color: var(--orange);
+	font-weight: 600;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+.ptsv2-link:hover {
+	color: var(--court-ink);
+}
+.ptsv2-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+	gap: 18px;
+}
+.ptsv2-card {
+	padding: 22px 22px 18px;
+	display: flex;
+	flex-direction: column;
+}
+.ptsv2-card-head {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding-bottom: 14px;
+	margin-bottom: 6px;
+	border-bottom: 2px solid var(--court-ink);
+}
+.ptsv2-card-icon {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	width: 44px;
 	height: 44px;
-	background: rgba(240, 90, 26, 0.12);
 	border-radius: 10px;
 	flex-shrink: 0;
 	color: var(--orange);
+	background: rgba(240, 90, 26, 0.12);
 }
-.pts-card-icon-svg svg {
+.ptsv2-card-icon svg {
 	width: 26px;
 	height: 26px;
 }
-.pts-grid--two {
-	grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+.ptsv2-card-title {
+	margin: 0;
+	font-family: 'Barlow Condensed', sans-serif;
+	font-weight: 900;
+	font-size: 24px;
+	line-height: 1;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+	color: var(--court-ink);
 }
-.pts-link {
-	color: var(--orange2);
-	text-decoration: underline;
-	text-underline-offset: 3px;
+.ptsv2-card-sub {
+	margin: 4px 0 0;
+	font-size: 13.5px;
+	color: var(--court-muted);
 }
-.pts-link:hover {
-	color: var(--orange);
+.ptsv2-rows {
+	list-style: none;
+	margin: 0;
+	padding: 0;
 }
-.pts-split {
-	font-size: 0.85em;
-	font-weight: 500;
-	opacity: 0.75;
+.ptsv2-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 12px 0;
+	border-bottom: 1px solid var(--court-line);
+	font-size: 16px;
+	color: var(--court-ink);
 }
-.pts-rank {
+.ptsv2-row:last-child {
+	border-bottom: none;
+}
+.ptsv2-place {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	font-weight: 600;
+}
+.ptsv2-rank {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 20px;
-	height: 20px;
+	width: 24px;
+	height: 24px;
 	border-radius: 50%;
-	font-size: 0.65rem;
+	font-family: 'Barlow Condensed', sans-serif;
+	font-size: 13px;
 	font-weight: 800;
-	letter-spacing: 0;
 	flex-shrink: 0;
-	margin-right: 6px;
 }
-.pts-rank--1 { background: #c9a84c; color: #1a0e00; }
-.pts-rank--2 { background: #a8b0b8; color: #0e1318; }
-.pts-rank--3 { background: #b06a3a; color: #fff; }
-.pts-rank--4 { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.8); }
+.ptsv2-rank--1 { background: #c9a84c; color: #1a0e00; }
+.ptsv2-rank--2 { background: #a8b0b8; color: #0e1318; }
+.ptsv2-rank--3 { background: #b06a3a; color: #fff; }
+.ptsv2-rank--4 { background: rgba(10, 22, 40, 0.1); color: var(--court-ink); }
+.ptsv2-val {
+	font-family: 'Barlow Condensed', sans-serif;
+	font-weight: 900;
+	font-size: 22px;
+	white-space: nowrap;
+	color: var(--court-ink);
+}
+.ptsv2-val--1 { color: #a8842a; }
+.ptsv2-val--2 { color: #5d6670; }
+.ptsv2-val--3 { color: #9a5a2e; }
+.ptsv2-split {
+	font-family: 'Barlow', sans-serif;
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--court-muted);
+}
+.ptsv2-note {
+	margin: 14px 0 0;
+	padding-top: 12px;
+	border-top: 1px dashed var(--court-line);
+	font-size: 13.5px;
+	line-height: 1.55;
+	color: var(--court-muted);
+}
 </style>

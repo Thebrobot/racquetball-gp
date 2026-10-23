@@ -6,53 +6,11 @@ import HomeLatest from '../components/grand-prix/HomeLatest.astro';
 import HomeTimeline from '../components/grand-prix/HomeTimeline.astro';
 import HomePhotoStrip from '../components/grand-prix/HomePhotoStrip.astro';
 import HomeFacesWall from '../components/grand-prix/HomeFacesWall.astro';
-import SponsorLogoMarquee from '../components/grand-prix/SponsorLogoMarquee.astro';
 import HeroMediaCredit from '../components/grand-prix/HeroMediaCredit.astro';
 import { heroVideoCredit } from '../data/hero-video-credit';
 import heroVideo from '../partials/grand-prix-hero-video.html?raw';
-import { EVENTS, getEventStatus } from '../data/events';
-import { SEASON_STOPS } from '../data/season-stops';
+import StopStatusStrip from '../components/grand-prix/StopStatusStrip.astro';
 import { readGalleryIndex } from '../lib/gallery/store';
-
-// ── Hero status: live event beats next upcoming stop ─────────────────────────
-const now = new Date();
-const liveEvent = EVENTS.find((e) => getEventStatus(e, now) === 'live') ?? null;
-const upcomingEvents = EVENTS.filter((e) => getEventStatus(e, now) === 'upcoming').sort((a, b) =>
-	a.startDate.localeCompare(b.startDate),
-);
-const nextEvent = upcomingEvents[0] ?? null;
-const nextStop = SEASON_STOPS.find((s) => s.kind === 'next') ?? null;
-
-function daysUntil(iso: string): number {
-	const start = new Date(`${iso}T00:00:00`);
-	const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-	return Math.round((start.getTime() - today.getTime()) / 86_400_000);
-}
-
-function countdownLabel(days: number): string {
-	if (days <= 0) return 'Starts today';
-	if (days === 1) return 'Starts tomorrow';
-	if (days <= 14) return `Starts in ${days} days`;
-	return 'Next stop';
-}
-
-const statusEvent = liveEvent ?? nextEvent;
-const statusKind: 'live' | 'soon' | 'next' | null = liveEvent
-	? 'live'
-	: nextEvent
-		? daysUntil(nextEvent.startDate) <= 14
-			? 'soon'
-			: 'next'
-		: null;
-const statusPill = liveEvent
-	? 'Live now'
-	: nextEvent
-		? countdownLabel(daysUntil(nextEvent.startDate))
-		: '';
-const statusVenue = statusEvent?.spotlightVenue ?? nextStop?.venue ?? '';
-const statusRegisterUrl = !liveEvent && nextStop ? nextStop.registerUrl : null;
-const statusWatchUrl = statusEvent?.spotlightWatchLiveUrl ?? nextStop?.watchLiveUrl ?? null;
-const statusEventHref = statusEvent ? `/events/${statusEvent.slug}` : '/tournaments';
 
 // ── Gallery photos for the strip (build-time; falls back to nothing) ─────────
 let galleryPhotoCount = 0;
@@ -70,7 +28,6 @@ try {
 <GrandPrixLayout
 	title="Florida Racquetball Grand Prix 2026"
 	description="Florida's first statewide racquetball Grand Prix: four tour stops, live brackets, season standings, player profiles, and photos from every weekend."
-	hideSponsorSpotlight
 	imagePreloads={['/images/website-logo.webp', '/images/series-logo.webp']}
 >
 	<div class="hero-viewport">
@@ -107,44 +64,7 @@ try {
 					/>
 				</div>
 
-				{statusEvent && statusKind && (
-					<aside class:list={['hero-status', `hero-status--${statusKind}`]} aria-label="Tournament status">
-						<div class="hero-status-main">
-							<span class="hero-status-pill">
-								<span class="hero-status-dot" aria-hidden="true"></span>
-								{statusPill}
-							</span>
-							<a class="hero-status-name" href={statusEventHref}>{statusEvent.name}</a>
-							<p class="hero-status-meta">
-								<strong>{statusEvent.dateRange}</strong>
-								<span aria-hidden="true"> · </span>
-								{statusEvent.cityLine}
-								{statusVenue && (
-									<>
-										<span aria-hidden="true"> · </span>
-										{statusVenue}
-									</>
-								)}
-							</p>
-						</div>
-						<div class="hero-status-actions">
-							<a class="hero-status-btn hero-status-btn--primary" href={`${statusEventHref}#brackets`}>
-								Brackets
-							</a>
-							<a class="hero-status-btn" href={`${statusEventHref}#participants`}>Participants</a>
-							{statusWatchUrl && (
-								<a class="hero-status-btn hero-status-btn--watch" href={statusWatchUrl} target="_blank" rel="noopener noreferrer">
-									Watch live
-								</a>
-							)}
-							{statusRegisterUrl && (
-								<a class="hero-status-btn" href={statusRegisterUrl} target="_blank" rel="noopener noreferrer">
-									Register on R2
-								</a>
-							)}
-						</div>
-					</aside>
-				)}
+				<StopStatusStrip />
 			</div>
 		</div>
 
@@ -161,10 +81,4 @@ try {
 
 	<HomeFacesWall />
 
-	<div class="home-sponsors-band">
-		<SponsorLogoMarquee />
-		<p class="home-sponsors-cta">
-			<a href="/sponsors">Meet every partner behind the series →</a>
-		</p>
-	</div>
 </GrandPrixLayout>
