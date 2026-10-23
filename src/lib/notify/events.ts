@@ -11,7 +11,7 @@ import { albumById, albumBySlug } from '../gallery/albums';
 import { emailConfigured, layout, sendEmail, siteOrigin, type PhotoCard } from './email';
 import { pushConfigured, sendPushToUser } from './push';
 
-export type NotificationKind = 'claim_approved' | 'tagged' | 'comment' | 'like' | 'result';
+export type NotificationKind = 'claim_approved' | 'tagged' | 'comment' | 'like' | 'result' | 'submission' | 'photo_approved';
 
 type Recipient = { id: string; email: string; display_name: string | null; player_slug: string | null; notify_email: boolean; notify_push: boolean };
 
@@ -85,7 +85,11 @@ async function deliverInstant(admin: SupabaseClient, rowId: string, input: Notif
 	if (!to) return;
 	const origin = siteOrigin();
 	const who = await actorName(admin, input.actorId);
-	const card = input.photoId ? await photoCard(input.photoId) : null;
+	let card = input.photoId ? await photoCard(input.photoId) : null;
+	if (!card && typeof input.payload?.url === 'string') {
+		const album = albumById(String(input.payload.album ?? '')) ?? albumBySlug(String(input.payload.album ?? ''));
+		card = { url: photoThumb(input.payload.url), href: `${origin}/admin#photos`, label: album?.label ?? 'Racquetball Grand Prix', caption: (input.payload.caption as string | null) ?? null };
+	}
 
 	let subject = '';
 	let heading = '';
@@ -106,6 +110,19 @@ async function deliverInstant(admin: SupabaseClient, rowId: string, input: Notif
 		intro = card ? `You are in this ${card.label} photo. It is on your player profile now.` : 'A new photo of you is on your player profile.';
 		if (input.photoId) cta = { label: 'See the photo', href: photoHref(input.photoId) };
 		pushBody = card ? `You're in a ${card.label} photo.` : 'A new photo of you was added.';
+	} else if (input.kind === 'submission') {
+		const uploader = String(input.payload?.uploader ?? who);
+		subject = 'New photo to review';
+		heading = `${uploader} sent a photo for review`;
+		intro = card ? `For the ${card.label} album. Approve it and it goes into the gallery.` : 'Approve it and it goes into the gallery.';
+		cta = { label: 'Open the admin queue', href: `${origin}/admin#photos` };
+		pushBody = `${uploader} sent a photo for review.`;
+	} else if (input.kind === 'photo_approved') {
+		subject = 'Your photo is in the gallery';
+		heading = 'Your photo is in the gallery';
+		intro = card ? `It is live in the ${card.label} album${to.player_slug ? ' and on your player profile' : ''}.` : 'It is live now.';
+		if (input.photoId) cta = { label: 'See it', href: photoHref(input.photoId) };
+		pushBody = 'Approved and live in the gallery.';
 	} else if (input.kind === 'result') {
 		const headline = String(input.payload?.headline ?? 'Result in');
 		const detail = String(input.payload?.detail ?? '');
