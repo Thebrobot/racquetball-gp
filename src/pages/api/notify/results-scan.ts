@@ -9,7 +9,7 @@ let lastRun = 0;
 /**
  * Turn new live results into notifications. Idempotent, so anyone may call it:
  * the live page pings it when the feed changes, and the cron secret works too.
- * Reads this deployment's own /data/live-activity.json.
+ * Reads /api/live/activity (Blob first, bundled JSON fallback).
  */
 async function run(origin: string): Promise<Response> {
 	const admin = createAdminClient();
@@ -17,7 +17,7 @@ async function run(origin: string): Promise<Response> {
 	// Cheap throttle per function instance; result_events makes it safe regardless.
 	if (Date.now() - lastRun < 15_000) return json({ ok: true, throttled: true });
 	lastRun = Date.now();
-	const feed = (await fetch(new URL('/data/live-activity.json', origin), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).catch(() => null)) as ResultFeed | null;
+	const feed = (await fetch(new URL('/api/live/activity', origin), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).catch(() => null)) as ResultFeed | null;
 	if (!feed) return json({ ok: false, error: 'No feed.' }, 502);
 	const result = await processResultFeed(admin, feed);
 	return json({ ok: true, ...result });

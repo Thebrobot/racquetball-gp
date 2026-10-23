@@ -1,14 +1,13 @@
 name: Sync R2 Brackets
 
-# Automated sync is ON for the Port St. Lucie Open weekend (Oct 23–25, 2026).
-# Runs every 10 minutes, scraping R2 brackets + refreshing GP points, and
-# commits any changes (which triggers a site redeploy).
+# Fallback sync for the Port St. Lucie Open weekend (Oct 23–25, 2026).
+# Primary live updates now come from Vercel Cron → /api/cron/sync-brackets
+# (fetch + Vercel Blob, no redeploy). This workflow still scrapes with
+# Playwright, refreshes GP points, and commits JSON so a missed Vercel
+# run cannot leave the site stuck.
 #
 # The window guard below skips all scheduled syncs after Mon Oct 26 2026
-# 06:00 UTC (Sunday midnight ET + buffer), so no data changes happen once
-# the weekend is over — though the cron itself keeps ticking until this
-# file is edited.
-# Manual runs (Run workflow button) always work.
+# 06:00 UTC (Sunday midnight ET + buffer). Manual runs always work.
 
 on:
   workflow_dispatch:

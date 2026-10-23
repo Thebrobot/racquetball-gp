@@ -1282,14 +1282,14 @@ const EVENTS_RAW: EventData[] = [
 // ID (e.g. "MO9").  We merge at build-time so the static site always reflects
 // the latest snapshot.
 
-interface MatchResult {
+export interface MatchResult {
 	score?: string | null;
 	winner?: 1 | 2 | null;
 	player1?: string;
 	player2?: string;
 }
 
-type DivisionResult = Record<string, MatchResult>;
+export type DivisionResult = Record<string, MatchResult>;
 
 /** Results are scoped per event slug: division ids repeat across events
  *  (e.g. both stops have "mens-singles-open"), so each stop merges only its
@@ -1300,7 +1300,7 @@ const RESULTS_BY_EVENT: Record<string, { divisions?: Record<string, DivisionResu
 	'port-st-lucie-open': portStLucieResultsData as { divisions?: Record<string, DivisionResult> },
 };
 
-function applyResultsToEvent(event: EventData, divResults: Record<string, DivisionResult>): EventData {
+export function applyResultsToEvent(event: EventData, divResults: Record<string, DivisionResult>): EventData {
 
 	/** Never promote R2 scrape noise (e.g. "BYE") into a real TBD slot on our bracket. */
 	const fillFromResult = (slot: string, name: string | null | undefined): string | null => {

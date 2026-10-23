@@ -1,9 +1,10 @@
 ---
 import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
 import StopStatusStrip from '../components/grand-prix/StopStatusStrip.astro';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { EVENTS } from '../data/events';
+import { readLiveActivity } from '../lib/live/store';
+
+export const prerender = false;
 
 type LiveActivityEvent = {
 	id: string;
@@ -23,13 +24,13 @@ type LiveActivityFeed = {
 	events: LiveActivityEvent[];
 };
 
-const feedPath = join(process.cwd(), 'public/data/live-activity.json');
 let feed: LiveActivityFeed = { lastUpdated: null, eventSlug: 'port-st-lucie-open', events: [] };
 try {
-	feed = JSON.parse(readFileSync(feedPath, 'utf-8')) as LiveActivityFeed;
+	feed = await readLiveActivity();
 } catch {
 	/* use empty feed */
 }
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=60');
 
 const event = EVENTS.find((e) => e.slug === feed.eventSlug);
 const eventName = event?.name ?? 'Ocala Open';
@@ -61,7 +62,7 @@ function formatSyncedAt(iso: string | null): string {
 				<h1 class="gp-title">Live <span>updates</span></h1>
 				<p class="gp-sub live-page-sub">
 					{eventName}{eventDateRange ? ` · ${eventDateRange}` : ''}. Results land here as the bracket sync
-					pulls scores from R2 Sports, typically every 10 minutes during play.
+					pulls scores from R2 Sports, typically every 5 minutes during play.
 				</p>
 				<p class="live-sync-label live-head-sync" id="live-sync-label">
 					<span class="live-head-sync-dot" aria-hidden="true"></span>
@@ -107,9 +108,9 @@ function formatSyncedAt(iso: string | null): string {
 			<aside class="live-how gp-card" aria-label="How live updates work">
 				<p class="live-how-label">How this works</p>
 				<p class="live-how-text">
-					During a tournament weekend, bracket results are scraped from R2 Sports every 10 minutes and
-					posted here and on each bracket page. This page refreshes itself every minute while it is open, so
-					there is nothing to reload. Between stops the feed stays quiet.
+					During a tournament weekend, bracket results are scraped from R2 Sports every few minutes and
+					posted here and on each bracket page — no redeploy required. This page refreshes itself every
+					minute while it is open. Between stops the feed stays quiet.
 				</p>
 			</aside>
 		</div>

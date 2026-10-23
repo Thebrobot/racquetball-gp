@@ -1,14 +1,14 @@
 ---
 import GrandPrixLayout from '../../../layouts/GrandPrixLayout.astro';
 import OfficialBallChip from '../../../components/grand-prix/OfficialBallChip.astro';
-import { EVENTS, getEventStatus } from '../../../data/events';
+import { getEventStatus } from '../../../data/events';
+import { applyLiveCacheHeaders, resolveLiveEvent } from '../../../lib/live/event';
 
-export async function getStaticPaths() {
-	return EVENTS.map((event) => ({ params: { slug: event.slug }, props: { event } }));
-}
+export const prerender = false;
 
-const { event: routeEvent } = Astro.props;
-const event = EVENTS.find((e) => e.slug === routeEvent.slug) ?? routeEvent;
+const event = await resolveLiveEvent(Astro.params.slug);
+if (!event) return Astro.redirect('/tournaments');
+applyLiveCacheHeaders(Astro.response, event);
 const eventHref = `/events/${event.slug}`;
 const divisions = event.divisionDetails ?? [];
 const singleCount = divisions.filter((d) => d.format === 'single').length;
