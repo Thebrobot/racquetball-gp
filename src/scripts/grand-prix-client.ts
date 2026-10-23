@@ -13,11 +13,8 @@ import {
 	getSortedRows,
 	compareLeaderboardRows,
 	assignLeaderboardPlaces,
-	formatPlayerInitials,
-	isPendingPlaceholder,
 } from '../data/leaderboard';
-import { getPlayerImageForDisplay } from '../data/player-images';
-import { getPlayerSlug } from '../data/players';
+import { renderStandingsRow, renderPodium } from '../lib/leaderboard-render';
 
 function esc(s: string): string {
 	return String(s)
@@ -430,17 +427,9 @@ function initLeaderboardPage() {
 	});
 }
 
-function renderLbPlayerAvatar(r: { name: string; image?: string }, cssPx = 40): string {
-	const src = getPlayerImageForDisplay(r.name, cssPx) ?? r.image;
-	if (src) {
-		return `<img class="lb-player-avatar" src="${escAttr(src)}" alt="" width="${cssPx}" height="${cssPx}" loading="lazy" decoding="async" />`;
-	}
-	return `<span class="lb-player-avatar lb-player-avatar--fallback" aria-hidden="true">${esc(formatPlayerInitials(r.name))}</span>`;
-}
-
 function renderLb() {
-	const tbody = document.getElementById('lb-tbody');
-	if (!tbody) return;
+	const host = document.getElementById('lb-rows');
+	if (!host) return;
 	const divSelect = document.getElementById('divSelect') as HTMLSelectElement | null;
 	if (!divSelect) return;
 	const div = divSelect.value;
@@ -452,49 +441,7 @@ function renderLb() {
 	rows.sort(compareLeaderboardRows);
 	rows = assignLeaderboardPlaces(rows);
 	const maxPts = rows.length ? leaderboardTotal(rows[0]) : 1;
-	tbody.innerHTML = rows
-		.map((r, i) => {
-			const total = leaderboardTotal(r);
-			const place = r.place || i + 1;
-			const rankClass =
-				place === 1 ? 'rank-1' : place === 2 ? 'rank-2' : place === 3 ? 'rank-3' : 'rank-other';
-			const medals = ['🥇', '🥈', '🥉'] as const;
-			const rankDisp =
-				place >= 1 && place <= 3
-					? `<span class="lb-medal">${medals[place - 1]}</span>`
-					: `<span class="${rankClass}">${place}</span>`;
-			const pctFill = maxPts > 0 ? Math.round((total / maxPts) * 100) : 0;
-			const badgeMap = { q: 'badge-q', pace: 'badge-pace', chase: 'badge-chase' };
-			const badgeLabel = { q: 'Qualified', pace: 'On Pace', chase: 'Chasing' };
-			const noteHtml = r.note
-				? `<span style="font-size:13px;color:var(--green);display:block;">${esc(r.note)}</span>`
-				: '';
-			const nameHtml = isPendingPlaceholder(r)
-				? `<span class="lb-player-name">${esc(r.name)}</span>`
-				: `<a class="lb-player-name lb-player-name-link" href="/players/${escAttr(getPlayerSlug(r.name))}">${esc(r.name)}</a>`;
-			return `<tr>
-      <td class="lb-rank-cell">${rankDisp}</td>
-      <td>
-        <div class="lb-player-cell">
-          ${renderLbPlayerAvatar(r)}
-          <div class="lb-player-text">
-            ${nameHtml}
-            <span class="lb-player-city">${esc(r.city)}</span>
-            ${noteHtml}
-            <div class="lb-progress-bar"><div class="lb-progress-fill" style="width:${pctFill}%"></div></div>
-          </div>
-        </div>
-      </td>
-      <td class="lb-stops right hide-mobile">${r.s1 || '-'}</td>
-      <td class="lb-stops right hide-mobile">${r.s2 || '-'}</td>
-      <td class="lb-pts-cell ${place === 1 ? 'leader' : ''}">${total}</td>
-      <td class="lb-stops right hide-mobile">${r.wins ?? 0}</td>
-      <td class="lb-stops right hide-mobile">${place}</td>
-      <td class="lb-stops right hide-mobile">${r.attendance ?? 0}/4</td>
-      <td class="lb-status-cell"><span class="lb-badge ${badgeMap[r.status]}">${badgeLabel[r.status]}</span></td>
-    </tr>`;
-		})
-		.join('');
+	host.innerHTML = rows.map((r, i) => renderStandingsRow(r, r.place || i + 1, maxPts)).join('');
 	updateLbContextLine();
 	renderLbSpotlight();
 }
@@ -507,54 +454,12 @@ function updateLbContextLine() {
 	el.textContent = `${LB_CATEGORY_HEADING[currentTab]} · ${divLabel}`;
 }
 
-const SPOTLIGHT_MEDALS = ['🥇', '🥈', '🥉'];
-
 function renderLbSpotlight() {
 	const host = document.getElementById('lb-spotlight-cards');
 	if (!host) return;
 	const divSelect = document.getElementById('divSelect') as HTMLSelectElement | null;
 	if (!divSelect) return;
-	const div = divSelect.value;
-	const rows = getSortedRows(currentTab, div, true).slice(0, 3);
-
-	host.innerHTML = rows
-		.map((r, i) => {
-			const total = leaderboardTotal(r);
-			const medal = SPOTLIGHT_MEDALS[i] ?? '';
-			const badgeMap = { q: 'badge-q', pace: 'badge-pace', chase: 'badge-chase' };
-			const badgeLabel = { q: 'Qualified', pace: 'On Pace', chase: 'Chasing' };
-			const mediaInner = (() => {
-				const src = getPlayerImageForDisplay(r.name, 120) ?? r.image;
-				if (src) {
-					return `<img class="lb-spot-media-img" src="${escAttr(src)}" alt="" width="120" height="120" loading="lazy" decoding="async" />`;
-				}
-				return `<span class="lb-spot-media-initials" aria-hidden="true">${esc(formatPlayerInitials(r.name))}</span>`;
-			})();
-			const mediaClass =
-				getPlayerImageForDisplay(r.name, 120) ?? r.image
-					? 'lb-spot-media'
-					: 'lb-spot-media lb-spot-media--fallback';
-			const taglineHtml = r.tagline ? `<p class="lb-spot-tagline">${esc(r.tagline)}</p>` : '';
-			const noteHtml = r.note ? `<p class="lb-spot-note">${esc(r.note)}</p>` : '';
-			const nameHtml = isPendingPlaceholder(r)
-				? `<h3 class="lb-spot-name">${esc(r.name)}</h3>`
-				: `<h3 class="lb-spot-name"><a class="lb-spot-name-link" href="/players/${escAttr(getPlayerSlug(r.name))}">${esc(r.name)}</a></h3>`;
-			return `<article class="lb-spot-card">
-        <div class="${mediaClass}">
-          <span class="lb-spot-rank-badge">${medal}</span>
-          ${mediaInner}
-        </div>
-        <div class="lb-spot-card-body">
-          ${nameHtml}
-          <p class="lb-spot-city">${esc(r.city)}</p>
-          ${taglineHtml}
-          ${noteHtml}
-          <p class="lb-spot-pts"><strong>${total}</strong> pts</p>
-          <span class="lb-badge ${badgeMap[r.status]}">${badgeLabel[r.status]}</span>
-        </div>
-      </article>`;
-		})
-		.join('');
+	host.innerHTML = renderPodium(getSortedRows(currentTab, divSelect.value, true));
 }
 
 // ── SEASON STRIP AUTO-SCROLL ────────────────────────────────────────────────
