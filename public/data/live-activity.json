@@ -1,7 +1,18 @@
 {
-  "lastUpdated": "2026-10-24T08:22:58.045Z",
+  "lastUpdated": "2026-10-24T12:50:19.825Z",
   "eventSlug": "port-st-lucie-open",
   "events": [
+    {
+      "id": "2026-10-24T12:50:19.825Z-mens-singles-a-MA9",
+      "at": "2026-10-24T12:50:19.825Z",
+      "type": "result",
+      "divisionId": "mens-singles-a",
+      "divisionLabel": "Men's Singles: A",
+      "matchId": "MA9",
+      "headline": "Elijah Saunders def Jose Gallegos",
+      "detail": "WBF - No Show",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-a"
+    },
     {
       "id": "2026-10-23T23:58:43.880Z-mens-singles-elite-ME9",
       "at": "2026-10-23T23:58:43.880Z",
