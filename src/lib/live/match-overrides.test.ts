@@ -69,6 +69,12 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(mb4?.winner, undefined);
 		assert.equal(mb4?.court, 'Court 2');
 		assert.equal(mb4?.scheduledTime, 'Sunday · 8:00 AM');
+
+		const mbd1 = bundled.divisions['mens-doubles-b']?.MBD1;
+		assert.equal(mbd1?.player1, 'Ryan Appleby / Matt Kern');
+		assert.equal(mbd1?.player2, 'Paul Sotolongo / Mark Manzano');
+		assert.equal(mbd1?.winner, 1);
+		assert.equal(mbd1?.score, '15-3, 15-7');
 	});
 
 	it('build/deploy EVENTS overlay shows the same results without a successful sync', () => {
@@ -111,6 +117,11 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(mb4?.winner, undefined);
 		assert.equal(mb4?.court, 'Court 2');
 		assert.equal(mb4?.scheduledTime, 'Sunday · 8:00 AM');
+
+		const mbd1 = findPslMatch('MBD1');
+		assert.ok(mbd1);
+		assert.equal(mbd1.winner, 1);
+		assert.equal(mbd1.score, '15-3, 15-7');
 	});
 
 	it('applies unread overrides onto last-good blob data when the cron is skipped', () => {

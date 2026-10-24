@@ -1,0 +1,15 @@
+{
+  "port-st-lucie-open": [
+    {
+      "id": "2026-10-24T20:45:00.000Z-mens-doubles-b-MBD1",
+      "at": "2026-10-24T20:45:00.000Z",
+      "type": "result",
+      "divisionId": "mens-doubles-b",
+      "divisionLabel": "Men's Doubles: B",
+      "matchId": "MBD1",
+      "headline": "Ryan Appleby / Matt Kern def Paul Sotolongo / Mark Manzano",
+      "detail": "15-3, 15-7",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-b"
+    }
+  ]
+}

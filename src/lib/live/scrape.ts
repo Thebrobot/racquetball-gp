@@ -1,9 +1,11 @@
 import { EVENTS } from '../../data/events';
+import { ensureActivityForFinals, makeResultActivityEvent } from './activity-feed';
 import { drawOutUrl, type LiveEventConfig } from './config';
 import {
 	applyMatchOverrides,
 	collectSupersededOverrides,
 	MATCH_OVERRIDES,
+	overlayOverridesOnFile,
 } from './match-overrides';
 import {
 	describeBadMatchHtml,
@@ -532,14 +534,6 @@ export function mergeOneMatch(
 	return next;
 }
 
-function winnerLoserNames(match: MatchRecord): { winnerName: string; loserName: string } | null {
-	if (match.winner !== 1 && match.winner !== 2) return null;
-	const winnerName = match.winner === 1 ? match.player1 : match.player2;
-	const loserName = match.winner === 1 ? match.player2 : match.player1;
-	if (!winnerName?.trim() || !loserName?.trim()) return null;
-	return { winnerName: winnerName.trim(), loserName: loserName.trim() };
-}
-
 export function detectActivityChanges(
 	event: LiveEventConfig,
 	prevDivisions: Record<string, MatchMap>,
@@ -550,7 +544,6 @@ export function detectActivityChanges(
 	const retractMatchIds: string[] = [];
 
 	for (const [divId, matches] of Object.entries(nextDivisions)) {
-		const divisionLabel = event.divisionLabels[divId] ?? divId;
 		for (const [matchId, newMatch] of Object.entries(matches)) {
 			const oldMatch = prevDivisions[divId]?.[matchId];
 			const hadWinner = oldMatch?.winner === 1 || oldMatch?.winner === 2;
@@ -567,23 +560,11 @@ export function detectActivityChanges(
 			if (!hasWinner) continue;
 			if (!newlySet && !winnerChanged && !scoreChanged) continue;
 
-			const names = winnerLoserNames(newMatch);
-			if (!names) continue;
 			const correction = hadWinner && (winnerChanged || scoreChanged);
+			const entry = makeResultActivityEvent(event, divId, matchId, newMatch, at, correction);
+			if (!entry) continue;
 			if (correction) retractMatchIds.push(matchId);
-			const headline = `${names.winnerName} def ${names.loserName}`;
-			newEvents.push({
-				id: `${at}-${divId}-${matchId}`,
-				at,
-				type: 'result',
-				divisionId: divId,
-				divisionLabel,
-				matchId,
-				headline: correction ? `Correction: ${headline}` : headline,
-				detail: newMatch.score ?? undefined,
-				bracketHref: `/events/${event.slug}/divisions/${divId}`,
-				...(correction ? { correction: true } : {}),
-			});
+			newEvents.push(entry);
 		}
 	}
 	return { events: newEvents, retractMatchIds };
@@ -667,12 +648,48 @@ export function mergeScrapedResults(
 	const stamp = changed ? at : existing.lastUpdated;
 	const results: LiveResultsFile = { lastUpdated: stamp, divisions: mergedDivisions, supersededOverrides };
 
-	const { events: newActivity, retractMatchIds } = changed
-		? detectActivityChanges(event, existing.divisions ?? {}, mergedDivisions, at)
-		: { events: [], retractMatchIds: [] };
-	const activity = applyActivityUpdates(prevActivity, event.slug, newActivity, retractMatchIds, stamp);
+	const { events: newActivity, retractMatchIds } = detectActivityChanges(
+		event,
+		existing.divisions ?? {},
+		mergedDivisions,
+		at,
+	);
+	const activity = ensureActivityForFinals(
+		event,
+		mergedDivisions,
+		applyActivityUpdates(prevActivity, event.slug, newActivity, retractMatchIds, stamp ?? at),
+		{ at, resultStamp: existing.lastUpdated ?? stamp, prevDivisions: existing.divisions ?? {} },
+	);
 
 	return { results, activity, changed, newActivity: newActivity.length, quarantined };
+}
+
+/** Last-good overlay: apply unread overrides and emit feed rows for new finals. */
+export function overlayLastGoodWithActivity(
+	event: LiveEventConfig,
+	existing: LiveResultsFile,
+	prevActivity: LiveActivityFeed,
+	at: string,
+): {
+	results: LiveResultsFile;
+	changed: boolean;
+	activity: LiveActivityFeed;
+	newActivity: number;
+} {
+	const { results, changed } = overlayOverridesOnFile(event.slug, existing, at);
+	const { events, retractMatchIds } = detectActivityChanges(
+		event,
+		existing.divisions ?? {},
+		results.divisions,
+		at,
+	);
+	const activity = ensureActivityForFinals(
+		event,
+		results.divisions,
+		applyActivityUpdates(prevActivity, event.slug, events, retractMatchIds, changed ? at : prevActivity.lastUpdated),
+		{ at, resultStamp: existing.lastUpdated ?? results.lastUpdated, prevDivisions: existing.divisions ?? {} },
+	);
+	return { results, changed, activity, newActivity: events.length };
 }
 
 export async function buildMergedResults(

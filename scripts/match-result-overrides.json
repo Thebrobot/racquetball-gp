@@ -79,6 +79,12 @@
       },
       "MBD3": {
         "court": "Court 2"
+      },
+      "MBD1": {
+        "player1": "Ryan Appleby / Matt Kern",
+        "player2": "Paul Sotolongo / Mark Manzano",
+        "winner": 1,
+        "score": "15-3, 15-7"
       }
     },
     "mens-doubles-elite": {

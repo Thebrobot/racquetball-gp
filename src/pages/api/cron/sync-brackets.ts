@@ -1,16 +1,21 @@
 import type { APIRoute } from 'astro';
 import { createAdminClient, env, json } from '../../../lib/accounts/supabase';
 import { eventsInWindow, isAnyEventInWindow, type LiveEventConfig } from '../../../lib/live/config';
-import { overlayOverridesOnFile } from '../../../lib/live/match-overrides';
 import {
 	nextSkipRunsRemaining,
 	r2BlockSummary,
 	shouldSkipBlockedRun,
 } from '../../../lib/live/r2-match-fetch';
-import { buildMergedResults, countPublishedResults, scrapeEvent } from '../../../lib/live/scrape';
+import {
+	buildMergedResults,
+	countPublishedResults,
+	overlayLastGoodWithActivity,
+	scrapeEvent,
+} from '../../../lib/live/scrape';
 import {
 	BLOB_READ_FRESH_TIMEOUT_MS,
 	liveStoreConfigured,
+	readLiveActivity,
 	readLiveResults,
 	readSyncStatus,
 	writeLiveActivity,
@@ -84,8 +89,15 @@ async function applyOverridesWithoutScrape(
 		useCache: false,
 		applyOverrides: false,
 	});
-	const { results, changed } = overlayOverridesOnFile(event.slug, existing, at);
+	const prevActivity = await readLiveActivity({
+		timeoutMs: BLOB_READ_FRESH_TIMEOUT_MS,
+		useCache: false,
+	});
+	const { results, changed, activity } = overlayLastGoodWithActivity(event, existing, prevActivity, at);
 	if (changed) await writeLiveResults(event.slug, results);
+	if (changed || activity.events.length !== (prevActivity.events?.length ?? 0)) {
+		await writeLiveActivity(activity);
+	}
 	return {
 		eventKey: event.key,
 		slug: event.slug,

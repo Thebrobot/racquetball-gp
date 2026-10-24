@@ -3,6 +3,7 @@ import ocalaResults from '../../data/ocala-results.json';
 import portStLucieResults from '../../data/port-st-lucie-results.json';
 import sarasotaResults from '../../data/sarasota-results.json';
 import bundledActivity from '../../../public/data/live-activity.json';
+import { applyActivityBackfills } from './activity-feed';
 import { applyMatchOverrides } from './match-overrides';
 import type { LiveActivityFeed, LiveResultsFile, SyncStatus } from './types';
 
@@ -142,11 +143,19 @@ export async function writeLiveResults(slug: string, data: LiveResultsFile): Pro
 	await writeBlobJson(resultsPath(slug), data);
 }
 
+function withActivityBackfill(feed: LiveActivityFeed): LiveActivityFeed {
+	return applyActivityBackfills(feed.eventSlug || 'port-st-lucie-open', feed);
+}
+
+export function getBundledActivity(): LiveActivityFeed {
+	return withActivityBackfill((bundledActivity as LiveActivityFeed) ?? emptyActivity());
+}
+
 export async function readLiveActivity(opts?: BlobReadOptions): Promise<LiveActivityFeed> {
 	const bundled = (bundledActivity as LiveActivityFeed) ?? emptyActivity();
 	const live = await readBlobJson<LiveActivityFeed>(ACTIVITY_PATH, opts);
-	if (live?.events && preferLive(live.lastUpdated, bundled.lastUpdated)) return live;
-	return bundled;
+	const raw = live?.events && preferLive(live.lastUpdated, bundled.lastUpdated) ? live : bundled;
+	return withActivityBackfill(raw);
 }
 
 export async function writeLiveActivity(feed: LiveActivityFeed): Promise<void> {

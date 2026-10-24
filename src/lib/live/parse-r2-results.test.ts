@@ -296,6 +296,11 @@ describe('match-result-overrides still win', () => {
 			'mens-doubles-b': {
 				MBD4: { player1: 'Ryan Appleby / Matt Kern', player2: 'Jonathan Estepan / Daniel Bray' },
 				MBD5: { player1: 'Paul Sotolongo / Mark Manzano', player2: 'Jonathan Estepan / Daniel Bray' },
+				MBD1: {
+					player1: 'Ryan Appleby / Matt Kern',
+					player2: 'Paul Sotolongo / Mark Manzano',
+					scheduledTime: 'Saturday · 3:00 PM',
+				},
 			},
 			'mens-age-60': {
 				'M60+9': { player1: 'John Wuchte', player2: 'Larry Prince Jr.' },
@@ -359,6 +364,9 @@ describe('match-result-overrides still win', () => {
 		assert.equal(divisions['mens-age-50']?.['M50+4']?.scheduledTime, 'Saturday · 2:00 PM');
 		assert.equal(divisions['mens-doubles-b']?.MBD3?.court, 'Court 2');
 		assert.equal(divisions['mens-doubles-b']?.MBD3?.winner, undefined);
+		assert.equal(divisions['mens-doubles-b']?.MBD1?.winner, 1);
+		assert.equal(divisions['mens-doubles-b']?.MBD1?.score, '15-3, 15-7');
+		assert.equal(divisions['mens-doubles-b']?.MBD1?.scheduledTime, 'Saturday · 3:00 PM');
 		assert.equal(divisions['mens-doubles-centurion']?.MCSD6?.score, 'WBF - No Show');
 		assert.equal(divisions['mens-doubles-centurion']?.MCSD6?.winner, undefined);
 		assert.equal(divisions['mens-doubles-centurion']?.MCSD6?.court, undefined);
