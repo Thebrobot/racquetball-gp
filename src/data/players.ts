@@ -295,6 +295,20 @@ export function getPlayerScheduleEntries(
 	return out.sort((a, b) => scheduleSortKey(a.time) - scheduleSortKey(b.time));
 }
 
+/**
+ * Court shown on the event hub / participants next-call row.
+ * When a next match exists, use only that match's court — never the previous
+ * match's court from the profile row. Empty → caller renders TBD.
+ */
+export function nextCallCourt(
+	nextNote: string | undefined,
+	profileNote: string | undefined,
+	nextMatchExists: boolean,
+): string | null {
+	const note = nextMatchExists ? (nextNote ?? '') : (profileNote ?? '');
+	return note.match(/court\s*#?\s*(\w+)/i)?.[1] ?? null;
+}
+
 export interface PlayerProfile {
 	name: string;
 	slug: string;

@@ -2,7 +2,7 @@
 import GrandPrixLayout from '../../../layouts/GrandPrixLayout.astro';
 import OfficialBallChip from '../../../components/grand-prix/OfficialBallChip.astro';
 import { getEventStatus } from '../../../data/events';
-import { getPlayerSlug, getPlayerImageForDisplay, getPlayerScheduleEntries } from '../../../data/players';
+import { getPlayerSlug, getPlayerImageForDisplay, getPlayerScheduleEntries, nextCallCourt } from '../../../data/players';
 import { formatPlayerInitials } from '../../../data/leaderboard';
 import { applyLiveCacheHeaders, resolveLiveEvent } from '../../../lib/live/event';
 
@@ -42,13 +42,7 @@ for (const profile of event.profiles ?? []) {
 	const next = liveEntries[0];
 	const done = liveEntries.length === 0;
 	const time = next?.time ?? profile.time;
-	const note = next?.note ?? profile.note ?? '';
-	// Extract court from note (e.g. "Court 2")
-	let court: string | null = null;
-	const courtMatch = note.match(/court\s*#?\s*(\w+)/i);
-	if (courtMatch) {
-		court = courtMatch[1];
-	}
+	const court = nextCallCourt(next?.note, profile.note, Boolean(next) && !done);
 	list.push({ name: profile.name, time: done ? 'Complete' : time, court: done ? null : court, done });
 }
 
