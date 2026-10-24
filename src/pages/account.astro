@@ -499,7 +499,7 @@ const claimMessages: Record<string, string> = {
 		const paint = (follows: Follow[]) => {
 			const playersFollowed = follows.filter((f) => f.kind === 'player');
 			chips.innerHTML = playersFollowed.length
-				? playersFollowed.map((f) => `<span class="acct-chip"><a href="/players/${encodeURIComponent(f.key)}">${f.name.replace(/</g, '&lt;')}</a><button type="button" class="acct-chip-x" data-key="${f.key}" aria-label="Unfollow ${f.name.replace(/"/g, '&quot;')}">×</button></span>`).join('')
+				? playersFollowed.map((f) => `<span class="acct-chip"><a href="/players/${encodeURIComponent(f.key)}" title="${f.name.replace(/"/g, '&quot;')}">${f.name.replace(/</g, '&lt;')}</a><button type="button" class="acct-chip-x" data-key="${f.key}" aria-label="Unfollow ${f.name.replace(/"/g, '&quot;')}">×</button></span>`).join('')
 				: '<span class="acct-p acct-p--muted" style="margin:0;">Not following anyone yet.</span>';
 			if (eventBox) eventBox.checked = follows.some((f) => f.kind === 'event' && f.key === eventBox.dataset.key);
 		};
@@ -525,7 +525,7 @@ const claimMessages: Record<string, string> = {
 		};
 		const paintList = () => {
 			listbox.innerHTML = matches
-				.map((p, i) => `<li role="none"><button type="button" class="acct-follow-opt" role="option" id="acct-follow-opt-${i}" data-slug="${p.slug.replace(/"/g, '&quot;')}" aria-selected="${i === active ? 'true' : 'false'}">${p.name.replace(/</g, '&lt;')}</button></li>`)
+				.map((p, i) => `<li role="none"><button type="button" class="acct-follow-opt" role="option" id="acct-follow-opt-${i}" data-slug="${p.slug.replace(/"/g, '&quot;')}" title="${p.name.replace(/"/g, '&quot;')}" aria-selected="${i === active ? 'true' : 'false'}">${p.name.replace(/</g, '&lt;')}</button></li>`)
 				.join('');
 		};
 		const setActive = (index: number) => {
