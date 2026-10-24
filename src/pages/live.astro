@@ -3,6 +3,7 @@ import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
 import StopStatusStrip from '../components/grand-prix/StopStatusStrip.astro';
 import { EVENTS } from '../data/events';
 import { readLiveActivity } from '../lib/live/store';
+import { formatLiveDayLabel, formatLiveSyncedAt, formatLiveWhen } from '../lib/live/format-display-time';
 
 export const prerender = false;
 
@@ -33,12 +34,9 @@ try {
 Astro.response.headers.set('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=60');
 
 const event = EVENTS.find((e) => e.slug === feed.eventSlug);
-function dayLabel(iso: string): string {
-	return new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/New_York', weekday: 'long', month: 'long', day: 'numeric' });
-}
 const days: { label: string; items: typeof feed.events }[] = [];
 for (const item of feed.events) {
-	const label = dayLabel(item.at);
+	const label = formatLiveDayLabel(item.at);
 	const last = days[days.length - 1];
 	if (last && last.label === label) last.items.push(item);
 	else days.push({ label, items: [item] });
@@ -46,19 +44,6 @@ for (const item of feed.events) {
 const eventName = event?.name ?? 'Ocala Open';
 const eventDateRange = event?.dateRange ?? '';
 const eventHub = event ? `/events/${event.slug}` : '/tournaments';
-
-function formatSyncedAt(iso: string | null): string {
-	if (!iso) return 'Not yet synced';
-	const d = new Date(iso);
-	if (Number.isNaN(d.getTime())) return 'Not yet synced';
-	return d.toLocaleString('en-US', {
-		month: 'short',
-		day: 'numeric',
-		hour: 'numeric',
-		minute: '2-digit',
-		timeZoneName: 'short',
-	});
-}
 ---
 
 <GrandPrixLayout
@@ -76,7 +61,7 @@ function formatSyncedAt(iso: string | null): string {
 				</p>
 				<p class="live-sync-label live-head-sync" id="live-sync-label">
 					<span class="live-head-sync-dot" aria-hidden="true"></span>
-					Last synced <span id="live-sync-time">{formatSyncedAt(feed.lastUpdated)}</span>
+					Last synced <span id="live-sync-time">{formatLiveSyncedAt(feed.lastUpdated)}</span>
 				</p>
 			</div>
 			<StopStatusStrip compact />
@@ -108,7 +93,7 @@ function formatSyncedAt(iso: string | null): string {
 							{day.items.map((item, i) => (
 								<article class:list={['live-feed-card', { 'live-feed-card--fresh': d === 0 && i === 0 }]} data-at={item.at} data-id={item.id}>
 									<time class="live-feed-time" datetime={item.at} data-live-time={item.at}>
-										{item.at}
+										{formatLiveWhen(item.at)}
 									</time>
 									<p class="live-feed-division">{item.divisionLabel}</p>
 									<h3 class="live-feed-headline">{item.headline}</h3>
