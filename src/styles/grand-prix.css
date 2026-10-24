@@ -2049,6 +2049,7 @@ a.stop-item:hover {
   gap: 8px;
   margin-top: 28px;
   flex-wrap: wrap;
+  scroll-margin-top: calc(80px + env(safe-area-inset-top, 0px));
 }
 .event-tab {
   display: inline-flex;
