@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-10-24T16:17:40.251Z",
+  "lastUpdated": "2026-10-24T18:50:21.588Z",
   "divisions": {
     "mens-singles-open": {
       "MO6": {
@@ -71,20 +71,24 @@
       "ME5": {
         "player1": "Shane De Witt",
         "player2": "Isaac Taylor",
-        "court": "Court 3",
+        "court": "Court 4",
         "scheduledTime": "Saturday · 2:00 PM"
       },
       "ME8": {
         "player1": "Timothy Schnellenberger",
         "player2": "Trevor Morgan",
         "court": "Court 1",
-        "scheduledTime": "Saturday · 12:00 PM"
+        "scheduledTime": "Saturday · 12:00 PM",
+        "winner": 2,
+        "score": "15-8, 15-0"
       },
       "ME6": {
         "player1": "Scott Haacke",
         "player2": "Greg Caruso",
-        "court": "Court 4",
-        "scheduledTime": "Saturday · 1:00 PM"
+        "court": "Court 2",
+        "scheduledTime": "Saturday · 1:00 PM",
+        "winner": 1,
+        "score": "15-0, 15-14"
       },
       "ME7": {
         "player1": "Chris Dermody",
@@ -160,19 +164,37 @@
         "player1": "Kyle Artman",
         "player2": "Jonathan Estepan",
         "court": "Court 4",
-        "scheduledTime": "Saturday · 12:00 PM"
+        "scheduledTime": "Saturday · 12:00 PM",
+        "winner": 1,
+        "score": "15-7, 15-13"
       },
       "MB8": {
         "player1": "Scott Gill",
         "player2": "Elijah Saunders",
-        "court": "Court 2",
-        "scheduledTime": "Saturday · 1:00 PM"
+        "court": "Court 1",
+        "scheduledTime": "Saturday · 1:00 PM",
+        "winner": 2,
+        "score": "15-5, 15-14"
       },
       "MB7": {
         "player1": "Ben Mordkovich",
         "player2": "Matt Kern",
         "court": "Court 3",
-        "scheduledTime": "Saturday · 1:00 PM"
+        "scheduledTime": "Saturday · 1:00 PM",
+        "winner": 2,
+        "score": "15-5, 15-8"
+      },
+      "MB4": {
+        "player1": "Elijah Saunders",
+        "player2": "Daniel Bray",
+        "court": "Court 2",
+        "scheduledTime": "Sunday · 8:00 AM"
+      },
+      "MB3": {
+        "player1": "Kyle Artman",
+        "player2": "Matt Kern",
+        "court": "Court 3",
+        "scheduledTime": "Sunday · 9:00 AM"
       }
     },
     "mens-age-3040": {
@@ -223,7 +245,9 @@
         "player1": "Richard Unzueta",
         "player2": "Ben Kniesly",
         "court": "Court 2",
-        "scheduledTime": "Saturday · 11:00 AM"
+        "scheduledTime": "Saturday · 11:00 AM",
+        "winner": 2,
+        "score": "15-2, 15-3"
       },
       "M50+3": {
         "player1": "John Johnston",
@@ -232,6 +256,20 @@
         "scheduledTime": "Saturday · 9:00 AM",
         "winner": 2,
         "score": "11-15, 15-8, 11-7"
+      },
+      "M50+4": {
+        "player1": "Tyson Peco",
+        "player2": "Ben Kniesly",
+        "court": "Court 1",
+        "scheduledTime": "Saturday · 2:00 PM",
+        "winner": 1,
+        "score": "15-4, 15-1"
+      },
+      "M50+1": {
+        "player1": "Tyson Peco",
+        "player2": "Timothy Schnellenberger",
+        "court": "Court 1",
+        "scheduledTime": "Sunday · 4:00 PM"
       }
     },
     "mens-age-60": {
@@ -270,13 +308,22 @@
       "M60+8": {
         "player1": "Val Peco",
         "player2": "John Wuchte",
-        "scheduledTime": "Saturday · 2:00 PM"
+        "court": "Court 3",
+        "scheduledTime": "Saturday · 2:00 PM",
+        "winner": 1,
+        "score": "15-1, 15-2"
       },
       "M60+3": {
         "player1": "Dirk Huck",
         "player2": "Charles Cole",
         "court": "Court 3",
         "scheduledTime": "Sunday · 11:00 AM"
+      },
+      "M60+4": {
+        "player1": "Val Peco",
+        "player2": "Mike Boyar",
+        "court": "Court 3",
+        "scheduledTime": "Sunday · 10:00 AM"
       }
     },
     "mens-doubles-open": {
@@ -292,7 +339,9 @@
         "player1": "Annie Sanchez / Samuel Schulze",
         "player2": "Jack McDonald / Yelandi Rivero",
         "court": "Court 3",
-        "scheduledTime": "Saturday · 12:00 PM"
+        "scheduledTime": "Saturday · 12:00 PM",
+        "winner": 1,
+        "score": "15-4, 15-8"
       },
       "MOD1": {
         "player1": "Annie Sanchez / Samuel Schulze",
@@ -329,7 +378,10 @@
       "MED5": {
         "player1": "Jaime Abondano / Gene Fry",
         "player2": "Wade Stubanas / Brian Grantham",
-        "scheduledTime": "Saturday · 1:00 PM"
+        "court": "Court 3",
+        "scheduledTime": "Saturday · 1:00 PM",
+        "winner": 2,
+        "score": "15-10, 15-3"
       },
       "MED7": {
         "player1": "Dirk Huck / John Joseph",
@@ -385,7 +437,9 @@
         "player1": "Ryan Appleby / Matt Kern",
         "player2": "Steve Disalvo / Kyle Artman",
         "court": "Court 3",
-        "scheduledTime": "Saturday · 8:00 AM"
+        "scheduledTime": "Saturday · 8:00 AM",
+        "winner": 1,
+        "score": "15-9, 13-15, 11-2"
       },
       "MBD5": {
         "player1": "Paul Sotolongo / Mark Manzano",
@@ -406,7 +460,7 @@
       "MBD3": {
         "player1": "Paul Sotolongo / Mark Manzano",
         "player2": "Steve Disalvo / Kyle Artman",
-        "court": "Court 1",
+        "court": "Court 2",
         "scheduledTime": "Saturday · 2:00 PM"
       },
       "MBD2": {
@@ -430,10 +484,17 @@
       },
       "MCSD6": {
         "player1": "Dirk Huck / John Joseph",
-        "player2": "Jack McDonald / Yelandi Rivero",
+        "player2": "John Wuchte / Yelandi Rivero",
+        "scheduledTime": "Saturday · 2:00 PM",
+        "score": "WBF - No Show"
+      },
+      "MCSD4": {
+        "player1": "Tony Gutierrez / Gene Fry",
+        "player2": "Mike Bock / Terry Money",
         "court": "Court 4",
-        "scheduledTime": "Saturday · 2:00 PM"
+        "scheduledTime": "Sunday · 9:00 AM"
       }
     }
-  }
+  },
+  "supersededOverrides": []
 }

@@ -1,7 +1,128 @@
 {
-  "lastUpdated": "2026-10-24T16:17:40.251Z",
+  "lastUpdated": "2026-10-24T18:50:21.588Z",
   "eventSlug": "port-st-lucie-open",
   "events": [
+    {
+      "id": "2026-10-24T18:50:21.588Z-mens-singles-elite-ME8",
+      "at": "2026-10-24T18:50:21.588Z",
+      "type": "result",
+      "divisionId": "mens-singles-elite",
+      "divisionLabel": "Men's Singles: Elite",
+      "matchId": "ME8",
+      "headline": "Trevor Morgan def Timothy Schnellenberger",
+      "detail": "15-8, 15-0",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-elite"
+    },
+    {
+      "id": "2026-10-24T18:50:21.588Z-mens-singles-elite-ME6",
+      "at": "2026-10-24T18:50:21.588Z",
+      "type": "result",
+      "divisionId": "mens-singles-elite",
+      "divisionLabel": "Men's Singles: Elite",
+      "matchId": "ME6",
+      "headline": "Scott Haacke def Greg Caruso",
+      "detail": "15-0, 15-14",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-elite"
+    },
+    {
+      "id": "2026-10-24T18:50:21.588Z-mens-singles-b-MB6",
+      "at": "2026-10-24T18:50:21.588Z",
+      "type": "result",
+      "divisionId": "mens-singles-b",
+      "divisionLabel": "Men's Singles: B",
+      "matchId": "MB6",
+      "headline": "Kyle Artman def Jonathan Estepan",
+      "detail": "15-7, 15-13",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-b"
+    },
+    {
+      "id": "2026-10-24T18:50:21.588Z-mens-singles-b-MB8",
+      "at": "2026-10-24T18:50:21.588Z",
+      "type": "result",
+      "divisionId": "mens-singles-b",
+      "divisionLabel": "Men's Singles: B",
+      "matchId": "MB8",
+      "headline": "Elijah Saunders def Scott Gill",
+      "detail": "15-5, 15-14",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-b"
+    },
+    {
+      "id": "2026-10-24T18:50:21.588Z-mens-singles-b-MB7",
+      "at": "2026-10-24T18:50:21.588Z",
+      "type": "result",
+      "divisionId": "mens-singles-b",
+      "divisionLabel": "Men's Singles: B",
+      "matchId": "MB7",
+      "headline": "Matt Kern def Ben Mordkovich",
+      "detail": "15-5, 15-8",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-b"
+    },
+    {
+      "id": "2026-10-24T18:50:21.588Z-mens-age-50-M50+5",
+      "at": "2026-10-24T18:50:21.588Z",
+      "type": "result",
+      "divisionId": "mens-age-50",
+      "divisionLabel": "Men's Age Singles: 50+",
+      "matchId": "M50+5",
+      "headline": "Ben Kniesly def Richard Unzueta",
+      "detail": "15-2, 15-3",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-age-50"
+    },
+    {
+      "id": "2026-10-24T18:50:21.588Z-mens-age-50-M50+4",
+      "at": "2026-10-24T18:50:21.588Z",
+      "type": "result",
+      "divisionId": "mens-age-50",
+      "divisionLabel": "Men's Age Singles: 50+",
+      "matchId": "M50+4",
+      "headline": "Tyson Peco def Ben Kniesly",
+      "detail": "15-4, 15-1",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-age-50"
+    },
+    {
+      "id": "2026-10-24T18:50:21.588Z-mens-age-60-M60+8",
+      "at": "2026-10-24T18:50:21.588Z",
+      "type": "result",
+      "divisionId": "mens-age-60",
+      "divisionLabel": "Men's Age Singles: 60+",
+      "matchId": "M60+8",
+      "headline": "Val Peco def John Wuchte",
+      "detail": "15-1, 15-2",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-age-60"
+    },
+    {
+      "id": "2026-10-24T18:50:21.588Z-mens-doubles-open-MOD2",
+      "at": "2026-10-24T18:50:21.588Z",
+      "type": "result",
+      "divisionId": "mens-doubles-open",
+      "divisionLabel": "Men's Doubles: Open",
+      "matchId": "MOD2",
+      "headline": "Annie Sanchez / Samuel Schulze def Jack McDonald / Yelandi Rivero",
+      "detail": "15-4, 15-8",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-open"
+    },
+    {
+      "id": "2026-10-24T18:50:21.588Z-mens-doubles-elite-MED5",
+      "at": "2026-10-24T18:50:21.588Z",
+      "type": "result",
+      "divisionId": "mens-doubles-elite",
+      "divisionLabel": "Men's Doubles: Elite",
+      "matchId": "MED5",
+      "headline": "Wade Stubanas / Brian Grantham def Jaime Abondano / Gene Fry",
+      "detail": "15-10, 15-3",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-elite"
+    },
+    {
+      "id": "2026-10-24T18:50:21.588Z-mens-doubles-b-MBD6",
+      "at": "2026-10-24T18:50:21.588Z",
+      "type": "result",
+      "divisionId": "mens-doubles-b",
+      "divisionLabel": "Men's Doubles: B",
+      "matchId": "MBD6",
+      "headline": "Ryan Appleby / Matt Kern def Steve Disalvo / Kyle Artman",
+      "detail": "15-9, 13-15, 11-2",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-b"
+    },
     {
       "id": "2026-10-24T16:17:40.251Z-mens-singles-open-MO6",
       "at": "2026-10-24T16:17:40.251Z",
