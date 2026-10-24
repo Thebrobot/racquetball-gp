@@ -506,6 +506,7 @@ export function mergeOneMatch(
 	if (opts.quarantined) {
 		if (existing?.winner != null) next.winner = existing.winner;
 		if (existing?.score) next.score = existing.score;
+		else if (incoming.score) next.score = incoming.score;
 		return next;
 	}
 
@@ -516,17 +517,18 @@ export function mergeOneMatch(
 		return next;
 	}
 
+	// No winner is not "unplayed". Keep R2 / stored score text (WBF, No Show).
+	if (incoming.score) next.score = incoming.score;
+	else if (existing?.score) next.score = existing.score;
+
 	if (opts.resolved) {
-		if (incoming.score) next.score = incoming.score;
 		return next;
 	}
 
 	if (existing?.winner != null) {
 		next.winner = existing.winner;
-		if (existing.score) next.score = existing.score;
 		return next;
 	}
-	if (incoming.score) next.score = incoming.score;
 	return next;
 }
 

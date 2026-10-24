@@ -38,5 +38,8 @@ describe('getBundledResults', () => {
 		assert.equal(bundled.divisions['mens-age-50']?.['M50+4']?.winner, 1);
 		assert.equal(bundled.divisions['mens-age-50']?.['M50+4']?.player2, 'Ben Kniesly');
 		assert.equal(bundled.divisions['mens-doubles-b']?.MBD3?.court, 'Court 2');
+		assert.equal(bundled.divisions['mens-doubles-centurion']?.MCSD6?.score, 'WBF - No Show');
+		assert.equal(bundled.divisions['mens-doubles-centurion']?.MCSD6?.winner, undefined);
+		assert.equal(bundled.divisions['mens-doubles-centurion']?.MCSD6?.court, undefined);
 	});
 });
