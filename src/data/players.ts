@@ -169,24 +169,29 @@ export function getPlayerScheduleEntries(
 	profileEvents: PlayerEventCall[],
 	/** Pass live-merged events (see lib/live/event.ts) to reflect results posted since the last deploy. */
 	events: EventData[] = EVENTS,
+	opts?: { discoverExtraDivisions?: boolean },
 ): PlayerScheduleEntry[] {
 	const out: PlayerScheduleEntry[] = [];
 
 	const calls = [...profileEvents];
 	const have = new Set(calls.map((e) => `${e.eventName}::${e.division}`));
-	for (const event of events) {
-		const roster = eventNameRoster(event);
-		for (const div of event.divisionDetails ?? []) {
-			const key = `${event.name}::${div.label}`;
-			if (have.has(key)) continue;
-			const appears = [
-				...(div.rounds ?? []).flatMap((r) => r.matches ?? []).flatMap((m) => [m.player1, m.player2]),
-				...(div.roundRobinMatches ?? []).flatMap((m) => [m.team1, m.team2]),
-				...(div.roundRobinPlayers ?? []),
-			].some((slot) => playerAppearsInSlot(playerName, slot, roster));
-			if (!appears) continue;
-			calls.push({ eventName: event.name, division: div.label, time: '' });
-			have.add(key);
+	// Roster name-matching across every draw slot is O(players × matches × roster).
+	// Event hub / participants already have a profile row per division — skip it.
+	if (opts?.discoverExtraDivisions !== false) {
+		for (const event of events) {
+			const roster = eventNameRoster(event);
+			for (const div of event.divisionDetails ?? []) {
+				const key = `${event.name}::${div.label}`;
+				if (have.has(key)) continue;
+				const appears = [
+					...(div.rounds ?? []).flatMap((r) => r.matches ?? []).flatMap((m) => [m.player1, m.player2]),
+					...(div.roundRobinMatches ?? []).flatMap((m) => [m.team1, m.team2]),
+					...(div.roundRobinPlayers ?? []),
+				].some((slot) => playerAppearsInSlot(playerName, slot, roster));
+				if (!appears) continue;
+				calls.push({ eventName: event.name, division: div.label, time: '' });
+				have.add(key);
+			}
 		}
 	}
 
