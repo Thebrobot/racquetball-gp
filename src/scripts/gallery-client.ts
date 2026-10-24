@@ -81,6 +81,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 	const lbShare = $('#gallery-lb-share');
 	const lbDownload = $('#gallery-lb-download');
 	const lbLike = $('#gallery-lb-like');
+	const lbClaim = $('#gallery-lb-claim');
 	const shareMenu = $('#gallery-share-menu');
 	const photoStat = $('#gallery-stat-photos');
 	const feed = $('#gallery-feed');
@@ -801,7 +802,64 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 	};
 	const peopleEl = $('#gallery-lb-people');
 	let peopleFor: string | null = null;
+	const peopleCache = new Map<string, PeoplePayload>();
 	const viewer = config.viewer ?? { signedIn: Boolean(config.signedIn), playerSlug: null, displayName: null, isAdmin: false };
+
+	function claimLabel(tagged: boolean): string {
+		return tagged ? 'Remove tag' : 'Claim photo';
+	}
+
+	function paintClaimBtn(btn: HTMLElement | null, tagged: boolean | null): void {
+		if (!btn) return;
+		const claimed = Boolean(tagged);
+		btn.classList.toggle('is-claimed', claimed);
+		btn.setAttribute('aria-pressed', tagged == null ? 'false' : claimed ? 'true' : 'false');
+		btn.setAttribute('aria-label', claimLabel(claimed));
+		const text = btn.querySelector('.glb-claim-label, .gfeed-claim-label');
+		if (text) text.textContent = claimLabel(claimed);
+	}
+
+	function paintClaimFor(photo: GalleryPhoto, tagged: boolean | null): void {
+		paintClaimBtn(lbClaim, tagged);
+		paintClaimBtn(feedCard(photo.id)?.querySelector('.gfeed-act--claim') ?? null, tagged);
+	}
+
+	async function peopleForPhoto(photo: GalleryPhoto): Promise<PeoplePayload | null> {
+		const cached = peopleCache.get(photo.id);
+		if (cached) return cached;
+		try {
+			const res = await fetch(`/api/photos/people?id=${encodeURIComponent(photo.id)}`, { cache: 'no-store' });
+			if (!res.ok) throw new Error('people failed');
+			const data = (await res.json()) as PeoplePayload;
+			peopleCache.set(photo.id, data);
+			return data;
+		} catch {
+			return null;
+		}
+	}
+
+	function accountNext(): string {
+		return `/account?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+	}
+
+	/** Same tag / sign-in / claim-profile flow as the people panel, from the action row. */
+	async function claimPhoto(photo: GalleryPhoto, btn?: HTMLElement | null): Promise<void> {
+		if (!viewer.signedIn) {
+			window.location.href = accountNext();
+			return;
+		}
+		if (!viewer.playerSlug) {
+			window.location.href = '/account';
+			return;
+		}
+		if (btn) btn.setAttribute('disabled', '');
+		const data = await peopleForPhoto(photo);
+		const tagged = Boolean(data?.viewer.tagged);
+		const err = await changeTag(photo, tagged ? 'remove' : 'add');
+		if (err) window.alert(err);
+		else if (!tagged) void offerPush();
+		if (btn) btn.removeAttribute('disabled');
+	}
 
 	function avatarChip(slug: string | null, label: string, cls: string): string {
 		const initials = label.split(' ').slice(0, 2).map((w) => w[0] ?? '').join('').toUpperCase();
@@ -812,6 +870,8 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 	}
 
 	function renderPeople(photo: GalleryPhoto, data: PeoplePayload): void {
+		peopleCache.set(photo.id, data);
+		paintClaimFor(photo, data.viewer.tagged);
 		if (!peopleEl) return;
 		const parts: string[] = [];
 		const tagChips = data.tags.map((t) => avatarChip(t.slug, t.name, 'gallery-chip')).join('');
@@ -885,17 +945,14 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 	}
 
 	async function loadPeople(photo: GalleryPhoto): Promise<void> {
-		if (!peopleEl) return;
 		peopleFor = photo.id;
-		try {
-			const res = await fetch(`/api/photos/people?id=${encodeURIComponent(photo.id)}`, { cache: 'no-store' });
-			if (!res.ok) throw new Error('people failed');
-			const data = (await res.json()) as PeoplePayload;
-			if (peopleFor !== photo.id) return;
-			renderPeople(photo, data);
-		} catch {
-			peopleEl.hidden = true;
+		const data = await peopleForPhoto(photo);
+		if (peopleFor !== photo.id) return;
+		if (!data) {
+			if (peopleEl) peopleEl.hidden = true;
+			return;
 		}
+		renderPeople(photo, data);
 	}
 
 	async function changeTag(photo: GalleryPhoto, action: 'add' | 'remove', playerSlug?: string): Promise<string | null> {
@@ -910,6 +967,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		}
 		const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; message?: string };
 		if (!res.ok) return data.message ?? data.error ?? 'Could not update the tag.';
+		peopleCache.delete(photo.id);
 		await loadPeople(photo);
 		return null;
 	}
@@ -1239,6 +1297,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		heart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c1.9 0 3.3 1 4.1 2.3L12 9l1.5-1.7C14.3 6 15.7 5 17.6 5 21 5 23.1 8.4 21.6 11.8 19.5 16.4 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
 		comment: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C6.9 3 3 6.5 3 10.8c0 2.3 1.1 4.3 2.9 5.7L5 21l4.6-2.2c.8.2 1.6.3 2.4.3 5.1 0 9-3.5 9-7.8S17.1 3 12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
 		share: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3L3 10.5l8 2.5 2.5 8L21 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M11 13l10-10" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
+		person: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M6.5 19c.6-3.2 2.7-5 5.5-5s4.9 1.8 5.5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
 		download: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4-4m4 4l4-4M4 19h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 	};
 
@@ -1292,6 +1351,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 				<button type="button" class="gfeed-act gfeed-act--like${liked ? ' is-liked' : ''}" data-act="like" aria-pressed="${liked ? 'true' : 'false'}" aria-label="${liked ? 'Unlike' : 'Like'}">${FEED_ICONS.heart}</button>
 				<button type="button" class="gfeed-act" data-act="comment" aria-label="Comments">${FEED_ICONS.comment}</button>
 				<button type="button" class="gfeed-act" data-act="share" aria-label="Share">${FEED_ICONS.share}</button>
+				<button type="button" class="gfeed-act gfeed-act--claim" data-act="claim" aria-pressed="false" aria-label="Claim photo">${FEED_ICONS.person}<span class="gfeed-claim-label">Claim photo</span></button>
 				<button type="button" class="gfeed-act gfeed-act--end" data-act="download" aria-label="Download">${FEED_ICONS.download}</button>
 			</div>
 			<p class="gfeed-likes">${likesText(photo)}</p>
@@ -1336,6 +1396,9 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		lbIndex = idx;
 		if (feedCount) feedCount.textContent = `${idx + 1} of ${visible.length}`;
 		recordView(photo);
+		void peopleForPhoto(photo).then((data) => {
+			if (data) paintClaimFor(photo, data.viewer.tagged);
+		});
 		if (isBrowse) {
 			history.replaceState({ galleryEvent: slugFor(albumId), photo: photo.id }, '', pageUrl(slugFor(albumId), photo.id));
 		}
@@ -1648,6 +1711,9 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 			case 'share':
 				void shareLink(absoluteUrl(`/gallery/p/${photo.id}`), photo.caption || 'Racquetball Grand Prix');
 				break;
+			case 'claim':
+				void claimPhoto(photo, actEl);
+				break;
 			case 'download':
 				void downloadPhoto(photo);
 				break;
@@ -1713,6 +1779,10 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 	lbLike?.addEventListener('click', () => {
 		const photo = visible[lbIndex];
 		if (photo) applyLike(photo);
+	});
+	lbClaim?.addEventListener('click', () => {
+		const photo = visible[lbIndex];
+		if (photo) void claimPhoto(photo, lbClaim);
 	});
 	lightbox.addEventListener('click', (e) => {
 		if (e.target === lightbox) closeLb();

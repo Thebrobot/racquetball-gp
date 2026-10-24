@@ -1,6 +1,7 @@
 ---
 import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
 import { accountsConfigured, createSessionClient, getSession } from '../lib/accounts/supabase';
+import { eventFollowPlayers } from '../lib/accounts/follow-players';
 import { getAllPlayers } from '../data/players';
 import { EVENTS } from '../data/events';
 import { albumLabel } from '../lib/gallery/albums';
@@ -55,6 +56,7 @@ if (session) {
 const pendingClaim = claims.find((c) => c.status === 'pending') ?? null;
 const rejectedClaim = !pendingClaim && !session?.profile?.player_slug ? claims.find((c) => c.status === 'rejected') : null;
 const players = getAllPlayers();
+const followPlayers = followEvent ? eventFollowPlayers(followEvent) : players.map((p) => ({ name: p.name, slug: p.slug }));
 const linkedPlayer = session?.profile?.player_slug ? players.find((p) => p.slug === session.profile!.player_slug) : null;
 const displayName = session?.profile?.display_name ?? session?.user.email?.split('@')[0] ?? '';
 
@@ -238,16 +240,33 @@ const claimMessages: Record<string, string> = {
 							</label>
 						)}
 						<div class="acct-follow" style="margin-top:14px;">
-							<label class="acct-label" for="acct-follow-input">Follow players</label>
-							<div class="acct-inline">
-								<input class="acct-input" id="acct-follow-input" list="acct-follow-list" placeholder="Start typing a name…" autocomplete="off" />
-								<datalist id="acct-follow-list">
-									{players.map((p) => <option value={p.name} data-slug={p.slug} />)}
-								</datalist>
-								<button class="btn-ghost acct-btn" type="button" id="acct-follow-add">Follow</button>
+							<label class="acct-label" for="acct-follow-input">Follow players{followEvent ? ` in ${followEvent.name}` : ''}</label>
+							<div class="acct-follow-combo" id="acct-follow-combo">
+								<div class="acct-inline">
+									<input
+										class="acct-input"
+										id="acct-follow-input"
+										type="text"
+										role="combobox"
+										placeholder="Start typing a name…"
+										autocomplete="off"
+										autocapitalize="words"
+										spellcheck="false"
+										inputmode="search"
+										aria-autocomplete="list"
+										aria-expanded="false"
+										aria-controls="acct-follow-listbox"
+										aria-haspopup="listbox"
+									/>
+									<button class="btn-ghost acct-btn" type="button" id="acct-follow-add">Follow</button>
+								</div>
+								<ul class="acct-follow-list" id="acct-follow-listbox" role="listbox" hidden></ul>
+								<p class="acct-p acct-p--muted acct-follow-empty" id="acct-follow-empty" hidden>No matching player{followEvent ? ' in this tournament' : ''}.</p>
 							</div>
 							<div class="acct-chips" id="acct-follow-chips" aria-live="polite"></div>
+							<p class="acct-p acct-ok" id="acct-follow-ok" hidden></p>
 							<p class="acct-p acct-p--muted acct-error" id="acct-follow-error" hidden></p>
+							<script is:inline type="application/json" id="acct-follow-players" set:html={JSON.stringify(followPlayers).replace(/</g, '\\u003c')}></script>
 						</div>
 					</div>
 
@@ -445,17 +464,36 @@ const claimMessages: Record<string, string> = {
 </script>
 
 <script>
+	import { exactFollowPlayer, matchFollowPlayers, type FollowPlayer } from '../lib/accounts/follow-players';
+
 	type Follow = { kind: 'player' | 'event'; key: string; name: string };
 	const chips = document.getElementById('acct-follow-chips');
 	const input = document.getElementById('acct-follow-input') as HTMLInputElement | null;
 	const addBtn = document.getElementById('acct-follow-add') as HTMLButtonElement | null;
 	const errEl = document.getElementById('acct-follow-error');
+	const okEl = document.getElementById('acct-follow-ok');
 	const eventBox = document.getElementById('acct-follow-event') as HTMLInputElement | null;
-	const list = document.getElementById('acct-follow-list');
-	if (chips && input && addBtn && errEl) {
+	const listbox = document.getElementById('acct-follow-listbox');
+	const emptyEl = document.getElementById('acct-follow-empty');
+	const combo = document.getElementById('acct-follow-combo');
+	const players: FollowPlayer[] = (() => {
+		try {
+			return JSON.parse(document.getElementById('acct-follow-players')?.textContent ?? '[]') as FollowPlayer[];
+		} catch {
+			return [];
+		}
+	})();
+	if (chips && input && addBtn && errEl && listbox && emptyEl) {
 		const showErr = (msg: string) => {
+			if (okEl) okEl.hidden = true;
 			errEl.textContent = msg;
 			errEl.hidden = false;
+		};
+		const showOk = (msg: string) => {
+			errEl.hidden = true;
+			if (!okEl) return;
+			okEl.textContent = msg;
+			okEl.hidden = false;
 		};
 		const post = (body: Record<string, string>) =>
 			fetch('/api/follows', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async (r) => ({ ok: r.ok, data: (await r.json().catch(() => ({}))) as { error?: string } }));
@@ -472,29 +510,140 @@ const claimMessages: Record<string, string> = {
 				.then((d: { follows?: Follow[] }) => paint(d.follows ?? []))
 				.catch(() => undefined);
 		void load();
-		addBtn.addEventListener('click', async () => {
+
+		let matches: FollowPlayer[] = [];
+		let active = -1;
+		let open = false;
+
+		const setOpen = (next: boolean) => {
+			open = next;
+			listbox.hidden = !next;
+			input.setAttribute('aria-expanded', next ? 'true' : 'false');
+			if (!next) {
+				input.removeAttribute('aria-activedescendant');
+				active = -1;
+			}
+		};
+		const paintList = () => {
+			listbox.innerHTML = matches
+				.map((p, i) => `<li role="none"><button type="button" class="acct-follow-opt" role="option" id="acct-follow-opt-${i}" data-slug="${p.slug.replace(/"/g, '&quot;')}" aria-selected="${i === active ? 'true' : 'false'}">${p.name.replace(/</g, '&lt;')}</button></li>`)
+				.join('');
+		};
+		const setActive = (index: number) => {
+			active = matches.length ? ((index % matches.length) + matches.length) % matches.length : -1;
+			[...listbox.querySelectorAll<HTMLElement>('.acct-follow-opt')].forEach((el, i) => {
+				el.setAttribute('aria-selected', i === active ? 'true' : 'false');
+				if (i === active) {
+					input.setAttribute('aria-activedescendant', el.id);
+					el.scrollIntoView({ block: 'nearest' });
+				}
+			});
+		};
+		const syncList = () => {
+			const q = input.value;
+			const typed = q.trim();
 			errEl.hidden = true;
-			const typed = input.value.trim().toLowerCase();
-			const opt = [...(list?.querySelectorAll('option') ?? [])].find((o) => o.value.toLowerCase() === typed);
-			const slug = opt?.dataset.slug;
-			if (!slug) {
-				showErr('Pick a player from the list.');
+			if (!typed) {
+				matches = [];
+				emptyEl.hidden = true;
+				setOpen(false);
+				paintList();
+				return;
+			}
+			matches = matchFollowPlayers(players, q);
+			emptyEl.hidden = matches.length > 0;
+			if (!matches.length) {
+				setOpen(false);
+				paintList();
+				return;
+			}
+			active = 0;
+			setOpen(true);
+			paintList();
+			setActive(0);
+		};
+		const keepAboveKeyboard = () => {
+			const vv = window.visualViewport;
+			if (!combo || !vv) return;
+			const covered = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+			combo.style.setProperty('--acct-kb', covered > 80 ? `${Math.round(Math.min(covered, 240))}px` : '0px');
+			if (document.activeElement === input && covered > 80) input.scrollIntoView({ block: 'start', behavior: 'auto' });
+		};
+		const followPlayer = async (player: FollowPlayer | undefined) => {
+			errEl.hidden = true;
+			if (!player) {
+				showErr(emptyEl.textContent || 'No matching player.');
+				emptyEl.hidden = false;
+				setOpen(false);
 				return;
 			}
 			addBtn.disabled = true;
-			const r = await post({ kind: 'player', key: slug, action: 'add' });
+			const r = await post({ kind: 'player', key: player.slug, action: 'add' });
 			addBtn.disabled = false;
 			if (!r.ok) {
 				showErr(r.data.error ?? 'Could not follow.');
 				return;
 			}
 			input.value = '';
+			matches = [];
+			emptyEl.hidden = true;
+			setOpen(false);
+			paintList();
+			showOk(`Now following ${player.name}.`);
 			void load();
+		};
+		const chosen = (): FollowPlayer | undefined => {
+			if (active >= 0 && matches[active]) return matches[active];
+			return exactFollowPlayer(players, input.value) ?? (matches.length === 1 ? matches[0] : undefined);
+		};
+
+		input.addEventListener('input', syncList);
+		input.addEventListener('focus', () => {
+			input.scrollIntoView({ block: 'start', behavior: 'smooth' });
+			if (input.value.trim()) syncList();
+			keepAboveKeyboard();
+		});
+		input.addEventListener('keydown', (e) => {
+			if (e.key === 'ArrowDown') {
+				e.preventDefault();
+				if (!open && input.value.trim()) syncList();
+				else if (open) setActive(active + 1);
+			} else if (e.key === 'ArrowUp') {
+				e.preventDefault();
+				if (open) setActive(active - 1);
+			} else if (e.key === 'Enter') {
+				e.preventDefault();
+				void followPlayer(chosen());
+			} else if (e.key === 'Escape') {
+				if (open) {
+					e.preventDefault();
+					setOpen(false);
+				}
+			}
+		});
+		listbox.addEventListener('mousedown', (e) => e.preventDefault());
+		listbox.addEventListener('click', (e) => {
+			const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.acct-follow-opt');
+			if (!btn?.dataset.slug) return;
+			const player = matches.find((p) => p.slug === btn.dataset.slug) ?? players.find((p) => p.slug === btn.dataset.slug);
+			void followPlayer(player);
+		});
+		document.addEventListener('pointerdown', (e) => {
+			if (!open) return;
+			if (combo?.contains(e.target as Node)) return;
+			setOpen(false);
+		});
+		window.visualViewport?.addEventListener('resize', keepAboveKeyboard);
+		window.visualViewport?.addEventListener('scroll', keepAboveKeyboard);
+
+		addBtn.addEventListener('click', () => {
+			void followPlayer(chosen());
 		});
 		chips.addEventListener('click', async (e) => {
 			const x = (e.target as HTMLElement).closest<HTMLElement>('.acct-chip-x');
 			if (!x?.dataset.key) return;
 			await post({ kind: 'player', key: x.dataset.key, action: 'remove' });
+			if (okEl) okEl.hidden = true;
 			void load();
 		});
 		eventBox?.addEventListener('change', async () => {
