@@ -128,6 +128,34 @@ describe('score without a winner stays undecided', () => {
 		assert.equal(quarantine, undefined);
 		assert.match(record.score ?? '', /No Show/i);
 	});
+
+	it('keeps MCSD6 score on the event and clears the court when live has no winner and no court', () => {
+		const staticMcsd6 = PORT_ST_LUCIE_EVENT.divisionDetails
+			.find((d) => d.id === 'mens-doubles-centurion')
+			?.rounds?.flatMap((r) => r.matches)
+			.find((m) => m.matchId === 'MCSD6');
+		assert.equal(staticMcsd6?.court, 'Court 4');
+		assert.equal(staticMcsd6?.score, undefined);
+
+		const event = applyResultsToEvent(PORT_ST_LUCIE_EVENT, {
+			'mens-doubles-centurion': {
+				MCSD6: {
+					player1: 'Dirk Huck / John Joseph',
+					player2: 'Jack McDonald / Yelandi Rivero',
+					score: 'WBF - No Show',
+					scheduledTime: 'Saturday · 2:00 PM',
+				},
+			},
+		});
+		const live = event.divisionDetails
+			.find((d) => d.id === 'mens-doubles-centurion')
+			?.rounds?.flatMap((r) => r.matches)
+			.find((m) => m.matchId === 'MCSD6');
+		assert.equal(live?.score, 'WBF - No Show');
+		assert.equal(live?.winner, undefined);
+		assert.equal(live?.court, undefined);
+		assert.equal(live?.scheduledTime, 'Saturday · 2:00 PM');
+	});
 });
 
 describe('courts and times from R2 override static event data', () => {
@@ -322,6 +350,9 @@ describe('match-result-overrides still win', () => {
 		assert.equal(divisions['mens-age-50']?.['M50+4']?.scheduledTime, 'Saturday · 2:00 PM');
 		assert.equal(divisions['mens-doubles-b']?.MBD3?.court, 'Court 2');
 		assert.equal(divisions['mens-doubles-b']?.MBD3?.winner, undefined);
+		assert.equal(divisions['mens-doubles-centurion']?.MCSD6?.score, 'WBF - No Show');
+		assert.equal(divisions['mens-doubles-centurion']?.MCSD6?.winner, undefined);
+		assert.equal(divisions['mens-doubles-centurion']?.MCSD6?.court, undefined);
 	});
 });
 
@@ -333,6 +364,50 @@ describe('merge keeps an unpublished score-without-winner undecided', () => {
 			{ quarantined: false, resolved: true },
 		);
 		assert.equal(merged.winner, undefined);
+		assert.equal(merged.score, 'WBF - No Show');
+	});
+
+	it('keeps a stored WBF/no-show score when a resolved page clears the court and has no winner', () => {
+		const merged = mergeOneMatch(
+			{
+				player1: 'Dirk Huck / John Joseph',
+				player2: 'Jack McDonald / Yelandi Rivero',
+				score: 'WBF - No Show',
+				court: 'Court 4',
+				scheduledTime: 'Saturday · 2:00 PM',
+			},
+			{
+				player1: 'Dirk Huck / John Joseph',
+				player2: 'Jack McDonald / Yelandi Rivero',
+				scheduledTime: 'Saturday · 2:00 PM',
+			},
+			{ quarantined: false, resolved: true },
+		);
+		assert.equal(merged.winner, undefined);
+		assert.equal(merged.score, 'WBF - No Show');
+		assert.equal(merged.court, undefined);
+		assert.equal(merged.scheduledTime, 'Saturday · 2:00 PM');
+	});
+
+	it('publishes incoming WBF/no-show score text even when there is no winner', () => {
+		const merged = mergeOneMatch(
+			{
+				player1: 'Dirk Huck / John Joseph',
+				player2: 'Jack McDonald / Yelandi Rivero',
+				court: 'Court 4',
+				scheduledTime: 'Saturday · 2:00 PM',
+			},
+			{
+				player1: 'Dirk Huck / John Joseph',
+				player2: 'Jack McDonald / Yelandi Rivero',
+				score: 'WBF - No Show',
+				scheduledTime: 'Saturday · 2:00 PM',
+			},
+			{ quarantined: false, resolved: true },
+		);
+		assert.equal(merged.winner, undefined);
+		assert.equal(merged.score, 'WBF - No Show');
+		assert.equal(merged.court, undefined);
 	});
 });
 

@@ -28,7 +28,9 @@ export function applyMatchOverrides(
 		const div = { ...(next[divId] ?? {}) };
 		for (const [matchId, patch] of Object.entries(matches)) {
 			if (blocked.has(overrideKey(divId, matchId))) continue;
-			div[matchId] = { ...(div[matchId] ?? {}), ...patch };
+			const applied: MatchRecord = { ...(div[matchId] ?? {}), ...patch };
+			if ('court' in patch && !normalizeCourt(patch.court)) delete applied.court;
+			div[matchId] = applied;
 		}
 		next[divId] = div;
 	}
@@ -39,6 +41,7 @@ export function applyMatchOverrides(
 export function overrideYieldsToR2(patch: MatchRecord, r2: MatchRecord, r2IsFinal: boolean): boolean {
 	if (patch.winner != null && r2.winner != null && patch.winner !== r2.winner) return true;
 	if (patch.score && r2.score && !scoresEqual(patch.score, r2.score)) return true;
+	if ('court' in patch && !normalizeCourt(patch.court) && normalizeCourt(r2.court)) return true;
 	if (patch.court) {
 		const r2Court = normalizeCourt(r2.court);
 		const ovCourt = normalizeCourt(patch.court);

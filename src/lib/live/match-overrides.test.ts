@@ -49,6 +49,11 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(mbd3?.court, 'Court 2');
 		assert.equal(mbd3?.winner, undefined);
 		assert.equal(mbd3?.scheduledTime, 'Saturday · 2:00 PM');
+
+		const mcsd6 = bundled.divisions['mens-doubles-centurion']?.MCSD6;
+		assert.equal(mcsd6?.score, 'WBF - No Show');
+		assert.equal(mcsd6?.winner, undefined);
+		assert.equal(mcsd6?.court, undefined);
 	});
 
 	it('build/deploy EVENTS overlay shows the same results without a successful sync', () => {
@@ -71,6 +76,11 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		const mbd3 = findPslMatch('MBD3');
 		assert.equal(mbd3?.court, 'Court 2');
 		assert.equal(mbd3?.winner, undefined);
+
+		const mcsd6 = findPslMatch('MCSD6');
+		assert.equal(mcsd6?.score, 'WBF - No Show');
+		assert.equal(mcsd6?.winner, undefined);
+		assert.equal(mcsd6?.court, undefined);
 	});
 
 	it('applies unread overrides onto last-good blob data when the cron is skipped', () => {
@@ -94,6 +104,14 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 							scheduledTime: 'Saturday · 2:00 PM',
 						},
 					},
+					'mens-doubles-centurion': {
+						MCSD6: {
+							player1: 'Dirk Huck / John Joseph',
+							player2: 'Jack McDonald / Yelandi Rivero',
+							court: 'Court 4',
+							scheduledTime: 'Saturday · 2:00 PM',
+						},
+					},
 				},
 			},
 			'2026-10-24T18:20:00.000Z',
@@ -106,6 +124,9 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(results.divisions['mens-age-50']?.['M50+4']?.player2, 'Ben Kniesly');
 		assert.equal(results.divisions['mens-doubles-b']?.MBD3?.court, 'Court 2');
 		assert.equal(results.divisions['mens-doubles-b']?.MBD3?.winner, undefined);
+		assert.equal(results.divisions['mens-doubles-centurion']?.MCSD6?.score, 'WBF - No Show');
+		assert.equal(results.divisions['mens-doubles-centurion']?.MCSD6?.winner, undefined);
+		assert.equal(results.divisions['mens-doubles-centurion']?.MCSD6?.court, undefined);
 	});
 });
 
@@ -118,6 +139,18 @@ describe('overrides yield to a later confirmed R2 fetch', () => {
 		assert.equal(overrideYieldsToR2({ court: 'Court 2' }, { player1: 'A', player2: 'B', court: 'Court 3' }, false), true);
 		assert.equal(overrideYieldsToR2({ court: 'Court 2' }, { player1: 'A', player2: 'B' }, false), true);
 		assert.equal(overrideYieldsToR2({ court: 'Court 2' }, { player1: 'A', player2: 'B' }, true), false);
+		assert.equal(
+			overrideYieldsToR2(
+				{ score: 'WBF - No Show', court: '' },
+				{ player1: 'A', player2: 'B', court: 'Court 3' },
+				false,
+			),
+			true,
+		);
+		assert.equal(
+			overrideYieldsToR2({ score: 'WBF - No Show', court: '' }, { player1: 'A', player2: 'B', score: 'WBF - No Show' }, false),
+			false,
+		);
 	});
 
 	it('skips a superseded override so a later real R2 update is not overwritten', () => {
