@@ -3,10 +3,10 @@
  * Email-link landing for sign-up verification, magic links and password
  * resets. Handles both link styles Supabase can send: `?code=` (PKCE, same
  * browser) and `?token_hash=&type=` (works across devices). After a
- * successful sign-up, turns the player pick from the form into a claim.
+ * successful sign-up, links the player pick from the form when it is still free.
  */
 import { createSessionClient } from '../../lib/accounts/supabase';
-import { getAllPlayers } from '../../data/players';
+import { accountAfterLink, linkPlayerToAccount } from '../../lib/accounts/player-link';
 
 export const prerender = false;
 
@@ -18,30 +18,21 @@ if (!next.startsWith('/') || next.startsWith('//')) next = '/account';
 type OtpType = 'magiclink' | 'email' | 'signup' | 'recovery' | 'invite' | 'email_change';
 const OTP_TYPES: OtpType[] = ['magiclink', 'email', 'signup', 'recovery', 'invite', 'email_change'];
 
-/** Create the pending claim a new user chose on the sign-up form, once. */
-async function claimFromSignup(): Promise<void> {
-	if (!client) return;
+/** Link the player picked on the sign-up form, once the email is confirmed. */
+async function claimFromSignup(): Promise<string | null> {
+	if (!client) return null;
 	const { data } = await client.auth.getUser();
 	const user = data.user;
 	const slug = user?.user_metadata?.claim_player_slug as string | undefined;
-	if (!user || !slug) return;
-	const player = getAllPlayers().find((p) => p.slug === slug);
-	if (!player) return;
-	const { data: profile } = await client.from('profiles').select('player_slug').eq('id', user.id).maybeSingle();
-	if (profile?.player_slug) return;
-	const { count } = await client
-		.from('profile_claims')
-		.select('id', { count: 'exact', head: true })
-		.eq('user_id', user.id)
-		.eq('player_slug', slug);
-	if (count && count > 0) return;
-	await client.from('profile_claims').insert({
-		user_id: user.id,
-		player_slug: player.slug,
-		player_name: player.name,
+	if (!user || !slug) return null;
+	const result = await linkPlayerToAccount({
+		userId: user.id,
+		slug,
 		note: 'Picked at sign-up',
-		status: 'pending',
+		sessionClient: client,
 	});
+	if (result.status === 'invalid' || result.status === 'error') return null;
+	return accountAfterLink(result);
 }
 
 let errorMessage: string;
@@ -63,8 +54,8 @@ if (!client) {
 		isRecovery = ok && type === 'recovery';
 	}
 	if (ok) {
-		await claimFromSignup().catch(() => undefined);
-		return Astro.redirect(isRecovery ? '/account/password' : next, 303);
+		const linkedTo = await claimFromSignup().catch(() => null);
+		return Astro.redirect(isRecovery ? '/account/password' : (linkedTo ?? next), 303);
 	}
 	errorMessage = code || tokenHash
 		? 'That link has expired or was already used. Links work once and only in the browser that requested them.'

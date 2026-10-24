@@ -9346,6 +9346,57 @@ a.lb2-name:hover { color: var(--orange2); }
 .acct-divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; margin: 18px 0 10px; }
 .acct-divider::before, .acct-divider::after { content: ''; flex: 1; height: 1px; background: var(--card-border); }
 .acct-hint { font-size: 13px; color: var(--muted); margin: -2px 0 6px; }
+.su-claim { margin-top: 8px; padding-top: 12px; padding-bottom: 72px; border-top: 1px solid var(--card-border); scroll-margin-top: 96px; }
+.su-claim-combo { position: relative; }
+.su-claim-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 6px;
+  max-height: min(280px, 42vh);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--navy3);
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 12px;
+}
+.su-claim-list[hidden], .su-claim-empty[hidden], .su-pick[hidden], #su-confirmed[hidden], #su-skip-note[hidden], #su-pick-taken[hidden] { display: none; }
+.su-claim-empty { margin: 8px 0 0; }
+.su-claim-opt {
+  display: block;
+  width: 100%;
+  text-align: left;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+.su-claim-opt .su-opt-meta { display: block; margin-top: 2px; font-size: 13px; color: var(--muted); }
+.su-claim-opt[aria-selected="true"], .su-claim-opt:hover, .su-claim-opt:focus-visible {
+  background: rgba(240,90,26,0.22);
+  outline: none;
+}
+.su-claim-opt.is-claimed { opacity: 0.72; }
+.su-pick {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+}
+.su-pick-name { margin: 0; font-weight: 700; font-size: 17px; }
+.su-pick-meta { margin: 4px 0 10px; font-size: 14px; color: var(--muted); }
+.su-pick-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.su-pick-actions .acct-btn { margin-top: 0; min-height: 44px; }
+@media (max-width: 640px) {
+  .su-claim-list { max-height: min(240px, 36vh); }
+  .su-pick-actions { flex-direction: column; }
+  .su-pick-actions .acct-btn { width: 100%; }
+}
 .acct-btn--full { align-self: stretch; text-align: center; }
 
 /* ───── GALLERY LIGHTBOX: people panel (tags + liked by) ───── */

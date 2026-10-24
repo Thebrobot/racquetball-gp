@@ -1,7 +1,8 @@
 ---
 import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
 import { accountsConfigured, getSession } from '../lib/accounts/supabase';
-import { getAllPlayers } from '../data/players';
+import { claimPlayerOptions } from '../lib/accounts/player-search';
+import { loadClaimedSlugs } from '../lib/accounts/player-link';
 
 export const prerender = false;
 Astro.response.headers.set('Cache-Control', 'no-store');
@@ -13,7 +14,9 @@ if (session) return Astro.redirect('/account', 303);
 let next = Astro.url.searchParams.get('next') ?? '/account';
 if (!next.startsWith('/') || next.startsWith('//')) next = '/account';
 const sent = Astro.url.searchParams.get('sent') === '1';
-const players = getAllPlayers();
+const sentPlayer = (Astro.url.searchParams.get('player') ?? '').trim();
+const claimed = await loadClaimedSlugs();
+const players = claimPlayerOptions(claimed);
 ---
 
 <GrandPrixLayout title="Create an account | Florida Racquetball Grand Prix" description="Create a free account to like photos, follow players and claim your player profile." noindex hideSponsorSpotlight>
@@ -22,7 +25,7 @@ const players = getAllPlayers();
 			<div>
 				<p class="section-label">Players and fans</p>
 				<h1 class="gp-title">Create an <span>account</span></h1>
-				<p class="gp-sub">Free, takes a minute. Like photos, keep your name on them, and link your player profile if you compete.</p>
+				<p class="gp-sub">Free, takes a minute. If you play in the Grand Prix, we will link this account to your player profile.</p>
 			</div>
 		</div>
 	</header>
@@ -37,6 +40,11 @@ const players = getAllPlayers();
 				<div class="gp-card acct-card">
 					<h2 class="acct-h2">Check your email</h2>
 					<p class="acct-p">We sent a verification link. Tap it to activate your account; it works once and expires in an hour.</p>
+					{sentPlayer ? (
+						<p class="acct-p acct-ok">After you confirm, your account will be linked to <strong>{sentPlayer}</strong>.</p>
+					) : (
+						<p class="acct-p acct-p--muted">You signed up as a spectator. You can claim a player profile later from your account page.</p>
+					)}
 					<p class="acct-p acct-p--muted">Nothing there? Check spam. Already verified? <a class="acct-link" href="/account">Sign in</a>.</p>
 				</div>
 			)}
@@ -55,13 +63,43 @@ const players = getAllPlayers();
 						<input class="acct-input" id="su-password" name="password" type="password" minlength="8" required autocomplete="new-password" />
 						<p class="acct-hint">At least 8 characters.</p>
 
-						<label class="acct-label" for="su-player">Play in the Grand Prix? Pick your name (optional)</label>
-						<input class="acct-input" id="su-player" list="su-player-list" name="player_name_lookup" placeholder="Start typing your name…" autocomplete="off" />
-						<datalist id="su-player-list">
-							{players.map((p) => <option value={p.name} data-slug={p.slug} />)}
-						</datalist>
-						<input type="hidden" name="player_slug" id="su-player-slug" value="" />
-						<p class="acct-hint" id="su-player-hint">Kyle reviews profile links before the verified badge shows.</p>
+						<div class="su-claim" id="su-claim">
+							<p class="acct-label" id="su-player-label">Your player profile</p>
+							<p class="acct-hint">We look up existing Grand Prix profiles from the name you typed. Confirm it is you, or skip if you are here as family or a fan.</p>
+							<label class="acct-label" for="su-player-search">Find your name</label>
+							<div class="su-claim-combo">
+								<input
+									class="acct-input"
+									id="su-player-search"
+									type="text"
+									role="combobox"
+									placeholder="Start typing your name…"
+									autocomplete="off"
+									autocapitalize="words"
+									spellcheck="false"
+									inputmode="search"
+									aria-autocomplete="list"
+									aria-expanded="false"
+									aria-controls="su-player-listbox"
+									aria-labelledby="su-player-label"
+								/>
+								<ul class="su-claim-list" id="su-player-listbox" role="listbox" hidden></ul>
+								<p class="acct-p acct-p--muted su-claim-empty" id="su-player-empty" hidden>No matching player profile.</p>
+							</div>
+							<div class="su-pick" id="su-pick" hidden>
+								<p class="su-pick-name" id="su-pick-name"></p>
+								<p class="su-pick-meta" id="su-pick-meta"></p>
+								<p class="acct-p acct-error-text" id="su-pick-taken" hidden>This profile is already claimed by another account.</p>
+								<div class="su-pick-actions">
+									<button class="btn-main acct-btn" type="button" id="su-this-is-me">This is me</button>
+									<button class="btn-ghost acct-btn" type="button" id="su-not-me">Not this person</button>
+								</div>
+							</div>
+							<p class="acct-p acct-ok" id="su-confirmed" hidden></p>
+							<button class="acct-textbtn" type="button" id="su-skip">I'm not a player (spectator / family)</button>
+							<p class="acct-p acct-p--muted" id="su-skip-note" hidden>You can claim a player profile later from your account page.</p>
+							<input type="hidden" name="player_slug" id="su-player-slug" value="" />
+						</div>
 
 						<label class="acct-check">
 							<input type="checkbox" name="marketing_opt_in" value="1" />
@@ -79,26 +117,191 @@ const players = getAllPlayers();
 	</section>
 </GrandPrixLayout>
 
+<script is:inline type="application/json" id="su-players" set:html={JSON.stringify(players).replace(/</g, '\\u003c')}></script>
 <script>
-	const form = document.getElementById('signup-form') as HTMLFormElement | null;
-	const lookup = document.getElementById('su-player') as HTMLInputElement | null;
-	const slugEl = document.getElementById('su-player-slug') as HTMLInputElement | null;
-	const hint = document.getElementById('su-player-hint');
-	const list = document.getElementById('su-player-list');
+	import { matchClaimPlayers, playerIdentifyLine, type ClaimPlayerOption } from '../lib/accounts/player-search';
 
-	function syncPlayer() {
-		if (!lookup || !slugEl || !list) return;
-		const typed = lookup.value.trim().toLowerCase();
-		const opt = Array.from(list.querySelectorAll('option')).find((o) => o.value.toLowerCase() === typed);
-		slugEl.value = opt?.getAttribute('data-slug') ?? '';
-		if (hint) {
-			hint.textContent = typed && !slugEl.value
-				? 'Pick a name from the list, or leave it blank and claim later.'
-				: 'Kyle reviews profile links before the verified badge shows.';
+	const form = document.getElementById('signup-form') as HTMLFormElement | null;
+	const nameEl = document.getElementById('su-name') as HTMLInputElement | null;
+	const search = document.getElementById('su-player-search') as HTMLInputElement | null;
+	const slugEl = document.getElementById('su-player-slug') as HTMLInputElement | null;
+	const listbox = document.getElementById('su-player-listbox');
+	const emptyEl = document.getElementById('su-player-empty');
+	const pickEl = document.getElementById('su-pick');
+	const pickName = document.getElementById('su-pick-name');
+	const pickMeta = document.getElementById('su-pick-meta');
+	const pickTaken = document.getElementById('su-pick-taken');
+	const thisIsMe = document.getElementById('su-this-is-me') as HTMLButtonElement | null;
+	const notMe = document.getElementById('su-not-me');
+	const confirmed = document.getElementById('su-confirmed');
+	const skipBtn = document.getElementById('su-skip');
+	const skipNote = document.getElementById('su-skip-note');
+	const players: ClaimPlayerOption[] = (() => {
+		try {
+			return JSON.parse(document.getElementById('su-players')?.textContent ?? '[]') as ClaimPlayerOption[];
+		} catch {
+			return [];
+		}
+	})();
+
+	let matches: ClaimPlayerOption[] = [];
+	let active = -1;
+	let open = false;
+	let preview: ClaimPlayerOption | null = null;
+
+	function setOpen(next: boolean) {
+		if (!search || !listbox) return;
+		open = next;
+		listbox.hidden = !next;
+		search.setAttribute('aria-expanded', next ? 'true' : 'false');
+		if (!next) {
+			search.removeAttribute('aria-activedescendant');
+			active = -1;
 		}
 	}
-	lookup?.addEventListener('input', syncPlayer);
-	lookup?.addEventListener('change', syncPlayer);
+
+	function paintList() {
+		if (!listbox) return;
+		listbox.innerHTML = matches
+			.map((p, i) => {
+				const meta = playerIdentifyLine(p);
+				const taken = p.claimed ? ' · already claimed' : '';
+				return `<li role="none"><button type="button" class="su-claim-opt${p.claimed ? ' is-claimed' : ''}" role="option" id="su-opt-${i}" data-slug="${p.slug}" aria-selected="${i === active ? 'true' : 'false'}">${p.name.replace(/</g, '&lt;')}${meta ? `<span class="su-opt-meta">${meta.replace(/</g, '&lt;')}${taken}</span>` : taken ? `<span class="su-opt-meta">Already claimed</span>` : ''}</button></li>`;
+			})
+			.join('');
+	}
+
+	function setActive(index: number) {
+		if (!search || !listbox) return;
+		active = matches.length ? ((index % matches.length) + matches.length) % matches.length : -1;
+		[...listbox.querySelectorAll<HTMLElement>('.su-claim-opt')].forEach((el, i) => {
+			el.setAttribute('aria-selected', i === active ? 'true' : 'false');
+			if (i === active) {
+				search.setAttribute('aria-activedescendant', el.id);
+				el.scrollIntoView({ block: 'nearest' });
+			}
+		});
+	}
+
+	function syncList(query: string) {
+		if (!emptyEl) return;
+		const typed = query.trim();
+		if (!typed || slugEl?.value) {
+			matches = [];
+			emptyEl.hidden = true;
+			setOpen(false);
+			paintList();
+			return;
+		}
+		matches = matchClaimPlayers(players, query);
+		emptyEl.hidden = matches.length > 0;
+		if (!matches.length) {
+			setOpen(false);
+			paintList();
+			return;
+		}
+		active = 0;
+		setOpen(true);
+		paintList();
+		setActive(0);
+	}
+
+	function showPreview(player: ClaimPlayerOption) {
+		preview = player;
+		setOpen(false);
+		if (search) search.value = player.name;
+		if (pickName) pickName.textContent = player.name;
+		if (pickMeta) pickMeta.textContent = playerIdentifyLine(player) || 'Grand Prix player';
+		if (pickTaken) pickTaken.hidden = !player.claimed;
+		if (thisIsMe) thisIsMe.disabled = player.claimed;
+		if (pickEl) pickEl.hidden = false;
+		if (confirmed) confirmed.hidden = true;
+		if (skipNote) skipNote.hidden = true;
+	}
+
+	function clearPick() {
+		preview = null;
+		if (slugEl) slugEl.value = '';
+		if (pickEl) pickEl.hidden = true;
+		if (confirmed) confirmed.hidden = true;
+		if (thisIsMe) thisIsMe.disabled = false;
+	}
+
+	function confirmPlayer(player: ClaimPlayerOption) {
+		if (player.claimed) {
+			showPreview(player);
+			return;
+		}
+		if (slugEl) slugEl.value = player.slug;
+		if (search) search.value = player.name;
+		if (confirmed) {
+			confirmed.textContent = `This is you: ${player.name}. Your account will be linked to that profile.`;
+			confirmed.hidden = false;
+		}
+		if (pickEl) pickEl.hidden = true;
+		if (skipNote) skipNote.hidden = true;
+		if (emptyEl) emptyEl.hidden = true;
+		setOpen(false);
+	}
+
+	function skipPlayer() {
+		clearPick();
+		if (search) search.value = '';
+		if (emptyEl) emptyEl.hidden = true;
+		if (skipNote) skipNote.hidden = false;
+		setOpen(false);
+	}
+
+	search?.addEventListener('input', () => {
+		clearPick();
+		if (skipNote) skipNote.hidden = true;
+		syncList(search.value);
+		if (search.value.trim()) search.scrollIntoView({ block: 'center', behavior: 'smooth' });
+	});
+	nameEl?.addEventListener('input', () => {
+		if (slugEl?.value || (search?.value.trim() && search.value.trim() !== nameEl.value.trim())) return;
+		if (search && !search.value.trim()) syncList(nameEl.value);
+	});
+	nameEl?.addEventListener('blur', () => {
+		if (slugEl?.value || !search) return;
+		if (!search.value.trim() && nameEl.value.trim().length >= 3) {
+			search.value = nameEl.value;
+			syncList(nameEl.value);
+		}
+	});
+	search?.addEventListener('keydown', (e) => {
+		if (e.key === 'ArrowDown') {
+			e.preventDefault();
+			if (!open && search.value.trim()) syncList(search.value);
+			else if (open) setActive(active + 1);
+		} else if (e.key === 'ArrowUp') {
+			e.preventDefault();
+			if (open) setActive(active - 1);
+		} else if (e.key === 'Enter' && open) {
+			e.preventDefault();
+			const hit = matches[active];
+			if (hit) showPreview(hit);
+		} else if (e.key === 'Escape' && open) {
+			e.preventDefault();
+			setOpen(false);
+		}
+	});
+	listbox?.addEventListener('mousedown', (e) => e.preventDefault());
+	listbox?.addEventListener('click', (e) => {
+		const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.su-claim-opt');
+		if (!btn?.dataset.slug) return;
+		const hit = matches.find((p) => p.slug === btn.dataset.slug);
+		if (hit) showPreview(hit);
+	});
+	thisIsMe?.addEventListener('click', () => {
+		if (preview) confirmPlayer(preview);
+	});
+	notMe?.addEventListener('click', () => {
+		clearPick();
+		search?.focus();
+		syncList(search?.value ?? '');
+	});
+	skipBtn?.addEventListener('click', skipPlayer);
 
 	form?.addEventListener('submit', async (e) => {
 		e.preventDefault();
@@ -106,8 +309,9 @@ const players = getAllPlayers();
 		const btn = document.getElementById('su-submit') as HTMLButtonElement;
 		errEl.hidden = true;
 		if (!form.reportValidity()) return;
-		if (lookup?.value.trim() && !slugEl?.value) {
-			errEl.textContent = 'Pick your name from the list, or clear the field.';
+		const skipped = Boolean(skipNote && !skipNote.hidden);
+		if (search?.value.trim() && !slugEl?.value && !skipped) {
+			errEl.textContent = 'Confirm “This is me”, or choose “I’m not a player” if you are a spectator.';
 			errEl.hidden = false;
 			return;
 		}
@@ -125,9 +329,21 @@ const players = getAllPlayers();
 				next: fd.get('next'),
 			}),
 		});
-		const data = (await res.json().catch(() => ({}))) as { ok?: boolean; needsVerification?: boolean; next?: string; error?: string };
+		const data = (await res.json().catch(() => ({}))) as {
+			ok?: boolean;
+			needsVerification?: boolean;
+			next?: string;
+			error?: string;
+			playerName?: string | null;
+		};
 		if (res.ok && data.ok) {
-			window.location.href = data.needsVerification ? '/signup?sent=1' : (data.next ?? '/account');
+			if (data.needsVerification) {
+				const q = new URLSearchParams({ sent: '1' });
+				if (data.playerName) q.set('player', data.playerName);
+				window.location.href = `/signup?${q.toString()}`;
+				return;
+			}
+			window.location.href = data.next ?? '/account';
 			return;
 		}
 		errEl.textContent = data.error ?? 'Something went wrong.';

@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createSessionClient, accountsConfigured, json } from '../../../lib/accounts/supabase';
 import { getAllPlayers } from '../../../data/players';
+import { accountAfterLink, loadClaimedSlugs, linkPlayerToAccount } from '../../../lib/accounts/player-link';
 
 export const prerender = false;
 
@@ -9,8 +10,8 @@ export const PASSWORD_MIN = 8;
 
 /**
  * Create an account with email + password. Sends a verification email; the
- * optional player pick is stored in user metadata and turned into a claim
- * when the verification link is opened.
+ * optional player pick is stored in user metadata and linked when the
+ * verification link is opened (or immediately when a session is returned).
  */
 export const POST: APIRoute = async ({ request, cookies, url }) => {
 	if (!accountsConfigured()) return json({ error: 'Accounts are not set up yet.' }, 503);
@@ -34,7 +35,13 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
 	if (password.length < PASSWORD_MIN) return json({ error: `Password must be at least ${PASSWORD_MIN} characters.` }, 400);
 	if (displayName.length < 2) return json({ error: 'Enter the name you want shown on the site.' }, 400);
 	const player = playerSlug ? getAllPlayers().find((p) => p.slug === playerSlug) : null;
-	if (playerSlug && !player) return json({ error: 'Pick your name from the player list, or leave it blank.' }, 400);
+	if (playerSlug && !player) return json({ error: 'Pick your name from the list, or skip if you are not a player.' }, 400);
+	if (player) {
+		const claimed = await loadClaimedSlugs();
+		if (claimed.has(player.slug)) {
+			return json({ error: 'That player profile is already claimed by another account. Skip if you are a spectator, or pick a different name.' }, 409);
+		}
+	}
 
 	const client = createSessionClient(request, cookies)!;
 	const { data, error } = await client.auth.signUp({
@@ -66,5 +73,31 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
 	if (existing) {
 		return json({ error: 'That email already has an account. Sign in instead, or use “Forgot password”.' }, 409);
 	}
-	return json({ ok: true, needsVerification: !data.session, next });
+
+	if (player && data.session && data.user) {
+		const linked = await linkPlayerToAccount({
+			userId: data.user.id,
+			slug: player.slug,
+			note: 'Picked at sign-up',
+			sessionClient: client,
+		});
+		if (linked.status === 'already-claimed') {
+			return json({ ok: true, needsVerification: false, next: '/account?claim=taken', playerName: player.name });
+		}
+		return json({
+			ok: true,
+			needsVerification: false,
+			next: accountAfterLink(linked, next),
+			playerName: player.name,
+			linked: linked.status === 'linked' || linked.status === 'already-linked',
+		});
+	}
+
+	return json({
+		ok: true,
+		needsVerification: !data.session,
+		next,
+		playerName: player?.name ?? null,
+		playerSlug: player?.slug ?? null,
+	});
 };
