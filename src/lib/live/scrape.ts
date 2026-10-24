@@ -1,5 +1,10 @@
-import overridesJson from '../../../scripts/match-result-overrides.json';
+import { EVENTS } from '../../data/events';
 import { drawOutUrl, type LiveEventConfig } from './config';
+import {
+	applyMatchOverrides,
+	collectSupersededOverrides,
+	MATCH_OVERRIDES,
+} from './match-overrides';
 import {
 	describeBadMatchHtml,
 	htmlHasWinnerMark,
@@ -19,11 +24,13 @@ import {
 import { resolveMatchResult, resultFieldsEqual } from './resolve-results';
 import {
 	describeR2Block,
+	divisionHasWindowMatch,
 	drawLooksFinished,
 	htmlLooksLikeR2Block,
 	isR2BlockedReason,
 	MATCH_PAGE_GAP_MS,
 	R2_BLOCK_BACKOFF_MS,
+	selectDivisionCodesToScrape,
 	shouldFetchMatchPage,
 	storedCourtDisagreesWithDraw,
 	storeHasFinal,
@@ -55,7 +62,7 @@ export const BROWSER_HEADERS: Record<string, string> = {
 const MAX_ATTEMPTS = 3;
 const MAX_ACTIVITY_EVENTS = 600;
 
-const MATCH_OVERRIDES = overridesJson as Record<string, Record<string, Record<string, MatchRecord>>>;
+export { applyMatchOverrides, MATCH_OVERRIDES } from './match-overrides';
 
 export type DivisionScrape = {
 	code: string;
@@ -77,6 +84,8 @@ export type EventScrapeResult = {
 	errors: string[];
 	quarantined: QuarantinedMatch[];
 	resolvedMatchIds: string[];
+	/** Matches we actually read an r2-push page for this run (not keep-stored). */
+	confirmedMatchIds?: string[];
 	audit: Array<{ matchId: string; html: string }>;
 	r2Blocked?: boolean;
 	r2BlockedCount?: number;
@@ -137,6 +146,24 @@ async function scrapeDivision(
 	return { divCode, divId, draw: parseBracketPage(html, finalUrl), html, finalUrl };
 }
 
+function scheduledTimesForDivision(event: LiveEventConfig, divId: string, stored: MatchMap): string[] {
+	const times: string[] = [];
+	for (const row of Object.values(stored)) {
+		if (row.scheduledTime) times.push(row.scheduledTime);
+	}
+	const ev = EVENTS.find((e) => e.slug === event.slug);
+	const div = ev?.divisionDetails.find((d) => d.id === divId);
+	for (const round of div?.rounds ?? []) {
+		for (const match of round.matches) {
+			if (match.scheduledTime) times.push(match.scheduledTime);
+		}
+	}
+	for (const match of div?.roundRobinMatches ?? []) {
+		if (match.scheduledTime) times.push(match.scheduledTime);
+	}
+	return times;
+}
+
 function keepStoredFinal(existing: MatchRecord, draw: ParsedDrawMatch): MatchRecord {
 	const next: MatchRecord = {
 		player1: draw.player1 ?? existing.player1 ?? null,
@@ -154,19 +181,51 @@ function keepStoredFinal(existing: MatchRecord, draw: ParsedDrawMatch): MatchRec
 }
 
 export async function scrapeEvent(event: LiveEventConfig, now = new Date()): Promise<EventScrapeResult> {
-	const existing = await readLiveResults(event.slug, { timeoutMs: BLOB_READ_FRESH_TIMEOUT_MS, useCache: false }).catch(() => ({ lastUpdated: null, divisions: {} as Record<string, MatchMap> }));
+	const existing = await readLiveResults(event.slug, {
+		timeoutMs: BLOB_READ_FRESH_TIMEOUT_MS,
+		useCache: false,
+		applyOverrides: false,
+	}).catch(() => ({ lastUpdated: null, divisions: {} as Record<string, MatchMap> }));
 	const divisions: Record<string, MatchMap> = {};
 	const divisionReports: DivisionScrape[] = [];
 	const errors: string[] = [];
 	const quarantined: QuarantinedMatch[] = [];
 	const resolvedMatchIds: string[] = [];
+	const confirmedMatchIds: string[] = [];
 	const audit: Array<{ matchId: string; html: string }> = [];
 	let scraped = 0;
 	let matchesWithResults = 0;
 	let r2Blocked = false;
 	let r2BlockedCount = 0;
 
+	const inWindowCodes = new Set<string>();
+	for (const { code } of event.divisionUrls) {
+		const divId = event.codeIdMap[code];
+		if (!divId) continue;
+		const times = scheduledTimesForDivision(event, divId, existing.divisions?.[divId] ?? {});
+		if (divisionHasWindowMatch(times, now)) inWindowCodes.add(code);
+	}
+	const scrapeCodes = new Set(
+		selectDivisionCodesToScrape(
+			event.divisionUrls.map((d) => d.code),
+			inWindowCodes,
+			now,
+		),
+	);
+
 	for (const { code, divID, combinedID } of event.divisionUrls) {
+		if (!scrapeCodes.has(code)) {
+			divisionReports.push({
+				code,
+				divId: event.codeIdMap[code] ?? null,
+				ok: true,
+				error: 'skipped — outside current window (rotation)',
+				matchCount: 0,
+				withResults: 0,
+				data: {},
+			});
+			continue;
+		}
 		if (r2Blocked) {
 			errors.push(`${code}: skipped after R2 blocked this IP`);
 			divisionReports.push({
@@ -241,6 +300,14 @@ export async function scrapeEvent(event: LiveEventConfig, now = new Date()): Pro
 					});
 					if (resolved.quarantine) quarantined.push(resolved.quarantine);
 					if (resolved.resolved) resolvedMatchIds.push(matchId);
+					if (
+						resolved.resolved &&
+						pageHit?.html &&
+						!pageHit.blocked &&
+						htmlLooksLikeMatchPage(pageHit.html)
+					) {
+						confirmedMatchIds.push(matchId);
+					}
 					data[matchId] = resolved.record;
 					if (resolved.record.winner != null) matchesWithResults += 1;
 					if (pageHit?.html && prev && !resultFieldsEqual(prev, resolved.record) && (prev.winner != null || resolved.record.winner != null)) {
@@ -297,6 +364,7 @@ export async function scrapeEvent(event: LiveEventConfig, now = new Date()): Pro
 		errors,
 		quarantined,
 		resolvedMatchIds,
+		confirmedMatchIds,
 		audit,
 		r2Blocked,
 		r2BlockedCount,
@@ -462,20 +530,6 @@ export function mergeOneMatch(
 	return next;
 }
 
-export function applyMatchOverrides(slug: string, divisions: Record<string, MatchMap>): Record<string, MatchMap> {
-	const overrides = MATCH_OVERRIDES[slug] ?? {};
-	const next = { ...divisions };
-	for (const [divId, matches] of Object.entries(overrides)) {
-		if (!matches || typeof matches !== 'object') continue;
-		const div = { ...(next[divId] ?? {}) };
-		for (const [matchId, patch] of Object.entries(matches)) {
-			div[matchId] = { ...(div[matchId] ?? {}), ...patch };
-		}
-		next[divId] = div;
-	}
-	return next;
-}
-
 function winnerLoserNames(match: MatchRecord): { winnerName: string; loserName: string } | null {
 	if (match.winner !== 1 && match.winner !== 2) return null;
 	const winnerName = match.winner === 1 ? match.player1 : match.player2;
@@ -581,10 +635,25 @@ export function mergeScrapedResults(
 ): { results: LiveResultsFile; activity: LiveActivityFeed; changed: boolean; newActivity: number; quarantined: QuarantinedMatch[] } {
 	const quarantinedIds = new Set(scraped.quarantined.map((q) => q.matchId));
 	const resolvedIds = new Set(scraped.resolvedMatchIds);
+	const confirmed = new Set(scraped.confirmedMatchIds ?? []);
+	const confirmedDivisions: Record<string, MatchMap> = {};
+	for (const [divId, matches] of Object.entries(scraped.divisions)) {
+		const picked: MatchMap = {};
+		for (const [matchId, row] of Object.entries(matches)) {
+			if (confirmed.has(matchId)) picked[matchId] = row;
+		}
+		if (Object.keys(picked).length) confirmedDivisions[divId] = picked;
+	}
+	const supersededOverrides = collectSupersededOverrides(
+		event.slug,
+		confirmedDivisions,
+		existing.supersededOverrides,
+	);
 
 	const mergedDivisions = applyMatchOverrides(
 		event.slug,
 		mergeDivisions(existing.divisions ?? {}, scraped.divisions, quarantinedIds, resolvedIds),
+		supersededOverrides,
 	);
 
 	const overrideIds = new Set(
@@ -594,7 +663,7 @@ export function mergeScrapedResults(
 
 	const changed = JSON.stringify(mergedDivisions) !== JSON.stringify(existing.divisions ?? {});
 	const stamp = changed ? at : existing.lastUpdated;
-	const results: LiveResultsFile = { lastUpdated: stamp, divisions: mergedDivisions };
+	const results: LiveResultsFile = { lastUpdated: stamp, divisions: mergedDivisions, supersededOverrides };
 
 	const { events: newActivity, retractMatchIds } = changed
 		? detectActivityChanges(event, existing.divisions ?? {}, mergedDivisions, at)
@@ -615,7 +684,11 @@ export async function buildMergedResults(
 	newActivity: number;
 	quarantined: QuarantinedMatch[];
 }> {
-	const existing = await readLiveResults(event.slug, { timeoutMs: BLOB_READ_FRESH_TIMEOUT_MS, useCache: false });
+	const existing = await readLiveResults(event.slug, {
+		timeoutMs: BLOB_READ_FRESH_TIMEOUT_MS,
+		useCache: false,
+		applyOverrides: false,
+	});
 	const prevFeed = await readLiveActivity({ timeoutMs: BLOB_READ_FRESH_TIMEOUT_MS, useCache: false });
 	const merged = mergeScrapedResults(event, existing, scraped, prevFeed, at);
 

@@ -273,6 +273,7 @@ describe('match-result-overrides still win', () => {
 				'M60+9': { player1: 'John Wuchte', player2: 'Larry Prince Jr.' },
 				'M60+5': { player1: 'Scott Gill', player2: 'Mike Boyar' },
 				'M60+7': { player1: 'Jim Russell', player2: 'Charles Cole' },
+				'M60+8': { player1: 'Val Peco', player2: 'John Wuchte', scheduledTime: 'Saturday · 2:00 PM' },
 			},
 			'mens-doubles-elite': {
 				MED11: { player1: 'Mike Bock / Terry Money', player2: 'Chris Steinheiser / John Johnston' },
@@ -280,6 +281,7 @@ describe('match-result-overrides still win', () => {
 			},
 			'mens-age-50': {
 				'M50+3': { player1: 'John Johnston', player2: 'Timothy Schnellenberger' },
+				'M50+4': { player1: 'Tyson Peco', player2: 'TBD', court: 'Court 2', scheduledTime: 'Saturday · 2:00 PM' },
 			},
 			'mens-doubles-a': {
 				MAD5: {
@@ -308,6 +310,18 @@ describe('match-result-overrides still win', () => {
 		assert.equal(divisions['mens-age-50']?.['M50+3']?.score, '11-15, 15-8, 11-7');
 		assert.equal(divisions['mens-age-50']?.['M50+3']?.court, 'Court 1');
 		assert.equal(divisions['mens-doubles-a']?.MAD5?.court, 'Court 4');
+		assert.equal(divisions['mens-age-60']?.['M60+8']?.winner, 1);
+		assert.equal(divisions['mens-age-60']?.['M60+8']?.score, '15-1, 15-2');
+		assert.equal(divisions['mens-age-60']?.['M60+8']?.court, 'Court 3');
+		assert.equal(divisions['mens-age-60']?.['M60+8']?.scheduledTime, 'Saturday · 2:00 PM');
+		assert.equal(divisions['mens-age-50']?.['M50+4']?.player1, 'Tyson Peco');
+		assert.equal(divisions['mens-age-50']?.['M50+4']?.player2, 'Ben Kniesly');
+		assert.equal(divisions['mens-age-50']?.['M50+4']?.winner, 1);
+		assert.equal(divisions['mens-age-50']?.['M50+4']?.score, '15-4, 15-1');
+		assert.equal(divisions['mens-age-50']?.['M50+4']?.court, 'Court 1');
+		assert.equal(divisions['mens-age-50']?.['M50+4']?.scheduledTime, 'Saturday · 2:00 PM');
+		assert.equal(divisions['mens-doubles-b']?.MBD3?.court, 'Court 2');
+		assert.equal(divisions['mens-doubles-b']?.MBD3?.winner, undefined);
 	});
 });
 

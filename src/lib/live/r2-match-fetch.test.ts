@@ -4,13 +4,20 @@ import { LIVE_EVENTS } from './config';
 import type { ParsedDrawMatch } from './parse-r2';
 import { ownDrawFinal, resolveMatchResult } from './resolve-results';
 import {
+	DRAW_ROTATION_PER_RUN,
+	MATCH_PAGE_GAP_MS,
+	R2_BLOCK_SKIP_RUNS,
 	describeR2Block,
 	drawBoxChanged,
 	htmlLooksLikeR2Block,
+	isMatchInFetchWindow,
 	isMatchInProgress,
 	isR2BlockedReason,
+	nextSkipRunsRemaining,
 	r2BlockSummary,
+	selectDivisionCodesToScrape,
 	shouldFetchMatchPage,
+	shouldSkipBlockedRun,
 	storedCourtDisagreesWithDraw,
 } from './r2-match-fetch';
 import { applyResultsToEvent } from '../../data/events';
@@ -532,7 +539,12 @@ describe('non-final court mirrors the R2 match page (MB8)', () => {
 	});
 
 	it('fetches a not-final match whose stored court remains after the draw dropped it', () => {
-		assert.equal(shouldFetchMatchPage(mb8Draw, mb8StoredCourt1, now1010), true);
+		const now1230 = new Date('2026-10-24T16:30:00.000Z'); // 12:30 PM EDT — in the 1:00 PM window
+		assert.equal(shouldFetchMatchPage(mb8Draw, mb8StoredCourt1, now1230), true);
+	});
+
+	it('does not refetch an unchanged not-final match outside the current window', () => {
+		assert.equal(shouldFetchMatchPage(mb8Draw, mb8StoredCourt1, now1010), false);
 	});
 
 	it('clears the static PSL MB8 court when live results have no court', () => {
@@ -557,5 +569,90 @@ describe('non-final court mirrors the R2 match page (MB8)', () => {
 			.find((m) => m.matchId === 'MB8');
 		assert.equal(live?.court, undefined);
 		assert.equal(live?.scheduledTime, 'Saturday · 1:00 PM');
+	});
+});
+
+const now1410 = new Date('2026-10-24T18:10:00.000Z'); // 2:10 PM EDT Saturday — the blocked run
+
+describe('fetch window, draw rotation, and multi-run backoff', () => {
+	it('spaces match-page fetches by 1000ms and skips the next two runs after a block', () => {
+		assert.equal(MATCH_PAGE_GAP_MS, 1_000);
+		assert.equal(R2_BLOCK_SKIP_RUNS, 2);
+		assert.equal(DRAW_ROTATION_PER_RUN, 2);
+		assert.equal(shouldSkipBlockedRun(2), true);
+		assert.equal(shouldSkipBlockedRun(1), true);
+		assert.equal(shouldSkipBlockedRun(0), false);
+		assert.equal(shouldSkipBlockedRun(2, true), false);
+		assert.equal(nextSkipRunsRemaining(0, true), 2);
+		assert.equal(nextSkipRunsRemaining(2, false), 1);
+		assert.equal(nextSkipRunsRemaining(1, false), 0);
+		assert.equal(nextSkipRunsRemaining(2, false, true), 0);
+		assert.equal(nextSkipRunsRemaining(2, true, true), 2);
+	});
+
+	it('treats Saturday 2:00 PM as in the 60min-past / 90min-ahead window at 2:10 PM EDT', () => {
+		assert.equal(isMatchInFetchWindow('Saturday · 2:00 PM', now1410), true);
+		assert.equal(isMatchInFetchWindow('Saturday · 1:00 PM', now1410), true);
+		assert.equal(isMatchInFetchWindow('Saturday · 9:00 AM', now1410), false);
+		assert.equal(isMatchInFetchWindow('Sunday · 2:00 PM', now1410), false);
+	});
+
+	it('fetches an unchanged not-final match only while it sits in the current window', () => {
+		const sat2: ParsedDrawMatch = {
+			player1: 'Val Peco',
+			player2: 'John Wuchte',
+			r2MatchId: '4972808',
+			scheduledTime: 'Saturday · 2:00 PM',
+			court: 'Court 3',
+		};
+		const stored = {
+			player1: 'Val Peco',
+			player2: 'John Wuchte',
+			scheduledTime: 'Saturday · 2:00 PM',
+			court: 'Court 3',
+		};
+		assert.equal(shouldFetchMatchPage(sat2, stored, now1410), true);
+		assert.equal(shouldFetchMatchPage(sat2, stored, now1010), false);
+	});
+
+	it('still fetches a newly-final or changed not-final match outside the window', () => {
+		const finished: ParsedDrawMatch = {
+			player1: 'Val Peco',
+			player2: 'John Wuchte',
+			r2MatchId: '4972808',
+			scheduledTime: 'Saturday · 2:00 PM',
+			drawWinner: 1,
+			drawScore: '15-1, 15-2',
+		};
+		assert.equal(
+			shouldFetchMatchPage(
+				finished,
+				{ player1: 'Val Peco', player2: 'John Wuchte', scheduledTime: 'Saturday · 2:00 PM' },
+				now1010,
+			),
+			true,
+		);
+		assert.equal(
+			shouldFetchMatchPage(
+				{ ...finished, player2: 'Larry Prince Jr.' },
+				{ player1: 'Val Peco', player2: 'John Wuchte', scheduledTime: 'Saturday · 2:00 PM' },
+				now1010,
+			),
+			true,
+		);
+	});
+
+	it('always scrapes windowed divisions and rotates one or two others', () => {
+		const codes = ['MO', 'ME', 'MA', 'MB', 'M50+', 'M60+', 'MBD', 'MAD'];
+		const inWindow = new Set(['M60+', 'M50+', 'MBD']);
+		const picked = selectDivisionCodesToScrape(codes, inWindow, now1410);
+		assert.ok(picked.includes('M60+'));
+		assert.ok(picked.includes('M50+'));
+		assert.ok(picked.includes('MBD'));
+		assert.equal(picked.length, 5);
+		const idle = picked.filter((c) => !inWindow.has(c));
+		assert.equal(idle.length, 2);
+		const later = selectDivisionCodesToScrape(codes, inWindow, new Date(now1410.getTime() + 5 * 60 * 1000));
+		assert.notDeepEqual(idle, later.filter((c) => !inWindow.has(c)));
 	});
 });

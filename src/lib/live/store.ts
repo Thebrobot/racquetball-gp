@@ -3,6 +3,7 @@ import ocalaResults from '../../data/ocala-results.json';
 import portStLucieResults from '../../data/port-st-lucie-results.json';
 import sarasotaResults from '../../data/sarasota-results.json';
 import bundledActivity from '../../../public/data/live-activity.json';
+import { applyMatchOverrides } from './match-overrides';
 import type { LiveActivityFeed, LiveResultsFile, SyncStatus } from './types';
 
 const RESULTS_PREFIX = 'live/results/';
@@ -36,6 +37,8 @@ export const BLOB_READ_FRESH_TIMEOUT_MS = 10_000;
 export type BlobReadOptions = {
 	timeoutMs?: number;
 	useCache?: boolean;
+	/** Default true so a deploy shows overrides while the cron is IP-blocked. */
+	applyOverrides?: boolean;
 };
 
 export function blobReadOptions(opts?: BlobReadOptions): {
@@ -116,15 +119,23 @@ function preferLive(liveStamp: string | null | undefined, bundledStamp: string |
 	return Date.parse(bundledStamp) - Date.parse(liveStamp) < FALLBACK_GRACE_MS;
 }
 
+export function withMatchOverrides(slug: string, file: LiveResultsFile): LiveResultsFile {
+	return {
+		...file,
+		divisions: applyMatchOverrides(slug, file.divisions ?? {}, file.supersededOverrides),
+	};
+}
+
 export function getBundledResults(slug: string): LiveResultsFile {
-	return BUNDLED_RESULTS[slug] ?? emptyResults();
+	return withMatchOverrides(slug, BUNDLED_RESULTS[slug] ?? emptyResults());
 }
 
 export async function readLiveResults(slug: string, opts?: BlobReadOptions): Promise<LiveResultsFile> {
-	const bundled = getBundledResults(slug);
+	const bundled = BUNDLED_RESULTS[slug] ?? emptyResults();
 	const live = await readBlobJson<LiveResultsFile>(resultsPath(slug), opts);
-	if (live?.divisions && preferLive(live.lastUpdated, bundled.lastUpdated)) return live;
-	return bundled;
+	const raw = live?.divisions && preferLive(live.lastUpdated, bundled.lastUpdated) ? live : bundled;
+	if (opts?.applyOverrides === false) return raw;
+	return withMatchOverrides(slug, raw);
 }
 
 export async function writeLiveResults(slug: string, data: LiveResultsFile): Promise<void> {
