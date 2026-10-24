@@ -3,6 +3,7 @@ import BaseLayout from './BaseLayout.astro';
 import '../styles/grand-prix.css';
 import GrandPrixNav from '../components/grand-prix/GrandPrixNav.astro';
 import AccountsWelcome from '../components/grand-prix/AccountsWelcome.astro';
+import ClaimProfileBanner from '../components/accounts/ClaimProfileBanner.astro';
 import GrandPrixFooter from '../components/grand-prix/GrandPrixFooter.astro';
 import SponsorLogoMarquee from '../components/grand-prix/SponsorLogoMarquee.astro';
 import { GRAND_PRIX_FACEBOOK_URL } from '../data/social';
@@ -84,6 +85,7 @@ const webSiteJsonLd = {
 	<div class="gp-site">
 		<GrandPrixNav />
 		<AccountsWelcome />
+		{isHome && <ClaimProfileBanner />}
 		<slot />
 		{
 			!hideSponsorSpotlight && (
