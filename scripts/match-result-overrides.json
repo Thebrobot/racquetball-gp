@@ -91,6 +91,21 @@
         "scheduledTime": "Friday · 4:30 PM"
       }
     },
+    "mens-singles-b": {
+      "MB8": {
+        "player1": "Scott Gill",
+        "player2": "Elijah Saunders",
+        "winner": 2,
+        "score": "15-5, 15-14",
+        "court": "Court 1"
+      },
+      "MB4": {
+        "player1": "Elijah Saunders",
+        "player2": "Daniel Bray",
+        "court": "Court 2",
+        "scheduledTime": "Sunday · 8:00 AM"
+      }
+    },
     "mens-doubles-a": {
       "MAD5": {
         "court": "Court 4"

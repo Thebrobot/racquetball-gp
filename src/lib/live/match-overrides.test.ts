@@ -54,6 +54,21 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(mcsd6?.score, 'WBF - No Show');
 		assert.equal(mcsd6?.winner, undefined);
 		assert.equal(mcsd6?.court, undefined);
+
+		const mb8 = bundled.divisions['mens-singles-b']?.MB8;
+		assert.equal(mb8?.player1, 'Scott Gill');
+		assert.equal(mb8?.player2, 'Elijah Saunders');
+		assert.equal(mb8?.winner, 2);
+		assert.equal(mb8?.score, '15-5, 15-14');
+		assert.equal(mb8?.court, 'Court 1');
+		assert.equal(mb8?.scheduledTime, 'Saturday · 1:00 PM');
+
+		const mb4 = bundled.divisions['mens-singles-b']?.MB4;
+		assert.equal(mb4?.player1, 'Elijah Saunders');
+		assert.equal(mb4?.player2, 'Daniel Bray');
+		assert.equal(mb4?.winner, undefined);
+		assert.equal(mb4?.court, 'Court 2');
+		assert.equal(mb4?.scheduledTime, 'Sunday · 8:00 AM');
 	});
 
 	it('build/deploy EVENTS overlay shows the same results without a successful sync', () => {
@@ -81,6 +96,21 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(mcsd6?.score, 'WBF - No Show');
 		assert.equal(mcsd6?.winner, undefined);
 		assert.equal(mcsd6?.court, undefined);
+
+		const mb8 = findPslMatch('MB8');
+		assert.equal(mb8 && 'player1' in mb8 ? mb8.player1 : undefined, 'Scott Gill');
+		assert.equal(mb8 && 'player2' in mb8 ? mb8.player2 : undefined, 'Elijah Saunders');
+		assert.equal(mb8?.winner, 2);
+		assert.equal(mb8?.score, '15-5, 15-14');
+		assert.equal(mb8?.court, 'Court 1');
+		assert.equal(mb8?.scheduledTime, 'Saturday · 1:00 PM');
+
+		const mb4 = findPslMatch('MB4');
+		assert.equal(mb4 && 'player1' in mb4 ? mb4.player1 : undefined, 'Elijah Saunders');
+		assert.equal(mb4 && 'player2' in mb4 ? mb4.player2 : undefined, 'Daniel Bray');
+		assert.equal(mb4?.winner, undefined);
+		assert.equal(mb4?.court, 'Court 2');
+		assert.equal(mb4?.scheduledTime, 'Sunday · 8:00 AM');
 	});
 
 	it('applies unread overrides onto last-good blob data when the cron is skipped', () => {
@@ -127,6 +157,41 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(results.divisions['mens-doubles-centurion']?.MCSD6?.score, 'WBF - No Show');
 		assert.equal(results.divisions['mens-doubles-centurion']?.MCSD6?.winner, undefined);
 		assert.equal(results.divisions['mens-doubles-centurion']?.MCSD6?.court, undefined);
+	});
+
+	it('publishes MB8 Saunders and MB4 pairing onto last-good blob data while blocked', () => {
+		const { results, changed } = overlayOverridesOnFile(
+			'port-st-lucie-open',
+			{
+				lastUpdated: '2026-10-24T18:40:00.000Z',
+				divisions: {
+					'mens-singles-b': {
+						MB8: {
+							player1: 'Scott Gill',
+							player2: 'Elijah Saunders',
+							court: 'Court 1',
+							scheduledTime: 'Saturday · 1:00 PM',
+						},
+						MB4: {
+							scheduledTime: 'Sunday · 8:00 AM',
+							court: 'Court 2',
+						},
+					},
+				},
+			},
+			'2026-10-24T23:00:00.000Z',
+		);
+		assert.equal(changed, true);
+		assert.equal(results.divisions['mens-singles-b']?.MB8?.winner, 2);
+		assert.equal(results.divisions['mens-singles-b']?.MB8?.player2, 'Elijah Saunders');
+		assert.equal(results.divisions['mens-singles-b']?.MB8?.score, '15-5, 15-14');
+		assert.equal(results.divisions['mens-singles-b']?.MB8?.court, 'Court 1');
+		assert.equal(results.divisions['mens-singles-b']?.MB8?.scheduledTime, 'Saturday · 1:00 PM');
+		assert.equal(results.divisions['mens-singles-b']?.MB4?.player1, 'Elijah Saunders');
+		assert.equal(results.divisions['mens-singles-b']?.MB4?.player2, 'Daniel Bray');
+		assert.equal(results.divisions['mens-singles-b']?.MB4?.winner, undefined);
+		assert.equal(results.divisions['mens-singles-b']?.MB4?.court, 'Court 2');
+		assert.equal(results.divisions['mens-singles-b']?.MB4?.scheduledTime, 'Sunday · 8:00 AM');
 	});
 });
 
@@ -229,8 +294,33 @@ describe('overrides yield to a later confirmed R2 fetch', () => {
 					court: 'Court 3',
 				},
 			},
+			'mens-singles-b': {
+				MB8: {
+					player1: 'Scott Gill',
+					player2: 'Elijah Saunders',
+					winner: 2,
+					score: '15-5, 15-14',
+					court: 'Court 1',
+				},
+			},
 		});
 		assert.equal(keys.includes('mens-age-60:M60+8'), false);
+		assert.equal(keys.includes('mens-singles-b:MB8'), false);
+	});
+
+	it('yields MB8 once a confirmed r2-push names a different winner or score', () => {
+		const keys = collectSupersededOverrides('port-st-lucie-open', {
+			'mens-singles-b': {
+				MB8: {
+					player1: 'Scott Gill',
+					player2: 'Elijah Saunders',
+					winner: 1,
+					score: '15-5, 15-14',
+					court: 'Court 1',
+				},
+			},
+		});
+		assert.ok(keys.includes('mens-singles-b:MB8'));
 	});
 });
 
