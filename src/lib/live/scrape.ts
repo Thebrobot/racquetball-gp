@@ -171,6 +171,7 @@ export async function scrapeEvent(event: LiveEventConfig): Promise<EventScrapeRe
 						draw: parsed,
 						page: pageHit?.page ?? null,
 						pageError: pageHit?.error ?? null,
+						pageHtml: pageHit?.html ?? null,
 						advancements: draw.advancements,
 					});
 					if (resolved.quarantine) quarantined.push(resolved.quarantine);

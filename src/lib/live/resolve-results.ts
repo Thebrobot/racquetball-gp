@@ -8,6 +8,7 @@
 import { matchWinnerSide, scoresEqual } from './r2-names';
 import type { ParsedMatchPage } from './parse-match-page';
 import { toMatchRecord, type DrawAdvancement, type MatchRecord, type ParsedDrawMatch } from './parse-r2';
+import { scheduleFromMatchHtml } from './r2-schedule';
 import type { QuarantinedMatch } from './types';
 
 export type ResolveInput = {
@@ -16,6 +17,8 @@ export type ResolveInput = {
 	draw: ParsedDrawMatch;
 	page?: ParsedMatchPage | null;
 	pageError?: string | null;
+	/** Raw r2-push HTML — used for court/time when the draw box dropped #court. */
+	pageHtml?: string | null;
 	advancements?: DrawAdvancement[];
 };
 
@@ -26,9 +29,14 @@ export type ResolveOutput = {
 	quarantine?: QuarantinedMatch;
 };
 
-function pickSchedule(draw: ParsedDrawMatch, page?: ParsedMatchPage | null): { court?: string; scheduledTime?: string } {
-	const court = page?.court ?? draw.court;
-	const scheduledTime = page?.scheduledTime ?? draw.scheduledTime;
+function pickSchedule(
+	draw: ParsedDrawMatch,
+	page?: ParsedMatchPage | null,
+	pageHtml?: string | null,
+): { court?: string; scheduledTime?: string } {
+	const fromHtml = pageHtml ? scheduleFromMatchHtml(pageHtml) : {};
+	const court = page?.court || fromHtml.court || draw.court;
+	const scheduledTime = page?.scheduledTime || fromHtml.scheduledTime || draw.scheduledTime;
 	const out: { court?: string; scheduledTime?: string } = {};
 	if (court) out.court = court;
 	if (scheduledTime) out.scheduledTime = scheduledTime;
@@ -61,10 +69,10 @@ function advancementSides(
 }
 
 export function resolveMatchResult(input: ResolveInput): ResolveOutput {
-	const { matchId, divisionId, draw, page, pageError, advancements = [] } = input;
+	const { matchId, divisionId, draw, page, pageError, pageHtml, advancements = [] } = input;
 	const p1 = draw.player1 ?? page?.player1 ?? null;
 	const p2 = draw.player2 ?? page?.player2 ?? null;
-	const schedule = pickSchedule(draw, page);
+	const schedule = pickSchedule(draw, page, pageHtml);
 	const base: MatchRecord = { player1: p1, player2: p2, ...schedule };
 
 	const drawLooksFinished = draw.drawWinner != null || Boolean(draw.drawWinnerName) || Boolean(draw.drawScore);

@@ -5,7 +5,7 @@
  */
 import { parseHTML } from 'linkedom';
 import { cleanPlayerName, formatScore, isPlayerName } from './r2-names';
-import { parseMatchPageSchedule } from './r2-schedule';
+import { scheduleFromMatchHtml } from './r2-schedule';
 
 type DomEl = {
 	textContent: string | null;
@@ -200,7 +200,7 @@ export function parseMatchPage(html: string): ParsedMatchPage {
 	const score = extractMatchScore(textOf(scoreStrong) || textOf(resultBox));
 	const winMethod = textOf(document.querySelector('.r2p-win-method')) || null;
 	const isFinal = Boolean(document.querySelector('.r2p-final-badge')) || /r2p-final-badge/i.test(html);
-	const schedule = parseMatchPageSchedule(textOf(document.querySelector('.r2p-scheduled')));
+	const schedule = scheduleFromMatchHtml(html);
 
 	return {
 		player1: player1 && isPlayerName(player1) ? player1 : player1,
