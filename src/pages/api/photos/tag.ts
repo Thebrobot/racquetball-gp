@@ -4,12 +4,14 @@ import { isValidPhotoId } from '../../../lib/accounts/visitor';
 import { getAllPlayers } from '../../../data/players';
 import { getPhotoById } from '../../../lib/gallery/store';
 import { notify } from '../../../lib/notify/events';
+import { canAddPhotoTag, canRemovePhotoTag } from '../../../lib/accounts/photo-tags';
 
 export const prerender = false;
 
 /**
- * Add or remove a tag. Verified players tag/untag themselves; admins may tag
- * or untag any player by slug.
+ * Add or remove a player tag on a photo.
+ * Any signed-in user may tag one or more players. Remove is allowed for the
+ * tagger, the tagged player's account owner, or an admin.
  */
 export const POST: APIRoute = async ({ request, cookies }) => {
 	const session = await getSession(request, cookies);
@@ -19,43 +21,60 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	if (!isValidPhotoId(body.photoId)) return json({ error: 'Bad photo id.' }, 400);
 	const photoId = body.photoId;
 	const action = body.action === 'remove' ? 'remove' : 'add';
-	const requestedSlug = typeof body.playerSlug === 'string' && body.playerSlug ? body.playerSlug : null;
-	const mySlug = session.profile?.player_slug ?? null;
+	const slug = typeof body.playerSlug === 'string' ? body.playerSlug.trim() : '';
+	if (!slug) return json({ error: 'Pick a player to tag.' }, 400);
 
-	// Who is being tagged?
-	let slug: string | null;
-	if (requestedSlug && requestedSlug !== mySlug) {
-		if (!session.isAdmin) return json({ error: 'Only verified players can tag themselves; admins can tag others.' }, 403);
-		slug = requestedSlug;
-	} else {
-		if (!mySlug) return json({ error: 'claim-required', message: 'Claim your player profile first, then you can tag yourself.' }, 403);
-		slug = mySlug;
-	}
+	const actor = {
+		signedIn: true,
+		userId: session.user.id,
+		isAdmin: session.isAdmin,
+		playerSlug: session.profile?.player_slug ?? null,
+	};
+	if (action === 'add' && !canAddPhotoTag(actor)) return json({ error: 'sign-in-required' }, 401);
+
 	const player = getAllPlayers().find((p) => p.slug === slug);
 	if (!player) return json({ error: 'Unknown player.' }, 400);
 
 	const photo = await getPhotoById(photoId).catch(() => undefined);
 	if (!photo) return json({ error: 'Photo not found.' }, 404);
 
-	const useAdmin = session.isAdmin && slug !== mySlug;
-	const client = useAdmin ? createAdminClient() : createSessionClient(request, cookies);
+	const admin = createAdminClient();
+	const client = admin ?? createSessionClient(request, cookies);
 	if (!client) return json({ error: 'Not configured.' }, 503);
 
 	if (action === 'add') {
+		const { data: existing } = await client
+			.from('photo_tags')
+			.select('player_slug')
+			.eq('photo_id', photoId)
+			.eq('player_slug', slug)
+			.maybeSingle();
+		if (existing) return json({ ok: true, slug, name: player.name, action, duplicate: true });
+
 		const { error } = await client
 			.from('photo_tags')
 			.upsert({ photo_id: photoId, player_slug: slug, tagged_by: session.user.id }, { onConflict: 'photo_id,player_slug', ignoreDuplicates: true });
 		if (error) return json({ error: 'Could not add the tag.' }, 500);
-		// Someone else tagged this player: let them know (self-tags stay quiet).
-		if (useAdmin) {
-			const admin = createAdminClient();
-			const { data: owner } = admin ? await admin.from('profiles').select('id').eq('player_slug', slug).maybeSingle() : { data: null };
+
+		if (admin) {
+			const { data: owner } = await admin.from('profiles').select('id').eq('player_slug', slug).maybeSingle();
 			const ownerId = (owner as { id: string } | null)?.id;
-			if (admin && ownerId && ownerId !== session.user.id) {
+			if (ownerId && ownerId !== session.user.id) {
 				await notify(admin, { userId: ownerId, kind: 'tagged', photoId, actorId: session.user.id, payload: { playerSlug: slug } });
 			}
 		}
 	} else {
+		const { data: row } = await client
+			.from('photo_tags')
+			.select('player_slug, tagged_by')
+			.eq('photo_id', photoId)
+			.eq('player_slug', slug)
+			.maybeSingle();
+		const tag = row as { player_slug: string; tagged_by: string | null } | null;
+		if (!tag) return json({ ok: true, slug, name: player.name, action });
+		if (!canRemovePhotoTag(actor, { slug: tag.player_slug, taggedBy: tag.tagged_by })) {
+			return json({ error: 'You cannot remove that tag.' }, 403);
+		}
 		const { error } = await client.from('photo_tags').delete().eq('photo_id', photoId).eq('player_slug', slug);
 		if (error) return json({ error: 'Could not remove the tag.' }, 500);
 	}
