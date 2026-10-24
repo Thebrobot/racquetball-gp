@@ -281,6 +281,13 @@ describe('match-result-overrides still win', () => {
 			'mens-age-50': {
 				'M50+3': { player1: 'John Johnston', player2: 'Timothy Schnellenberger' },
 			},
+			'mens-doubles-a': {
+				MAD5: {
+					player1: 'Brendan Anthony / Jose Gallegos',
+					player2: 'Paul Sotolongo / Kyle Artman',
+					court: 'Court 3',
+				},
+			},
 		});
 		assert.equal(divisions['mens-doubles-b']?.MBD4?.winner, 1);
 		assert.equal(divisions['mens-doubles-b']?.MBD4?.score, '15-4, 15-9');
@@ -300,6 +307,7 @@ describe('match-result-overrides still win', () => {
 		assert.equal(divisions['mens-age-50']?.['M50+3']?.winner, 2);
 		assert.equal(divisions['mens-age-50']?.['M50+3']?.score, '11-15, 15-8, 11-7');
 		assert.equal(divisions['mens-age-50']?.['M50+3']?.court, 'Court 1');
+		assert.equal(divisions['mens-doubles-a']?.MAD5?.court, 'Court 4');
 	});
 });
 

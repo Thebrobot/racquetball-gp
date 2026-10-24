@@ -88,6 +88,11 @@
         "scheduledTime": "Friday · 4:30 PM"
       }
     },
+    "mens-doubles-a": {
+      "MAD5": {
+        "court": "Court 4"
+      }
+    },
     "mens-age-50": {
       "M50+3": {
         "winner": 2,

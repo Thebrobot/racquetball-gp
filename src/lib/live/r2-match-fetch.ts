@@ -36,12 +36,31 @@ function named(slot?: string | null): boolean {
 	return Boolean(slot && !GHOST.test(slot.trim()));
 }
 
+/** Normalize `Court 4` / `Court #4` / `4` so a moved court still compares. */
+export function normalizeCourt(court?: string | null): string | null {
+	const raw = String(court ?? '').replace(/\s+/g, ' ').trim();
+	if (!raw) return null;
+	const n = raw.match(/(\d{1,2})\s*$/);
+	return n ? `Court ${n[1]}` : raw;
+}
+
+/** Non-empty draw court that is not the court we already published. Blank draw court is not a disagreement. */
+export function storedCourtDisagreesWithDraw(
+	draw: ParsedDrawMatch,
+	existing?: MatchRecord | null,
+): boolean {
+	const drawCourt = normalizeCourt(draw.court);
+	const storedCourt = normalizeCourt(existing?.court);
+	if (!drawCourt || !storedCourt) return false;
+	return drawCourt !== storedCourt;
+}
+
 /** Draw box "changed" vs our store — empty draw court/time after Final is not a change. */
 export function drawBoxChanged(draw: ParsedDrawMatch, existing?: MatchRecord | null): boolean {
 	if (!existing) return true;
 	if ((draw.player1 ?? null) !== (existing.player1 ?? null)) return true;
 	if ((draw.player2 ?? null) !== (existing.player2 ?? null)) return true;
-	if (draw.court && draw.court !== existing.court) return true;
+	if (storedCourtDisagreesWithDraw(draw, existing)) return true;
 	if (draw.scheduledTime && draw.scheduledTime !== existing.scheduledTime) return true;
 	if (draw.drawScore && !scoresEqual(draw.drawScore, existing.score)) return true;
 	if (draw.drawWinner != null && draw.drawWinner !== existing.winner) return true;
@@ -110,8 +129,9 @@ export function isMatchInProgress(scheduledTime: string | undefined, now = new D
 
 /**
  * Fetch a match page only when the draw box changed, the match is on court
- * (or just finished) and we do not yet have a final, or a stored final disagrees
- * with the draw. Never refetch an unchanged finished match.
+ * (or just finished) and we do not yet have a final, or a stored final's court
+ * disagrees with a non-empty court on the draw. Never refetch an unchanged
+ * finished match. A blank R2 court is not a reason to refetch.
  */
 export function shouldFetchMatchPage(
 	draw: ParsedDrawMatch,
@@ -119,6 +139,8 @@ export function shouldFetchMatchPage(
 	now = new Date(),
 ): boolean {
 	if (!draw.r2MatchId) return false;
+	// Finished + stored court ≠ draw court → one r2-push refetch to reconcile.
+	if (drawLooksFinished(draw) && storedCourtDisagreesWithDraw(draw, existing)) return true;
 	const storedFinal = storeHasFinal(existing);
 	const changed = drawBoxChanged(draw, existing);
 	if (storedFinal && !changed) return false;

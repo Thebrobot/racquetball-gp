@@ -11,8 +11,12 @@ import {
 	isR2BlockedReason,
 	r2BlockSummary,
 	shouldFetchMatchPage,
+	storedCourtDisagreesWithDraw,
 } from './r2-match-fetch';
-import { applyMatchOverrides, mergeOneMatch, mergeScrapedResults } from './scrape';
+import { applyResultsToEvent } from '../../data/events';
+import { PORT_ST_LUCIE_EVENT } from '../../data/port-st-lucie-event';
+import { applyMatchOverrides, mergeOneMatch, mergeScrapedResults, turningFinal } from './scrape';
+import { parseMatchPage } from './parse-match-page';
 
 const IP_BLOCK = 'This IP has been blocked';
 const CAPTCHA = `<!DOCTYPE html><html><head><title>Attention Required | Cloudflare</title></head>
@@ -265,5 +269,151 @@ describe('match-page fetch volume', () => {
 			),
 			false,
 		);
+	});
+});
+
+const mad5Draw: ParsedDrawMatch = {
+	player1: 'Brendan Anthony / Jose Gallegos',
+	player2: 'Paul Sotolongo / Kyle Artman',
+	r2MatchId: '4972807',
+	scheduledTime: 'Saturday · 10:00 AM',
+	court: 'Court 4',
+	drawWinner: 2,
+	drawWinnerName: 'Paul Sotolongo / Kyle Artman',
+	drawScore: 'WBF - No Show',
+	drawWinnerSource: 'box-border',
+};
+
+const mad5StoredCourt3 = {
+	player1: 'Brendan Anthony / Jose Gallegos',
+	player2: 'Paul Sotolongo / Kyle Artman',
+	winner: 2 as const,
+	score: 'WBF - No Show',
+	court: 'Court 3',
+	scheduledTime: 'Saturday · 10:00 AM',
+};
+
+const mad5PageHtml = `
+	<div class="r2p-versus-grid">
+		<div class="r2p-versus-side"><div class="r2p-side-names"><span>Brendan Anthony</span><span>Jose Gallegos</span></div></div>
+		<div class="r2p-versus-chip">VS</div>
+		<div class="r2p-versus-side r2p-side-bottom r2p-side-winner">
+			<span class="r2p-winner-badge">&#10003; Winner</span>
+			<div class="r2p-side-names"><span>Paul Sotolongo</span><span>Kyle Artman</span></div>
+		</div>
+	</div>
+	<div class="r2p-match-result"><strong>WBF - No Show</strong><span class="r2p-win-method">WBF - No Show</span></div>
+	<span class="r2p-final-badge">Final</span>
+	<p class="r2p-scheduled">Court 4 &middot; Scheduled Oct 24, 2026 at 10:00 AM</p>
+`;
+
+describe('MAD5 court reconcile (stored Court 3, R2 Court 4)', () => {
+	it('override publishes Court 4 on the next sync', () => {
+		const divisions = applyMatchOverrides('port-st-lucie-open', {
+			'mens-doubles-a': {
+				MAD5: {
+					player1: 'Brendan Anthony / Jose Gallegos',
+					player2: 'Paul Sotolongo / Kyle Artman',
+					winner: 2,
+					score: 'WBF - No Show',
+					court: 'Court 3',
+					scheduledTime: 'Saturday · 10:00 AM',
+				},
+			},
+		});
+		assert.equal(divisions['mens-doubles-a']?.MAD5?.court, 'Court 4');
+		assert.equal(divisions['mens-doubles-a']?.MAD5?.winner, 2);
+	});
+
+	it('refetches a finished match when the stored court disagrees with a non-empty draw court', () => {
+		assert.equal(storedCourtDisagreesWithDraw(mad5Draw, mad5StoredCourt3), true);
+		assert.equal(shouldFetchMatchPage(mad5Draw, mad5StoredCourt3, now1010), true);
+	});
+
+	it('does not refetch when the finished draw dropped its court', () => {
+		const courtless = { ...mad5Draw, court: undefined };
+		assert.equal(storedCourtDisagreesWithDraw(courtless, mad5StoredCourt3), false);
+		assert.equal(shouldFetchMatchPage(courtless, mad5StoredCourt3, now1010), false);
+	});
+
+	it('does not refetch an unchanged finished match whose court still matches', () => {
+		assert.equal(
+			shouldFetchMatchPage(mad5Draw, { ...mad5StoredCourt3, court: 'Court 4' }, now1010),
+			false,
+		);
+	});
+
+	it('takes court and time from the match page that first captures the result, not the stored court', () => {
+		const page = parseMatchPage(mad5PageHtml);
+		assert.equal(page.court, 'Court 4');
+		assert.equal(page.scheduledTime, 'Saturday · 10:00 AM');
+		assert.match(page.winnerName ?? '', /Sotolongo/);
+
+		const existing = {
+			player1: 'Brendan Anthony / Jose Gallegos',
+			player2: 'Paul Sotolongo / Kyle Artman',
+			court: 'Court 3',
+			scheduledTime: 'Saturday · 10:00 AM',
+		};
+		const resolved = resolveMatchResult({
+			matchId: 'MAD5',
+			divisionId: 'mens-doubles-a',
+			draw: { ...mad5Draw, court: 'Court 3' },
+			page,
+			pageHtml: mad5PageHtml,
+		});
+		assert.equal(resolved.record.winner, 2);
+		assert.equal(resolved.record.court, 'Court 4');
+		assert.equal(turningFinal(existing, resolved.record), true);
+
+		const merged = mergeOneMatch(existing, resolved.record, {
+			quarantined: false,
+			resolved: true,
+		});
+		assert.equal(merged.court, 'Court 4');
+		assert.equal(merged.scheduledTime, 'Saturday · 10:00 AM');
+		assert.equal(merged.winner, 2);
+		assert.equal(merged.score, 'WBF - No Show');
+	});
+
+	it('never wipes a stored court when the incoming R2 court is blank', () => {
+		const merged = mergeOneMatch(
+			mad5StoredCourt3,
+			{
+				player1: 'Brendan Anthony / Jose Gallegos',
+				player2: 'Paul Sotolongo / Kyle Artman',
+				winner: 2,
+				score: 'WBF - No Show',
+			},
+			{ quarantined: false, resolved: true },
+		);
+		assert.equal(merged.court, 'Court 3');
+		assert.equal(merged.scheduledTime, 'Saturday · 10:00 AM');
+	});
+
+	it('overlays Court 4 onto the static PSL event (Court 2)', () => {
+		const staticMad5 = PORT_ST_LUCIE_EVENT.divisionDetails
+			.find((d) => d.id === 'mens-doubles-a')
+			?.rounds?.flatMap((r) => r.matches)
+			.find((m) => m.matchId === 'MAD5');
+		assert.equal(staticMad5?.court, 'Court 2');
+
+		const event = applyResultsToEvent(PORT_ST_LUCIE_EVENT, {
+			'mens-doubles-a': {
+				MAD5: {
+					player1: 'Brendan Anthony / Jose Gallegos',
+					player2: 'Paul Sotolongo / Kyle Artman',
+					winner: 2,
+					score: 'WBF - No Show',
+					court: 'Court 4',
+					scheduledTime: 'Saturday · 10:00 AM',
+				},
+			},
+		});
+		const live = event.divisionDetails
+			.find((d) => d.id === 'mens-doubles-a')
+			?.rounds?.flatMap((r) => r.matches)
+			.find((m) => m.matchId === 'MAD5');
+		assert.equal(live?.court, 'Court 4');
 	});
 });
