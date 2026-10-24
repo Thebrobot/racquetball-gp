@@ -246,10 +246,11 @@ html.nav-drawer-open .nav-drawer-backdrop {
   visibility: visible;
   pointer-events: auto;
 }
-@media (max-width: 640px) {
-  html.nav-drawer-open .nav-drawer-backdrop {
-    display: none;
-  }
+.nav-pill .nav-links a.nav-live {
+  display: none;
+}
+.nav-drawer-account {
+  display: contents;
 }
 
 /* ───── HERO (full viewport + stops at bottom) ───── */
@@ -4215,80 +4216,79 @@ footer {
     max-width: var(--gp-shell-max);
     min-height: 0;
     justify-content: flex-start;
-    /* Fixed drawer must not be clipped (Safari + overflow-x: clip on parent). */
+    /* Avoid a containing block so the fixed drawer uses the viewport. */
     overflow: visible;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   .nav-menu-toggle {
     margin-left: auto;
   }
   .nav-pill .nav-links {
     position: fixed;
-    inset: 0;
-    width: 100%;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(85vw, 360px);
+    max-width: 360px;
     height: 100vh;
     height: 100dvh;
     box-sizing: border-box;
     margin: 0;
-    padding: 0 0 calc(96px + env(safe-area-inset-bottom) + 24px);
+    padding:
+      env(safe-area-inset-top)
+      16px
+      calc(24px + env(safe-area-inset-bottom))
+      max(16px, env(safe-area-inset-left));
     flex-direction: column;
     align-items: stretch;
     flex-wrap: nowrap;
     justify-content: flex-start;
     gap: 4px;
     background:
-      radial-gradient(ellipse 100% 45% at 50% 0%, rgba(240, 90, 26, 0.14) 0%, transparent 55%),
+      radial-gradient(ellipse 90% 40% at 0% 0%, rgba(240, 90, 26, 0.16) 0%, transparent 55%),
       linear-gradient(180deg, #0d1e38 0%, #080f1e 100%);
     border: none;
-    box-shadow: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 16px 0 40px rgba(0, 0, 0, 0.38);
     z-index: 10;
-    opacity: 0;
-    transform: translateY(-8px);
-    transition: opacity 0.22s ease, transform 0.22s ease, visibility 0s linear 0.22s;
+    opacity: 1;
+    transform: translateX(-105%);
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0.28s;
     overflow-y: auto;
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
     pointer-events: none;
     visibility: hidden;
   }
-  .nav-pill .nav-links::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--orange), var(--orange2), transparent 80%);
-    pointer-events: none;
-    z-index: 1;
-  }
   html.nav-drawer-open .nav-pill .nav-links {
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity 0.22s ease, transform 0.22s ease, visibility 0s linear 0s;
+    transform: translateX(0);
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0s;
     pointer-events: auto;
     visibility: visible;
   }
   /* Drawer header */
   .nav-drawer-head {
     position: relative;
-    padding: calc(env(safe-area-inset-top) + 24px) 32px 20px;
+    padding: 16px 52px 16px 4px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-    margin-bottom: 16px;
+    margin-bottom: 10px;
     flex-shrink: 0;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
   }
   .nav-drawer-close {
     display: inline-flex;
     position: absolute;
-    top: max(10px, env(safe-area-inset-top));
-    right: max(10px, env(safe-area-inset-right));
+    top: 8px;
+    right: 0;
     z-index: 2;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     margin: 0;
     padding: 0;
     border: none;
@@ -4311,67 +4311,101 @@ footer {
   .nav-drawer-logo-link {
     display: block;
     pointer-events: none;
+    min-width: 0;
   }
   .nav-drawer-logo-link img {
     display: block;
-    height: 38px;
+    height: 34px;
     width: auto;
-    max-width: 220px;
+    max-width: min(200px, 52vw);
     object-fit: contain;
-    object-position: center;
+    object-position: left center;
     opacity: 0.88;
   }
   /* Nav links inside drawer */
   .nav-pill .nav-links a:not(.nav-register) {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: clamp(28px, 7vw, 36px);
-    font-weight: 800;
-    letter-spacing: 0.04em;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    padding: 14px 32px;
-    text-align: center;
-    border-radius: 0;
-    color: rgba(255, 255, 255, 0.55);
+    padding: 16px 14px;
+    min-height: 56px;
+    text-align: left;
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.78);
     border-left: none;
     transition: color 0.15s, background 0.15s;
     background: transparent;
     position: relative;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.25;
+  }
+  .nav-pill .nav-links a.nav-live {
+    display: flex;
   }
   .nav-pill .nav-links a:not(.nav-register):hover {
     color: white;
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.06);
   }
   .nav-pill .nav-links a.active:not(.nav-register) {
     color: white;
+    background: rgba(255, 255, 255, 0.08);
   }
   .nav-pill .nav-links a.active:not(.nav-register)::after {
     content: '';
-    display: block;
-    width: 28px;
-    height: 3px;
+    position: absolute;
+    left: 0;
+    top: 14px;
+    bottom: 14px;
+    width: 3px;
     background: var(--orange);
-    border-radius: 2px;
-    margin: 4px auto 0;
+    border-radius: 0 2px 2px 0;
+    margin: 0;
   }
-  /* Staggered entrance animation */
-  @keyframes drawerLinkIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
+  .nav-live-dot {
+    display: none;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--orange);
+    box-shadow: 0 0 0 0 rgba(240, 90, 26, 0.55);
+    flex-shrink: 0;
   }
-  html.nav-drawer-open .nav-pill .nav-links a:not(.nav-register) {
-    animation: drawerLinkIn 0.24s ease both;
+  .nav-live.is-unread .nav-live-dot {
+    display: inline-block;
+    animation: gp-live-pulse 2.2s ease-out infinite;
   }
-  html.nav-drawer-open .nav-pill .nav-links a[data-key="home"]        { animation-delay: 0.06s; }
-  html.nav-drawer-open .nav-pill .nav-links a[data-key="tournaments"] { animation-delay: 0.10s; }
-  html.nav-drawer-open .nav-pill .nav-links a[data-key="points"]      { animation-delay: 0.14s; }
-  html.nav-drawer-open .nav-pill .nav-links a[data-key="leaderboard"] { animation-delay: 0.18s; }
-  html.nav-drawer-open .nav-pill .nav-links a[data-key="sponsors"]    { animation-delay: 0.22s; }
-  /* Separator before Get connected CTA */
+  @media (prefers-reduced-motion: reduce) {
+    .nav-pill .nav-links {
+      transition: none;
+    }
+    html.nav-drawer-open .nav-pill .nav-links {
+      transition: none;
+    }
+    .nav-live.is-unread .nav-live-dot {
+      animation: none;
+    }
+  }
+  /* Separator before account + Get connected */
   .nav-drawer-sep {
+    display: block;
     height: 1px;
-    margin: 16px 40px 20px;
+    margin: 12px 4px;
     background: rgba(255, 255, 255, 0.08);
     flex-shrink: 0;
+  }
+  .nav-drawer-account {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    margin-top: auto;
+    padding-top: 8px;
   }
   /* Get connected CTA in drawer */
   .nav-pill .nav-register {
@@ -4380,19 +4414,20 @@ footer {
     justify-content: center;
     gap: 8px;
     box-sizing: border-box;
-    width: calc(100% - 32px);
-    max-width: min(520px, calc(100vw - 24px));
-    margin-left: auto !important;
-    margin-right: auto !important;
-    padding: 17px 20px !important;
-    font-size: clamp(15px, 4.2vw, 18px);
+    width: 100%;
+    max-width: none;
+    margin: 8px 0 0 !important;
+    padding: 16px 18px !important;
+    min-height: 56px;
+    font-size: 16px;
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     white-space: normal;
     text-align: center;
     line-height: 1.25;
+    overflow-wrap: anywhere;
     border-radius: 12px !important;
     box-shadow: 0 10px 32px rgba(240, 90, 26, 0.35);
     flex-shrink: 0;
@@ -4401,11 +4436,6 @@ footer {
     width: 18px;
     height: 18px;
     flex-shrink: 0;
-  }
-  .nav-drawer-sep {
-    display: block;
-  }
-  .nav-register-arrow {
     display: block;
   }
   .nav-pill .nav-brand {
@@ -5370,109 +5400,10 @@ footer {
   }
 }
 
-/* ───── BOTTOM PILL (mobile thumb-zone nav) ───── */
-.gp-bottom-nav {
-  display: none;
-}
-@media (max-width: 640px) {
-  .gp-bottom-nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: fixed;
-    left: 14px;
-    right: 14px;
-    bottom: calc(10px + env(safe-area-inset-bottom));
-    z-index: 200;
-    height: 68px;
-    padding: 6px 12px;
-    border-radius: 999px;
-    background: rgba(10, 18, 34, 0.88);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.38);
-  }
-  .gp-site {
-    padding-bottom: calc(96px + env(safe-area-inset-bottom));
-  }
-}
-.gp-bottom-nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  flex: 1 1 0;
-  min-width: 0;
-  min-height: 48px;
-  padding: 0 6px;
-  text-decoration: none;
-  color: rgba(255, 255, 255, 0.72);
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  transition: color 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.gp-bottom-nav-item.active {
-  color: #fff;
-}
-.gp-bottom-nav-item svg {
-  width: 22px;
-  height: 22px;
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 1.75;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  flex-shrink: 0;
-}
-.gp-bottom-nav-item.active svg {
-  stroke: var(--orange);
-}
-.gp-bottom-nav-item--live {
-  flex: 0 0 64px;
-  gap: 2px;
-  color: #fff;
-}
-.gp-bottom-nav-live-orb {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--orange);
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(240, 90, 26, 0.4);
-}
-.gp-bottom-nav-item--live svg {
-  width: 20px;
-  height: 20px;
-  stroke: #fff;
-}
-.gp-bottom-nav-item--live.active .gp-bottom-nav-live-orb {
-  box-shadow:
-    0 0 0 3px var(--navy),
-    0 0 0 5px #fff,
-    0 8px 18px rgba(240, 90, 26, 0.45);
-}
-
-/* Live tab — pulse the center circle when new updates are waiting */
-.gp-bottom-nav-item--unread .gp-bottom-nav-live-orb {
-  animation: gp-live-pulse 2.2s ease-out infinite;
-}
 @keyframes gp-live-pulse {
   0% { box-shadow: 0 0 0 0 rgba(240, 90, 26, 0.55); }
   70% { box-shadow: 0 0 0 12px rgba(240, 90, 26, 0); }
   100% { box-shadow: 0 0 0 0 rgba(240, 90, 26, 0); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .gp-bottom-nav-item--unread .gp-bottom-nav-live-orb {
-    animation: none;
-  }
 }
 
 /* ───── LIVE UPDATES PAGE ───── */
@@ -7876,10 +7807,6 @@ video.dlr-page-hero-video {
     transition: none;
   }
 }
-body.gallery-lb-open .gp-bottom-nav {
-  visibility: hidden;
-  pointer-events: none;
-}
 .gallery-lightbox {
   position: fixed;
   inset: 0;
@@ -9672,17 +9599,37 @@ a.glb-c-name:hover { color: var(--orange2); }
 .nav-pill .nav-links a.nav-account-create[hidden], .nav-pill .nav-links a.nav-account[hidden] { display: none; }
 @media (max-width: 640px) {
   .nav-pill .nav-links a.nav-account {
-    justify-content: center;
+    justify-content: flex-start;
+    align-items: flex-start;
     border-color: rgba(255,255,255,0.22);
-    margin: 10px 20px 0;
-    padding: 12px 16px;
-    gap: 10px;
+    margin: 0;
+    padding: 14px 14px;
+    gap: 12px;
     min-width: 0;
+    min-height: 56px;
+  }
+  .nav-account-avatar {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 13px;
   }
   .nav-account.is-signed-in .nav-account-label {
-    max-width: min(260px, 70vw);
+    max-width: none;
+    overflow: visible;
+    text-overflow: unset;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.25;
   }
-  .nav-pill .nav-links a.nav-account-create { text-align: center; }
+  .nav-pill .nav-links a.nav-account-create {
+    text-align: left;
+    padding: 16px 14px;
+    min-height: 52px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
 }
 
 /* Desktop pill: keep the account entry compact so the row never wraps */
