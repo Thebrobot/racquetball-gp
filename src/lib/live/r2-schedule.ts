@@ -27,6 +27,24 @@ function formatCourt(raw: string): string {
 	return `Court ${raw.trim()}`;
 }
 
+function decodeScheduleText(raw: string): string {
+	return raw
+		.replace(/&middot;|&#183;|&#x[bB]7;/g, '·')
+		.replace(/&nbsp;/gi, ' ')
+		.replace(/<[^>]+>/g, ' ')
+		.replace(/\s+/g, ' ')
+		.trim();
+}
+
+function weekdayClockFromDated(monthDayYear: string, clockRaw: string): string | undefined {
+	const when = new Date(`${monthDayYear} ${clockRaw}`);
+	if (Number.isNaN(when.getTime())) return undefined;
+	const day = when.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'America/New_York' });
+	const clock = clockRaw.replace(/\s+/g, ' ').toUpperCase().replace(/\s*([AP]M)/, ' $1');
+	const hm = clock.match(/(\d{1,2}:\d{2})\s*([AP]M)/i);
+	return hm ? `${day} · ${hm[1]} ${hm[2]!.toUpperCase()}` : `${day} · ${clock}`;
+}
+
 function formatClock(hourMin: string, meridiem: string): string {
 	const mer = meridiem.toUpperCase().startsWith('P') ? 'PM' : 'AM';
 	const cleaned = hourMin.replace(/\s+/g, '');
@@ -69,7 +87,7 @@ export function parseR2Schedule(text: string): ParsedSchedule {
 
 /** Match pages use `Court 1 · Scheduled Oct 23, 2026 at 4:30 PM`. */
 export function parseMatchPageSchedule(text: string): ParsedSchedule {
-	const t = (text ?? '').replace(/\s+/g, ' ').trim();
+	const t = decodeScheduleText(text ?? '');
 	const out: ParsedSchedule = {};
 	const court = t.match(/\bCourt\s*#?\s*(\d{1,2})\b/i);
 	if (court) out.court = formatCourt(court[1]!);
@@ -78,17 +96,42 @@ export function parseMatchPageSchedule(text: string): ParsedSchedule {
 		/Scheduled\s+([A-Za-z]{3,9}\s+\d{1,2},\s+\d{4})\s+at\s+(\d{1,2}:\d{2}\s*[AP]M)/i,
 	);
 	if (dated) {
-		const when = new Date(`${dated[1]} ${dated[2]}`);
-		if (!Number.isNaN(when.getTime())) {
-			const day = when.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'America/New_York' });
-			const clock = dated[2]!.replace(/\s+/g, ' ').toUpperCase().replace(/\s*([AP]M)/, ' $1');
-			const hm = clock.match(/(\d{1,2}:\d{2})\s*([AP]M)/i);
-			out.scheduledTime = hm ? `${day} · ${hm[1]} ${hm[2]!.toUpperCase()}` : `${day} · ${clock}`;
+		const clock = weekdayClockFromDated(dated[1]!, dated[2]!);
+		if (clock) {
+			out.scheduledTime = clock;
 			return out;
 		}
 	}
 
 	return { ...out, ...parseR2Schedule(t) };
+}
+
+/**
+ * Court/time from an r2-push page, including when `.r2p-scheduled` is the only
+ * usable markup (draw boxes drop `#court` after Final). Never reads `#` hashes
+ * out of raw HTML — those collide with CSS colors.
+ */
+export function scheduleFromMatchHtml(html: string): ParsedSchedule {
+	if (!html) return {};
+	const block = html.match(
+		/<[^>]*class=["'][^"']*r2p-scheduled[^"']*["'][^>]*>([\s\S]*?)<\/(?:p|div|span)>/i,
+	);
+	if (block) {
+		const parsed = parseMatchPageSchedule(block[1] ?? '');
+		if (parsed.court || parsed.scheduledTime) return parsed;
+	}
+	const text = decodeScheduleText(html);
+	const out: ParsedSchedule = {};
+	const court = text.match(/\bCourt\s*#?\s*(\d{1,2})\b/i);
+	if (court) out.court = formatCourt(court[1]!);
+	const dated = text.match(
+		/Scheduled\s+([A-Za-z]{3,9}\s+\d{1,2},\s+\d{4})\s+at\s+(\d{1,2}:\d{2}\s*[AP]M)/i,
+	);
+	if (dated) {
+		const clock = weekdayClockFromDated(dated[1]!, dated[2]!);
+		if (clock) out.scheduledTime = clock;
+	}
+	return out;
 }
 
 function capitalize(s: string): string {

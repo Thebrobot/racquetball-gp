@@ -36,6 +36,20 @@ const med10Page = parseMatchPage(read('psl-med10-match.html'));
 const mcsd6Page = parseMatchPage(read('psl-mcsd6-match.html'));
 const m605Page = parseMatchPage(read('psl-m605-match.html'));
 const m607Page = parseMatchPage(read('psl-m607-match.html'));
+const m609Page = parseMatchPage(read('psl-m609-match.html'));
+const med11Page = parseMatchPage(read('psl-med11-match.html'));
+const mbd5Page = parseMatchPage(read('psl-mbd5-match.html'));
+const m609Html = read('psl-m609-match.html');
+const med11Html = read('psl-med11-match.html');
+const med10Html = read('psl-med10-match.html');
+const mbd5Html = read('psl-mbd5-match.html');
+const m605Html = read('psl-m605-match.html');
+const m607Html = read('psl-m607-match.html');
+
+function courtless(draw: (typeof m60Draw.matches)[string]) {
+	const { court: _c, scheduledTime: _t, ...rest } = draw;
+	return rest;
+}
 
 function resolveCode(draw: ReturnType<typeof extractSingleElimFromHtml>, matchId: string, page: ReturnType<typeof parseMatchPage>) {
 	const parsed = draw.matches[matchId];
@@ -253,19 +267,33 @@ describe('match-result-overrides still win', () => {
 		const divisions = applyMatchOverrides('port-st-lucie-open', {
 			'mens-doubles-b': {
 				MBD4: { player1: 'Ryan Appleby / Matt Kern', player2: 'Jonathan Estepan / Daniel Bray' },
+				MBD5: { player1: 'Paul Sotolongo / Mark Manzano', player2: 'Jonathan Estepan / Daniel Bray' },
 			},
 			'mens-age-60': {
+				'M60+9': { player1: 'John Wuchte', player2: 'Larry Prince Jr.' },
 				'M60+5': { player1: 'Scott Gill', player2: 'Mike Boyar' },
 				'M60+7': { player1: 'Jim Russell', player2: 'Charles Cole' },
+			},
+			'mens-doubles-elite': {
+				MED11: { player1: 'Mike Bock / Terry Money', player2: 'Chris Steinheiser / John Johnston' },
+				MED10: { player1: 'Dirk Huck / John Joseph', player2: 'Greg Caruso / Alex Bartolome' },
 			},
 		});
 		assert.equal(divisions['mens-doubles-b']?.MBD4?.winner, 1);
 		assert.equal(divisions['mens-doubles-b']?.MBD4?.score, '15-4, 15-9');
 		assert.equal(divisions['mens-doubles-b']?.MBD4?.court, 'Court 4');
+		assert.equal(divisions['mens-doubles-b']?.MBD5?.court, 'Court 4');
+		assert.equal(divisions['mens-doubles-b']?.MBD5?.scheduledTime, 'Friday · 6:30 PM');
 		assert.equal(divisions['mens-age-60']?.['M60+5']?.winner, 2);
 		assert.equal(divisions['mens-age-60']?.['M60+5']?.score, '15-7, 15-8');
+		assert.equal(divisions['mens-age-60']?.['M60+5']?.court, 'Court 2');
+		assert.equal(divisions['mens-age-60']?.['M60+5']?.scheduledTime, 'Friday · 5:30 PM');
 		assert.equal(divisions['mens-age-60']?.['M60+7']?.winner, 2);
 		assert.equal(divisions['mens-age-60']?.['M60+7']?.score, '15-5, 14-14, Win by forfeit');
+		assert.equal(divisions['mens-age-60']?.['M60+7']?.court, 'Court 3');
+		assert.equal(divisions['mens-age-60']?.['M60+9']?.court, 'Court 1');
+		assert.equal(divisions['mens-doubles-elite']?.MED11?.court, 'Court 2');
+		assert.equal(divisions['mens-doubles-elite']?.MED10?.court, 'Court 2');
 	});
 });
 
@@ -582,5 +610,168 @@ describe('page failures keep a published result', () => {
 		);
 		assert.equal(merged.winner, 1);
 		assert.equal(merged.score, '15-9, 15-10');
+	});
+
+	it('does not blank a known court or time when the incoming scrape omitted them', () => {
+		const kept = mergeOneMatch(
+			{
+				player1: 'John Wuchte',
+				player2: 'Larry Prince Jr.',
+				winner: 1,
+				score: '14-15, 15-8, 15-5',
+				court: 'Court 1',
+				scheduledTime: 'Friday · 5:30 PM',
+			},
+			{
+				player1: 'John Wuchte',
+				player2: 'Larry Prince Jr.',
+				winner: 1,
+				score: '14-15, 15-8, 15-5',
+			},
+			{ quarantined: false, resolved: true },
+		);
+		assert.equal(kept.court, 'Court 1');
+		assert.equal(kept.scheduledTime, 'Friday · 5:30 PM');
+		assert.equal(kept.winner, 1);
+	});
+});
+
+describe('finished matches keep court and time from the R2 match page', () => {
+	const expected: Array<{
+		id: string;
+		draw: typeof m60Draw;
+		page: ReturnType<typeof parseMatchPage>;
+		html: string;
+		court: string;
+		time: string;
+	}> = [
+		{ id: 'M60+9', draw: m60Draw, page: m609Page, html: m609Html, court: 'Court 1', time: 'Friday · 5:30 PM' },
+		{ id: 'M60+5', draw: m60Draw, page: m605Page, html: m605Html, court: 'Court 2', time: 'Friday · 5:30 PM' },
+		{ id: 'M60+7', draw: m60Draw, page: m607Page, html: m607Html, court: 'Court 3', time: 'Friday · 5:30 PM' },
+		{ id: 'MED11', draw: medDraw, page: med11Page, html: med11Html, court: 'Court 2', time: 'Friday · 6:30 PM' },
+		{ id: 'MED10', draw: medDraw, page: med10Page, html: med10Html, court: 'Court 2', time: 'Friday · 4:30 PM' },
+		{ id: 'MBD5', draw: mbdDraw, page: mbd5Page, html: mbd5Html, court: 'Court 4', time: 'Friday · 6:30 PM' },
+	];
+
+	it('publishes match-page court/time even after the finished draw box drops #court', () => {
+		for (const row of expected) {
+			const parsed = row.draw.matches[row.id];
+			assert.ok(parsed, `missing ${row.id}`);
+			const { record, quarantine } = resolveMatchResult({
+				matchId: row.id,
+				draw: courtless(parsed),
+				page: row.page,
+				pageHtml: row.html,
+			});
+			assert.equal(quarantine, undefined, row.id);
+			assert.equal(record.court, row.court, row.id);
+			assert.equal(record.scheduledTime, row.time, row.id);
+			assert.ok(record.winner === 1 || record.winner === 2, row.id);
+		}
+	});
+
+	it('still reads court/time from r2-push HTML when the page parse is treated as a stub', () => {
+		for (const row of expected) {
+			const parsed = row.draw.matches[row.id];
+			assert.ok(parsed, `missing ${row.id}`);
+			const { record } = resolveMatchResult({
+				matchId: row.id,
+				draw: courtless(parsed),
+				page: null,
+				pageError: 'match page HTML missing versus/result markup (800 bytes: stub)',
+				pageHtml: row.html,
+			});
+			assert.equal(record.court, row.court, row.id);
+			assert.equal(record.scheduledTime, row.time, row.id);
+		}
+	});
+
+	it('overlays those courts onto the static event and restores a wiped results blob', () => {
+		const incoming: Record<string, Record<string, ReturnType<typeof resolveMatchResult>['record']>> = {
+			'mens-age-60': {},
+			'mens-doubles-elite': {},
+			'mens-doubles-b': {},
+		};
+		const divFor: Record<string, string> = {
+			'M60+9': 'mens-age-60',
+			'M60+5': 'mens-age-60',
+			'M60+7': 'mens-age-60',
+			MED11: 'mens-doubles-elite',
+			MED10: 'mens-doubles-elite',
+			MBD5: 'mens-doubles-b',
+		};
+		// 11:36 PM EDT blob: winners published, draw had dropped #court, match-page
+		// schedule never made it onto the record.
+		const wiped: Record<string, Record<string, { player1: string; player2: string; winner: 1 | 2; score: string; scheduledTime?: string }>> = {
+			'mens-age-60': {
+				'M60+9': { player1: 'John Wuchte', player2: 'Larry Prince Jr.', winner: 1, score: '14-15, 15-8, 15-5' },
+				'M60+5': { player1: 'Scott Gill', player2: 'Mike Boyar', winner: 2, score: '15-7, 15-8' },
+				'M60+7': { player1: 'Jim Russell', player2: 'Charles Cole', winner: 2, score: '15-5, 14-14, Win by forfeit' },
+			},
+			'mens-doubles-elite': {
+				MED11: { player1: 'Mike Bock / Terry Money', player2: 'Chris Steinheiser / John Johnston', winner: 1, score: '15-4, 15-11' },
+				MED10: { player1: 'Dirk Huck / John Joseph', player2: 'Greg Caruso / Alex Bartolome', winner: 1, score: 'WBF - No Show' },
+			},
+			'mens-doubles-b': {
+				MBD5: {
+					player1: 'Paul Sotolongo / Mark Manzano',
+					player2: 'Jonathan Estepan / Daniel Bray',
+					winner: 2,
+					score: '9-15, 15-14, 11-5',
+					scheduledTime: 'Friday · 6:30 PM',
+				},
+			},
+		};
+		for (const row of expected) {
+			const parsed = row.draw.matches[row.id]!;
+			incoming[divFor[row.id]!]![row.id] = resolveMatchResult({
+				matchId: row.id,
+				draw: courtless(parsed),
+				page: row.page,
+				pageHtml: row.html,
+			}).record;
+		}
+
+		const restored = mergeScrapedResults(
+			LIVE_EVENTS.psl,
+			{ lastUpdated: '2026-10-24T03:36:44.755Z', divisions: wiped },
+			{
+				scraped: 3,
+				matchesWithResults: 6,
+				divisions: incoming,
+				divisionReports: [],
+				errors: [],
+				quarantined: [],
+				resolvedMatchIds: expected.map((r) => r.id),
+				audit: [],
+			},
+			{ lastUpdated: null, eventSlug: 'port-st-lucie-open', events: [] },
+			'2026-10-24T08:00:00.000Z',
+		);
+		assert.equal(restored.changed, true);
+		assert.equal(restored.results.divisions['mens-age-60']?.['M60+9']?.court, 'Court 1');
+		assert.equal(restored.results.divisions['mens-age-60']?.['M60+5']?.court, 'Court 2');
+		assert.equal(restored.results.divisions['mens-age-60']?.['M60+7']?.court, 'Court 3');
+		assert.equal(restored.results.divisions['mens-doubles-elite']?.MED11?.court, 'Court 2');
+		assert.equal(restored.results.divisions['mens-doubles-elite']?.MED10?.court, 'Court 2');
+		assert.equal(restored.results.divisions['mens-doubles-b']?.MBD5?.court, 'Court 4');
+		assert.equal(restored.results.divisions['mens-doubles-b']?.MBD5?.scheduledTime, 'Friday · 6:30 PM');
+
+		const event = applyResultsToEvent(PORT_ST_LUCIE_EVENT, restored.results.divisions);
+		const find = (divId: string, id: string) => {
+			const div = event.divisionDetails.find((d) => d.id === divId);
+			return (
+				div?.rounds?.flatMap((r) => r.matches).find((m) => m.matchId === id) ??
+				div?.roundRobinMatches?.find((m) => m.matchId === id)
+			);
+		};
+		assert.equal(find('mens-age-60', 'M60+9')?.court, 'Court 1');
+		assert.equal(find('mens-age-60', 'M60+5')?.court, 'Court 2');
+		assert.equal(find('mens-age-60', 'M60+7')?.court, 'Court 3');
+		assert.equal(find('mens-doubles-elite', 'MED11')?.court, 'Court 2');
+		assert.equal(find('mens-doubles-elite', 'MED10')?.court, 'Court 2');
+		assert.equal(find('mens-doubles-b', 'MBD5')?.court, 'Court 4');
+		assert.equal(find('mens-age-60', 'M60+9')?.scheduledTime, 'Friday · 5:30 PM');
+		assert.equal(find('mens-doubles-elite', 'MED10')?.scheduledTime, 'Friday · 4:30 PM');
 	});
 });
