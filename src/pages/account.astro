@@ -60,11 +60,14 @@ const followPlayers = followEvent ? eventFollowPlayers(followEvent) : players.ma
 const linkedPlayer = session?.profile?.player_slug ? players.find((p) => p.slug === session.profile!.player_slug) : null;
 const displayName = session?.profile?.display_name ?? session?.user.email?.split('@')[0] ?? '';
 
+const linkedJustNow = params.get('linked');
+const linkedJustNowPlayer = linkedJustNow ? players.find((p) => p.slug === linkedJustNow) : null;
 const claimMessages: Record<string, string> = {
 	sent: 'Claim sent. Kyle will review it and you will see the badge here once it is approved.',
 	pending: 'You already have a claim waiting for review.',
 	invalid: 'That player was not found. Pick a name from the list.',
 	error: 'Could not send the claim. Try again in a moment.',
+	taken: 'That player profile is already claimed by another account. Pick a different name, or stay set up as a fan.',
 };
 ---
 
@@ -272,9 +275,17 @@ const claimMessages: Record<string, string> = {
 
 					<div class="gp-card acct-card">
 						<h2 class="acct-h2">Player profile</h2>
+						{linkedJustNowPlayer && (
+							<p class="acct-p acct-ok">Your account is linked to <a href={`/players/${linkedJustNowPlayer.slug}`}>{linkedJustNowPlayer.name}</a>.</p>
+						)}
 						{linkedPlayer ? (
 							<>
-								<p class="acct-p">This account is linked to <a href={`/players/${linkedPlayer.slug}`}>{linkedPlayer.name}</a>. Your profile shows a verified badge.</p>
+								{!linkedJustNowPlayer && (
+									<p class="acct-p">This account is linked to <a href={`/players/${linkedPlayer.slug}`}>{linkedPlayer.name}</a>. Your profile shows a verified badge.</p>
+								)}
+								{linkedJustNowPlayer && (
+									<p class="acct-p">Your profile shows a verified badge. Results, photos and standings use this name.</p>
+								)}
 							</>
 						) : pendingClaim ? (
 							<p class="acct-p">
@@ -282,7 +293,7 @@ const claimMessages: Record<string, string> = {
 							</p>
 						) : (
 							<>
-								<p class="acct-p">You are set up as a fan: you can like photos and follow the season. Play in the Grand Prix? Pick your name and we will link your results, photos and standings to this account after a quick check.</p>
+								<p class="acct-p">You are set up as a fan: you can like photos and follow the season. Play in the Grand Prix? Pick your name and we will link this account to that player profile.</p>
 								{claimFlag && claimMessages[claimFlag] && <p class:list={['acct-p', claimFlag === 'sent' ? 'acct-ok' : 'acct-error-text']}>{claimMessages[claimFlag]}</p>}
 								{rejectedClaim && <p class="acct-p acct-p--muted">A previous claim for {rejectedClaim.player_name} was not approved. If that was a mistake, send it again with a note.</p>}
 								<form class="acct-form" method="post" action="/api/claims">
@@ -294,7 +305,7 @@ const claimMessages: Record<string, string> = {
 									<input type="hidden" name="player_slug" id="acct-player-slug" value="" />
 									<label class="acct-label" for="acct-note">Anything that helps us confirm it is you (optional)</label>
 									<input class="acct-input" id="acct-note" name="note" type="text" maxlength="300" placeholder="Club, city, or the division you played" />
-									<button class="btn-main acct-btn" type="submit" id="acct-claim-btn" disabled>Send claim for review</button>
+									<button class="btn-main acct-btn" type="submit" id="acct-claim-btn" disabled>Link this profile</button>
 								</form>
 							</>
 						)}
