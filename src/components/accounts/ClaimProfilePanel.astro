@@ -1,0 +1,48 @@
+---
+interface Props {
+	idPrefix: string;
+	note?: boolean;
+	submitLabel?: string;
+}
+const { idPrefix, note = false, submitLabel = 'This is me' } = Astro.props;
+---
+
+<div class="claim-panel" data-claim-panel={idPrefix}>
+	<label class="acct-label" for={`${idPrefix}-search`}>Find your name</label>
+	<div class="su-claim-combo">
+		<input
+			class="acct-input"
+			id={`${idPrefix}-search`}
+			type="text"
+			role="combobox"
+			placeholder="Start typing your name…"
+			autocomplete="off"
+			autocapitalize="words"
+			spellcheck="false"
+			inputmode="search"
+			aria-autocomplete="list"
+			aria-expanded="false"
+			aria-controls={`${idPrefix}-listbox`}
+			data-claim="search"
+		/>
+		<ul class="su-claim-list" id={`${idPrefix}-listbox`} role="listbox" hidden data-claim="listbox"></ul>
+		<p class="acct-p acct-p--muted su-claim-empty" hidden data-claim="empty">No matching player profile.</p>
+	</div>
+	<div class="su-pick" hidden data-claim="pick">
+		<p class="su-pick-name" data-claim="pick-name"></p>
+		<p class="su-pick-meta" data-claim="pick-meta"></p>
+		<p class="acct-p acct-error-text" hidden data-claim="taken">This profile is already claimed by another account.</p>
+		{note && (
+			<label class="acct-label" for={`${idPrefix}-note`}>Anything that helps us confirm it is you (optional)</label>
+		)}
+		{note && (
+			<input class="acct-input" id={`${idPrefix}-note`} type="text" maxlength="300" placeholder="Club, city, or the division you played" data-claim="note" />
+		)}
+		<div class="su-pick-actions">
+			<button class="btn-main acct-btn" type="button" data-claim="confirm">{submitLabel}</button>
+			<button class="btn-ghost acct-btn" type="button" data-claim="not-me">Not this person</button>
+		</div>
+	</div>
+	<p class="acct-p acct-ok" hidden data-claim="ok"></p>
+	<p class="acct-p acct-p--muted acct-error" hidden data-claim="error"></p>
+</div>

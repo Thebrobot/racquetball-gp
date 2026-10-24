@@ -2,6 +2,8 @@
 import GrandPrixLayout from '../layouts/GrandPrixLayout.astro';
 import { accountsConfigured, createSessionClient, getSession } from '../lib/accounts/supabase';
 import { eventFollowPlayers } from '../lib/accounts/follow-players';
+import ClaimProfileBanner from '../components/accounts/ClaimProfileBanner.astro';
+import ClaimProfilePanel from '../components/accounts/ClaimProfilePanel.astro';
 import { getAllPlayers } from '../data/players';
 import { EVENTS } from '../data/events';
 import { albumLabel } from '../lib/gallery/albums';
@@ -149,6 +151,7 @@ const claimMessages: Record<string, string> = {
 
 			{configured && session && (
 				<>
+					<ClaimProfileBanner />
 					<div class="gp-card acct-card">
 						<div class="acct-row">
 							<div>
@@ -273,7 +276,7 @@ const claimMessages: Record<string, string> = {
 						</div>
 					</div>
 
-					<div class="gp-card acct-card">
+					<div class="gp-card acct-card" id="claim">
 						<h2 class="acct-h2">Player profile</h2>
 						{linkedJustNowPlayer && (
 							<p class="acct-p acct-ok">Your account is linked to <a href={`/players/${linkedJustNowPlayer.slug}`}>{linkedJustNowPlayer.name}</a>.</p>
@@ -293,20 +296,10 @@ const claimMessages: Record<string, string> = {
 							</p>
 						) : (
 							<>
-								<p class="acct-p">You are set up as a fan: you can like photos and follow the season. Play in the Grand Prix? Pick your name and we will link this account to that player profile.</p>
+								<p class="acct-p">You are set up as a fan: you can like photos and follow the season. Play in the Grand Prix? Pick your name and confirm it is you.</p>
 								{claimFlag && claimMessages[claimFlag] && <p class:list={['acct-p', claimFlag === 'sent' ? 'acct-ok' : 'acct-error-text']}>{claimMessages[claimFlag]}</p>}
 								{rejectedClaim && <p class="acct-p acct-p--muted">A previous claim for {rejectedClaim.player_name} was not approved. If that was a mistake, send it again with a note.</p>}
-								<form class="acct-form" method="post" action="/api/claims">
-									<label class="acct-label" for="acct-player">Your name in the player list</label>
-									<input class="acct-input" id="acct-player" list="acct-player-list" name="player_name_lookup" placeholder="Start typing your name…" autocomplete="off" />
-									<datalist id="acct-player-list">
-										{players.map((p) => <option value={p.name} data-slug={p.slug} />)}
-									</datalist>
-									<input type="hidden" name="player_slug" id="acct-player-slug" value="" />
-									<label class="acct-label" for="acct-note">Anything that helps us confirm it is you (optional)</label>
-									<input class="acct-input" id="acct-note" name="note" type="text" maxlength="300" placeholder="Club, city, or the division you played" />
-									<button class="btn-main acct-btn" type="submit" id="acct-claim-btn" disabled>Link this profile</button>
-								</form>
+								<ClaimProfilePanel idPrefix="claim-acct" note submitLabel="This is me" />
 							</>
 						)}
 					</div>
@@ -403,20 +396,15 @@ const claimMessages: Record<string, string> = {
 		},
 	);
 
-	// Claim: resolve the typed name to a slug from the datalist.
-	const lookup = document.getElementById('acct-player') as HTMLInputElement | null;
-	const slugEl = document.getElementById('acct-player-slug') as HTMLInputElement | null;
-	const claimBtn = document.getElementById('acct-claim-btn') as HTMLButtonElement | null;
-	const list = document.getElementById('acct-player-list');
-	if (lookup && slugEl && claimBtn && list) {
-		const sync = () => {
-			const typed = lookup.value.trim().toLowerCase();
-			const opt = Array.from(list.querySelectorAll('option')).find((o) => o.value.toLowerCase() === typed);
-			slugEl.value = opt?.getAttribute('data-slug') ?? '';
-			claimBtn.disabled = !slugEl.value;
-		};
-		lookup.addEventListener('input', sync);
-		lookup.addEventListener('change', sync);
+</script>
+
+<script>
+	import { wireClaimPanel } from '../scripts/claim-profile-panel';
+	const panel = document.querySelector<HTMLElement>('#claim [data-claim-panel]');
+	if (panel) {
+		wireClaimPanel(panel, (next) => {
+			window.location.href = next;
+		});
 	}
 </script>
 

@@ -1,0 +1,90 @@
+---
+/**
+ * Dismissible prompt for signed-in accounts that have not linked a player.
+ * Hidden until /api/me says showClaimBanner. Home + account only.
+ */
+import ClaimProfilePanel from './ClaimProfilePanel.astro';
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const onHome = path === '/';
+const jumpTo = path === '/account' ? '#claim' : '';
+---
+
+	<aside class:list={['claim-banner', onHome && 'claim-banner--home']} id="claim-banner" hidden data-jump={jumpTo}>
+		<div class="claim-banner-inner">
+			<div class="claim-banner-intro" id="claim-banner-intro">
+				<div class="claim-banner-copy">
+					<p class="claim-banner-kicker">Players</p>
+					<p class="claim-banner-title">Are you a player? Claim your profile</p>
+					<p class="claim-banner-text">Link this account to your Grand Prix name so photos and results stay with you.</p>
+				</div>
+				<div class="claim-banner-actions">
+					<button class="btn-main acct-btn" type="button" id="claim-banner-open">Claim your profile</button>
+					<button class="btn-ghost acct-btn" type="button" id="claim-banner-skip">I'm not a player</button>
+				</div>
+			</div>
+			<div class="claim-banner-flow" id="claim-banner-flow" hidden>
+				<p class="acct-label">Your player profile</p>
+				<p class="acct-hint">Search the existing Grand Prix list, then confirm it is you.</p>
+				<ClaimProfilePanel idPrefix="claim-banner" />
+				<button class="acct-textbtn" type="button" id="claim-banner-back">Back</button>
+			</div>
+		</div>
+	</aside>
+
+<script>
+	import { wireClaimPanel } from '../../scripts/claim-profile-panel';
+
+	const banner = document.getElementById('claim-banner');
+	const intro = document.getElementById('claim-banner-intro');
+	const flow = document.getElementById('claim-banner-flow');
+	const openBtn = document.getElementById('claim-banner-open');
+	const skipBtn = document.getElementById('claim-banner-skip');
+	const backBtn = document.getElementById('claim-banner-back');
+	if (banner && intro && flow) {
+		const showFlow = (on: boolean) => {
+			intro.hidden = on;
+			flow.hidden = !on;
+			if (on) {
+				const search = flow.querySelector<HTMLInputElement>('[data-claim="search"]');
+				search?.focus();
+			}
+		};
+		const hide = () => {
+			banner.hidden = true;
+		};
+		fetch('/api/me', { cache: 'no-store' })
+			.then((r) => (r.ok ? r.json() : null))
+			.then((me: { showClaimBanner?: boolean } | null) => {
+				if (me?.showClaimBanner) banner.hidden = false;
+			})
+			.catch(() => undefined);
+		openBtn?.addEventListener('click', () => {
+			const jump = banner.dataset.jump;
+			if (jump) {
+				document.querySelector(jump)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+				const search = document.querySelector<HTMLInputElement>('#claim #claim-acct-search, #claim [data-claim="search"]');
+				search?.focus();
+				return;
+			}
+			showFlow(true);
+		});
+		backBtn?.addEventListener('click', () => showFlow(false));
+		skipBtn?.addEventListener('click', async () => {
+			skipBtn.setAttribute('disabled', '');
+			const res = await fetch('/api/account/player-pref', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ notAPlayer: true }),
+			});
+			if (res.ok) hide();
+			else skipBtn.removeAttribute('disabled');
+		});
+		const panel = banner.querySelector<HTMLElement>('[data-claim-panel]');
+		if (panel) {
+			wireClaimPanel(panel, (next) => {
+				window.location.href = next;
+			});
+		}
+	}
+</script>

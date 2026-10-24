@@ -9908,3 +9908,74 @@ a.glb-c-name:hover { color: var(--orange2); }
 }
 .live-feed-day:first-child .live-feed-day-head { margin-top: 0; }
 .live-feed-day-count { font-size: 13px; letter-spacing: 0.1em; color: var(--orange2); }
+
+/* ───── Claim-profile banner (signed-in, no linked player) ───── */
+.claim-banner[hidden] { display: none; }
+.claim-banner {
+  width: min(720px, calc(100vw - 24px));
+  margin: 12px auto 0;
+  position: relative;
+  z-index: 45;
+}
+.acct .claim-banner {
+  width: 100%;
+  margin: 0 0 16px;
+}
+.claim-banner--home {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 78px);
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  width: min(560px, calc(100vw - 24px));
+}
+.claim-banner-inner {
+  background: var(--navy2);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+}
+.claim-banner-intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px 18px;
+  flex-wrap: wrap;
+}
+.claim-banner-kicker {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--orange2);
+  margin: 0 0 4px;
+}
+.claim-banner-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.25;
+}
+.claim-banner-text {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.claim-banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.claim-banner-actions .acct-btn { margin-top: 0; min-height: 44px; }
+.claim-banner-flow { margin-top: 4px; }
+.claim-banner-flow .acct-textbtn { margin-top: 10px; }
+#claim { scroll-margin-top: 108px; }
+@media (max-width: 640px) {
+  .claim-banner--home { top: calc(env(safe-area-inset-top, 0px) + 70px); width: calc(100vw - 16px); }
+  .claim-banner-intro { flex-direction: column; }
+  .claim-banner-actions { width: 100%; }
+  .claim-banner-actions .acct-btn { flex: 1 1 auto; }
+}
