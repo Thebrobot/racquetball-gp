@@ -41,5 +41,9 @@ describe('getBundledResults', () => {
 		assert.equal(bundled.divisions['mens-doubles-centurion']?.MCSD6?.score, 'WBF - No Show');
 		assert.equal(bundled.divisions['mens-doubles-centurion']?.MCSD6?.winner, undefined);
 		assert.equal(bundled.divisions['mens-doubles-centurion']?.MCSD6?.court, undefined);
+		assert.equal(bundled.divisions['mens-singles-b']?.MB8?.winner, 2);
+		assert.equal(bundled.divisions['mens-singles-b']?.MB8?.player2, 'Elijah Saunders');
+		assert.equal(bundled.divisions['mens-singles-b']?.MB4?.player1, 'Elijah Saunders');
+		assert.equal(bundled.divisions['mens-singles-b']?.MB4?.player2, 'Daniel Bray');
 	});
 });

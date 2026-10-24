@@ -318,6 +318,15 @@ describe('match-result-overrides still win', () => {
 					court: 'Court 3',
 				},
 			},
+			'mens-singles-b': {
+				MB8: {
+					player1: 'Scott Gill',
+					player2: 'Elijah Saunders',
+					court: 'Court 1',
+					scheduledTime: 'Saturday · 1:00 PM',
+				},
+				MB4: { scheduledTime: 'Sunday · 8:00 AM' },
+			},
 		});
 		assert.equal(divisions['mens-doubles-b']?.MBD4?.winner, 1);
 		assert.equal(divisions['mens-doubles-b']?.MBD4?.score, '15-4, 15-9');
@@ -353,6 +362,17 @@ describe('match-result-overrides still win', () => {
 		assert.equal(divisions['mens-doubles-centurion']?.MCSD6?.score, 'WBF - No Show');
 		assert.equal(divisions['mens-doubles-centurion']?.MCSD6?.winner, undefined);
 		assert.equal(divisions['mens-doubles-centurion']?.MCSD6?.court, undefined);
+		assert.equal(divisions['mens-singles-b']?.MB8?.player1, 'Scott Gill');
+		assert.equal(divisions['mens-singles-b']?.MB8?.player2, 'Elijah Saunders');
+		assert.equal(divisions['mens-singles-b']?.MB8?.winner, 2);
+		assert.equal(divisions['mens-singles-b']?.MB8?.score, '15-5, 15-14');
+		assert.equal(divisions['mens-singles-b']?.MB8?.court, 'Court 1');
+		assert.equal(divisions['mens-singles-b']?.MB8?.scheduledTime, 'Saturday · 1:00 PM');
+		assert.equal(divisions['mens-singles-b']?.MB4?.player1, 'Elijah Saunders');
+		assert.equal(divisions['mens-singles-b']?.MB4?.player2, 'Daniel Bray');
+		assert.equal(divisions['mens-singles-b']?.MB4?.winner, undefined);
+		assert.equal(divisions['mens-singles-b']?.MB4?.court, 'Court 2');
+		assert.equal(divisions['mens-singles-b']?.MB4?.scheduledTime, 'Sunday · 8:00 AM');
 	});
 });
 

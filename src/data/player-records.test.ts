@@ -43,7 +43,10 @@ describe('PSL player records include every match the player appears in', () => {
 		assert.ok(med10);
 		assert.equal(med10.result, 'loss');
 		assert.match(med10.score ?? '', /No Show/i);
-		assert.equal(caruso.filter((m) => m.result === 'loss').length, 1);
+		assert.equal(
+			caruso.filter((m) => m.result === 'loss' && m.divisionId === 'mens-doubles-elite').length,
+			1,
+		);
 
 		const bart = getPlayerMatchHistory('Alex Bartolome', [psl!]);
 		const bartMed = bart.find((m) => m.divisionId === 'mens-doubles-elite' && /Huck/.test(m.opponent));
