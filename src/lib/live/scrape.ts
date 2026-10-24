@@ -28,7 +28,7 @@ import {
 	storeHasFinal,
 } from './r2-match-fetch';
 import { scoresEqual } from './r2-names';
-import { readLiveActivity, readLiveResults, writeResultAuditHtml } from './store';
+import { BLOB_READ_FRESH_TIMEOUT_MS, readLiveActivity, readLiveResults, writeResultAuditHtml } from './store';
 import type { LiveActivityEvent, LiveActivityFeed, LiveResultsFile, QuarantinedMatch } from './types';
 
 export const USER_AGENT =
@@ -151,7 +151,7 @@ function keepStoredFinal(existing: MatchRecord, draw: ParsedDrawMatch): MatchRec
 }
 
 export async function scrapeEvent(event: LiveEventConfig, now = new Date()): Promise<EventScrapeResult> {
-	const existing = await readLiveResults(event.slug).catch(() => ({ lastUpdated: null, divisions: {} as Record<string, MatchMap> }));
+	const existing = await readLiveResults(event.slug, { timeoutMs: BLOB_READ_FRESH_TIMEOUT_MS, useCache: false }).catch(() => ({ lastUpdated: null, divisions: {} as Record<string, MatchMap> }));
 	const divisions: Record<string, MatchMap> = {};
 	const divisionReports: DivisionScrape[] = [];
 	const errors: string[] = [];
@@ -589,8 +589,8 @@ export async function buildMergedResults(
 	newActivity: number;
 	quarantined: QuarantinedMatch[];
 }> {
-	const existing = await readLiveResults(event.slug);
-	const prevFeed = await readLiveActivity();
+	const existing = await readLiveResults(event.slug, { timeoutMs: BLOB_READ_FRESH_TIMEOUT_MS, useCache: false });
+	const prevFeed = await readLiveActivity({ timeoutMs: BLOB_READ_FRESH_TIMEOUT_MS, useCache: false });
 	const merged = mergeScrapedResults(event, existing, scraped, prevFeed, at);
 
 	if (scraped.audit.length && merged.changed) {
