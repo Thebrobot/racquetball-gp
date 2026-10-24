@@ -304,9 +304,9 @@ const clientConfig: GalleryClientConfig = {
 				fd.set('file', chosen[i]);
 				try {
 					const res = await fetch('/api/photos/submit', { method: 'POST', body: fd });
-					const data = (await res.json().catch(() => ({}))) as { error?: string };
+					const data = (await res.json().catch(() => ({}))) as { error?: string; approved?: boolean };
 					if (res.ok) {
-						states[i].textContent = 'Sent for review';
+						states[i].textContent = data.approved ? 'Added to gallery' : 'Sent for review';
 						states[i].classList.add('is-ok');
 						sent += 1;
 					} else {

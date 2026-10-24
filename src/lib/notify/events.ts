@@ -2,12 +2,13 @@
  * The notification layer. Something happens (a tag, a comment, a like, a claim
  * approval) -> one row per recipient in `notifications` -> delivered by email
  * and browser push according to the recipient's switches. Instant kinds go out
- * right away; likes wait for the end-of-day roll-up (api/cron/digest).
+ * right away; likes and photo submissions wait for the end-of-day roll-up (api/cron/digest).
  * Nothing here throws: a failed notification must never fail the user's action.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getPhotoById } from '../gallery/store';
 import { albumById, albumBySlug } from '../gallery/albums';
+import { deliversInstantly, photoApprovedCopy } from './copy';
 import { emailConfigured, layout, sendEmail, siteOrigin, type PhotoCard } from './email';
 import { pushConfigured, sendPushToUser } from './push';
 
@@ -69,7 +70,7 @@ export async function notify(admin: SupabaseClient, input: NotifyInput): Promise
 			.insert({ user_id: input.userId, kind: input.kind, photo_id: input.photoId ?? null, actor_id: input.actorId ?? null, payload: input.payload ?? {} })
 			.select('id')
 			.single();
-		if (input.kind === 'like' || !row) return;
+		if (!deliversInstantly(input.kind) || !row) return;
 		await deliverInstant(admin, (row as { id: string }).id, input);
 	} catch {
 		/* never fail the caller */
@@ -118,11 +119,19 @@ async function deliverInstant(admin: SupabaseClient, rowId: string, input: Notif
 		cta = { label: 'Open the admin queue', href: `${origin}/admin#photos` };
 		pushBody = `${uploader} sent a photo for review.`;
 	} else if (input.kind === 'photo_approved') {
-		subject = 'Your photo is in the gallery';
-		heading = 'Your photo is in the gallery';
-		intro = card ? `It is live in the ${card.label} album${to.player_slug ? ' and on your player profile' : ''}.` : 'It is live now.';
-		if (input.photoId) cta = { label: 'See it', href: photoHref(input.photoId) };
-		pushBody = 'Approved and live in the gallery.';
+		const count = Number(input.payload?.count ?? 1) || 1;
+		const approved = photoApprovedCopy(count);
+		subject = approved.subject;
+		heading = approved.heading;
+		intro = approved.intro;
+		pushBody = approved.pushBody;
+		if (count > 1) {
+			intro = card ? `They are live in the ${card.label} album${to.player_slug ? ' and on your player profile' : ''}.` : approved.intro;
+			cta = { label: 'Open the gallery', href: `${origin}/gallery` };
+		} else {
+			intro = card ? `It is live in the ${card.label} album${to.player_slug ? ' and on your player profile' : ''}.` : approved.intro;
+			if (input.photoId) cta = { label: 'See it', href: photoHref(input.photoId) };
+		}
 	} else if (input.kind === 'result') {
 		const headline = String(input.payload?.headline ?? 'Result in');
 		const detail = String(input.payload?.detail ?? '');

@@ -7,8 +7,8 @@ alter table public.profiles add column if not exists notify_push  boolean not nu
 
 -- ─── Event log: one row per thing that happened to a person ───────────────────
 -- Instant kinds (claim_approved, tagged, comment) are delivered as they are
--- created. "like" rows wait for the end-of-day roll-up. Other kinds (for
--- example live scores) can be added later without changing the table.
+-- created. "like" and "submission" rows wait for the end-of-day roll-up. Other
+-- kinds (for example live scores) can be added later without changing the table.
 create table if not exists public.notifications (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles (id) on delete cascade,
