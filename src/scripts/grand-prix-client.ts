@@ -144,6 +144,32 @@ function initNavDrawer() {
 	document.addEventListener('keydown', (e) => {
 		if (e.key === 'Escape') setOpen(false);
 	});
+
+	let swipeStartX = 0;
+	let swipeStartY = 0;
+	primaryNav.addEventListener(
+		'touchstart',
+		(e) => {
+			const t = e.changedTouches[0];
+			if (!t) return;
+			swipeStartX = t.clientX;
+			swipeStartY = t.clientY;
+		},
+		{ passive: true },
+	);
+	primaryNav.addEventListener(
+		'touchend',
+		(e) => {
+			if (!document.documentElement.classList.contains('nav-drawer-open')) return;
+			const t = e.changedTouches[0];
+			if (!t) return;
+			const dx = t.clientX - swipeStartX;
+			const dy = t.clientY - swipeStartY;
+			if (dx < -56 && Math.abs(dx) > Math.abs(dy) * 1.15) setOpen(false);
+		},
+		{ passive: true },
+	);
+
 	mq.addEventListener('change', applyPanelState);
 	window.addEventListener('resize', applyPanelState);
 	applyPanelState();
@@ -887,16 +913,19 @@ function updateLiveSyncLabel(feed: LiveActivityFeed) {
 	if (page && feed.lastUpdated) page.setAttribute('data-last-updated', feed.lastUpdated);
 }
 
-function updateBottomNavUnread(feed: LiveActivityFeed) {
-	const tab = document.getElementById('gp-bottom-nav-live');
+function updateLiveNavUnread(feed: LiveActivityFeed) {
+	const tab = document.getElementById('gp-nav-live');
 	if (!tab) return;
-	tab.classList.toggle('gp-bottom-nav-item--unread', hasUnreadLiveActivity(feed));
+	const unread = hasUnreadLiveActivity(feed);
+	tab.classList.toggle('is-unread', unread);
+	if (unread) tab.setAttribute('aria-label', 'Live updates, new results');
+	else tab.removeAttribute('aria-label');
 }
 
 function markLiveActivityRead(feed: LiveActivityFeed) {
 	const at = latestEventAt(feed);
 	if (at) writeLiveActivitySeenAt(at);
-	updateBottomNavUnread(feed);
+	updateLiveNavUnread(feed);
 }
 
 let liveActivityPollTimer: ReturnType<typeof setInterval> | null = null;
@@ -937,7 +966,7 @@ function renderHomeLatestLive(feed: LiveActivityFeed) {
 }
 
 function onLiveActivityFeed(feed: LiveActivityFeed) {
-	updateBottomNavUnread(feed);
+	updateLiveNavUnread(feed);
 	renderHomeLatestLive(feed);
 	const page = document.getElementById('live-updates-page');
 	if (!page) return;
@@ -965,7 +994,7 @@ function startLiveActivityPolling() {
 }
 
 function initLiveActivity() {
-	const tab = document.getElementById('gp-bottom-nav-live');
+	const tab = document.getElementById('gp-nav-live');
 	const page = document.getElementById('live-updates-page');
 	const home = document.getElementById('home-latest-root');
 	if (!tab && !page && !home) return;
