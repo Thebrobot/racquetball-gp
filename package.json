@@ -10,7 +10,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "lint": "eslint .",
-    "test": "tsx --test src/lib/live/*.test.ts src/data/*.test.ts src/lib/accounts/*.test.ts src/lib/notify/*.test.ts",
+    "test": "tsx --test src/lib/live/*.test.ts src/data/*.test.ts src/lib/accounts/*.test.ts src/lib/notify/*.test.ts src/lib/events/*.test.ts",
     "sync:points": "node scripts/sync-gp-points.mjs",
     "compute:sarasota-points": "tsx scripts/compute-sarasota-gp-points.ts",
     "sync:photos": "node scripts/sync-player-photos.mjs",

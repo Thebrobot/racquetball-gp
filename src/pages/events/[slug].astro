@@ -214,6 +214,7 @@ const eventJsonLd = {
 		<div class="gp-page-head-inner">
 			<div class="event-tab-bar" role="tablist" aria-label="Event views">
 				<button
+					id="brackets"
 					class="event-tab event-tab--active"
 					role="tab"
 					aria-selected="true"
@@ -224,6 +225,7 @@ const eventJsonLd = {
 				</button>
 				{totalParticipants > 0 && (
 					<button
+						id="participants"
 						class="event-tab"
 						role="tab"
 						aria-selected="false"
@@ -249,7 +251,7 @@ const eventJsonLd = {
 	</header>
 
 	<!-- ── BRACKETS PANEL ── -->
-	<div id="panel-brackets" class="event-panel" role="tabpanel" aria-labelledby="tab-brackets">
+	<div id="panel-brackets" class="event-panel" role="tabpanel" aria-labelledby="brackets">
 		<section class="gp-band gp-band--tight" aria-label="Brackets">
 			<div class="gp-band-inner">
 				<div class="division-list event-division-grid">
@@ -294,7 +296,7 @@ const eventJsonLd = {
 	</div>
 
 	<!-- ── PARTICIPANTS PANEL ── -->
-	<div id="panel-participants" class="event-panel" role="tabpanel" aria-labelledby="tab-participants" hidden>
+	<div id="panel-participants" class="event-panel" role="tabpanel" aria-labelledby="participants" hidden>
 		<section class="gp-band gp-band--tight" aria-label="Participants">
 			<div class="gp-band-inner">
 				<!-- Player search -->
@@ -381,6 +383,8 @@ const eventJsonLd = {
 
 <!-- ── TAB TOGGLE SCRIPT ── -->
 <script>
+import { eventHashScrollTop, eventPanelFromHash } from '../../lib/events/event-hash';
+
 (function () {
 	// ── Participants search (live row filter) ────────────────────────────────
 	const input = document.getElementById('player-search') as HTMLInputElement | null;
@@ -422,11 +426,13 @@ const eventJsonLd = {
 		});
 	}
 
-	// ── Tab toggle ───────────────────────────────────────────────────────────
-	const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('.event-tab'));
+	// ── Tab toggle + hash (#brackets / #participants / #panel-*) ─────────────
+	const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('.event-tab[data-panel]'));
 	const panels = Array.from(document.querySelectorAll<HTMLElement>('.event-panel'));
 
 	function activate(panelId: string) {
+		const exists = tabs.some((t) => t.dataset.panel === panelId);
+		if (!exists) return false;
 		tabs.forEach((t) => {
 			const active = t.dataset.panel === panelId;
 			t.classList.toggle('event-tab--active', active);
@@ -435,17 +441,36 @@ const eventJsonLd = {
 		panels.forEach((p) => {
 			p.hidden = p.id !== `panel-${panelId}`;
 		});
+		return true;
 	}
 
-	// Respect incoming hash on page load
-	const hash = location.hash.replace('#', '');
-	if (hash === 'participants' || hash === 'brackets') {
-		activate(hash);
+	function scrollToPanel() {
+		const bar = document.querySelector('.event-tab-bar');
+		if (!bar) return;
+		const nav = document.querySelector('.gp-nav-wrap');
+		const navBottom = nav ? nav.getBoundingClientRect().bottom : 76;
+		const targetTop = bar.getBoundingClientRect().top + window.scrollY;
+		const top = eventHashScrollTop(targetTop, navBottom);
+		const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
 	}
+
+	function applyHash(scroll: boolean) {
+		const panel = eventPanelFromHash(location.hash);
+		if (!panel) return;
+		if (!activate(panel)) return;
+		if (scroll) {
+			requestAnimationFrame(() => requestAnimationFrame(scrollToPanel));
+		}
+	}
+
+	applyHash(true);
+	window.addEventListener('hashchange', () => applyHash(true));
 
 	tabs.forEach((btn) => {
 		btn.addEventListener('click', () => {
-			const panel = btn.dataset.panel!;
+			const panel = btn.dataset.panel;
+			if (!panel) return;
 			activate(panel);
 			history.replaceState(null, '', `#${panel}`);
 		});
@@ -476,6 +501,13 @@ const eventJsonLd = {
 .event-head .event-tab-bar {
 	justify-content: flex-start;
 	margin-top: 26px;
+	scroll-margin-top: calc(80px + env(safe-area-inset-top, 0px));
+}
+.event-tab-bar .event-tab[id] {
+	scroll-margin-top: calc(80px + env(safe-area-inset-top, 0px));
+}
+.event-panel[hidden] {
+	display: none !important;
 }
 
 /* ── Division cards ── */
