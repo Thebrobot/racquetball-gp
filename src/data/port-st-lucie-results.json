@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-10-23T23:58:43.880Z",
+  "lastUpdated": "2026-10-24T03:36:44.755Z",
   "divisions": {
     "mens-singles-open": {
       "MO6": {
@@ -317,10 +317,10 @@
       "MBD4": {
         "player1": "Ryan Appleby / Matt Kern",
         "player2": "Jonathan Estepan / Daniel Bray",
+        "court": "Court 4",
         "scheduledTime": "Friday · 4:30 PM",
         "winner": 1,
-        "score": "15-4, 15-9",
-        "court": "Court 4"
+        "score": "15-4, 15-9"
       },
       "MBD3": {
         "player1": "Paul Sotolongo / Mark Manzano",
