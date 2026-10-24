@@ -16,6 +16,12 @@ import {
 	assignLeaderboardPlaces,
 } from '../data/leaderboard';
 import { renderStandingsRow, renderPodium } from '../lib/leaderboard-render';
+import {
+	formatLiveDayLabel,
+	formatLiveRelativeTime,
+	formatLiveSyncedAt,
+	formatLiveWhen,
+} from '../lib/live/format-display-time';
 
 function esc(s: string): string {
 	return String(s)
@@ -790,28 +796,6 @@ type LiveActivityFeed = {
 	events: LiveActivityEvent[];
 };
 
-function formatRelativeTime(iso: string): string {
-	const d = new Date(iso);
-	if (Number.isNaN(d.getTime())) return '';
-	const sec = Math.floor((Date.now() - d.getTime()) / 1000);
-	if (sec < 60) return 'Just now';
-	if (sec < 3600) return `${Math.floor(sec / 60)} min ago`;
-	if (sec < 86400) return `${Math.floor(sec / 3600)} hr ago`;
-	return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-}
-
-function formatSyncedAt(iso: string | null): string {
-	if (!iso) return 'Not yet synced';
-	const d = new Date(iso);
-	if (Number.isNaN(d.getTime())) return 'Not yet synced';
-	return d.toLocaleString('en-US', {
-		month: 'short',
-		day: 'numeric',
-		hour: 'numeric',
-		minute: '2-digit',
-		timeZoneName: 'short',
-	});
-}
 
 function readLiveActivitySeenAt(): string | null {
 	try {
@@ -868,7 +852,7 @@ function renderLiveFeedCard(item: LiveActivityEvent, fresh: boolean): string {
 		? `<p class="live-feed-detail">${esc(item.detail)}</p>`
 		: '';
 	return `<article class="live-feed-card${fresh ? ' live-feed-card--fresh' : ''}" data-at="${escAttr(item.at)}" data-id="${escAttr(item.id)}">
-		<time class="live-feed-time" datetime="${escAttr(item.at)}">${esc(formatRelativeTime(item.at))}</time>
+		<time class="live-feed-time" datetime="${escAttr(item.at)}">${esc(formatLiveRelativeTime(item.at))}</time>
 		<p class="live-feed-division">${esc(item.divisionLabel)}</p>
 		<h3 class="live-feed-headline">${esc(item.headline)}</h3>
 		${detail}
@@ -887,8 +871,7 @@ function renderLiveFeedList(feed: LiveActivityFeed, prevLastUpdated: string | nu
 	}
 
 	const isNewSync = prevLastUpdated != null && feed.lastUpdated !== prevLastUpdated;
-	const dayLabel = (iso: string) =>
-		new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/New_York', weekday: 'long', month: 'long', day: 'numeric' });
+	const dayLabel = formatLiveDayLabel;
 	const days: { label: string; items: LiveActivityEvent[] }[] = [];
 	for (const item of feed.events) {
 		const label = dayLabel(item.at);
@@ -908,7 +891,7 @@ function renderLiveFeedList(feed: LiveActivityFeed, prevLastUpdated: string | nu
 
 function updateLiveSyncLabel(feed: LiveActivityFeed) {
 	const el = document.getElementById('live-sync-time');
-	if (el) el.textContent = formatSyncedAt(feed.lastUpdated);
+	if (el) el.textContent = formatLiveSyncedAt(feed.lastUpdated);
 	const page = document.getElementById('live-updates-page');
 	if (page && feed.lastUpdated) page.setAttribute('data-last-updated', feed.lastUpdated);
 }
@@ -934,7 +917,7 @@ let livePageLastKnown: string | null = null;
 function hydrateLiveFeedTimes() {
 	document.querySelectorAll<HTMLElement>('[data-live-time]').forEach((el) => {
 		const iso = el.getAttribute('data-live-time');
-		if (iso) el.textContent = formatRelativeTime(iso);
+		if (iso) el.textContent = formatLiveRelativeTime(iso);
 	});
 }
 
@@ -946,7 +929,7 @@ function renderHomeLatestLive(feed: LiveActivityFeed) {
 		.map((item) => {
 			const detail = item.detail ? `<p class="home-feed-detail">${esc(item.detail)}</p>` : '';
 			return `<article class="home-feed-card">
-				<time class="home-feed-time" datetime="${escAttr(item.at)}">${esc(formatRelativeTime(item.at))}</time>
+				<time class="home-feed-time" datetime="${escAttr(item.at)}">${esc(formatLiveWhen(item.at))}</time>
 				<p class="home-feed-division">${esc(item.divisionLabel)}</p>
 				<h3 class="home-feed-headline">${esc(item.headline)}</h3>
 				${detail}

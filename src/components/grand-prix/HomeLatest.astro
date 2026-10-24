@@ -17,6 +17,7 @@ import {
 } from '../../data/leaderboard';
 import { getPlayerImageForDisplay } from '../../data/player-images';
 import { getPlayerSlug } from '../../data/players';
+import { formatLiveWhen } from '../../lib/live/format-display-time';
 
 type LiveActivityEvent = {
 	id: string;
@@ -60,11 +61,6 @@ const lastStopSlug = lastStop?.bracketsHref?.replace('#brackets', '') ?? '/tourn
 function teamNames(name: string): string[] {
 	return name.split('/').map((s) => s.trim()).filter(Boolean);
 }
-function formatWhen(iso: string): string {
-	const d = new Date(iso);
-	if (Number.isNaN(d.getTime())) return '';
-	return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-}
 ---
 
 {hasLive ? (
@@ -82,7 +78,7 @@ function formatWhen(iso: string): string {
 			<div class="home-latest-feed">
 				{liveItems.map((item) => (
 					<article class="home-feed-card">
-						<time class="home-feed-time" datetime={item.at}>{formatWhen(item.at)}</time>
+						<time class="home-feed-time" datetime={item.at}>{formatLiveWhen(item.at)}</time>
 						<p class="home-feed-division">{item.divisionLabel}</p>
 						<h3 class="home-feed-headline">{item.headline}</h3>
 						{item.detail && <p class="home-feed-detail">{item.detail}</p>}
