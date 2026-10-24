@@ -4,6 +4,7 @@ import {
 	BLOB_READ_FRESH_TIMEOUT_MS,
 	BLOB_READ_TIMEOUT_MS,
 	blobReadOptions,
+	getBundledActivity,
 	getBundledResults,
 } from './store';
 
@@ -45,5 +46,18 @@ describe('getBundledResults', () => {
 		assert.equal(bundled.divisions['mens-singles-b']?.MB8?.player2, 'Elijah Saunders');
 		assert.equal(bundled.divisions['mens-singles-b']?.MB4?.player1, 'Elijah Saunders');
 		assert.equal(bundled.divisions['mens-singles-b']?.MB4?.player2, 'Daniel Bray');
+		assert.equal(bundled.divisions['mens-doubles-b']?.MBD1?.winner, 1);
+		assert.equal(bundled.divisions['mens-doubles-b']?.MBD1?.score, '15-3, 15-7');
+		assert.equal(bundled.divisions['mens-doubles-b']?.MBD1?.player1, 'Ryan Appleby / Matt Kern');
+	});
+
+	it('backfills the MBD1 activity row so deploy shows the 4:45 final', () => {
+		const feed = getBundledActivity();
+		const row = feed.events.find((e) => e.matchId === 'MBD1');
+		assert.ok(row);
+		assert.equal(row.at, '2026-10-24T20:45:00.000Z');
+		assert.equal(row.headline, 'Ryan Appleby / Matt Kern def Paul Sotolongo / Mark Manzano');
+		assert.equal(row.detail, '15-3, 15-7');
+		assert.ok(feed.lastUpdated && feed.lastUpdated >= '2026-10-24T20:45:00.000Z');
 	});
 });
