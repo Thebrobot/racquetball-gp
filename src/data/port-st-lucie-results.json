@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-10-24T18:50:21.588Z",
+  "lastUpdated": "2026-10-24T21:14:48.489Z",
   "divisions": {
     "mens-singles-open": {
       "MO6": {
@@ -22,13 +22,17 @@
         "player1": "Annie Sanchez",
         "player2": "Joe Linnell",
         "court": "Court 1",
-        "scheduledTime": "Saturday · 3:00 PM"
+        "scheduledTime": "Saturday · 3:00 PM",
+        "winner": 1,
+        "score": "15-3, 15-8"
       },
       "MO3": {
         "player1": "Naomi Ros",
         "player2": "Chris Steinheiser",
         "court": "Court 1",
-        "scheduledTime": "Saturday · 4:00 PM"
+        "scheduledTime": "Saturday · 4:00 PM",
+        "winner": 1,
+        "score": "15-7, 15-3"
       },
       "MO2": {
         "player1": "Joe Linnell",
@@ -216,8 +220,10 @@
       "M30404": {
         "player1": "Scott Haacke",
         "player2": "Trevor Morgan",
-        "court": "Court 3",
-        "scheduledTime": "Saturday · 3:00 PM"
+        "court": "Court 4",
+        "scheduledTime": "Saturday · 3:00 PM",
+        "winner": 1,
+        "score": "15-3, 15-10"
       },
       "M30403": {
         "player1": "Jason Cheng",
@@ -386,20 +392,30 @@
       "MED7": {
         "player1": "Dirk Huck / John Joseph",
         "player2": "Scott Haacke / Bryon Haacke",
-        "court": "Court 4",
+        "court": "Court 2",
         "scheduledTime": "Saturday · 4:00 PM"
       },
       "MED6": {
         "player1": "Tony Gutierrez / Jim Russell",
         "player2": "Mike Bock / Terry Money",
-        "court": "Court 4",
-        "scheduledTime": "Saturday · 3:00 PM"
+        "court": "Court 3",
+        "scheduledTime": "Saturday · 3:00 PM",
+        "winner": 2,
+        "score": "15-2, 15-14"
       },
       "MED8": {
         "player1": "Samuel Schulze / Brendan Anthony",
         "player2": "Jack McDonald / Yelandi Rivero",
-        "court": "Court 3",
-        "scheduledTime": "Saturday · 4:00 PM"
+        "court": "Court 4",
+        "scheduledTime": "Saturday · 4:00 PM",
+        "winner": 1,
+        "score": "15-11, 15-13"
+      },
+      "MED4": {
+        "player1": "Samuel Schulze / Brendan Anthony",
+        "player2": "Wade Stubanas / Brian Grantham",
+        "court": "Court 2",
+        "scheduledTime": "Sunday · 12:00 PM"
       }
     },
     "mens-doubles-a": {
@@ -472,7 +488,9 @@
       "MBD1": {
         "player1": "Ryan Appleby / Matt Kern",
         "player2": "Paul Sotolongo / Mark Manzano",
-        "scheduledTime": "Saturday · 3:00 PM"
+        "scheduledTime": "Saturday · 3:00 PM",
+        "winner": 1,
+        "score": "15-3, 15-7"
       }
     },
     "mens-doubles-centurion": {

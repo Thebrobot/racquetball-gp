@@ -1,7 +1,73 @@
 {
-  "lastUpdated": "2026-10-24T20:45:00.000Z",
+  "lastUpdated": "2026-10-24T21:14:48.489Z",
   "eventSlug": "port-st-lucie-open",
   "events": [
+    {
+      "id": "2026-10-24T21:14:48.489Z-mens-singles-open-MO4",
+      "at": "2026-10-24T21:14:48.489Z",
+      "type": "result",
+      "divisionId": "mens-singles-open",
+      "divisionLabel": "Men's Singles: Open",
+      "matchId": "MO4",
+      "headline": "Annie Sanchez def Joe Linnell",
+      "detail": "15-3, 15-8",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-open"
+    },
+    {
+      "id": "2026-10-24T21:14:48.489Z-mens-singles-open-MO3",
+      "at": "2026-10-24T21:14:48.489Z",
+      "type": "result",
+      "divisionId": "mens-singles-open",
+      "divisionLabel": "Men's Singles: Open",
+      "matchId": "MO3",
+      "headline": "Naomi Ros def Chris Steinheiser",
+      "detail": "15-7, 15-3",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-open"
+    },
+    {
+      "id": "2026-10-24T21:14:48.489Z-mens-age-3040-M30404",
+      "at": "2026-10-24T21:14:48.489Z",
+      "type": "result",
+      "divisionId": "mens-age-3040",
+      "divisionLabel": "Men's Age Singles: 24/30/40",
+      "matchId": "M30404",
+      "headline": "Scott Haacke def Trevor Morgan",
+      "detail": "15-3, 15-10",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-age-3040"
+    },
+    {
+      "id": "2026-10-24T21:14:48.489Z-mens-doubles-elite-MED6",
+      "at": "2026-10-24T21:14:48.489Z",
+      "type": "result",
+      "divisionId": "mens-doubles-elite",
+      "divisionLabel": "Men's Doubles: Elite",
+      "matchId": "MED6",
+      "headline": "Mike Bock / Terry Money def Tony Gutierrez / Jim Russell",
+      "detail": "15-2, 15-14",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-elite"
+    },
+    {
+      "id": "2026-10-24T21:14:48.489Z-mens-doubles-elite-MED8",
+      "at": "2026-10-24T21:14:48.489Z",
+      "type": "result",
+      "divisionId": "mens-doubles-elite",
+      "divisionLabel": "Men's Doubles: Elite",
+      "matchId": "MED8",
+      "headline": "Samuel Schulze / Brendan Anthony def Jack McDonald / Yelandi Rivero",
+      "detail": "15-11, 15-13",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-elite"
+    },
+    {
+      "id": "2026-10-24T21:14:48.489Z-mens-doubles-b-MBD1",
+      "at": "2026-10-24T21:14:48.489Z",
+      "type": "result",
+      "divisionId": "mens-doubles-b",
+      "divisionLabel": "Men's Doubles: B",
+      "matchId": "MBD1",
+      "headline": "Ryan Appleby / Matt Kern def Paul Sotolongo / Mark Manzano",
+      "detail": "15-3, 15-7",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-b"
+    },
     {
       "id": "2026-10-24T20:45:00.000Z-mens-doubles-b-MBD1",
       "at": "2026-10-24T20:45:00.000Z",
