@@ -29,10 +29,31 @@ async function readStreamText(stream: ReadableStream<Uint8Array> | null): Promis
 	return new Response(stream).text();
 }
 
-async function readBlobJson<T>(pathname: string): Promise<T | null> {
+/** Page renders must not wait on a wedged Blob get(); cron can wait longer. */
+export const BLOB_READ_TIMEOUT_MS = 2_000;
+export const BLOB_READ_FRESH_TIMEOUT_MS = 10_000;
+
+export type BlobReadOptions = {
+	timeoutMs?: number;
+	useCache?: boolean;
+};
+
+export function blobReadOptions(opts?: BlobReadOptions): {
+	access: 'public';
+	useCache: boolean;
+	abortSignal: AbortSignal;
+} {
+	return {
+		access: 'public',
+		useCache: opts?.useCache ?? true,
+		abortSignal: AbortSignal.timeout(opts?.timeoutMs ?? BLOB_READ_TIMEOUT_MS),
+	};
+}
+
+async function readBlobJson<T>(pathname: string, opts?: BlobReadOptions): Promise<T | null> {
 	if (!liveStoreConfigured()) return null;
 	try {
-		const fresh = await get(pathname, { access: 'public', useCache: false });
+		const fresh = await get(pathname, blobReadOptions(opts));
 		if (!fresh?.stream) return null;
 		return JSON.parse(await readStreamText(fresh.stream)) as T;
 	} catch {
@@ -99,9 +120,9 @@ export function getBundledResults(slug: string): LiveResultsFile {
 	return BUNDLED_RESULTS[slug] ?? emptyResults();
 }
 
-export async function readLiveResults(slug: string): Promise<LiveResultsFile> {
+export async function readLiveResults(slug: string, opts?: BlobReadOptions): Promise<LiveResultsFile> {
 	const bundled = getBundledResults(slug);
-	const live = await readBlobJson<LiveResultsFile>(resultsPath(slug));
+	const live = await readBlobJson<LiveResultsFile>(resultsPath(slug), opts);
 	if (live?.divisions && preferLive(live.lastUpdated, bundled.lastUpdated)) return live;
 	return bundled;
 }
@@ -110,9 +131,9 @@ export async function writeLiveResults(slug: string, data: LiveResultsFile): Pro
 	await writeBlobJson(resultsPath(slug), data);
 }
 
-export async function readLiveActivity(): Promise<LiveActivityFeed> {
+export async function readLiveActivity(opts?: BlobReadOptions): Promise<LiveActivityFeed> {
 	const bundled = (bundledActivity as LiveActivityFeed) ?? emptyActivity();
-	const live = await readBlobJson<LiveActivityFeed>(ACTIVITY_PATH);
+	const live = await readBlobJson<LiveActivityFeed>(ACTIVITY_PATH, opts);
 	if (live?.events && preferLive(live.lastUpdated, bundled.lastUpdated)) return live;
 	return bundled;
 }
@@ -121,8 +142,8 @@ export async function writeLiveActivity(feed: LiveActivityFeed): Promise<void> {
 	await writeBlobJson(ACTIVITY_PATH, feed);
 }
 
-export async function readSyncStatus(): Promise<SyncStatus> {
-	return (await readBlobJson<SyncStatus>(STATUS_PATH)) ?? emptyStatus();
+export async function readSyncStatus(opts?: BlobReadOptions): Promise<SyncStatus> {
+	return (await readBlobJson<SyncStatus>(STATUS_PATH, opts)) ?? emptyStatus();
 }
 
 export async function writeSyncStatus(status: SyncStatus): Promise<void> {
