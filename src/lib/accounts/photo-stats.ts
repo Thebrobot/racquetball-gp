@@ -6,6 +6,7 @@
 import type { AstroCookies } from 'astro';
 import { createAdminClient, createSessionClient, getSession } from './supabase';
 import { getAllPlayers } from '../../data/players';
+import { canRemovePhotoTag } from './photo-tags';
 
 export type PhotoStat = { likes: number; views: number; shares: number; comments: number };
 export type GalleryViewer = {
@@ -19,17 +20,19 @@ export type GallerySocial = {
 	likedIds: string[];
 	signedIn: boolean;
 	viewer: GalleryViewer;
-	/** Player list for the admin "tag a player" picker (admins only). */
+	/** Player list for the tag-player picker (signed-in visitors). */
 	players?: { name: string; slug: string }[];
+	tagsByPhoto: Record<string, { slug: string; name: string; canRemove: boolean }[]>;
 };
 
 export async function getGallerySocial(request: Request, cookies: AstroCookies): Promise<GallerySocial> {
-	const empty: GallerySocial = { stats: {}, likedIds: [], signedIn: false, viewer: { signedIn: false, playerSlug: null, displayName: null, isAdmin: false } };
+	const empty: GallerySocial = { stats: {}, likedIds: [], signedIn: false, viewer: { signedIn: false, playerSlug: null, displayName: null, isAdmin: false }, tagsByPhoto: {} };
 	const admin = createAdminClient();
 	if (!admin) return empty;
 
-	const [statsRes, session] = await Promise.all([
+	const [statsRes, tagsRes, session] = await Promise.all([
 		admin.from('photo_stats').select('photo_id, likes, views, shares, comments'),
+		admin.from('photo_tags').select('photo_id, player_slug, tagged_by'),
 		getSession(request, cookies),
 	]);
 
@@ -50,11 +53,29 @@ export async function getGallerySocial(request: Request, cookies: AstroCookies):
 		displayName: session?.profile?.display_name ?? null,
 		isAdmin: Boolean(session?.isAdmin),
 	};
+	const actor = {
+		signedIn: viewer.signedIn,
+		userId: session?.user.id ?? null,
+		isAdmin: viewer.isAdmin,
+		playerSlug: viewer.playerSlug,
+	};
+	const names = new Map(getAllPlayers().map((p) => [p.slug, p.name]));
+	const tagsByPhoto: Record<string, { slug: string; name: string; canRemove: boolean }[]> = {};
+	for (const row of (tagsRes.data ?? []) as { photo_id: string; player_slug: string; tagged_by: string | null }[]) {
+		const name = names.get(row.player_slug);
+		if (!name) continue;
+		(tagsByPhoto[row.photo_id] ??= []).push({
+			slug: row.player_slug,
+			name,
+			canRemove: canRemovePhotoTag(actor, { slug: row.player_slug, taggedBy: row.tagged_by }),
+		});
+	}
 	return {
 		stats,
 		likedIds,
 		signedIn: Boolean(session),
 		viewer,
-		...(viewer.isAdmin ? { players: getAllPlayers().map((p) => ({ name: p.name, slug: p.slug })) } : {}),
+		tagsByPhoto,
+		...(viewer.signedIn ? { players: getAllPlayers().map((p) => ({ name: p.name, slug: p.slug })) } : {}),
 	};
 }

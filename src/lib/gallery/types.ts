@@ -46,4 +46,6 @@ export type GalleryClientConfig = {
 	signedIn?: boolean;
 	viewer?: { signedIn: boolean; playerSlug: string | null; displayName: string | null; isAdmin: boolean };
 	players?: { name: string; slug: string }[];
+	/** Seed tags so the feed / lightbox can show names without a per-photo fetch. */
+	tagsByPhoto?: Record<string, { slug: string; name: string; canRemove: boolean }[]>;
 };

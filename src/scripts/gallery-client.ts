@@ -1,4 +1,5 @@
 import type { GalleryAlbum, GalleryClientConfig, GalleryPhoto } from '../lib/gallery/types';
+import { playerNameMatches } from '../lib/accounts/player-search';
 import { enablePush, getPushState, pushSupported } from './push-client';
 import { lockScroll, unlockScroll } from './scroll-lock';
 
@@ -793,7 +794,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 
 
 	// ── People panel: who is in the photo, who liked it, tagging ─────────────
-	type PhotoPerson = { slug: string; name: string; displayName: string | null };
+	type PhotoPerson = { slug: string; name: string; displayName: string | null; canRemove: boolean };
 	type PhotoLiker = { name: string; slug: string | null };
 	type PeoplePayload = {
 		tags: PhotoPerson[];
@@ -801,32 +802,25 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		viewer: { signedIn: boolean; playerSlug: string | null; isAdmin: boolean; tagged: boolean };
 	};
 	const peopleEl = $('#gallery-lb-people');
+	const lbTags = $('#gallery-lb-tags');
 	let peopleFor: string | null = null;
 	const peopleCache = new Map<string, PeoplePayload>();
 	const viewer = config.viewer ?? { signedIn: Boolean(config.signedIn), playerSlug: null, displayName: null, isAdmin: false };
-
-	function claimLabel(tagged: boolean): string {
-		return tagged ? 'Remove tag' : 'Claim photo';
+	for (const [id, tags] of Object.entries(config.tagsByPhoto ?? {})) {
+		peopleCache.set(id, {
+			tags: tags.map((t) => ({ slug: t.slug, name: t.name, displayName: null, canRemove: t.canRemove })),
+			likers: [],
+			viewer: { signedIn: viewer.signedIn, playerSlug: viewer.playerSlug, isAdmin: viewer.isAdmin, tagged: Boolean(viewer.playerSlug && tags.some((t) => t.slug === viewer.playerSlug)) },
+		});
 	}
 
-	function paintClaimBtn(btn: HTMLElement | null, tagged: boolean | null): void {
-		if (!btn) return;
-		const claimed = Boolean(tagged);
-		btn.classList.toggle('is-claimed', claimed);
-		btn.setAttribute('aria-pressed', tagged == null ? 'false' : claimed ? 'true' : 'false');
-		btn.setAttribute('aria-label', claimLabel(claimed));
-		const text = btn.querySelector('.glb-claim-label, .gfeed-claim-label');
-		if (text) text.textContent = claimLabel(claimed);
+	function accountNext(): string {
+		return `/account?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
 	}
 
-	function paintClaimFor(photo: GalleryPhoto, tagged: boolean | null): void {
-		paintClaimBtn(lbClaim, tagged);
-		paintClaimBtn(feedCard(photo.id)?.querySelector('.gfeed-act--claim') ?? null, tagged);
-	}
-
-	async function peopleForPhoto(photo: GalleryPhoto): Promise<PeoplePayload | null> {
+	async function peopleForPhoto(photo: GalleryPhoto, refresh = false): Promise<PeoplePayload | null> {
 		const cached = peopleCache.get(photo.id);
-		if (cached) return cached;
+		if (cached && !refresh) return cached;
 		try {
 			const res = await fetch(`/api/photos/people?id=${encodeURIComponent(photo.id)}`, { cache: 'no-store' });
 			if (!res.ok) throw new Error('people failed');
@@ -834,73 +828,55 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 			peopleCache.set(photo.id, data);
 			return data;
 		} catch {
-			return null;
+			return cached ?? null;
 		}
 	}
 
-	function accountNext(): string {
-		return `/account?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
-	}
-
-	/** Same tag / sign-in / claim-profile flow as the people panel, from the action row. */
-	async function claimPhoto(photo: GalleryPhoto, btn?: HTMLElement | null): Promise<void> {
-		if (!viewer.signedIn) {
-			window.location.href = accountNext();
-			return;
-		}
-		if (!viewer.playerSlug) {
-			window.location.href = '/account';
-			return;
-		}
-		if (btn) btn.setAttribute('disabled', '');
-		const data = await peopleForPhoto(photo);
-		const tagged = Boolean(data?.viewer.tagged);
-		const err = await changeTag(photo, tagged ? 'remove' : 'add');
-		if (err) window.alert(err);
-		else if (!tagged) void offerPush();
-		if (btn) btn.removeAttribute('disabled');
-	}
-
-	function avatarChip(slug: string | null, label: string, cls: string): string {
+	function avatarChip(slug: string | null, label: string, cls: string, canRemove = false): string {
 		const initials = label.split(' ').slice(0, 2).map((w) => w[0] ?? '').join('').toUpperCase();
-		const inner = `<span class="gallery-chip-avatar" aria-hidden="true">${escapeHtml(initials)}</span><span>${escapeHtml(label)}</span>`;
-		return slug
-			? `<a class="${cls}" href="/players/${encodeURIComponent(slug)}">${inner}</a>`
-			: `<span class="${cls} ${cls}--plain">${inner}</span>`;
+		const inner = `<span class="gallery-chip-avatar" aria-hidden="true">${escapeHtml(initials)}</span><span class="gallery-chip-name" title="${escapeHtml(label)}">${escapeHtml(label)}</span>`;
+		const remove = canRemove && slug
+			? `<button type="button" class="gallery-chip-x" data-people="remove" data-slug="${escapeHtml(slug)}" aria-label="Remove tag ${escapeHtml(label)}">×</button>`
+			: '';
+		const body = slug
+			? `<a class="${cls}" href="/players/${encodeURIComponent(slug)}" title="${escapeHtml(label)}">${inner}</a>${remove}`
+			: `<span class="${cls} ${cls}--plain" title="${escapeHtml(label)}">${inner}</span>`;
+		return `<span class="gallery-chip-wrap">${body}</span>`;
+	}
+
+	function tagChipsHtml(tags: PhotoPerson[]): string {
+		return tags.map((t) => avatarChip(t.slug, t.name, 'gallery-chip', t.canRemove)).join('');
+	}
+
+	function paintPhotoTags(photo: GalleryPhoto, data: PeoplePayload): void {
+		const chips = tagChipsHtml(data.tags);
+		if (lbTags && visible[lbIndex]?.id === photo.id) {
+			lbTags.innerHTML = chips
+				? `<span class="gallery-people-label">In this photo</span><div class="gallery-people-chips">${chips}</div>`
+				: '';
+		}
+		const card = feedCard(photo.id);
+		const row = card?.querySelector('.gfeed-tags');
+		if (row) row.innerHTML = chips;
+		row?.classList.toggle('is-empty', !data.tags.length);
 	}
 
 	function renderPeople(photo: GalleryPhoto, data: PeoplePayload): void {
 		peopleCache.set(photo.id, data);
-		paintClaimFor(photo, data.viewer.tagged);
+		paintPhotoTags(photo, data);
 		if (!peopleEl) return;
 		const parts: string[] = [];
-		const tagChips = data.tags.map((t) => avatarChip(t.slug, t.name, 'gallery-chip')).join('');
+		const tagChips = tagChipsHtml(data.tags);
 		let action = '';
-		if (viewer.signedIn && data.viewer.playerSlug) {
-			action = data.viewer.tagged
-				? `<button type="button" class="gallery-people-btn" data-people="untag">Remove my tag</button>`
-				: `<button type="button" class="gallery-people-btn gallery-people-btn--primary" data-people="tag">I'm in this photo</button>`;
-		} else if (viewer.signedIn) {
-			action = `<a class="gallery-people-hint" href="/account">Claim your player profile to tag yourself</a>`;
+		if (viewer.signedIn) {
+			action = `<button type="button" class="gallery-people-btn gallery-people-btn--primary" data-people="tag">Tag player</button>`;
 		} else {
-			action = `<a class="gallery-people-hint" href="/account?next=${encodeURIComponent(window.location.pathname + window.location.search)}">Sign in to tag yourself</a>`;
+			action = `<a class="gallery-people-hint" href="${accountNext()}">Sign in to tag a player</a>`;
 		}
-		let adminTag = '';
-		if (data.viewer.isAdmin && config.players?.length) {
-			adminTag = `<form class="gallery-people-admin" data-people="admin-form">
-				<input class="gallery-people-input" list="gallery-player-list" name="player" placeholder="Tag a player…" autocomplete="off" />
-				<datalist id="gallery-player-list">${config.players.map((pl) => `<option value="${escapeHtml(pl.name)}" data-slug="${escapeHtml(pl.slug)}"></option>`).join('')}</datalist>
-				<button type="submit" class="gallery-people-btn">Add</button>
-			</form>`;
-		}
-		const removeAll = data.viewer.isAdmin && data.tags.length
-			? `<div class="gallery-people-remove">${data.tags.map((t) => `<button type="button" class="gallery-people-x" data-people="remove" data-slug="${escapeHtml(t.slug)}" title="Remove ${escapeHtml(t.name)}">× ${escapeHtml(t.name)}</button>`).join('')}</div>`
-			: '';
 		parts.push(`<div class="gallery-people-row">
 			<span class="gallery-people-label">In this photo</span>
 			<div class="gallery-people-chips">${tagChips || '<span class="gallery-people-empty">No one tagged yet</span>'}</div>
-			<div class="gallery-people-actions">${action}${adminTag}</div>
-			${removeAll}
+			<div class="gallery-people-actions">${action}</div>
 		</div>`);
 		const shown = data.likers.slice(0, 8);
 		const extra = data.likers.length - shown.length;
@@ -946,7 +922,9 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 
 	async function loadPeople(photo: GalleryPhoto): Promise<void> {
 		peopleFor = photo.id;
-		const data = await peopleForPhoto(photo);
+		const seeded = peopleCache.get(photo.id);
+		if (seeded) paintPhotoTags(photo, seeded);
+		const data = await peopleForPhoto(photo, true);
 		if (peopleFor !== photo.id) return;
 		if (!data) {
 			if (peopleEl) peopleEl.hidden = true;
@@ -955,14 +933,14 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		renderPeople(photo, data);
 	}
 
-	async function changeTag(photo: GalleryPhoto, action: 'add' | 'remove', playerSlug?: string): Promise<string | null> {
+	async function changeTag(photo: GalleryPhoto, action: 'add' | 'remove', playerSlug: string): Promise<string | null> {
 		const res = await fetch('/api/photos/tag', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ photoId: photo.id, action, ...(playerSlug ? { playerSlug } : {}) }),
+			body: JSON.stringify({ photoId: photo.id, action, playerSlug }),
 		});
 		if (res.status === 401) {
-			window.location.href = `/account?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+			window.location.href = accountNext();
 			return null;
 		}
 		const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; message?: string };
@@ -972,17 +950,137 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		return null;
 	}
 
+	type TagPlayer = { name: string; slug: string };
+	const tagRoster: TagPlayer[] = config.players ?? [];
+	let tagPop: HTMLElement | null = document.getElementById('gallery-tag-pop');
+	if (!tagPop) {
+		tagPop = document.createElement('div');
+		tagPop.id = 'gallery-tag-pop';
+		tagPop.className = 'gallery-tag-pop';
+		tagPop.hidden = true;
+		tagPop.innerHTML = `<p class="gallery-tag-pop-label" id="gallery-tag-pop-label">Tag a player</p>
+			<input class="gallery-people-input gallery-tag-pop-input" id="gallery-tag-pop-input" type="text" role="combobox" placeholder="Start typing a name…" autocomplete="off" autocapitalize="words" spellcheck="false" inputmode="search" aria-autocomplete="list" aria-expanded="false" aria-controls="gallery-tag-pop-list" aria-labelledby="gallery-tag-pop-label" />
+			<ul class="su-claim-list gallery-tag-pop-list" id="gallery-tag-pop-list" role="listbox" hidden></ul>
+			<p class="acct-p acct-p--muted gallery-tag-pop-empty" id="gallery-tag-pop-empty" hidden>No matching player.</p>`;
+		document.body.appendChild(tagPop);
+	}
+	const tagInput = tagPop.querySelector<HTMLInputElement>('#gallery-tag-pop-input');
+	const tagList = tagPop.querySelector<HTMLElement>('#gallery-tag-pop-list');
+	const tagEmpty = tagPop.querySelector<HTMLElement>('#gallery-tag-pop-empty');
+	let tagPhoto: GalleryPhoto | null = null;
+	let tagMatches: TagPlayer[] = [];
+	let tagActive = -1;
+
+	function closeTagPop(): void {
+		if (!tagPop) return;
+		tagPop.hidden = true;
+		tagPhoto = null;
+		if (tagInput) tagInput.value = '';
+		if (tagList) tagList.hidden = true;
+		if (tagEmpty) tagEmpty.hidden = true;
+	}
+
+	function taggedSlugs(photo: GalleryPhoto): Set<string> {
+		return new Set((peopleCache.get(photo.id)?.tags ?? []).map((t) => t.slug));
+	}
+
+	function paintTagList(): void {
+		if (!tagList || !tagInput) return;
+		tagList.innerHTML = tagMatches
+			.map((p, i) => `<li role="none"><button type="button" class="su-claim-opt" role="option" id="gallery-tag-opt-${i}" data-slug="${escapeHtml(p.slug)}" aria-selected="${i === tagActive ? 'true' : 'false'}">${escapeHtml(p.name)}</button></li>`)
+			.join('');
+		tagList.hidden = tagMatches.length === 0;
+		tagInput.setAttribute('aria-expanded', tagMatches.length ? 'true' : 'false');
+	}
+
+	function syncTagList(query: string): void {
+		if (!tagPhoto || !tagEmpty) return;
+		const taken = taggedSlugs(tagPhoto);
+		const typed = query.trim();
+		if (!typed) {
+			tagMatches = [];
+			tagEmpty.hidden = true;
+			paintTagList();
+			return;
+		}
+		tagMatches = tagRoster.filter((p) => !taken.has(p.slug) && playerNameMatches(p.name, typed)).slice(0, 8);
+		tagEmpty.hidden = tagMatches.length > 0;
+		tagActive = tagMatches.length ? 0 : -1;
+		paintTagList();
+	}
+
+	async function pickTag(player: TagPlayer): Promise<void> {
+		const photo = tagPhoto;
+		if (!photo) return;
+		closeTagPop();
+		const err = await changeTag(photo, 'add', player.slug);
+		if (err) window.alert(err);
+		else void offerPush();
+	}
+
+	function openTagPicker(photo: GalleryPhoto, anchor?: HTMLElement | null): void {
+		if (!viewer.signedIn) {
+			window.location.href = accountNext();
+			return;
+		}
+		if (!tagPop || !tagInput) return;
+		tagPhoto = photo;
+		tagPop.hidden = false;
+		tagInput.value = '';
+		syncTagList('');
+		if (anchor) {
+			const r = anchor.getBoundingClientRect();
+			const width = Math.min(340, window.innerWidth - 16);
+			let left = r.left;
+			if (left + width > window.innerWidth - 8) left = window.innerWidth - width - 8;
+			tagPop.style.left = `${Math.max(8, left)}px`;
+			tagPop.style.top = `${Math.min(window.innerHeight - 80, r.bottom + 8)}px`;
+			tagPop.style.width = `${width}px`;
+		}
+		tagInput.focus();
+		void peopleForPhoto(photo);
+	}
+
+	tagInput?.addEventListener('input', () => syncTagList(tagInput.value));
+	tagInput?.addEventListener('keydown', (e) => {
+		if (e.key === 'ArrowDown' && tagMatches.length) {
+			e.preventDefault();
+			tagActive = (tagActive + 1) % tagMatches.length;
+			paintTagList();
+		} else if (e.key === 'ArrowUp' && tagMatches.length) {
+			e.preventDefault();
+			tagActive = (tagActive - 1 + tagMatches.length) % tagMatches.length;
+			paintTagList();
+		} else if (e.key === 'Enter') {
+			e.preventDefault();
+			const hit = tagMatches[tagActive] ?? tagMatches[0];
+			if (hit) void pickTag(hit);
+		} else if (e.key === 'Escape') {
+			e.preventDefault();
+			closeTagPop();
+		}
+	});
+	tagList?.addEventListener('mousedown', (e) => e.preventDefault());
+	tagList?.addEventListener('click', (e) => {
+		const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-slug]');
+		const hit = tagMatches.find((p) => p.slug === btn?.dataset.slug);
+		if (hit) void pickTag(hit);
+	});
+	document.addEventListener('pointerdown', (e) => {
+		if (!tagPop || tagPop.hidden) return;
+		const t = e.target as HTMLElement;
+		if (tagPop.contains(t) || t.closest('.glb-act--claim, .gfeed-act--claim, [data-people="tag"]')) return;
+		closeTagPop();
+	});
+
 	peopleEl?.addEventListener('click', async (e) => {
 		const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-people]');
 		if (!btn || btn.tagName === 'FORM') return;
 		const photo = visible[lbIndex];
 		if (!photo) return;
 		const kind = btn.dataset.people;
-		if (kind === 'tag' || kind === 'untag') {
-			btn.setAttribute('disabled', '');
-			const err = await changeTag(photo, kind === 'tag' ? 'add' : 'remove');
-			if (err) window.alert(err);
-			else if (kind === 'tag') void offerPush();
+		if (kind === 'tag') {
+			openTagPicker(photo, btn);
 		} else if (kind === 'push-on') {
 			btn.setAttribute('disabled', '');
 			const r = await enablePush();
@@ -995,20 +1093,11 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 			if (err) window.alert(err);
 		}
 	});
-	peopleEl?.addEventListener('submit', async (e) => {
-		const form = (e.target as HTMLElement).closest<HTMLFormElement>('[data-people="admin-form"]');
-		if (!form) return;
-		e.preventDefault();
+	lbTags?.addEventListener('click', async (e) => {
+		const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-people="remove"]');
 		const photo = visible[lbIndex];
-		const input = form.querySelector<HTMLInputElement>('input[name=player]');
-		if (!photo || !input) return;
-		const typed = input.value.trim().toLowerCase();
-		const match = config.players?.find((pl) => pl.name.toLowerCase() === typed);
-		if (!match) {
-			window.alert('Pick a player name from the list.');
-			return;
-		}
-		const err = await changeTag(photo, 'add', match.slug);
+		if (!btn?.dataset.slug || !photo) return;
+		const err = await changeTag(photo, 'remove', btn.dataset.slug);
 		if (err) window.alert(err);
 	});
 
@@ -1351,9 +1440,10 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 				<button type="button" class="gfeed-act gfeed-act--like${liked ? ' is-liked' : ''}" data-act="like" aria-pressed="${liked ? 'true' : 'false'}" aria-label="${liked ? 'Unlike' : 'Like'}">${FEED_ICONS.heart}</button>
 				<button type="button" class="gfeed-act" data-act="comment" aria-label="Comments">${FEED_ICONS.comment}</button>
 				<button type="button" class="gfeed-act" data-act="share" aria-label="Share">${FEED_ICONS.share}</button>
-				<button type="button" class="gfeed-act gfeed-act--claim" data-act="claim" aria-pressed="false" aria-label="Claim photo">${FEED_ICONS.person}<span class="gfeed-claim-label">Claim photo</span></button>
+				<button type="button" class="gfeed-act gfeed-act--claim" data-act="claim" aria-label="Tag player">${FEED_ICONS.person}<span class="gfeed-claim-label">Tag player</span></button>
 				<button type="button" class="gfeed-act gfeed-act--end" data-act="download" aria-label="Download">${FEED_ICONS.download}</button>
 			</div>
+			<div class="gfeed-tags${(peopleCache.get(photo.id)?.tags.length ?? 0) ? '' : ' is-empty'}">${tagChipsHtml(peopleCache.get(photo.id)?.tags ?? [])}</div>
 			<p class="gfeed-likes">${likesText(photo)}</p>
 			${caption ? `<p class="gfeed-caption"><strong>${escapeHtml(album)}</strong> ${escapeHtml(caption)}</p>` : ''}
 			<button type="button" class="gfeed-comments" data-act="comment">${commentsText(photo)}</button>
@@ -1397,7 +1487,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 		if (feedCount) feedCount.textContent = `${idx + 1} of ${visible.length}`;
 		recordView(photo);
 		void peopleForPhoto(photo).then((data) => {
-			if (data) paintClaimFor(photo, data.viewer.tagged);
+			if (data) paintPhotoTags(photo, data);
 		});
 		if (isBrowse) {
 			history.replaceState({ galleryEvent: slugFor(albumId), photo: photo.id }, '', pageUrl(slugFor(albumId), photo.id));
@@ -1712,7 +1802,7 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 				void shareLink(absoluteUrl(`/gallery/p/${photo.id}`), photo.caption || 'Racquetball Grand Prix');
 				break;
 			case 'claim':
-				void claimPhoto(photo, actEl);
+				openTagPicker(photo, actEl);
 				break;
 			case 'download':
 				void downloadPhoto(photo);
@@ -1782,7 +1872,18 @@ export function initGalleryClient(config: GalleryClientConfig): void {
 	});
 	lbClaim?.addEventListener('click', () => {
 		const photo = visible[lbIndex];
-		if (photo) void claimPhoto(photo, lbClaim);
+		if (photo) openTagPicker(photo, lbClaim);
+	});
+	feedScroll?.addEventListener('click', (e) => {
+		const btn = (e.target as HTMLElement).closest<HTMLElement>('.gfeed-tags [data-people="remove"]');
+		if (!btn?.dataset.slug) return;
+		const card = btn.closest<HTMLElement>('.gfeed-post');
+		const photo = card ? visible[Number(card.dataset.index)] : null;
+		if (!photo) return;
+		e.stopPropagation();
+		void changeTag(photo, 'remove', btn.dataset.slug).then((err) => {
+			if (err) window.alert(err);
+		});
 	});
 	lightbox.addEventListener('click', (e) => {
 		if (e.target === lightbox) closeLb();
