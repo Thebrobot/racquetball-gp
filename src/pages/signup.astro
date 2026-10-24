@@ -256,6 +256,7 @@ const players = claimPlayerOptions(claimed);
 		clearPick();
 		if (skipNote) skipNote.hidden = true;
 		syncList(search.value);
+		if (search.value.trim()) search.scrollIntoView({ block: 'center', behavior: 'smooth' });
 	});
 	nameEl?.addEventListener('input', () => {
 		if (slugEl?.value || (search?.value.trim() && search.value.trim() !== nameEl.value.trim())) return;

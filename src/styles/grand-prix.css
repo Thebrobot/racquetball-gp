@@ -9346,7 +9346,7 @@ a.lb2-name:hover { color: var(--orange2); }
 .acct-divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; margin: 18px 0 10px; }
 .acct-divider::before, .acct-divider::after { content: ''; flex: 1; height: 1px; background: var(--card-border); }
 .acct-hint { font-size: 13px; color: var(--muted); margin: -2px 0 6px; }
-.su-claim { margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--card-border); }
+.su-claim { margin-top: 8px; padding-top: 12px; padding-bottom: 72px; border-top: 1px solid var(--card-border); scroll-margin-top: 96px; }
 .su-claim-combo { position: relative; }
 .su-claim-list {
   list-style: none;
