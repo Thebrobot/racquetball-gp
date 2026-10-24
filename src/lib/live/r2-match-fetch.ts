@@ -5,8 +5,12 @@
 import type { MatchRecord, ParsedDrawMatch } from './parse-r2';
 import { scoresEqual } from './r2-names';
 
-export const MATCH_PAGE_GAP_MS = 400;
+export const MATCH_PAGE_GAP_MS = 1_000;
 export const R2_BLOCK_BACKOFF_MS = 5_000;
+export const R2_BLOCK_SKIP_RUNS = 2;
+export const FETCH_WINDOW_PAST_MS = 60 * 60 * 1000;
+export const FETCH_WINDOW_AHEAD_MS = 90 * 60 * 1000;
+export const DRAW_ROTATION_PER_RUN = 2;
 
 const GHOST = /^(tbd|bye)$/i;
 
@@ -127,12 +131,42 @@ export function isMatchInProgress(scheduledTime: string | undefined, now = new D
 	return t >= slot - before && t <= slot + after;
 }
 
+/** Match start sits between 60 minutes ago and 90 minutes ahead. */
+export function isMatchInFetchWindow(scheduledTime: string | undefined, now = new Date()): boolean {
+	const slot = scheduledSlotMs(scheduledTime, now);
+	if (slot == null) return false;
+	const t = now.getTime();
+	return t >= slot - FETCH_WINDOW_PAST_MS && t <= slot + FETCH_WINDOW_AHEAD_MS;
+}
+
+export function divisionHasWindowMatch(times: Array<string | undefined>, now = new Date()): boolean {
+	return times.some((t) => isMatchInFetchWindow(t, now));
+}
+
+/** Windowed divisions every run, plus a 1–2 division rotation so others do not go stale. */
+export function selectDivisionCodesToScrape(
+	codes: string[],
+	inWindow: Set<string>,
+	now = new Date(),
+	rotate = DRAW_ROTATION_PER_RUN,
+): string[] {
+	const selected: string[] = codes.filter((c) => inWindow.has(c));
+	const rest = codes.filter((c) => !inWindow.has(c));
+	if (!rest.length || rotate <= 0) return selected;
+	const tick = Math.floor(now.getTime() / (5 * 60 * 1000));
+	const start = tick % rest.length;
+	for (let i = 0; i < Math.min(rotate, rest.length); i++) {
+		selected.push(rest[(start + i) % rest.length]!);
+	}
+	return selected;
+}
+
 /**
- * Fetch a match page only when the draw box changed, the match is on court
- * (or just finished) and we do not yet have a final, a stored final's court
- * disagrees with a non-empty court on the draw, or a not-final stored court
- * needs the match page to confirm a blank draw. Never refetch an unchanged
- * finished match. A blank draw court is not a reason to refetch a final.
+ * Fetch a match page when: newly final, not-final draw box changed, a stored
+ * final's court disagrees with a non-empty draw court, or the match is in the
+ * current 60min-past / 90min-ahead window and not yet a stored final.
+ * Never refetch an unchanged finished match. A blank draw court is not a
+ * reason to refetch a final.
  */
 export function shouldFetchMatchPage(
 	draw: ParsedDrawMatch,
@@ -140,19 +174,21 @@ export function shouldFetchMatchPage(
 	now = new Date(),
 ): boolean {
 	if (!draw.r2MatchId) return false;
-	// Finished + stored court ≠ draw court → one r2-push refetch to reconcile.
-	if (drawLooksFinished(draw) && storedCourtDisagreesWithDraw(draw, existing)) return true;
 	const storedFinal = storeHasFinal(existing);
 	const changed = drawBoxChanged(draw, existing);
+	const newlyFinal = drawLooksFinished(draw) && !storedFinal;
+	const slotTime = draw.scheduledTime ?? existing?.scheduledTime;
+	const inWindow = isMatchInFetchWindow(slotTime, now);
+
+	// #45: finished + stored court ≠ draw court → one r2-push to reconcile.
+	if (drawLooksFinished(draw) && storedCourtDisagreesWithDraw(draw, existing)) return true;
 	if (storedFinal && !changed) return false;
+	if (newlyFinal) return true;
 	if (changed) return true;
-	if (drawLooksFinished(draw) && !storedFinal) return true;
-	if (!storedFinal && named(draw.player1) && named(draw.player2) && isMatchInProgress(draw.scheduledTime, now)) {
-		return true;
-	}
-	// Not-final + we have a stored court + draw dropped court → ask the match
-	// page. A page court wins; a blank page clears the stored court.
+	if (!storedFinal && named(draw.player1) && named(draw.player2) && inWindow) return true;
+	// #47: not-final stored court vs blank draw — only while in the window.
 	if (
+		inWindow &&
 		!storedFinal &&
 		named(draw.player1) &&
 		named(draw.player2) &&
@@ -162,6 +198,20 @@ export function shouldFetchMatchPage(
 		return true;
 	}
 	return false;
+}
+
+export function shouldSkipBlockedRun(prevRemaining?: number, force = false): boolean {
+	return !force && (prevRemaining ?? 0) > 0;
+}
+
+export function nextSkipRunsRemaining(
+	prevRemaining: number | undefined,
+	blockedThisRun: boolean,
+	force = false,
+): number {
+	if (blockedThisRun) return R2_BLOCK_SKIP_RUNS;
+	if (force) return 0;
+	return Math.max(0, (prevRemaining ?? 0) - 1);
 }
 
 export function r2BlockSummary(scraped: {

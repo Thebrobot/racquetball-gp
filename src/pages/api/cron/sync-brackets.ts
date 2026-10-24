@@ -1,9 +1,22 @@
 import type { APIRoute } from 'astro';
 import { createAdminClient, env, json } from '../../../lib/accounts/supabase';
 import { eventsInWindow, isAnyEventInWindow, type LiveEventConfig } from '../../../lib/live/config';
-import { r2BlockSummary } from '../../../lib/live/r2-match-fetch';
+import { overlayOverridesOnFile } from '../../../lib/live/match-overrides';
+import {
+	nextSkipRunsRemaining,
+	r2BlockSummary,
+	shouldSkipBlockedRun,
+} from '../../../lib/live/r2-match-fetch';
 import { buildMergedResults, countPublishedResults, scrapeEvent } from '../../../lib/live/scrape';
-import { liveStoreConfigured, readSyncStatus, writeLiveActivity, writeLiveResults, writeSyncStatus } from '../../../lib/live/store';
+import {
+	BLOB_READ_FRESH_TIMEOUT_MS,
+	liveStoreConfigured,
+	readLiveResults,
+	readSyncStatus,
+	writeLiveActivity,
+	writeLiveResults,
+	writeSyncStatus,
+} from '../../../lib/live/store';
 import type { EventSyncStatus, SyncStatus } from '../../../lib/live/types';
 import { processResultFeed } from '../../../lib/notify/results';
 
@@ -60,6 +73,33 @@ async function syncOne(event: LiveEventConfig, at: string): Promise<EventSyncSta
 	};
 }
 
+/** Persist unread overrides onto last-good blob data without hitting R2. */
+async function applyOverridesWithoutScrape(
+	event: LiveEventConfig,
+	at: string,
+	prevEvent?: EventSyncStatus,
+): Promise<EventSyncStatus> {
+	const existing = await readLiveResults(event.slug, {
+		timeoutMs: BLOB_READ_FRESH_TIMEOUT_MS,
+		useCache: false,
+		applyOverrides: false,
+	});
+	const { results, changed } = overlayOverridesOnFile(event.slug, existing, at);
+	if (changed) await writeLiveResults(event.slug, results);
+	return {
+		eventKey: event.key,
+		slug: event.slug,
+		lastSuccessAt: prevEvent?.lastSuccessAt ?? null,
+		lastError: prevEvent?.lastError ?? 'backing off after R2 IP block',
+		lastUpdated: results.lastUpdated,
+		divisionsScraped: 0,
+		matchesWithResults: countPublishedResults(results.divisions),
+		quarantined: prevEvent?.quarantined ?? [],
+		r2Blocked: true,
+		r2BlockedCount: prevEvent?.r2BlockedCount ?? 0,
+	};
+}
+
 export const GET: APIRoute = async ({ request, url }) => {
 	if (!authorize(request)) return unauthorized();
 	if (!env('CRON_SECRET')) return json({ error: 'CRON_SECRET is not configured' }, 503);
@@ -85,6 +125,48 @@ export const GET: APIRoute = async ({ request, url }) => {
 		};
 		await writeSyncStatus(status);
 		return json(status);
+	}
+
+	if (shouldSkipBlockedRun(prev.r2SkipRunsRemaining, force)) {
+		const remaining = nextSkipRunsRemaining(prev.r2SkipRunsRemaining, false, force);
+		const events: Record<string, EventSyncStatus> = { ...prev.events };
+		const reports: EventSyncStatus[] = [];
+		for (const event of targets) {
+			try {
+				const report = await applyOverridesWithoutScrape(event, at, prev.events[event.slug]);
+				events[event.slug] = report;
+				reports.push(report);
+			} catch (err) {
+				const message = err instanceof Error ? err.message : String(err);
+				events[event.slug] = {
+					eventKey: event.key,
+					slug: event.slug,
+					lastSuccessAt: prev.events[event.slug]?.lastSuccessAt ?? null,
+					lastError: message.slice(0, 400),
+					lastUpdated: prev.events[event.slug]?.lastUpdated ?? null,
+					divisionsScraped: 0,
+					matchesWithResults: prev.events[event.slug]?.matchesWithResults ?? 0,
+					quarantined: prev.events[event.slug]?.quarantined ?? [],
+					r2Blocked: true,
+					r2BlockedCount: prev.events[event.slug]?.r2BlockedCount ?? 0,
+				};
+			}
+		}
+		const status: SyncStatus = {
+			...prev,
+			ok: false,
+			lastRunAt: at,
+			lastSuccessAt: prev.lastSuccessAt,
+			lastError: prev.lastError ?? 'backing off after R2 IP block',
+			inWindow: inWindow || force,
+			skipped: `backing off after R2 IP block (${remaining} run${remaining === 1 ? '' : 's'} left)`,
+			r2Blocked: true,
+			r2BlockedCount: prev.r2BlockedCount ?? 0,
+			r2SkipRunsRemaining: remaining,
+			events,
+		};
+		await writeSyncStatus(status);
+		return json({ ...status, reports });
 	}
 
 	const events: Record<string, EventSyncStatus> = { ...prev.events };
@@ -128,6 +210,7 @@ export const GET: APIRoute = async ({ request, url }) => {
 		quarantined,
 		r2Blocked,
 		r2BlockedCount,
+		r2SkipRunsRemaining: nextSkipRunsRemaining(prev.r2SkipRunsRemaining, r2Blocked, force),
 		events,
 	};
 	await writeSyncStatus(status);

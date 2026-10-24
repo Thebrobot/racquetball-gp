@@ -2,6 +2,7 @@ import ocalaResultsData from './ocala-results.json';
 import sarasotaResultsData from './sarasota-results.json';
 import portStLucieResultsData from './port-st-lucie-results.json';
 import { PORT_ST_LUCIE_EVENT } from './port-st-lucie-event';
+import { applyMatchOverrides } from '../lib/live/match-overrides';
 import { expandFromRoster, incomingFillsSlot, playerAppearsInSlot } from '../lib/live/r2-names';
 import { GRAND_PRIX_FACEBOOK_URL } from './social';
 
@@ -1514,7 +1515,8 @@ function nextPendingMatchFor(
 }
 
 export const EVENTS: EventData[] = EVENTS_RAW.map((event) => {
-	const divResults = RESULTS_BY_EVENT[event.slug]?.divisions ?? {};
+	const raw = RESULTS_BY_EVENT[event.slug]?.divisions ?? {};
+	const divResults = applyMatchOverrides(event.slug, raw);
 	return Object.keys(divResults).length ? applyResultsToEvent(event, divResults) : event;
 });
 

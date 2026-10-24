@@ -30,4 +30,13 @@ describe('getBundledResults', () => {
 		assert.ok(bundled.lastUpdated);
 		assert.ok(Object.keys(bundled.divisions ?? {}).length >= 8);
 	});
+
+	it('applies unread PSL overrides so a blocked cron still shows them after deploy', () => {
+		const bundled = getBundledResults('port-st-lucie-open');
+		assert.equal(bundled.divisions['mens-age-60']?.['M60+8']?.winner, 1);
+		assert.equal(bundled.divisions['mens-age-60']?.['M60+8']?.court, 'Court 3');
+		assert.equal(bundled.divisions['mens-age-50']?.['M50+4']?.winner, 1);
+		assert.equal(bundled.divisions['mens-age-50']?.['M50+4']?.player2, 'Ben Kniesly');
+		assert.equal(bundled.divisions['mens-doubles-b']?.MBD3?.court, 'Court 2');
+	});
 });

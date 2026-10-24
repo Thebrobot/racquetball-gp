@@ -3,6 +3,8 @@ import type { MatchMap } from './parse-r2';
 export type LiveResultsFile = {
 	lastUpdated: string | null;
 	divisions: Record<string, MatchMap>;
+	/** Override keys (`divId:matchId`) that a later real R2 fetch superseded. */
+	supersededOverrides?: string[];
 };
 
 export type LiveActivityEvent = {
@@ -53,5 +55,7 @@ export type SyncStatus = {
 	quarantined?: QuarantinedMatch[];
 	r2Blocked?: boolean;
 	r2BlockedCount?: number;
+	/** Remaining cron runs to skip after an R2 IP block. */
+	r2SkipRunsRemaining?: number;
 	events: Record<string, EventSyncStatus>;
 };
