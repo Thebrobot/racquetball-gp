@@ -32,7 +32,12 @@ const playerMap = new Map<string, PlayerRow>();
 for (const profile of event.profiles ?? []) {
 	const liveEntries = isPastEvent
 		? [profile]
-		: getPlayerScheduleEntries(profile.name, [{ ...profile, eventName: event.name }]);
+		: getPlayerScheduleEntries(
+			profile.name,
+			[{ ...profile, eventName: event.name }],
+			[event],
+			{ discoverExtraDivisions: false },
+		);
 	const next = liveEntries[0];
 	const done = liveEntries.length === 0;
 	const time = next?.time ?? profile.time;
