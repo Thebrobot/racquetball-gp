@@ -8,6 +8,7 @@
 import { matchWinnerSide, scoresEqual } from './r2-names';
 import type { ParsedMatchPage } from './parse-match-page';
 import { toMatchRecord, type DrawAdvancement, type MatchRecord, type ParsedDrawMatch } from './parse-r2';
+import { htmlLooksLikeR2Block, isR2BlockedReason } from './r2-match-fetch';
 import { scheduleFromMatchHtml } from './r2-schedule';
 import type { QuarantinedMatch } from './types';
 
@@ -81,6 +82,11 @@ export function resolveMatchResult(input: ResolveInput): ResolveOutput {
 		resolved: Boolean(page),
 		quarantine: { matchId, divisionId, reason },
 	});
+
+	const blocked = isR2BlockedReason(pageError) || (pageHtml ? htmlLooksLikeR2Block(pageHtml) : false);
+	if (blocked) {
+		return q(pageError && isR2BlockedReason(pageError) ? pageError : 'R2 blocked this IP');
+	}
 
 	const missingMarkup = /missing versus\/result markup/i.test(pageError ?? '');
 	if (missingMarkup) {

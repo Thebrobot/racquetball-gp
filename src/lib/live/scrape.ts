@@ -17,6 +17,16 @@ import {
 	type ParsedDrawMatch,
 } from './parse-r2';
 import { resolveMatchResult, resultFieldsEqual } from './resolve-results';
+import {
+	describeR2Block,
+	drawLooksFinished,
+	htmlLooksLikeR2Block,
+	isR2BlockedReason,
+	MATCH_PAGE_GAP_MS,
+	R2_BLOCK_BACKOFF_MS,
+	shouldFetchMatchPage,
+	storeHasFinal,
+} from './r2-match-fetch';
 import { scoresEqual } from './r2-names';
 import { readLiveActivity, readLiveResults, writeResultAuditHtml } from './store';
 import type { LiveActivityEvent, LiveActivityFeed, LiveResultsFile, QuarantinedMatch } from './types';
@@ -43,7 +53,6 @@ export const BROWSER_HEADERS: Record<string, string> = {
 
 const MAX_ATTEMPTS = 3;
 const MAX_ACTIVITY_EVENTS = 600;
-const MATCH_PAGE_CONCURRENCY = 3;
 
 const MATCH_OVERRIDES = overridesJson as Record<string, Record<string, Record<string, MatchRecord>>>;
 
@@ -68,6 +77,8 @@ export type EventScrapeResult = {
 	quarantined: QuarantinedMatch[];
 	resolvedMatchIds: string[];
 	audit: Array<{ matchId: string; html: string }>;
+	r2Blocked?: boolean;
+	r2BlockedCount?: number;
 };
 
 const RETRYABLE_STATUS = new Set([500, 502, 503, 504]);
@@ -89,7 +100,11 @@ async function fetchHtml(url: string, referer?: string): Promise<{ html: string;
 				redirect: 'follow',
 				signal: AbortSignal.timeout(15_000),
 			});
-			if (res.ok) return { html: await res.text(), finalUrl: res.url };
+			const html = await res.text();
+			if (htmlLooksLikeR2Block(html) || res.status === 403 || res.status === 429) {
+				throw new Error(describeR2Block(html || `HTTP ${res.status}`));
+			}
+			if (res.ok) return { html, finalUrl: res.url };
 			lastErr = new Error(`HTTP ${res.status} for ${url}`);
 			if (!isRetryableStatus(res.status) || attempt === FETCH_ATTEMPTS) throw lastErr;
 		} catch (err) {
@@ -121,16 +136,21 @@ async function scrapeDivision(
 	return { divCode, divId, draw: parseBracketPage(html, finalUrl), html, finalUrl };
 }
 
-async function mapPool<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
-	const out: R[] = [];
-	for (let i = 0; i < items.length; i += limit) {
-		const chunk = items.slice(i, i + limit);
-		out.push(...(await Promise.all(chunk.map(fn))));
-	}
-	return out;
+function keepStoredFinal(existing: MatchRecord, draw: ParsedDrawMatch): MatchRecord {
+	const next: MatchRecord = {
+		player1: draw.player1 ?? existing.player1 ?? null,
+		player2: draw.player2 ?? existing.player2 ?? null,
+		winner: existing.winner,
+	};
+	if (existing.score) next.score = existing.score;
+	if (existing.court) next.court = existing.court;
+	else if (draw.court) next.court = draw.court;
+	if (existing.scheduledTime) next.scheduledTime = existing.scheduledTime;
+	else if (draw.scheduledTime) next.scheduledTime = draw.scheduledTime;
+	return next;
 }
 
-export async function scrapeEvent(event: LiveEventConfig): Promise<EventScrapeResult> {
+export async function scrapeEvent(event: LiveEventConfig, now = new Date()): Promise<EventScrapeResult> {
 	const existing = await readLiveResults(event.slug).catch(() => ({ lastUpdated: null, divisions: {} as Record<string, MatchMap> }));
 	const divisions: Record<string, MatchMap> = {};
 	const divisionReports: DivisionScrape[] = [];
@@ -140,13 +160,32 @@ export async function scrapeEvent(event: LiveEventConfig): Promise<EventScrapeRe
 	const audit: Array<{ matchId: string; html: string }> = [];
 	let scraped = 0;
 	let matchesWithResults = 0;
+	let r2Blocked = false;
+	let r2BlockedCount = 0;
 
 	for (const { code, divID, combinedID } of event.divisionUrls) {
+		if (r2Blocked) {
+			errors.push(`${code}: skipped after R2 blocked this IP`);
+			divisionReports.push({
+				code,
+				divId: null,
+				ok: false,
+				error: 'skipped after R2 blocked this IP',
+				matchCount: 0,
+				withResults: 0,
+				data: {},
+			});
+			continue;
+		}
+
 		let lastErr: unknown = null;
 		let succeeded = false;
 		for (let attempt = 1; attempt <= MAX_ATTEMPTS && !succeeded; attempt++) {
 			try {
 				const { divCode, divId, draw, html, finalUrl } = await scrapeDivision(event, divID, combinedID);
+				if (htmlLooksLikeR2Block(html)) {
+					throw new Error(describeR2Block(html));
+				}
 				succeeded = true;
 				if (!divId) {
 					divisionReports.push({
@@ -161,9 +200,27 @@ export async function scrapeEvent(event: LiveEventConfig): Promise<EventScrapeRe
 					break;
 				}
 
-				const pageByR2 = await fetchMatchPages(event.tid, Object.values(draw.matches), finalUrl);
+				const storedDiv = existing.divisions?.[divId] ?? {};
+				const fetchList = Object.entries(draw.matches)
+					.filter(([matchId, parsed]) => shouldFetchMatchPage(parsed, storedDiv[matchId], now))
+					.map(([, parsed]) => parsed);
+
+				const pageByR2 = await fetchMatchPages(event.tid, fetchList, finalUrl);
+				const blockedHits = [...pageByR2.values()].filter((hit) => hit.blocked);
+				if (blockedHits.length) {
+					r2Blocked = true;
+					r2BlockedCount += blockedHits.length;
+				}
 				const data: MatchMap = {};
 				for (const [matchId, parsed] of Object.entries(draw.matches)) {
+					const prev = storedDiv[matchId];
+					if (!shouldFetchMatchPage(parsed, prev, now) && storeHasFinal(prev) && prev) {
+						data[matchId] = keepStoredFinal(prev, parsed);
+						resolvedMatchIds.push(matchId);
+						if (data[matchId]!.winner != null) matchesWithResults += 1;
+						continue;
+					}
+
 					const pageHit = parsed.r2MatchId ? pageByR2.get(parsed.r2MatchId) : undefined;
 					const resolved = resolveMatchResult({
 						matchId,
@@ -178,7 +235,6 @@ export async function scrapeEvent(event: LiveEventConfig): Promise<EventScrapeRe
 					if (resolved.resolved) resolvedMatchIds.push(matchId);
 					data[matchId] = resolved.record;
 					if (resolved.record.winner != null) matchesWithResults += 1;
-					const prev = existing.divisions?.[divId]?.[matchId];
 					if (pageHit?.html && prev && !resultFieldsEqual(prev, resolved.record) && (prev.winner != null || resolved.record.winner != null)) {
 						audit.push({ matchId, html: pageHit.html });
 					}
@@ -201,6 +257,12 @@ export async function scrapeEvent(event: LiveEventConfig): Promise<EventScrapeRe
 				});
 			} catch (err) {
 				lastErr = err;
+				const message = err instanceof Error ? err.message : String(err);
+				if (isR2BlockedReason(message)) {
+					r2Blocked = true;
+					r2BlockedCount += 1;
+					break;
+				}
 			}
 		}
 		if (!succeeded) {
@@ -215,58 +277,100 @@ export async function scrapeEvent(event: LiveEventConfig): Promise<EventScrapeRe
 				withResults: 0,
 				data: {},
 			});
+			if (isR2BlockedReason(message)) break;
 		}
 	}
 
-	return { scraped, matchesWithResults, divisions, divisionReports, errors, quarantined, resolvedMatchIds, audit };
+	return {
+		scraped,
+		matchesWithResults,
+		divisions,
+		divisionReports,
+		errors,
+		quarantined,
+		resolvedMatchIds,
+		audit,
+		r2Blocked,
+		r2BlockedCount,
+	};
 }
 
-type PageHit = { page: ParsedMatchPage | null; html?: string; error?: string };
+type PageHit = { page: ParsedMatchPage | null; html?: string; error?: string; blocked?: boolean };
+
+async function sleep(ms: number): Promise<void> {
+	await new Promise((r) => setTimeout(r, ms));
+}
 
 async function fetchMatchPages(tid: string, matches: ParsedDrawMatch[], referer?: string): Promise<Map<string, PageHit>> {
 	const finishedIds = new Set(
-		matches
-			.filter((m) => m.drawWinner != null || Boolean(m.drawWinnerName) || Boolean(m.drawScore))
-			.map((m) => m.r2MatchId)
-			.filter((id): id is string => Boolean(id)),
+		matches.filter((m) => drawLooksFinished(m)).map((m) => m.r2MatchId).filter((id): id is string => Boolean(id)),
 	);
 	const ids = [...new Set(matches.map((m) => m.r2MatchId).filter((id): id is string => Boolean(id)))];
 	const out = new Map<string, PageHit>();
-	await mapPool(ids, MATCH_PAGE_CONCURRENCY, async (r2MatchId) => {
+	let blocked = false;
+
+	for (const r2MatchId of ids) {
+		if (blocked) {
+			out.set(r2MatchId, { page: null, error: 'R2 blocked this IP', blocked: true });
+			continue;
+		}
+		if (out.size) await sleep(MATCH_PAGE_GAP_MS);
+
 		const expectFinished = finishedIds.has(r2MatchId);
 		let lastErr: string | null = null;
-		for (let attempt = 1; attempt <= FETCH_ATTEMPTS; attempt++) {
+		let lastHtml: string | undefined;
+		let done = false;
+		for (let attempt = 1; attempt <= FETCH_ATTEMPTS && !done; attempt++) {
 			try {
 				const { html } = await fetchHtml(matchPageUrl(tid, r2MatchId), referer);
+				lastHtml = html;
+				if (htmlLooksLikeR2Block(html)) {
+					lastErr = describeR2Block(html);
+					blocked = true;
+					out.set(r2MatchId, { page: null, error: lastErr, html, blocked: true });
+					await sleep(R2_BLOCK_BACKOFF_MS);
+					done = true;
+					break;
+				}
 				if (!htmlLooksLikeMatchPage(html)) {
 					lastErr = describeBadMatchHtml(html);
 					if (attempt < FETCH_ATTEMPTS) {
-						await new Promise((r) => setTimeout(r, 300 * attempt));
+						await sleep(300 * attempt);
 						continue;
 					}
 					out.set(r2MatchId, { page: null, error: lastErr, html });
-					return;
+					done = true;
+					break;
 				}
 				const page = parseMatchPage(html);
 				if (expectFinished && !page.winnerName && !htmlHasWinnerMark(html) && attempt < FETCH_ATTEMPTS) {
 					lastErr = 'finished draw but fetched page has no Winner';
-					await new Promise((r) => setTimeout(r, 300 * attempt));
+					await sleep(300 * attempt);
 					continue;
 				}
 				out.set(r2MatchId, { page, html });
-				return;
+				done = true;
 			} catch (err) {
 				lastErr = err instanceof Error ? err.message : String(err);
+				if (isR2BlockedReason(lastErr)) {
+					blocked = true;
+					out.set(r2MatchId, { page: null, error: lastErr, html: lastHtml, blocked: true });
+					await sleep(R2_BLOCK_BACKOFF_MS);
+					done = true;
+					break;
+				}
 				if (attempt < FETCH_ATTEMPTS) {
-					await new Promise((r) => setTimeout(r, 300 * attempt));
+					await sleep(300 * attempt);
 					continue;
 				}
 				out.set(r2MatchId, { page: null, error: lastErr });
-				return;
+				done = true;
 			}
 		}
-		out.set(r2MatchId, { page: null, error: lastErr ?? 'match page unavailable' });
-	});
+		if (!done && !out.has(r2MatchId)) {
+			out.set(r2MatchId, { page: null, error: lastErr ?? 'match page unavailable' });
+		}
+	}
 	return out;
 }
 

@@ -39,6 +39,8 @@ export type EventSyncStatus = {
 	divisionsScraped: number;
 	matchesWithResults: number;
 	quarantined?: QuarantinedMatch[];
+	r2Blocked?: boolean;
+	r2BlockedCount?: number;
 };
 
 export type SyncStatus = {
@@ -49,5 +51,7 @@ export type SyncStatus = {
 	inWindow: boolean;
 	skipped?: string;
 	quarantined?: QuarantinedMatch[];
+	r2Blocked?: boolean;
+	r2BlockedCount?: number;
 	events: Record<string, EventSyncStatus>;
 };
