@@ -25,6 +25,7 @@ import {
 	MATCH_PAGE_GAP_MS,
 	R2_BLOCK_BACKOFF_MS,
 	shouldFetchMatchPage,
+	storedCourtDisagreesWithDraw,
 	storeHasFinal,
 } from './r2-match-fetch';
 import { scoresEqual } from './r2-names';
@@ -143,6 +144,8 @@ function keepStoredFinal(existing: MatchRecord, draw: ParsedDrawMatch): MatchRec
 		winner: existing.winner,
 	};
 	if (existing.score) next.score = existing.score;
+	// Blank draw court/time must never wipe a stored value. A non-empty draw
+	// court that disagrees is handled by refetching the match page instead.
 	if (existing.court) next.court = existing.court;
 	else if (draw.court) next.court = draw.court;
 	if (existing.scheduledTime) next.scheduledTime = existing.scheduledTime;
@@ -214,7 +217,12 @@ export async function scrapeEvent(event: LiveEventConfig, now = new Date()): Pro
 				const data: MatchMap = {};
 				for (const [matchId, parsed] of Object.entries(draw.matches)) {
 					const prev = storedDiv[matchId];
-					if (!shouldFetchMatchPage(parsed, prev, now) && storeHasFinal(prev) && prev) {
+					if (
+						!shouldFetchMatchPage(parsed, prev, now) &&
+						storeHasFinal(prev) &&
+						prev &&
+						!storedCourtDisagreesWithDraw(parsed, prev)
+					) {
 						data[matchId] = keepStoredFinal(prev, parsed);
 						resolvedMatchIds.push(matchId);
 						if (data[matchId]!.winner != null) matchesWithResults += 1;
@@ -395,6 +403,15 @@ export function mergeDivisions(
 	return merged;
 }
 
+function isFinalWinner(record?: MatchRecord | null): boolean {
+	return record?.winner === 1 || record?.winner === 2;
+}
+
+/** First time this match becomes final: take court/time from the fetch that captured the result. */
+export function turningFinal(existing?: MatchRecord | null, incoming?: MatchRecord | null): boolean {
+	return !isFinalWinner(existing) && isFinalWinner(incoming);
+}
+
 export function mergeOneMatch(
 	existing: MatchRecord | undefined,
 	incoming: MatchRecord,
@@ -404,6 +421,9 @@ export function mergeOneMatch(
 		player1: incoming.player1 ?? existing?.player1 ?? null,
 		player2: incoming.player2 ?? existing?.player2 ?? null,
 	};
+	// Non-empty incoming court/time (the match page that just captured a
+	// first-final, or any later refetch) replace an earlier stored court.
+	// A blank R2 court/time must never wipe a stored value.
 	if (incoming.court) next.court = incoming.court;
 	else if (existing?.court) next.court = existing.court;
 	if (incoming.scheduledTime) next.scheduledTime = incoming.scheduledTime;
