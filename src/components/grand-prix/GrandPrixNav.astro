@@ -160,6 +160,7 @@ function bottomActive(href: string): string {
 					avatar.classList.add('is-initials');
 					link.classList.add('is-signed-in');
 					link.setAttribute('aria-label', `Your account, ${me.name ?? ''}`);
+					link.setAttribute('title', me.name ?? 'Account');
 					if (create) create.hidden = true;
 				}
 			})
