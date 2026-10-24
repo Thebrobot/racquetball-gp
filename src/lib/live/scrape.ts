@@ -423,9 +423,15 @@ export function mergeOneMatch(
 	};
 	// Non-empty incoming court/time (the match page that just captured a
 	// first-final, or any later refetch) replace an earlier stored court.
-	// A blank R2 court/time must never wipe a stored value.
+	// Finals: a blank R2 court must never wipe a stored court (#38/#45).
+	// Not-final: if we actually read a match page, mirror it — including clear.
+	const keepStoredCourt =
+		isFinalWinner(existing) ||
+		isFinalWinner(incoming) ||
+		opts.quarantined ||
+		!opts.resolved;
 	if (incoming.court) next.court = incoming.court;
-	else if (existing?.court) next.court = existing.court;
+	else if (keepStoredCourt && existing?.court) next.court = existing.court;
 	if (incoming.scheduledTime) next.scheduledTime = incoming.scheduledTime;
 	else if (existing?.scheduledTime) next.scheduledTime = existing.scheduledTime;
 

@@ -6,7 +6,7 @@
  * Later-round advancement never assigns a winner.
  */
 import { matchWinnerSide, scoresEqual } from './r2-names';
-import type { ParsedMatchPage } from './parse-match-page';
+import { htmlLooksLikeMatchPage, type ParsedMatchPage } from './parse-match-page';
 import { toMatchRecord, type DrawAdvancement, type MatchRecord, type ParsedDrawMatch } from './parse-r2';
 import { htmlLooksLikeR2Block, isR2BlockedReason } from './r2-match-fetch';
 import { scheduleFromMatchHtml } from './r2-schedule';
@@ -36,7 +36,11 @@ function pickSchedule(
 	pageHtml?: string | null,
 ): { court?: string; scheduledTime?: string } {
 	const fromHtml = pageHtml ? scheduleFromMatchHtml(pageHtml) : {};
-	const court = page?.court || fromHtml.court || draw.court;
+	const sawMatchPage = Boolean(page) || (Boolean(pageHtml) && htmlLooksLikeMatchPage(pageHtml!));
+	// Match page is the court authority when we fetched one. Do not fall back
+	// to the draw — a transient draw blank must not hide a page court, and a
+	// blank page must not inherit a stale draw court.
+	const court = sawMatchPage ? page?.court || fromHtml.court : draw.court;
 	const scheduledTime = page?.scheduledTime || fromHtml.scheduledTime || draw.scheduledTime;
 	const out: { court?: string; scheduledTime?: string } = {};
 	if (court) out.court = court;

@@ -417,3 +417,145 @@ describe('MAD5 court reconcile (stored Court 3, R2 Court 4)', () => {
 		assert.equal(live?.court, 'Court 4');
 	});
 });
+
+const mb8Draw: ParsedDrawMatch = {
+	player1: 'Scott Gill',
+	player2: 'Elijah Saunders',
+	r2MatchId: '4972796',
+	scheduledTime: 'Saturday · 1:00 PM',
+};
+
+const mb8StoredCourt1 = {
+	player1: 'Scott Gill',
+	player2: 'Elijah Saunders',
+	court: 'Court 1',
+	scheduledTime: 'Saturday · 1:00 PM',
+};
+
+const mb8PageNoCourt = `
+	<div class="r2p-versus-grid">
+		<div class="r2p-versus-side"><div class="r2p-side-names"><span>Scott Gill</span></div></div>
+		<div class="r2p-versus-chip">VS</div>
+		<div class="r2p-versus-side r2p-side-bottom"><div class="r2p-side-names"><span>Elijah Saunders</span></div></div>
+	</div>
+	<div class="r2p-match-result"><strong></strong></div>
+	<p class="r2p-scheduled">Scheduled Oct 24, 2026 at 1:00 PM</p>
+`;
+
+const mb8PageCourt1 = `
+	<div class="r2p-versus-grid">
+		<div class="r2p-versus-side"><div class="r2p-side-names"><span>Scott Gill</span></div></div>
+		<div class="r2p-versus-chip">VS</div>
+		<div class="r2p-versus-side r2p-side-bottom"><div class="r2p-side-names"><span>Elijah Saunders</span></div></div>
+	</div>
+	<div class="r2p-match-result"><strong></strong></div>
+	<p class="r2p-scheduled">Court 1 &middot; Scheduled Oct 24, 2026 at 1:00 PM</p>
+`;
+
+describe('non-final court mirrors the R2 match page (MB8)', () => {
+	it('clears a stored court when the match is not final and the match page has no court', () => {
+		const page = parseMatchPage(mb8PageNoCourt);
+		assert.equal(page.court, undefined);
+		const resolved = resolveMatchResult({
+			matchId: 'MB8',
+			divisionId: 'mens-singles-b',
+			draw: mb8Draw,
+			page,
+			pageHtml: mb8PageNoCourt,
+		});
+		assert.equal(resolved.resolved, true);
+		assert.equal(resolved.record.winner, undefined);
+		assert.equal(resolved.record.court, undefined);
+
+		const merged = mergeOneMatch(mb8StoredCourt1, resolved.record, {
+			quarantined: false,
+			resolved: true,
+		});
+		assert.equal(merged.court, undefined);
+		assert.equal(merged.scheduledTime, 'Saturday · 1:00 PM');
+		assert.equal(merged.winner, undefined);
+	});
+
+	it('keeps a stored court when a final match page/draw is blank', () => {
+		const merged = mergeOneMatch(
+			{
+				player1: 'John Wuchte',
+				player2: 'Larry Prince Jr.',
+				winner: 1,
+				score: '14-15, 15-8, 15-5',
+				court: 'Court 1',
+				scheduledTime: 'Friday · 5:30 PM',
+			},
+			{
+				player1: 'John Wuchte',
+				player2: 'Larry Prince Jr.',
+				winner: 1,
+				score: '14-15, 15-8, 15-5',
+			},
+			{ quarantined: false, resolved: true },
+		);
+		assert.equal(merged.court, 'Court 1');
+		assert.equal(merged.scheduledTime, 'Friday · 5:30 PM');
+	});
+
+	it('keeps the court when the draw is blank but the match page still has one', () => {
+		const page = parseMatchPage(mb8PageCourt1);
+		assert.equal(page.court, 'Court 1');
+		const resolved = resolveMatchResult({
+			matchId: 'MB8',
+			divisionId: 'mens-singles-b',
+			draw: mb8Draw,
+			page,
+			pageHtml: mb8PageCourt1,
+		});
+		assert.equal(resolved.record.court, 'Court 1');
+		const merged = mergeOneMatch(mb8StoredCourt1, resolved.record, {
+			quarantined: false,
+			resolved: true,
+		});
+		assert.equal(merged.court, 'Court 1');
+	});
+
+	it('does not clear a stored court from a draw-only blank (no match page yet)', () => {
+		const resolved = resolveMatchResult({
+			matchId: 'MB8',
+			divisionId: 'mens-singles-b',
+			draw: mb8Draw,
+			page: null,
+		});
+		assert.equal(resolved.resolved, false);
+		const merged = mergeOneMatch(mb8StoredCourt1, resolved.record, {
+			quarantined: false,
+			resolved: false,
+		});
+		assert.equal(merged.court, 'Court 1');
+	});
+
+	it('fetches a not-final match whose stored court remains after the draw dropped it', () => {
+		assert.equal(shouldFetchMatchPage(mb8Draw, mb8StoredCourt1, now1010), true);
+	});
+
+	it('clears the static PSL MB8 court when live results have no court', () => {
+		const staticMb8 = PORT_ST_LUCIE_EVENT.divisionDetails
+			.find((d) => d.id === 'mens-singles-b')
+			?.rounds?.flatMap((r) => r.matches)
+			.find((m) => m.matchId === 'MB8');
+		assert.ok(staticMb8?.court);
+
+		const event = applyResultsToEvent(PORT_ST_LUCIE_EVENT, {
+			'mens-singles-b': {
+				MB8: {
+					player1: 'Scott Gill',
+					player2: 'Elijah Saunders',
+					scheduledTime: 'Saturday · 1:00 PM',
+				},
+			},
+		});
+		const live = event.divisionDetails
+			.find((d) => d.id === 'mens-singles-b')
+			?.rounds?.flatMap((r) => r.matches)
+			.find((m) => m.matchId === 'MB8');
+		assert.equal(live?.court, undefined);
+		assert.equal(live?.scheduledTime, 'Saturday · 1:00 PM');
+	});
+});
