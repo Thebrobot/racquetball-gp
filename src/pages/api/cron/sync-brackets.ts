@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createAdminClient, env, json } from '../../../lib/accounts/supabase';
 import { eventsInWindow, isAnyEventInWindow, type LiveEventConfig } from '../../../lib/live/config';
+import { r2BlockSummary } from '../../../lib/live/r2-match-fetch';
 import { buildMergedResults, countPublishedResults, scrapeEvent } from '../../../lib/live/scrape';
 import { liveStoreConfigured, readSyncStatus, writeLiveActivity, writeLiveResults, writeSyncStatus } from '../../../lib/live/store';
 import type { EventSyncStatus, SyncStatus } from '../../../lib/live/types';
@@ -35,21 +36,26 @@ async function syncOne(event: LiveEventConfig, at: string): Promise<EventSyncSta
 	if (changed || activity.eventSlug === event.slug) {
 		await writeLiveActivity(activity);
 	}
-	const error = scraped.errors.length
-		? scraped.errors.join('; ').slice(0, 400)
-		: scraped.scraped === 0
-			? 'no divisions scraped'
-			: null;
+	const block = r2BlockSummary(scraped);
+	const error = block.lastError
+		? block.lastError
+		: scraped.errors.length
+			? scraped.errors.join('; ').slice(0, 400)
+			: scraped.scraped === 0
+				? 'no divisions scraped'
+				: null;
 	const notified = changed && newActivity > 0 ? await notifyFreshResults(activity) : undefined;
 	return {
 		eventKey: event.key,
 		slug: event.slug,
-		lastSuccessAt: error && scraped.scraped === 0 ? null : at,
+		lastSuccessAt: block.r2Blocked || (error && scraped.scraped === 0) ? null : at,
 		lastError: error,
 		lastUpdated: results.lastUpdated,
 		divisionsScraped: scraped.scraped,
 		matchesWithResults: countPublishedResults(results.divisions),
 		quarantined,
+		r2Blocked: block.r2Blocked,
+		r2BlockedCount: block.r2BlockedCount,
 		...(notified ? { notified } : {}),
 	};
 }
@@ -108,13 +114,20 @@ export const GET: APIRoute = async ({ request, url }) => {
 	}
 
 	const quarantined = reports.flatMap((r) => r.quarantined ?? []);
+	const r2BlockedCount = reports.reduce((n, r) => n + (r.r2BlockedCount ?? 0), 0);
+	const r2Blocked = r2BlockedCount > 0 || reports.some((r) => r.r2Blocked);
+	if (r2Blocked) {
+		runErrors.push(`R2 blocked this IP (${r2BlockedCount} request${r2BlockedCount === 1 ? '' : 's'})`);
+	}
 	const status: SyncStatus = {
-		ok: runErrors.length === 0,
+		ok: runErrors.length === 0 && !r2Blocked,
 		lastRunAt: at,
-		lastSuccessAt: runErrors.length === 0 ? at : prev.lastSuccessAt,
+		lastSuccessAt: runErrors.length === 0 && !r2Blocked ? at : prev.lastSuccessAt,
 		lastError: runErrors.length ? runErrors.join('; ').slice(0, 500) : null,
 		inWindow: inWindow || force,
 		quarantined,
+		r2Blocked,
+		r2BlockedCount,
 		events,
 	};
 	await writeSyncStatus(status);

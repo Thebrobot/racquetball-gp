@@ -45,6 +45,9 @@ const { results, activity, changed, newActivity, quarantined } = mergeScrapedRes
 	at,
 );
 
+if (scraped.r2Blocked) {
+	console.error(`R2 blocked this IP (${scraped.r2BlockedCount ?? 0} request(s))`);
+}
 if (!changed) {
 	console.log(`No changes — ${RESULTS_PATHS[event.slug]!.split('/').pop()} is already up to date.`);
 	if (quarantined.length) {

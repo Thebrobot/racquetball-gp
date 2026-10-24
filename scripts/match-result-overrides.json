@@ -88,6 +88,14 @@
         "scheduledTime": "Friday · 4:30 PM"
       }
     },
+    "mens-age-50": {
+      "M50+3": {
+        "winner": 2,
+        "score": "11-15, 15-8, 11-7",
+        "court": "Court 1",
+        "scheduledTime": "Saturday · 9:00 AM"
+      }
+    },
     "mens-age-60": {
       "M60+9": {
         "court": "Court 1",

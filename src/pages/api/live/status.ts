@@ -18,7 +18,7 @@ export const GET: APIRoute = async () => {
 			...status,
 			inWindow,
 			stale,
-			ok: status.ok && !stale,
+			ok: status.ok && !stale && !status.r2Blocked,
 			now: now.toISOString(),
 		},
 		200,

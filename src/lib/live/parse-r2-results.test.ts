@@ -278,6 +278,9 @@ describe('match-result-overrides still win', () => {
 				MED11: { player1: 'Mike Bock / Terry Money', player2: 'Chris Steinheiser / John Johnston' },
 				MED10: { player1: 'Dirk Huck / John Joseph', player2: 'Greg Caruso / Alex Bartolome' },
 			},
+			'mens-age-50': {
+				'M50+3': { player1: 'John Johnston', player2: 'Timothy Schnellenberger' },
+			},
 		});
 		assert.equal(divisions['mens-doubles-b']?.MBD4?.winner, 1);
 		assert.equal(divisions['mens-doubles-b']?.MBD4?.score, '15-4, 15-9');
@@ -294,6 +297,9 @@ describe('match-result-overrides still win', () => {
 		assert.equal(divisions['mens-age-60']?.['M60+9']?.court, 'Court 1');
 		assert.equal(divisions['mens-doubles-elite']?.MED11?.court, 'Court 2');
 		assert.equal(divisions['mens-doubles-elite']?.MED10?.court, 'Court 2');
+		assert.equal(divisions['mens-age-50']?.['M50+3']?.winner, 2);
+		assert.equal(divisions['mens-age-50']?.['M50+3']?.score, '11-15, 15-8, 11-7');
+		assert.equal(divisions['mens-age-50']?.['M50+3']?.court, 'Court 1');
 	});
 });
 
@@ -529,14 +535,12 @@ describe('quarantine list clears once a match publishes', () => {
 });
 
 describe('missing match-page markup falls back to that match own draw result', () => {
-	const blockPage = `<!DOCTYPE html><html><head><title>Attention Required | Cloudflare</title></head>
-		<body>Please enable cookies to continue. cf-browser-verification challenge</body></html>`;
+	const stubPage = `<html><body><p>R2 Sports</p></body></html>`;
 
-	it('treats a block/stub page as missing versus/result markup and logs a snippet', () => {
-		assert.equal(htmlLooksLikeMatchPage(blockPage), false);
-		const reason = describeBadMatchHtml(blockPage);
+	it('treats a short stub without versus markup as missing versus/result markup and logs a snippet', () => {
+		assert.equal(htmlLooksLikeMatchPage(stubPage), false);
+		const reason = describeBadMatchHtml(stubPage);
 		assert.match(reason, /missing versus\/result markup/i);
-		assert.match(reason, /Cloudflare|cf-browser-verification|Attention Required/);
 		assert.match(reason, /bytes:/);
 	});
 
@@ -546,7 +550,7 @@ describe('missing match-page markup falls back to that match own draw result', (
 			matchId: 'MBD4',
 			draw: mbdDraw.matches.MBD4!,
 			page: null,
-			pageError: describeBadMatchHtml(blockPage),
+			pageError: describeBadMatchHtml(stubPage),
 		});
 		assert.equal(quarantine, undefined);
 		assert.equal(record.winner, 1);
@@ -560,11 +564,10 @@ describe('missing match-page markup falls back to that match own draw result', (
 			matchId: 'M60+5',
 			draw: m60Draw.matches['M60+5']!,
 			page: null,
-			pageError: describeBadMatchHtml(blockPage),
+			pageError: describeBadMatchHtml(stubPage),
 		});
 		assert.ok(quarantine);
 		assert.match(quarantine.reason, /missing versus\/result markup/i);
-		assert.match(quarantine.reason, /Cloudflare|Attention Required/);
 		assert.equal(record.winner, undefined);
 	});
 
