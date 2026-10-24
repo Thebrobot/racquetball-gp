@@ -339,7 +339,6 @@ html.nav-drawer-open .nav-drawer-backdrop {
   width: min(100%, clamp(200px, 24vw, 300px));
   height: auto;
   display: block;
-  filter: drop-shadow(0 14px 40px rgba(240, 90, 26, 0.32));
 }
 .hero-eyebrow {
   display: inline-flex; align-items: center; gap: 8px;
