@@ -129,9 +129,10 @@ export function isMatchInProgress(scheduledTime: string | undefined, now = new D
 
 /**
  * Fetch a match page only when the draw box changed, the match is on court
- * (or just finished) and we do not yet have a final, or a stored final's court
- * disagrees with a non-empty court on the draw. Never refetch an unchanged
- * finished match. A blank R2 court is not a reason to refetch.
+ * (or just finished) and we do not yet have a final, a stored final's court
+ * disagrees with a non-empty court on the draw, or a not-final stored court
+ * needs the match page to confirm a blank draw. Never refetch an unchanged
+ * finished match. A blank draw court is not a reason to refetch a final.
  */
 export function shouldFetchMatchPage(
 	draw: ParsedDrawMatch,
@@ -147,6 +148,17 @@ export function shouldFetchMatchPage(
 	if (changed) return true;
 	if (drawLooksFinished(draw) && !storedFinal) return true;
 	if (!storedFinal && named(draw.player1) && named(draw.player2) && isMatchInProgress(draw.scheduledTime, now)) {
+		return true;
+	}
+	// Not-final + we have a stored court + draw dropped court → ask the match
+	// page. A page court wins; a blank page clears the stored court.
+	if (
+		!storedFinal &&
+		named(draw.player1) &&
+		named(draw.player2) &&
+		Boolean(existing?.court) &&
+		!normalizeCourt(draw.court)
+	) {
 		return true;
 	}
 	return false;

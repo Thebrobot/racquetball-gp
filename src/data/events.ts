@@ -1328,6 +1328,18 @@ function eventRoster(event: EventData, divResults?: Record<string, DivisionResul
 	return names.filter((n) => n && !/^(tbd|bye)$/i.test(n.trim()));
 }
 
+/** Live court overlays static. Non-final + blank live court clears a stale static court. Finals keep static when live omitted the court. */
+function applyLiveCourt<T extends { court?: string }>(match: T, res: MatchResult): T {
+	if (res.court != null && res.court !== '') {
+		return { ...match, court: res.court };
+	}
+	if (res.winner == null && match.court) {
+		const { court: _drop, ...rest } = match;
+		return rest as T;
+	}
+	return match;
+}
+
 export function applyResultsToEvent(event: EventData, divResults: Record<string, DivisionResult>): EventData {
 	const roster = eventRoster(event, divResults);
 
@@ -1371,17 +1383,19 @@ export function applyResultsToEvent(event: EventData, divResults: Record<string,
 						if (!res) return match;
 						const p1Fill = fillFromResult(match.player1, res.player1);
 						const p2Fill = fillFromResult(match.player2, res.player2);
-						return {
-							...match,
-							...(res.score != null ? { score: res.score } : {}),
-							...(res.winner != null ? { winner: res.winner } : {}),
-							...(res.court != null && res.court !== '' ? { court: res.court } : {}),
-							...(res.scheduledTime != null && res.scheduledTime !== ''
-								? { scheduledTime: res.scheduledTime }
-								: {}),
-							...(p1Fill ? { player1: p1Fill } : {}),
-							...(p2Fill ? { player2: p2Fill } : {}),
-						};
+						return applyLiveCourt(
+							{
+								...match,
+								...(res.score != null ? { score: res.score } : {}),
+								...(res.winner != null ? { winner: res.winner } : {}),
+								...(res.scheduledTime != null && res.scheduledTime !== ''
+									? { scheduledTime: res.scheduledTime }
+									: {}),
+								...(p1Fill ? { player1: p1Fill } : {}),
+								...(p2Fill ? { player2: p2Fill } : {}),
+							},
+							res,
+						);
 					}),
 				}));
 
@@ -1435,17 +1449,19 @@ export function applyResultsToEvent(event: EventData, divResults: Record<string,
 					if (!res) return m;
 					const t1Fill = fillFromResult(m.team1, res.player1);
 					const t2Fill = fillFromResult(m.team2, res.player2);
-					return {
-						...m,
-						...(res.score != null ? { score: res.score } : {}),
-						...(res.winner != null ? { winner: res.winner } : {}),
-						...(res.court != null && res.court !== '' ? { court: res.court } : {}),
-						...(res.scheduledTime != null && res.scheduledTime !== ''
-							? { scheduledTime: res.scheduledTime }
-							: {}),
-						...(t1Fill ? { team1: t1Fill } : {}),
-						...(t2Fill ? { team2: t2Fill } : {}),
-					};
+					return applyLiveCourt(
+						{
+							...m,
+							...(res.score != null ? { score: res.score } : {}),
+							...(res.winner != null ? { winner: res.winner } : {}),
+							...(res.scheduledTime != null && res.scheduledTime !== ''
+								? { scheduledTime: res.scheduledTime }
+								: {}),
+							...(t1Fill ? { team1: t1Fill } : {}),
+							...(t2Fill ? { team2: t2Fill } : {}),
+						},
+						res,
+					);
 				});
 				return { ...div, roundRobinMatches: updatedRR };
 			}
