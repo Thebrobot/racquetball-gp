@@ -406,6 +406,11 @@ describe('match-result-overrides still win', () => {
 		assert.equal(divisions['mens-doubles-a']?.MAD1?.court, 'Court 3');
 		assert.equal(divisions['mens-doubles-a']?.MAD1?.scheduledTime, 'Sunday · 4:00 PM');
 		assert.equal(divisions['mens-doubles-a']?.MAD1?.winner, undefined);
+		assert.equal(divisions['mens-singles-open']?.MO1?.winner, 1);
+		assert.equal(divisions['mens-singles-open']?.MO1?.score, '15-10, 15-13');
+		assert.equal(divisions['mens-singles-open']?.MO1?.court, 'Court 1');
+		assert.equal(divisions['mens-singles-open']?.MO1?.player1, 'Annie Sanchez');
+		assert.equal(divisions['mens-singles-open']?.MO1?.player2, 'Naomi Ros');
 	});
 });
 
@@ -1131,5 +1136,34 @@ describe('Sunday A doubles MAD4 / MAD1', () => {
 		assert.match(record.player2 ?? '', /Ayers|Caruso/);
 		assert.equal(record.court, 'Court 3');
 		assert.equal(mad1Page.winnerName, null);
+	});
+});
+
+describe('Sunday Open MO1', () => {
+	const sundayMo = extractRoundRobinFromHtml(read('psl-mo-rr-sunday.html'));
+	const mo1Page = parseMatchPage(read('psl-mo1-match.html'));
+
+	it('reads MO1 Sanchez over Ros 15-10, 15-13 on Court 1', () => {
+		const draw = sundayMo.matches.MO1;
+		assert.ok(draw);
+		assert.equal(draw.player1, 'Annie Sanchez');
+		assert.equal(draw.player2, 'Naomi Ros');
+		assert.equal(draw.drawWinner, 1);
+		assert.equal(draw.drawWinnerName, 'Annie Sanchez');
+		assert.equal(draw.drawScore, '15-10, 15-13');
+		assert.equal(mo1Page.winnerName, 'Annie Sanchez');
+		assert.equal(mo1Page.score, '15-10, 15-13');
+		assert.equal(mo1Page.court, 'Court 1');
+		const { record, quarantine } = resolveMatchResult({
+			matchId: 'MO1',
+			draw,
+			page: mo1Page,
+			advancements: sundayMo.advancements,
+		});
+		assert.equal(quarantine, undefined);
+		assert.equal(record.winner, 1);
+		assert.equal(record.score, '15-10, 15-13');
+		assert.equal(record.court, 'Court 1');
+		assert.equal(record.scheduledTime, 'Sunday · 1:00 PM');
 	});
 });

@@ -168,6 +168,14 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(mad1?.winner, undefined);
 		assert.equal(mad1?.court, 'Court 3');
 		assert.equal(mad1?.scheduledTime, 'Sunday · 4:00 PM');
+
+		const mo1 = bundled.divisions['mens-singles-open']?.MO1;
+		assert.equal(mo1?.player1, 'Annie Sanchez');
+		assert.equal(mo1?.player2, 'Naomi Ros');
+		assert.equal(mo1?.winner, 1);
+		assert.equal(mo1?.score, '15-10, 15-13');
+		assert.equal(mo1?.court, 'Court 1');
+		assert.equal(mo1?.scheduledTime, 'Sunday · 1:00 PM');
 	});
 
 	it('build/deploy EVENTS overlay shows the same results without a successful sync', () => {
@@ -295,6 +303,14 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(mad1?.court, 'Court 3');
 		assert.equal(mad1?.scheduledTime, 'Sunday · 4:00 PM');
 		assert.equal(mad1?.winner, undefined);
+
+		const mo1 = findPslMatch('MO1');
+		assert.equal(mo1 && 'team1' in mo1 ? mo1.team1 : undefined, 'Annie Sanchez');
+		assert.equal(mo1 && 'team2' in mo1 ? mo1.team2 : undefined, 'Naomi Ros');
+		assert.equal(mo1?.winner, 1);
+		assert.equal(mo1?.score, '15-10, 15-13');
+		assert.equal(mo1?.court, 'Court 1');
+		assert.equal(mo1?.scheduledTime, 'Sunday · 1:00 PM');
 	});
 
 	it('applies unread overrides onto last-good blob data when the cron is skipped', () => {
@@ -574,6 +590,58 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(results.divisions['mens-doubles-elite']?.MED3?.scheduledTime, 'Sunday · 12:00 PM');
 	});
 
+	it('publishes MO1 Sanchez onto last-good blob data', () => {
+		const { results, changed } = overlayOverridesOnFile(
+			'port-st-lucie-open',
+			{
+				lastUpdated: '2026-10-25T16:50:00.000Z',
+				divisions: {
+					'mens-singles-open': {
+						MO1: {
+							player1: 'Annie Sanchez',
+							player2: 'Naomi Ros',
+							court: 'Court 1',
+							scheduledTime: 'Sunday · 1:00 PM',
+						},
+					},
+				},
+			},
+			'2026-10-25T17:15:00.000Z',
+		);
+		assert.equal(changed, true);
+		assert.equal(results.divisions['mens-singles-open']?.MO1?.winner, 1);
+		assert.equal(results.divisions['mens-singles-open']?.MO1?.score, '15-10, 15-13');
+		assert.equal(results.divisions['mens-singles-open']?.MO1?.court, 'Court 1');
+		assert.equal(results.divisions['mens-singles-open']?.MO1?.player1, 'Annie Sanchez');
+		assert.equal(results.divisions['mens-singles-open']?.MO1?.player2, 'Naomi Ros');
+	});
+
+	it('Open RR standings become Sanchez 3-0, Linnell 2-1, Ros 1-2, Steinheiser 0-3', () => {
+		const event = applyResultsToEvent(
+			PORT_ST_LUCIE_EVENT,
+			getBundledResults('port-st-lucie-open').divisions,
+		);
+		const div = event.divisionDetails.find((d) => d.id === 'mens-singles-open');
+		assert.ok(div?.roundRobinMatches);
+		const standings = new Map(
+			(div.roundRobinPlayers ?? []).map((name) => [name, { name, w: 0, l: 0 }]),
+		);
+		for (const m of div.roundRobinMatches) {
+			if (m.winner !== 1 && m.winner !== 2) continue;
+			const winner = m.winner === 1 ? m.team1 : m.team2;
+			const loser = m.winner === 1 ? m.team2 : m.team1;
+			const ws = standings.get(winner);
+			const ls = standings.get(loser);
+			if (ws) ws.w++;
+			if (ls) ls.l++;
+		}
+		const ranked = [...standings.values()].sort((a, b) => b.w - a.w || a.l - b.l);
+		assert.deepEqual(
+			ranked.map((r) => `${r.name} ${r.w}-${r.l}`),
+			['Annie Sanchez 3-0', 'Joe Linnell 2-1', 'Naomi Ros 1-2', 'Chris Steinheiser 0-3'],
+		);
+	});
+
 	it('publishes MAD4 Gutierrez/Fry and the MAD1 pairing onto last-good blob data', () => {
 		const { results, changed } = overlayOverridesOnFile(
 			'port-st-lucie-open',
@@ -817,6 +885,21 @@ describe('overrides yield to a later confirmed R2 fetch', () => {
 			},
 		});
 		assert.equal(keys.includes('mens-doubles-elite:MED3'), false);
+	});
+
+	it('keeps the MO1 override when a confirmed r2-push matches it', () => {
+		const keys = collectSupersededOverrides('port-st-lucie-open', {
+			'mens-singles-open': {
+				MO1: {
+					player1: 'Annie Sanchez',
+					player2: 'Naomi Ros',
+					winner: 1,
+					score: '15-10, 15-13',
+					court: 'Court 1',
+				},
+			},
+		});
+		assert.equal(keys.includes('mens-singles-open:MO1'), false);
 	});
 
 	it('yields MB8 once a confirmed r2-push names a different winner or score', () => {
