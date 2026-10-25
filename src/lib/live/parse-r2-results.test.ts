@@ -398,12 +398,12 @@ describe('match-result-overrides still win', () => {
 		assert.equal(divisions['mens-doubles-elite']?.MED4?.court, 'Court 4');
 		assert.equal(divisions['mens-doubles-elite']?.MED4?.winner, 2);
 		assert.equal(divisions['mens-doubles-elite']?.MED4?.score, '15-7, 15-14');
-		assert.equal(divisions['mens-doubles-elite']?.MED1?.court, 'Court 3');
-		assert.equal(divisions['mens-doubles-elite']?.MED1?.scheduledTime, 'Sunday · 3:00 PM');
 		assert.equal(divisions['mens-doubles-elite']?.MED1?.player1, 'Wade Stubanas / Brian Grantham');
 		assert.equal(divisions['mens-doubles-elite']?.MED1?.player2, 'Mike Bock / Terry Money');
-		assert.equal(divisions['mens-doubles-elite']?.MED1?.winner, undefined);
-		assert.equal(divisions['mens-doubles-elite']?.MED1?.court, 'Court 3');
+		assert.equal(divisions['mens-doubles-elite']?.MED1?.winner, 1);
+		assert.equal(divisions['mens-doubles-elite']?.MED1?.score, '10-15, 15-7, 11-6');
+		assert.equal(divisions['mens-doubles-elite']?.MED1?.court, 'Court 2');
+		assert.equal(divisions['mens-doubles-elite']?.MED1?.scheduledTime, 'Sunday · 3:00 PM');
 		assert.equal(divisions['mens-doubles-elite']?.MED3?.winner, 1);
 		assert.equal(divisions['mens-doubles-elite']?.MED3?.score, '14-15, 15-4, 11-6');
 		assert.equal(divisions['mens-doubles-elite']?.MED3?.court, 'Court 2');
@@ -1224,5 +1224,30 @@ describe('Sunday B doubles MBD2', () => {
 		assert.equal(record.scheduledTime, 'Sunday · 2:00 PM');
 		assert.match(record.player1 ?? '', /Estepan/);
 		assert.match(record.player2 ?? '', /Disalvo/);
+	});
+});
+
+describe('Sunday Elite doubles MED1 final', () => {
+	const med1Page = parseMatchPage(read('psl-med1-match.html'));
+
+	it('reads MED1 Stubanas/Grantham over Bock/Money 10-15, 15-7, 11-6 on Court 2', () => {
+		assert.equal(med1Page.winnerName, 'Wade Stubanas / Brian Grantham');
+		assert.equal(med1Page.score, '10-15, 15-7, 11-6');
+		assert.equal(med1Page.court, 'Court 2');
+		const { record, quarantine } = resolveMatchResult({
+			matchId: 'MED1',
+			draw: {
+				player1: 'Wade Stubanas / Brian Grantham',
+				player2: 'Mike Bock / Terry Money',
+				court: 'Court 3',
+				scheduledTime: 'Sunday · 3:00 PM',
+			},
+			page: med1Page,
+		});
+		assert.equal(quarantine, undefined);
+		assert.equal(record.winner, 1);
+		assert.equal(record.score, '10-15, 15-7, 11-6');
+		assert.equal(record.court, 'Court 2');
+		assert.equal(record.scheduledTime, 'Sunday · 3:00 PM');
 	});
 });

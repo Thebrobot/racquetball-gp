@@ -103,6 +103,8 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(bundled.divisions['mens-age-60']?.['M60+1']?.player1, 'Val Peco');
 		assert.equal(bundled.divisions['mens-age-60']?.['M60+1']?.court, 'Court 2');
 		assert.equal(bundled.divisions['mens-age-60']?.['M60+1']?.scheduledTime, 'Sunday · 4:00 PM');
+		assert.equal(bundled.divisions['mens-age-60']?.['M60+1']?.winner, undefined);
+		assert.equal(bundled.divisions['mens-age-50']?.['M50+1']?.winner, undefined);
 
 		const mb3 = bundled.divisions['mens-singles-b']?.MB3;
 		assert.equal(mb3?.player1, 'Kyle Artman');
@@ -158,9 +160,10 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		const med1 = bundled.divisions['mens-doubles-elite']?.MED1;
 		assert.equal(med1?.player1, 'Wade Stubanas / Brian Grantham');
 		assert.equal(med1?.player2, 'Mike Bock / Terry Money');
-		assert.equal(med1?.court, 'Court 3');
+		assert.equal(med1?.winner, 1);
+		assert.equal(med1?.score, '10-15, 15-7, 11-6');
+		assert.equal(med1?.court, 'Court 2');
 		assert.equal(med1?.scheduledTime, 'Sunday · 3:00 PM');
-		assert.equal(med1?.winner, undefined);
 		assert.equal(bundled.divisions['mens-doubles-elite']?.MED3?.winner, 1);
 		assert.equal(bundled.divisions['mens-doubles-elite']?.MED3?.score, '14-15, 15-4, 11-6');
 		assert.equal(bundled.divisions['mens-doubles-elite']?.MED3?.court, 'Court 2');
@@ -315,9 +318,10 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		const med1 = findPslMatch('MED1');
 		assert.equal(med1 && 'player1' in med1 ? med1.player1 : undefined, 'Wade Stubanas / Brian Grantham');
 		assert.equal(med1 && 'player2' in med1 ? med1.player2 : undefined, 'Mike Bock / Terry Money');
-		assert.equal(med1?.court, 'Court 3');
+		assert.equal(med1?.winner, 1);
+		assert.equal(med1?.score, '10-15, 15-7, 11-6');
+		assert.equal(med1?.court, 'Court 2');
 		assert.equal(med1?.scheduledTime, 'Sunday · 3:00 PM');
-		assert.equal(med1?.winner, undefined);
 		assert.equal(findPslMatch('MED3')?.winner, 1);
 		assert.equal(findPslMatch('MED3')?.score, '14-15, 15-4, 11-6');
 		assert.equal(findPslMatch('MED3')?.court, 'Court 2');
@@ -596,9 +600,10 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(results.divisions['mens-doubles-elite']?.MED4?.player2, 'Wade Stubanas / Brian Grantham');
 		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.player1, 'Wade Stubanas / Brian Grantham');
 		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.player2, 'Mike Bock / Terry Money');
-		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.court, 'Court 3');
+		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.winner, 1);
+		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.score, '10-15, 15-7, 11-6');
+		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.court, 'Court 2');
 		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.scheduledTime, 'Sunday · 3:00 PM');
-		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.winner, undefined);
 		assert.equal(results.divisions['mens-doubles-elite']?.MED3?.winner, 1);
 		assert.equal(results.divisions['mens-doubles-elite']?.MED3?.score, '14-15, 15-4, 11-6');
 		assert.equal(results.divisions['mens-doubles-elite']?.MED3?.court, 'Court 2');
@@ -636,9 +641,37 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(results.divisions['mens-doubles-elite']?.MED3?.scheduledTime, 'Sunday · 12:00 PM');
 		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.player1, 'Wade Stubanas / Brian Grantham');
 		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.player2, 'Mike Bock / Terry Money');
-		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.court, 'Court 3');
+		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.winner, 1);
+		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.score, '10-15, 15-7, 11-6');
+		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.court, 'Court 2');
 		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.scheduledTime, 'Sunday · 3:00 PM');
-		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.winner, undefined);
+	});
+
+	it('publishes MED1 Stubanas/Grantham onto last-good blob data', () => {
+		const { results, changed } = overlayOverridesOnFile(
+			'port-st-lucie-open',
+			{
+				lastUpdated: '2026-10-25T19:00:00.000Z',
+				divisions: {
+					'mens-doubles-elite': {
+						MED1: {
+							player1: 'Wade Stubanas / Brian Grantham',
+							player2: 'Mike Bock / Terry Money',
+							court: 'Court 3',
+							scheduledTime: 'Sunday · 3:00 PM',
+						},
+					},
+				},
+			},
+			'2026-10-25T19:50:00.000Z',
+		);
+		assert.equal(changed, true);
+		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.winner, 1);
+		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.score, '10-15, 15-7, 11-6');
+		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.court, 'Court 2');
+		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.player1, 'Wade Stubanas / Brian Grantham');
+		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.player2, 'Mike Bock / Terry Money');
+		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.scheduledTime, 'Sunday · 3:00 PM');
 	});
 
 	it('publishes MO1 Sanchez onto last-good blob data', () => {
@@ -1026,6 +1059,22 @@ describe('overrides yield to a later confirmed R2 fetch', () => {
 			},
 		});
 		assert.equal(keys.includes('mens-doubles-elite:MED3'), false);
+	});
+
+	it('keeps the MED1 override when a confirmed r2-push matches it', () => {
+		const keys = collectSupersededOverrides('port-st-lucie-open', {
+			'mens-doubles-elite': {
+				MED1: {
+					player1: 'Wade Stubanas / Brian Grantham',
+					player2: 'Mike Bock / Terry Money',
+					winner: 1,
+					score: '10-15, 15-7, 11-6',
+					court: 'Court 2',
+					scheduledTime: 'Sunday · 3:00 PM',
+				},
+			},
+		});
+		assert.equal(keys.includes('mens-doubles-elite:MED1'), false);
 	});
 
 	it('keeps the MO1 override when a confirmed r2-push matches it', () => {

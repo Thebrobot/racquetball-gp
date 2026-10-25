@@ -1,6 +1,17 @@
 {
   "port-st-lucie-open": [
     {
+      "id": "2026-10-25T19:45:00.000Z-mens-doubles-elite-MED1",
+      "at": "2026-10-25T19:45:00.000Z",
+      "type": "result",
+      "divisionId": "mens-doubles-elite",
+      "divisionLabel": "Men's Doubles: Elite",
+      "matchId": "MED1",
+      "headline": "Wade Stubanas / Brian Grantham def Mike Bock / Terry Money",
+      "detail": "10-15, 15-7, 11-6",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-elite"
+    },
+    {
       "id": "2026-10-25T19:35:00.000Z-mens-doubles-b-MBD2",
       "at": "2026-10-25T19:35:00.000Z",
       "type": "result",
