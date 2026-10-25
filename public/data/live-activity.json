@@ -1,39 +1,83 @@
 {
-  "lastUpdated": "2026-10-25T15:02:37.863Z",
+  "lastUpdated": "2026-10-25T18:22:15.759Z",
   "eventSlug": "port-st-lucie-open",
   "events": [
     {
-      "id": "2026-10-25T15:02:37.863Z-mens-age-3040-M30402",
-      "at": "2026-10-25T15:02:37.863Z",
+      "id": "2026-10-25T18:22:15.759Z-mens-singles-elite-ME1",
+      "at": "2026-10-25T18:22:15.759Z",
       "type": "result",
-      "divisionId": "mens-age-3040",
-      "divisionLabel": "Men's Age Singles: 24/30/40",
-      "matchId": "M30402",
-      "headline": "Trevor Morgan def Alex Bartolome",
-      "detail": "WBF - No Show",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-age-3040"
+      "divisionId": "mens-singles-elite",
+      "divisionLabel": "Men's Singles: Elite",
+      "matchId": "ME1",
+      "headline": "Scott Haacke def Isaac Taylor",
+      "detail": "15-13, 15-1",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-elite"
     },
     {
-      "id": "2026-10-25T15:02:37.863Z-mens-age-3040-M30401",
-      "at": "2026-10-25T15:02:37.863Z",
+      "id": "2026-10-25T18:22:15.759Z-mens-singles-a-MA4",
+      "at": "2026-10-25T18:22:15.759Z",
       "type": "result",
-      "divisionId": "mens-age-3040",
-      "divisionLabel": "Men's Age Singles: 24/30/40",
-      "matchId": "M30401",
-      "headline": "Scott Haacke def Jason Cheng",
-      "detail": "WBF - No Show",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-age-3040"
+      "divisionId": "mens-singles-a",
+      "divisionLabel": "Men's Singles: A",
+      "matchId": "MA4",
+      "headline": "Brendan Anthony def Bryon Haacke",
+      "detail": "15-12, 15-13",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-a"
     },
     {
-      "id": "2026-10-25T15:02:37.863Z-mens-doubles-open-MOD1",
-      "at": "2026-10-25T15:02:37.863Z",
+      "id": "2026-10-25T18:22:15.759Z-mens-singles-a-MA3",
+      "at": "2026-10-25T18:22:15.759Z",
       "type": "result",
-      "divisionId": "mens-doubles-open",
-      "divisionLabel": "Men's Doubles: Open",
-      "matchId": "MOD1",
-      "headline": "Tyson Peco / Naomi Ros def Annie Sanchez / Samuel Schulze",
-      "detail": "15-6, 15-8",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-open"
+      "divisionId": "mens-singles-a",
+      "divisionLabel": "Men's Singles: A",
+      "matchId": "MA3",
+      "headline": "Brian Grantham def Jason Cheng",
+      "detail": "15-13, 15-14",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-a"
+    },
+    {
+      "id": "2026-10-25T18:22:15.759Z-mens-singles-b-MB4",
+      "at": "2026-10-25T18:22:15.759Z",
+      "type": "result",
+      "divisionId": "mens-singles-b",
+      "divisionLabel": "Men's Singles: B",
+      "matchId": "MB4",
+      "headline": "Elijah Saunders def Daniel Bray",
+      "detail": "15-6, 13-15, 11-5",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-b"
+    },
+    {
+      "id": "2026-10-25T18:22:15.759Z-mens-singles-b-MB1",
+      "at": "2026-10-25T18:22:15.759Z",
+      "type": "result",
+      "divisionId": "mens-singles-b",
+      "divisionLabel": "Men's Singles: B",
+      "matchId": "MB1",
+      "headline": "Elijah Saunders def Matt Kern",
+      "detail": "15-13, 12-15, 11-4",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-b"
+    },
+    {
+      "id": "2026-10-25T18:22:15.759Z-mens-doubles-elite-MED3",
+      "at": "2026-10-25T18:22:15.759Z",
+      "type": "result",
+      "divisionId": "mens-doubles-elite",
+      "divisionLabel": "Men's Doubles: Elite",
+      "matchId": "MED3",
+      "headline": "Mike Bock / Terry Money def Scott Haacke / Bryon Haacke",
+      "detail": "14-15, 15-4, 11-6",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-elite"
+    },
+    {
+      "id": "2026-10-25T18:22:15.759Z-mens-doubles-centurion-MCSD1",
+      "at": "2026-10-25T18:22:15.759Z",
+      "type": "result",
+      "divisionId": "mens-doubles-centurion",
+      "divisionLabel": "Men's Doubles: Centurion/Super",
+      "matchId": "MCSD1",
+      "headline": "Val Peco / Tyson Peco def Mike Bock / Terry Money",
+      "detail": "15-5, 15-4",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-centurion"
     },
     {
       "id": "2026-10-25T17:10:00.000Z-mens-singles-open-MO1",
@@ -67,6 +111,39 @@
       "headline": "Tony Gutierrez / Gene Fry def Paul Sotolongo / Kyle Artman",
       "detail": "13-15, 15-4, 11-3",
       "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-a"
+    },
+    {
+      "id": "2026-10-25T15:02:37.863Z-mens-age-3040-M30402",
+      "at": "2026-10-25T15:02:37.863Z",
+      "type": "result",
+      "divisionId": "mens-age-3040",
+      "divisionLabel": "Men's Age Singles: 24/30/40",
+      "matchId": "M30402",
+      "headline": "Trevor Morgan def Alex Bartolome",
+      "detail": "WBF - No Show",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-age-3040"
+    },
+    {
+      "id": "2026-10-25T15:02:37.863Z-mens-age-3040-M30401",
+      "at": "2026-10-25T15:02:37.863Z",
+      "type": "result",
+      "divisionId": "mens-age-3040",
+      "divisionLabel": "Men's Age Singles: 24/30/40",
+      "matchId": "M30401",
+      "headline": "Scott Haacke def Jason Cheng",
+      "detail": "WBF - No Show",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-age-3040"
+    },
+    {
+      "id": "2026-10-25T15:02:37.863Z-mens-doubles-open-MOD1",
+      "at": "2026-10-25T15:02:37.863Z",
+      "type": "result",
+      "divisionId": "mens-doubles-open",
+      "divisionLabel": "Men's Doubles: Open",
+      "matchId": "MOD1",
+      "headline": "Tyson Peco / Naomi Ros def Annie Sanchez / Samuel Schulze",
+      "detail": "15-6, 15-8",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-open"
     },
     {
       "id": "2026-10-25T14:50:00.000Z-mens-singles-elite-ME3",

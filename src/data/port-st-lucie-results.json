@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-10-25T15:02:37.863Z",
+  "lastUpdated": "2026-10-25T18:22:15.759Z",
   "divisions": {
     "mens-singles-open": {
       "MO6": {
@@ -125,7 +125,9 @@
       "ME1": {
         "player1": "Isaac Taylor",
         "player2": "Scott Haacke",
-        "court": "Court 1",
+        "winner": 2,
+        "score": "15-13, 15-1",
+        "court": "Court 3",
         "scheduledTime": "Sunday · 3:00 PM"
       }
     },
@@ -173,14 +175,24 @@
       "MA4": {
         "player1": "Brendan Anthony",
         "player2": "Bryon Haacke",
-        "court": "Court 2",
+        "winner": 1,
+        "score": "15-12, 15-13",
+        "court": "Court 4",
         "scheduledTime": "Sunday · 9:00 AM"
       },
       "MA3": {
         "player1": "Jason Cheng",
         "player2": "Brian Grantham",
-        "court": "Court 1",
+        "winner": 2,
+        "score": "15-13, 15-14",
+        "court": "Court 2",
         "scheduledTime": "Sunday · 8:00 AM"
+      },
+      "MA1": {
+        "player1": "Brendan Anthony",
+        "player2": "Brian Grantham",
+        "court": "Court 1",
+        "scheduledTime": "Sunday · 2:00 PM"
       }
     },
     "mens-singles-b": {
@@ -235,7 +247,9 @@
       "MB4": {
         "player1": "Elijah Saunders",
         "player2": "Daniel Bray",
-        "court": "Court 2",
+        "winner": 1,
+        "score": "15-6, 13-15, 11-5",
+        "court": "Court 3",
         "scheduledTime": "Sunday · 8:00 AM"
       },
       "MB3": {
@@ -247,9 +261,11 @@
         "scheduledTime": "Sunday · 9:00 AM"
       },
       "MB1": {
-        "player1": "Matt Kern",
-        "player2": "Elijah Saunders",
-        "court": "Court 2",
+        "player1": "Elijah Saunders",
+        "player2": "Matt Kern",
+        "winner": 1,
+        "score": "15-13, 12-15, 11-4",
+        "court": "Court 4",
         "scheduledTime": "Sunday · 3:00 PM"
       }
     },
@@ -466,6 +482,8 @@
       "MED3": {
         "player1": "Mike Bock / Terry Money",
         "player2": "Scott Haacke / Bryon Haacke",
+        "winner": 1,
+        "score": "14-15, 15-4, 11-6",
         "court": "Court 2",
         "scheduledTime": "Sunday · 12:00 PM"
       },
@@ -495,7 +513,8 @@
       },
       "MED1": {
         "player1": "Wade Stubanas / Brian Grantham",
-        "court": "Court 3",
+        "player2": "Mike Bock / Terry Money",
+        "court": "Court 2",
         "scheduledTime": "Sunday · 3:00 PM"
       }
     },
@@ -573,7 +592,7 @@
       "MBD2": {
         "player1": "Jonathan Estepan / Daniel Bray",
         "player2": "Steve Disalvo / Kyle Artman",
-        "court": "Court 2",
+        "court": "Court 3",
         "scheduledTime": "Sunday · 2:00 PM"
       },
       "MBD1": {
@@ -617,8 +636,21 @@
         "score": "15-5, 15-3",
         "court": "Court 1",
         "scheduledTime": "Sunday · 8:00 AM"
+      },
+      "MCSD1": {
+        "player1": "Mike Bock / Terry Money",
+        "player2": "Val Peco / Tyson Peco",
+        "court": "Court 2",
+        "scheduledTime": "Sunday · 1:00 PM",
+        "winner": 2,
+        "score": "15-5, 15-4"
       }
     }
   },
-  "supersededOverrides": []
+  "supersededOverrides": [
+    "mens-doubles-elite:MED1",
+    "mens-singles-elite:ME1",
+    "mens-singles-b:MB4",
+    "mens-singles-b:MB1"
+  ]
 }
