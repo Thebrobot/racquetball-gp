@@ -409,8 +409,10 @@
       },
       "M60+1": {
         "player1": "Val Peco",
-        "player2": null,
-        "court": "Court 2",
+        "player2": "Dirk Huck",
+        "winner": 1,
+        "score": "15-2, 15-1",
+        "court": "Court 3",
         "scheduledTime": "Sunday · 4:00 PM"
       }
     },
@@ -550,7 +552,9 @@
       "MAD1": {
         "player1": "Tony Gutierrez / Gene Fry",
         "player2": "Troy Ayers / Greg Caruso",
-        "court": "Court 3",
+        "winner": 2,
+        "score": "15-3, 15-12",
+        "court": "Court 2",
         "scheduledTime": "Sunday · 4:00 PM"
       },
       "MAD3": {

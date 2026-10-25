@@ -101,10 +101,13 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(bundled.divisions['mens-age-60']?.['M60+3']?.player2, 'Charles Cole');
 		assert.equal(bundled.divisions['mens-age-60']?.['M60+3']?.winner, undefined);
 		assert.equal(bundled.divisions['mens-age-60']?.['M60+1']?.player1, 'Val Peco');
-		assert.equal(bundled.divisions['mens-age-60']?.['M60+1']?.court, 'Court 2');
+		assert.equal(bundled.divisions['mens-age-60']?.['M60+1']?.player2, 'Dirk Huck');
+		assert.equal(bundled.divisions['mens-age-60']?.['M60+1']?.winner, 1);
+		assert.equal(bundled.divisions['mens-age-60']?.['M60+1']?.score, '15-2, 15-1');
+		assert.equal(bundled.divisions['mens-age-60']?.['M60+1']?.court, 'Court 3');
 		assert.equal(bundled.divisions['mens-age-60']?.['M60+1']?.scheduledTime, 'Sunday · 4:00 PM');
-		assert.equal(bundled.divisions['mens-age-60']?.['M60+1']?.winner, undefined);
 		assert.equal(bundled.divisions['mens-age-50']?.['M50+1']?.winner, undefined);
+		assert.equal(bundled.divisions['mens-age-50']?.['M50+1']?.court, 'Court 1');
 
 		const mb3 = bundled.divisions['mens-singles-b']?.MB3;
 		assert.equal(mb3?.player1, 'Kyle Artman');
@@ -180,8 +183,9 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		const mad1 = bundled.divisions['mens-doubles-a']?.MAD1;
 		assert.equal(mad1?.player1, 'Tony Gutierrez / Gene Fry');
 		assert.equal(mad1?.player2, 'Troy Ayers / Greg Caruso');
-		assert.equal(mad1?.winner, undefined);
-		assert.equal(mad1?.court, 'Court 3');
+		assert.equal(mad1?.winner, 2);
+		assert.equal(mad1?.score, '15-3, 15-12');
+		assert.equal(mad1?.court, 'Court 2');
 		assert.equal(mad1?.scheduledTime, 'Sunday · 4:00 PM');
 
 		const mo1 = bundled.divisions['mens-singles-open']?.MO1;
@@ -266,10 +270,11 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(m603?.winner, undefined);
 		const m601 = findPslMatch('M60+1');
 		assert.equal(m601 && 'player1' in m601 ? m601.player1 : undefined, 'Val Peco');
-		assert.equal(m601 && 'player2' in m601 ? m601.player2 : undefined, 'TBD');
-		assert.equal(m601?.court, 'Court 2');
+		assert.equal(m601 && 'player2' in m601 ? m601.player2 : undefined, 'Dirk Huck');
+		assert.equal(m601?.winner, 1);
+		assert.equal(m601?.score, '15-2, 15-1');
+		assert.equal(m601?.court, 'Court 3');
 		assert.equal(m601?.scheduledTime, 'Sunday · 4:00 PM');
-		assert.equal(m601?.winner, undefined);
 
 		const mb3 = findPslMatch('MB3');
 		assert.equal(mb3 && 'player1' in mb3 ? mb3.player1 : undefined, 'Kyle Artman');
@@ -336,9 +341,10 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		const mad1 = findPslMatch('MAD1');
 		assert.equal(mad1 && 'player1' in mad1 ? mad1.player1 : undefined, 'Tony Gutierrez / Gene Fry');
 		assert.equal(mad1 && 'player2' in mad1 ? mad1.player2 : undefined, 'Troy Ayers / Greg Caruso');
-		assert.equal(mad1?.court, 'Court 3');
+		assert.equal(mad1?.winner, 2);
+		assert.equal(mad1?.score, '15-3, 15-12');
+		assert.equal(mad1?.court, 'Court 2');
 		assert.equal(mad1?.scheduledTime, 'Sunday · 4:00 PM');
-		assert.equal(mad1?.winner, undefined);
 
 		const mo1 = findPslMatch('MO1');
 		assert.equal(mo1 && 'team1' in mo1 ? mo1.team1 : undefined, 'Annie Sanchez');
@@ -470,7 +476,10 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(results.divisions['mens-age-60']?.['M60+3']?.court, 'Court 4');
 		assert.equal(results.divisions['mens-age-60']?.['M60+3']?.winner, undefined);
 		assert.equal(results.divisions['mens-age-60']?.['M60+1']?.player1, 'Val Peco');
-		assert.equal(results.divisions['mens-age-60']?.['M60+1']?.court, 'Court 2');
+		assert.equal(results.divisions['mens-age-60']?.['M60+1']?.player2, 'Dirk Huck');
+		assert.equal(results.divisions['mens-age-60']?.['M60+1']?.winner, 1);
+		assert.equal(results.divisions['mens-age-60']?.['M60+1']?.score, '15-2, 15-1');
+		assert.equal(results.divisions['mens-age-60']?.['M60+1']?.court, 'Court 3');
 		assert.equal(results.divisions['mens-age-60']?.['M60+1']?.scheduledTime, 'Sunday · 4:00 PM');
 	});
 
@@ -754,6 +763,46 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(results.divisions['mens-doubles-b']?.MBD2?.scheduledTime, 'Sunday · 2:00 PM');
 	});
 
+	it('publishes M60+1 Peco and MAD1 Ayers/Caruso onto last-good blob data', () => {
+		const { results, changed } = overlayOverridesOnFile(
+			'port-st-lucie-open',
+			{
+				lastUpdated: '2026-10-25T19:50:00.000Z',
+				divisions: {
+					'mens-age-60': {
+						'M60+1': {
+							player1: 'Val Peco',
+							court: 'Court 2',
+							scheduledTime: 'Sunday · 4:00 PM',
+						},
+					},
+					'mens-doubles-a': {
+						MAD1: {
+							player1: 'Tony Gutierrez / Gene Fry',
+							player2: 'Troy Ayers / Greg Caruso',
+							court: 'Court 3',
+							scheduledTime: 'Sunday · 4:00 PM',
+						},
+					},
+				},
+			},
+			'2026-10-25T20:20:00.000Z',
+		);
+		assert.equal(changed, true);
+		assert.equal(results.divisions['mens-age-60']?.['M60+1']?.winner, 1);
+		assert.equal(results.divisions['mens-age-60']?.['M60+1']?.score, '15-2, 15-1');
+		assert.equal(results.divisions['mens-age-60']?.['M60+1']?.court, 'Court 3');
+		assert.equal(results.divisions['mens-age-60']?.['M60+1']?.player1, 'Val Peco');
+		assert.equal(results.divisions['mens-age-60']?.['M60+1']?.player2, 'Dirk Huck');
+		assert.equal(results.divisions['mens-age-60']?.['M60+1']?.scheduledTime, 'Sunday · 4:00 PM');
+		assert.equal(results.divisions['mens-doubles-a']?.MAD1?.winner, 2);
+		assert.equal(results.divisions['mens-doubles-a']?.MAD1?.score, '15-3, 15-12');
+		assert.equal(results.divisions['mens-doubles-a']?.MAD1?.court, 'Court 2');
+		assert.equal(results.divisions['mens-doubles-a']?.MAD1?.player1, 'Tony Gutierrez / Gene Fry');
+		assert.equal(results.divisions['mens-doubles-a']?.MAD1?.player2, 'Troy Ayers / Greg Caruso');
+		assert.equal(results.divisions['mens-doubles-a']?.MAD1?.scheduledTime, 'Sunday · 4:00 PM');
+	});
+
 	it('Open RR standings become Sanchez 3-0, Linnell 2-1, Ros 1-2, Steinheiser 0-3', () => {
 		const event = applyResultsToEvent(
 			PORT_ST_LUCIE_EVENT,
@@ -848,9 +897,10 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(results.divisions['mens-doubles-a']?.MAD4?.player2, 'Paul Sotolongo / Kyle Artman');
 		assert.equal(results.divisions['mens-doubles-a']?.MAD1?.player1, 'Tony Gutierrez / Gene Fry');
 		assert.equal(results.divisions['mens-doubles-a']?.MAD1?.player2, 'Troy Ayers / Greg Caruso');
-		assert.equal(results.divisions['mens-doubles-a']?.MAD1?.court, 'Court 3');
+		assert.equal(results.divisions['mens-doubles-a']?.MAD1?.winner, 2);
+		assert.equal(results.divisions['mens-doubles-a']?.MAD1?.score, '15-3, 15-12');
+		assert.equal(results.divisions['mens-doubles-a']?.MAD1?.court, 'Court 2');
 		assert.equal(results.divisions['mens-doubles-a']?.MAD1?.scheduledTime, 'Sunday · 4:00 PM');
-		assert.equal(results.divisions['mens-doubles-a']?.MAD1?.winner, undefined);
 	});
 });
 
@@ -1122,6 +1172,33 @@ describe('overrides yield to a later confirmed R2 fetch', () => {
 			},
 		});
 		assert.equal(keys.includes('mens-doubles-b:MBD2'), false);
+	});
+
+	it('keeps the M60+1 and MAD1 overrides when a confirmed r2-push matches them', () => {
+		const keys = collectSupersededOverrides('port-st-lucie-open', {
+			'mens-age-60': {
+				'M60+1': {
+					player1: 'Val Peco',
+					player2: 'Dirk Huck',
+					winner: 1,
+					score: '15-2, 15-1',
+					court: 'Court 3',
+					scheduledTime: 'Sunday · 4:00 PM',
+				},
+			},
+			'mens-doubles-a': {
+				MAD1: {
+					player1: 'Tony Gutierrez / Gene Fry',
+					player2: 'Troy Ayers / Greg Caruso',
+					winner: 2,
+					score: '15-3, 15-12',
+					court: 'Court 2',
+					scheduledTime: 'Sunday · 4:00 PM',
+				},
+			},
+		});
+		assert.equal(keys.includes('mens-age-60:M60+1'), false);
+		assert.equal(keys.includes('mens-doubles-a:MAD1'), false);
 	});
 
 	it('yields MB8 once a confirmed r2-push names a different winner or score', () => {
