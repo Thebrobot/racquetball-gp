@@ -1,6 +1,17 @@
 {
   "port-st-lucie-open": [
     {
+      "id": "2026-10-25T16:40:00.000Z-mens-doubles-elite-MED4",
+      "at": "2026-10-25T16:40:00.000Z",
+      "type": "result",
+      "divisionId": "mens-doubles-elite",
+      "divisionLabel": "Men's Doubles: Elite",
+      "matchId": "MED4",
+      "headline": "Wade Stubanas / Brian Grantham def Samuel Schulze / Brendan Anthony",
+      "detail": "15-7, 15-14",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-elite"
+    },
+    {
       "id": "2026-10-25T15:50:00.000Z-mens-doubles-a-MAD4",
       "at": "2026-10-25T15:50:00.000Z",
       "type": "result",
