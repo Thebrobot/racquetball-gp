@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-10-24T21:14:48.489Z",
+  "lastUpdated": "2026-10-25T06:13:08.147Z",
   "divisions": {
     "mens-singles-open": {
       "MO6": {
@@ -121,8 +121,10 @@
       "MA6": {
         "player1": "Jason Cheng",
         "player2": "Larry Prince Jr.",
-        "court": "Court 1",
-        "scheduledTime": "Saturday · 1:00 PM"
+        "court": "Court 4",
+        "scheduledTime": "Saturday · 1:00 PM",
+        "winner": 1,
+        "score": "15-10, 15-8"
       },
       "MA7": {
         "player1": "John Wuchte",
@@ -136,7 +138,21 @@
         "player1": "Brendan Anthony",
         "player2": "Elijah Saunders",
         "court": "Court 2",
-        "scheduledTime": "Saturday · 12:00 PM"
+        "scheduledTime": "Saturday · 12:00 PM",
+        "winner": 1,
+        "score": "15-8, 15-5"
+      },
+      "MA4": {
+        "player1": "Brendan Anthony",
+        "player2": "Bryon Haacke",
+        "court": "Court 2",
+        "scheduledTime": "Sunday · 9:00 AM"
+      },
+      "MA3": {
+        "player1": "Jason Cheng",
+        "player2": "Brian Grantham",
+        "court": "Court 1",
+        "scheduledTime": "Sunday · 8:00 AM"
       }
     },
     "mens-singles-b": {

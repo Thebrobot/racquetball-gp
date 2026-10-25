@@ -1,7 +1,29 @@
 {
-  "lastUpdated": "2026-10-24T21:14:48.489Z",
+  "lastUpdated": "2026-10-25T06:13:08.147Z",
   "eventSlug": "port-st-lucie-open",
   "events": [
+    {
+      "id": "2026-10-25T06:13:08.147Z-mens-singles-a-MA6",
+      "at": "2026-10-25T06:13:08.147Z",
+      "type": "result",
+      "divisionId": "mens-singles-a",
+      "divisionLabel": "Men's Singles: A",
+      "matchId": "MA6",
+      "headline": "Jason Cheng def Larry Prince Jr.",
+      "detail": "15-10, 15-8",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-a"
+    },
+    {
+      "id": "2026-10-25T06:13:08.147Z-mens-singles-a-MA8",
+      "at": "2026-10-25T06:13:08.147Z",
+      "type": "result",
+      "divisionId": "mens-singles-a",
+      "divisionLabel": "Men's Singles: A",
+      "matchId": "MA8",
+      "headline": "Brendan Anthony def Elijah Saunders",
+      "detail": "15-8, 15-5",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-a"
+    },
     {
       "id": "2026-10-24T21:14:48.489Z-mens-singles-open-MO4",
       "at": "2026-10-24T21:14:48.489Z",
