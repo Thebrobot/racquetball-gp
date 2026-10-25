@@ -397,6 +397,7 @@ describe('match-result-overrides still win', () => {
 		assert.equal(divisions['mens-doubles-elite']?.MED1?.player1, 'Wade Stubanas / Brian Grantham');
 		assert.equal(divisions['mens-doubles-elite']?.MED1?.winner, undefined);
 		assert.equal(divisions['mens-doubles-elite']?.MED3?.winner, undefined);
+		assert.equal(divisions['mens-doubles-elite']?.MED3?.court, 'Court 2');
 		assert.equal(divisions['mens-doubles-a']?.MAD4?.winner, 1);
 		assert.equal(divisions['mens-doubles-a']?.MAD4?.score, '13-15, 15-4, 11-3');
 		assert.equal(divisions['mens-doubles-a']?.MAD4?.court, 'Court 3');
@@ -1037,6 +1038,7 @@ describe('Sunday Elite ME3 / ME1', () => {
 describe('Sunday Elite doubles MED4 / MED1', () => {
 	const sundayMed = extractSingleElimFromHtml(read('psl-med-draw-sunday.html'));
 	const med4Page = parseMatchPage(read('psl-med4-match.html'));
+	const med3Page = parseMatchPage(read('psl-med3-match.html'));
 
 	it('reads MED4 Stubanas/Grantham over Schulze/Anthony 15-7, 15-14 on Court 4', () => {
 		const draw = sundayMed.matches.MED4;
@@ -1054,6 +1056,23 @@ describe('Sunday Elite doubles MED4 / MED1', () => {
 		assert.equal(record.score, '15-7, 15-14');
 		assert.equal(record.court, 'Court 4');
 		assert.equal(record.scheduledTime, 'Sunday · 12:00 PM');
+	});
+
+	it('reads in-progress MED3 Bock/Money vs Haacke/Haacke on Court 2', () => {
+		const draw = sundayMed.matches.MED3;
+		assert.ok(draw);
+		assert.match(draw.player1 ?? '', /Bock/);
+		assert.match(draw.player2 ?? '', /Haacke/);
+		assert.equal(draw.court, 'Court 2');
+		assert.equal(draw.scheduledTime, 'Sunday · 12:00 PM');
+		assert.equal(draw.drawWinner, undefined);
+		assert.equal(med3Page.winnerName, null);
+		assert.equal(med3Page.court, 'Court 2');
+		const { record, quarantine } = resolveCode(sundayMed, 'MED3', med3Page);
+		assert.equal(quarantine, undefined);
+		assert.equal(record.winner, undefined);
+		assert.equal(record.score, undefined);
+		assert.equal(record.court, 'Court 2');
 	});
 
 	it('keeps a scheduled MED1 final with the MED4 winner side and no viewAppMatch', () => {
