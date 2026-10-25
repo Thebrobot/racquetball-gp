@@ -36,6 +36,17 @@
       "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-open"
     },
     {
+      "id": "2026-10-25T15:50:00.000Z-mens-doubles-a-MAD4",
+      "at": "2026-10-25T15:50:00.000Z",
+      "type": "result",
+      "divisionId": "mens-doubles-a",
+      "divisionLabel": "Men's Doubles: A",
+      "matchId": "MAD4",
+      "headline": "Tony Gutierrez / Gene Fry def Paul Sotolongo / Kyle Artman",
+      "detail": "13-15, 15-4, 11-3",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-a"
+    },
+    {
       "id": "2026-10-25T14:50:00.000Z-mens-singles-elite-ME3",
       "at": "2026-10-25T14:50:00.000Z",
       "type": "result",

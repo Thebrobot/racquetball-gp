@@ -147,6 +147,20 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(med1?.court, 'Court 3');
 		assert.equal(med1?.scheduledTime, 'Sunday · 3:00 PM');
 		assert.equal(med1?.winner, undefined);
+
+		const mad4 = bundled.divisions['mens-doubles-a']?.MAD4;
+		assert.equal(mad4?.player1, 'Tony Gutierrez / Gene Fry');
+		assert.equal(mad4?.player2, 'Paul Sotolongo / Kyle Artman');
+		assert.equal(mad4?.winner, 1);
+		assert.equal(mad4?.score, '13-15, 15-4, 11-3');
+		assert.equal(mad4?.court, 'Court 3');
+		assert.equal(mad4?.scheduledTime, 'Sunday · 11:00 AM');
+		const mad1 = bundled.divisions['mens-doubles-a']?.MAD1;
+		assert.equal(mad1?.player1, 'Tony Gutierrez / Gene Fry');
+		assert.equal(mad1?.player2, 'Troy Ayers / Greg Caruso');
+		assert.equal(mad1?.winner, undefined);
+		assert.equal(mad1?.court, 'Court 3');
+		assert.equal(mad1?.scheduledTime, 'Sunday · 4:00 PM');
 	});
 
 	it('build/deploy EVENTS overlay shows the same results without a successful sync', () => {
@@ -255,6 +269,20 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(med1?.court, 'Court 3');
 		assert.equal(med1?.scheduledTime, 'Sunday · 3:00 PM');
 		assert.equal(med1?.winner, undefined);
+
+		const mad4 = findPslMatch('MAD4');
+		assert.equal(mad4 && 'player1' in mad4 ? mad4.player1 : undefined, 'Tony Gutierrez / Gene Fry');
+		assert.equal(mad4 && 'player2' in mad4 ? mad4.player2 : undefined, 'Paul Sotolongo / Kyle Artman');
+		assert.equal(mad4?.winner, 1);
+		assert.equal(mad4?.score, '13-15, 15-4, 11-3');
+		assert.equal(mad4?.court, 'Court 3');
+		assert.equal(mad4?.scheduledTime, 'Sunday · 11:00 AM');
+		const mad1 = findPslMatch('MAD1');
+		assert.equal(mad1 && 'player1' in mad1 ? mad1.player1 : undefined, 'Tony Gutierrez / Gene Fry');
+		assert.equal(mad1 && 'player2' in mad1 ? mad1.player2 : undefined, 'Troy Ayers / Greg Caruso');
+		assert.equal(mad1?.court, 'Court 3');
+		assert.equal(mad1?.scheduledTime, 'Sunday · 4:00 PM');
+		assert.equal(mad1?.winner, undefined);
 	});
 
 	it('applies unread overrides onto last-good blob data when the cron is skipped', () => {
@@ -501,6 +529,45 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.scheduledTime, 'Sunday · 3:00 PM');
 		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.winner, undefined);
 	});
+
+	it('publishes MAD4 Gutierrez/Fry and the MAD1 pairing onto last-good blob data', () => {
+		const { results, changed } = overlayOverridesOnFile(
+			'port-st-lucie-open',
+			{
+				lastUpdated: '2026-10-25T16:15:00.000Z',
+				divisions: {
+					'mens-doubles-a': {
+						MAD4: {
+							player1: 'Tony Gutierrez / Gene Fry',
+							player2: 'Paul Sotolongo / Kyle Artman',
+							court: 'Court 3',
+							scheduledTime: 'Sunday · 11:00 AM',
+						},
+						MAD3: {
+							player1: 'Troy Ayers / Greg Caruso',
+							player2: 'Wade Stubanas / Timothy Burke',
+							winner: 1,
+							score: '5-15, 15-14, 11-5',
+							court: 'Court 2',
+							scheduledTime: 'Sunday · 10:00 AM',
+						},
+					},
+				},
+			},
+			'2026-10-25T16:40:00.000Z',
+		);
+		assert.equal(changed, true);
+		assert.equal(results.divisions['mens-doubles-a']?.MAD4?.winner, 1);
+		assert.equal(results.divisions['mens-doubles-a']?.MAD4?.score, '13-15, 15-4, 11-3');
+		assert.equal(results.divisions['mens-doubles-a']?.MAD4?.court, 'Court 3');
+		assert.equal(results.divisions['mens-doubles-a']?.MAD4?.player1, 'Tony Gutierrez / Gene Fry');
+		assert.equal(results.divisions['mens-doubles-a']?.MAD4?.player2, 'Paul Sotolongo / Kyle Artman');
+		assert.equal(results.divisions['mens-doubles-a']?.MAD1?.player1, 'Tony Gutierrez / Gene Fry');
+		assert.equal(results.divisions['mens-doubles-a']?.MAD1?.player2, 'Troy Ayers / Greg Caruso');
+		assert.equal(results.divisions['mens-doubles-a']?.MAD1?.court, 'Court 3');
+		assert.equal(results.divisions['mens-doubles-a']?.MAD1?.scheduledTime, 'Sunday · 4:00 PM');
+		assert.equal(results.divisions['mens-doubles-a']?.MAD1?.winner, undefined);
+	});
 });
 
 describe('overrides yield to a later confirmed R2 fetch', () => {
@@ -662,6 +729,21 @@ describe('overrides yield to a later confirmed R2 fetch', () => {
 			},
 		});
 		assert.equal(keys.includes('mens-singles-elite:ME3'), false);
+	});
+
+	it('keeps the MAD4 override when a confirmed r2-push matches it', () => {
+		const keys = collectSupersededOverrides('port-st-lucie-open', {
+			'mens-doubles-a': {
+				MAD4: {
+					player1: 'Tony Gutierrez / Gene Fry',
+					player2: 'Paul Sotolongo / Kyle Artman',
+					winner: 1,
+					score: '13-15, 15-4, 11-3',
+					court: 'Court 3',
+				},
+			},
+		});
+		assert.equal(keys.includes('mens-doubles-a:MAD4'), false);
 	});
 
 	it('yields MB8 once a confirmed r2-push names a different winner or score', () => {
