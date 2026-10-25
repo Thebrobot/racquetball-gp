@@ -1,7 +1,18 @@
 {
-  "lastUpdated": "2026-10-25T20:50:00.000Z",
+  "lastUpdated": "2026-10-25T21:01:40.152Z",
   "eventSlug": "port-st-lucie-open",
   "events": [
+    {
+      "id": "2026-10-25T21:01:40.152Z-mens-doubles-a-MAD3",
+      "at": "2026-10-25T21:01:40.152Z",
+      "type": "result",
+      "divisionId": "mens-doubles-a",
+      "divisionLabel": "Men's Doubles: A",
+      "matchId": "MAD3",
+      "headline": "Troy Ayers / Greg Caruso def Wade Stubanas / Timothy Burke",
+      "detail": "5-15, 15-14, 11-5",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-a"
+    },
     {
       "id": "2026-10-25T20:50:00.000Z-mens-age-50-M50+1",
       "at": "2026-10-25T20:50:00.000Z",
@@ -124,17 +135,6 @@
       "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-b"
     },
     {
-      "id": "2026-10-25T18:20:00.000Z-mens-doubles-elite-MED3",
-      "at": "2026-10-25T18:20:00.000Z",
-      "type": "result",
-      "divisionId": "mens-doubles-elite",
-      "divisionLabel": "Men's Doubles: Elite",
-      "matchId": "MED3",
-      "headline": "Mike Bock / Terry Money def Scott Haacke / Bryon Haacke",
-      "detail": "14-15, 15-4, 11-6",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-elite"
-    },
-    {
       "id": "2026-10-25T18:22:15.759Z-mens-doubles-centurion-MCSD1",
       "at": "2026-10-25T18:22:15.759Z",
       "type": "result",
@@ -144,6 +144,17 @@
       "headline": "Val Peco / Tyson Peco def Mike Bock / Terry Money",
       "detail": "15-5, 15-4",
       "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-centurion"
+    },
+    {
+      "id": "2026-10-25T18:20:00.000Z-mens-doubles-elite-MED3",
+      "at": "2026-10-25T18:20:00.000Z",
+      "type": "result",
+      "divisionId": "mens-doubles-elite",
+      "divisionLabel": "Men's Doubles: Elite",
+      "matchId": "MED3",
+      "headline": "Mike Bock / Terry Money def Scott Haacke / Bryon Haacke",
+      "detail": "14-15, 15-4, 11-6",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-elite"
     },
     {
       "id": "2026-10-25T17:10:00.000Z-mens-singles-open-MO1",

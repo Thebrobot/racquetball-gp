@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-10-25T18:22:15.759Z",
+  "lastUpdated": "2026-10-25T21:01:40.152Z",
   "divisions": {
     "mens-singles-open": {
       "MO6": {
@@ -562,6 +562,8 @@
       "MAD3": {
         "player1": "Troy Ayers / Greg Caruso",
         "player2": "Wade Stubanas / Timothy Burke",
+        "winner": 1,
+        "score": "5-15, 15-14, 11-5",
         "court": "Court 2",
         "scheduledTime": "Sunday · 10:00 AM"
       }
@@ -652,10 +654,10 @@
       "MCSD1": {
         "player1": "Mike Bock / Terry Money",
         "player2": "Val Peco / Tyson Peco",
-        "court": "Court 2",
-        "scheduledTime": "Sunday · 1:00 PM",
         "winner": 2,
-        "score": "15-5, 15-4"
+        "score": "15-5, 15-4",
+        "court": "Court 2",
+        "scheduledTime": "Sunday · 1:00 PM"
       }
     }
   },
