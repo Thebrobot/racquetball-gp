@@ -79,6 +79,21 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(bundled.divisions['mens-singles-b']?.MB7?.court, 'Court 1');
 		assert.equal(bundled.divisions['mens-age-3040']?.M30405?.court, 'Court 2');
 		assert.equal(bundled.divisions['mens-doubles-centurion']?.MCSD6?.court, 'Court 4');
+
+		const m604 = bundled.divisions['mens-age-60']?.['M60+4'];
+		assert.equal(m604?.player1, 'Val Peco');
+		assert.equal(m604?.player2, 'Mike Boyar');
+		assert.equal(m604?.winner, 1);
+		assert.equal(m604?.score, '15-6, 15-2');
+		assert.equal(m604?.court, 'Court 4');
+		assert.equal(m604?.scheduledTime, 'Sunday · 10:00 AM');
+		assert.equal(bundled.divisions['mens-age-60']?.['M60+3']?.court, 'Court 4');
+		assert.equal(bundled.divisions['mens-age-60']?.['M60+3']?.player1, 'Dirk Huck');
+		assert.equal(bundled.divisions['mens-age-60']?.['M60+3']?.player2, 'Charles Cole');
+		assert.equal(bundled.divisions['mens-age-60']?.['M60+3']?.winner, undefined);
+		assert.equal(bundled.divisions['mens-age-60']?.['M60+1']?.player1, 'Val Peco');
+		assert.equal(bundled.divisions['mens-age-60']?.['M60+1']?.court, 'Court 2');
+		assert.equal(bundled.divisions['mens-age-60']?.['M60+1']?.scheduledTime, 'Sunday · 4:00 PM');
 	});
 
 	it('build/deploy EVENTS overlay shows the same results without a successful sync', () => {
@@ -126,6 +141,21 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.ok(mbd1);
 		assert.equal(mbd1.winner, 1);
 		assert.equal(mbd1.score, '15-3, 15-7');
+
+		const m604 = findPslMatch('M60+4');
+		assert.equal(m604 && 'player1' in m604 ? m604.player1 : undefined, 'Val Peco');
+		assert.equal(m604 && 'player2' in m604 ? m604.player2 : undefined, 'Mike Boyar');
+		assert.equal(m604?.winner, 1);
+		assert.equal(m604?.score, '15-6, 15-2');
+		const m603 = findPslMatch('M60+3');
+		assert.equal(m603?.court, 'Court 4');
+		assert.equal(m603?.winner, undefined);
+		const m601 = findPslMatch('M60+1');
+		assert.equal(m601 && 'player1' in m601 ? m601.player1 : undefined, 'Val Peco');
+		assert.equal(m601 && 'player2' in m601 ? m601.player2 : undefined, 'TBD');
+		assert.equal(m601?.court, 'Court 2');
+		assert.equal(m601?.scheduledTime, 'Sunday · 4:00 PM');
+		assert.equal(m601?.winner, undefined);
 	});
 
 	it('applies unread overrides onto last-good blob data when the cron is skipped', () => {
@@ -207,6 +237,42 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(results.divisions['mens-singles-b']?.MB4?.winner, undefined);
 		assert.equal(results.divisions['mens-singles-b']?.MB4?.court, 'Court 2');
 		assert.equal(results.divisions['mens-singles-b']?.MB4?.scheduledTime, 'Sunday · 8:00 AM');
+	});
+
+	it('publishes M60+4 Peco and M60+3 Court 4 onto last-good blob data while blocked', () => {
+		const { results, changed } = overlayOverridesOnFile(
+			'port-st-lucie-open',
+			{
+				lastUpdated: '2026-10-25T14:20:00.000Z',
+				divisions: {
+					'mens-age-60': {
+						'M60+4': {
+							player1: 'Val Peco',
+							player2: 'Mike Boyar',
+							court: 'Court 1',
+							scheduledTime: 'Sunday · 10:00 AM',
+						},
+						'M60+3': {
+							player1: 'Dirk Huck',
+							player2: 'Charles Cole',
+							court: 'Court 3',
+							scheduledTime: 'Sunday · 11:00 AM',
+						},
+					},
+				},
+			},
+			'2026-10-25T14:50:00.000Z',
+		);
+		assert.equal(changed, true);
+		assert.equal(results.divisions['mens-age-60']?.['M60+4']?.winner, 1);
+		assert.equal(results.divisions['mens-age-60']?.['M60+4']?.score, '15-6, 15-2');
+		assert.equal(results.divisions['mens-age-60']?.['M60+4']?.player1, 'Val Peco');
+		assert.equal(results.divisions['mens-age-60']?.['M60+4']?.court, 'Court 4');
+		assert.equal(results.divisions['mens-age-60']?.['M60+3']?.court, 'Court 4');
+		assert.equal(results.divisions['mens-age-60']?.['M60+3']?.winner, undefined);
+		assert.equal(results.divisions['mens-age-60']?.['M60+1']?.player1, 'Val Peco');
+		assert.equal(results.divisions['mens-age-60']?.['M60+1']?.court, 'Court 2');
+		assert.equal(results.divisions['mens-age-60']?.['M60+1']?.scheduledTime, 'Sunday · 4:00 PM');
 	});
 });
 
