@@ -1,5 +1,10 @@
 import { EVENTS } from '../../data/events';
-import { ensureActivityForFinals, makeResultActivityEvent } from './activity-feed';
+import {
+	ensureActivityForFinals,
+	isCorrectionEvent,
+	makeResultActivityEvent,
+	reconcileActivityEvent,
+} from './activity-feed';
 import { drawPageUrls, type LiveEventConfig } from './config';
 import {
 	isActivityRegression,
@@ -517,17 +522,26 @@ export function mergeOneMatch(
 		player1: incoming.player1 ?? existing?.player1 ?? null,
 		player2: incoming.player2 ?? existing?.player2 ?? null,
 	};
-	// Non-empty incoming court/time (the match page that just captured a
-	// first-final, or any later refetch) replace an earlier stored court.
+	// Match-page court/time replace an earlier stored court (first-final or refetch).
 	// Finals: a blank R2 court must never wipe a stored court (#38/#45).
+	// Finals: an unresolved snapshot/draw court must not overwrite a stored court
+	// (MB7 Court 3 and M30405 Court 3 from the Saturday fallback).
 	// Not-final: if we actually read a match page, mirror it — including clear.
 	const keepStoredCourt =
 		isFinalWinner(existing) ||
 		isFinalWinner(incoming) ||
 		opts.quarantined ||
 		!opts.resolved;
-	if (incoming.court) next.court = incoming.court;
-	else if (keepStoredCourt && existing?.court) next.court = existing.court;
+	const alreadyFinal = isFinalWinner(existing);
+	if (incoming.court) {
+		if (!alreadyFinal || opts.resolved || turningFinal(existing, incoming) || !existing?.court) {
+			next.court = incoming.court;
+		} else {
+			next.court = existing.court;
+		}
+	} else if (keepStoredCourt && existing?.court) {
+		next.court = existing.court;
+	}
 	if (incoming.scheduledTime) next.scheduledTime = incoming.scheduledTime;
 	else if (existing?.scheduledTime) next.scheduledTime = existing.scheduledTime;
 
@@ -613,13 +627,21 @@ export function applyActivityUpdates(
 	const retract = new Set(retractMatchIds);
 	const prevEvents = prev.eventSlug === eventSlug ? (prev.events ?? []) : [];
 	const incomingIds = new Set(incoming.map((ev) => ev.matchId));
+	const prevByMatch = new Map(prevEvents.map((ev) => [ev.matchId, ev]));
 	// Never drop a feed row unless this run replaces that matchId (correction).
+	// Never restamp an existing row with the restore/sync run time.
 	void retract;
+	const nextIncoming = incoming.map((ev) => {
+		const prior = prevByMatch.get(ev.matchId);
+		if (!prior) return ev;
+		if (isCorrectionEvent(ev)) return ev;
+		return reconcileActivityEvent(prior, ev);
+	});
 	const kept = prevEvents.filter((ev) => !incomingIds.has(ev.matchId));
 	return {
 		lastUpdated: stamp ?? prev.lastUpdated,
 		eventSlug,
-		events: [...incoming, ...kept].slice(0, MAX_ACTIVITY_EVENTS),
+		events: [...nextIncoming, ...kept].slice(0, MAX_ACTIVITY_EVENTS),
 	};
 }
 

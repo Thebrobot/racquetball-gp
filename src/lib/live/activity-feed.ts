@@ -26,6 +26,37 @@ export function feedHasMatch(feed: LiveActivityFeed, matchId: string): boolean {
 	return (feed.events ?? []).some((ev) => ev.matchId === matchId);
 }
 
+export function isCorrectionEvent(ev: LiveActivityEvent): boolean {
+	return Boolean(ev.correction || ev.type === 'correction' || /^correction:/i.test(ev.headline ?? ''));
+}
+
+function withCorrectionPrefix(headline: string): string {
+	return /^correction:/i.test(headline) ? headline : `Correction: ${headline}`;
+}
+
+/**
+ * Same matchId: keep the earlier `at` and any Correction prefix.
+ * Never restamp a restored/backfilled row with a later restore-run time.
+ */
+export function reconcileActivityEvent(a: LiveActivityEvent, b: LiveActivityEvent): LiveActivityEvent {
+	const earlier = a.at <= b.at ? a : b;
+	const later = earlier === a ? b : a;
+	const correctionSrc = isCorrectionEvent(a) ? a : isCorrectionEvent(b) ? b : null;
+	const at = earlier.at;
+	const headline = correctionSrc
+		? withCorrectionPrefix(correctionSrc.headline.replace(/^correction:\s*/i, ''))
+		: earlier.headline;
+	return {
+		...later,
+		...earlier,
+		id: `${at}-${earlier.divisionId}-${earlier.matchId}`,
+		at,
+		headline,
+		detail: earlier.detail ?? later.detail,
+		...(correctionSrc ? { correction: true } : {}),
+	};
+}
+
 export function makeResultActivityEvent(
 	event: ActivityEventConfig,
 	divId: string,
@@ -51,12 +82,15 @@ export function makeResultActivityEvent(
 	};
 }
 
-/** Newest-first. Does not invent a stamp — caller supplies `entry.at`. */
+/** Newest-first. Reconciles `at` / Correction when the match already exists. */
 export function insertActivityEvent(feed: LiveActivityFeed, entry: LiveActivityEvent): LiveActivityFeed {
-	if (feedHasMatch(feed, entry.matchId)) return feed;
-	const events = [entry, ...(feed.events ?? [])].sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
-	const lastUpdated = !feed.lastUpdated || entry.at > feed.lastUpdated ? entry.at : feed.lastUpdated;
-	return { ...feed, lastUpdated, eventSlug: feed.eventSlug, events };
+	const events = [...(feed.events ?? [])];
+	const idx = events.findIndex((ev) => ev.matchId === entry.matchId);
+	if (idx >= 0) events[idx] = reconcileActivityEvent(events[idx], entry);
+	else events.push(entry);
+	events.sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
+	const maxAt = events.reduce((m, ev) => (!m || ev.at > m ? ev.at : m), '' as string);
+	return { ...feed, lastUpdated: maxAt || feed.lastUpdated, eventSlug: feed.eventSlug, events };
 }
 
 export function applyActivityBackfills(slug: string, feed: LiveActivityFeed): LiveActivityFeed {
@@ -65,6 +99,10 @@ export function applyActivityBackfills(slug: string, feed: LiveActivityFeed): Li
 		next = insertActivityEvent(next, entry);
 	}
 	return next;
+}
+
+export function pinnedActivityEvent(slug: string, matchId: string): LiveActivityEvent | undefined {
+	return ACTIVITY_BACKFILLS[slug]?.find((ev) => ev.matchId === matchId);
 }
 
 export function pinnedActivityStamp(slug: string, matchId: string): string | undefined {

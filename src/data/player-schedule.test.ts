@@ -48,6 +48,7 @@ describe('nextCallCourt', () => {
 		const mbd1 = { ...divisions['mens-doubles-b']!.MBD1 };
 		delete mbd1.winner;
 		delete mbd1.score;
+		delete mbd1.court;
 		divisions['mens-doubles-b']!.MBD1 = mbd1;
 		const event = applyResultsToEvent(PORT_ST_LUCIE_EVENT, divisions);
 		const profile = event.profiles.find(

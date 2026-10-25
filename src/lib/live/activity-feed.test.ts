@@ -6,7 +6,9 @@ import {
 	ensureActivityForFinals,
 	feedHasMatch,
 	insertActivityEvent,
+	reconcileActivityEvent,
 } from './activity-feed';
+import { unionActivityFeeds } from './monotonic';
 import { overlayLastGoodWithActivity, mergeScrapedResults } from './scrape';
 import { getBundledActivity, getBundledResults } from './store';
 import type { LiveActivityFeed } from './types';
@@ -167,6 +169,19 @@ describe('already-final results still backfill a missing feed row', () => {
 });
 
 describe('bundled activity and results include MBD1', () => {
+	it('bundled feed uses pre-rollback stamps, not the 06:13Z restore time', () => {
+		const feed = getBundledActivity();
+		assert.equal(feed.events.find((e) => e.matchId === 'MA6')?.at, '2026-10-24T18:10:00.000Z');
+		assert.equal(feed.events.find((e) => e.matchId === 'MA8')?.at, '2026-10-24T18:10:00.000Z');
+		assert.equal(feed.events.find((e) => e.matchId === 'MA9')?.at, '2026-10-24T12:20:00.000Z');
+		assert.equal(feed.events.find((e) => e.matchId === 'ME7')?.at, '2026-10-24T20:55:00.000Z');
+		assert.equal(feed.events.find((e) => e.matchId === 'MBD3')?.at, '2026-10-24T19:40:00.000Z');
+		assert.match(feed.events.find((e) => e.matchId === 'M60+6')?.headline ?? '', /^Correction:/);
+		assert.ok(!feed.events.some((e) => e.at === '2026-10-25T06:13:08.147Z'));
+		assert.ok(!feed.events.some((e) => e.at === '2026-10-24T16:17:40.251Z'));
+		assert.ok(!feed.events.some((e) => e.at.startsWith('2026-10-24T21:2') && ['MO2','MED7','ME7','MCSD6','MBD3','ME5','MCSD5'].includes(e.matchId)));
+	});
+
 	it('getBundledActivity and getBundledResults publish the Appleby/Kern final', () => {
 		const feed = getBundledActivity();
 		assert.ok(feedHasMatch(feed, 'MBD1'));
@@ -196,6 +211,143 @@ describe('bundled activity and results include MBD1', () => {
 			{ at: '2026-10-25T01:00:00.000Z', resultStamp: '2026-10-24T20:45:00.000Z' },
 		);
 		assert.equal(next.events.find((e) => e.matchId === 'MBD1')?.at, '2026-10-24T20:45:00.000Z');
+	});
+
+	it('never restamps a restored row and keeps a Correction prefix', () => {
+		const restamped = insertActivityEvent(
+			{
+				lastUpdated: '2026-10-25T06:13:08.147Z',
+				eventSlug: 'port-st-lucie-open',
+				events: [
+					{
+						id: '2026-10-25T06:13:08.147Z-mens-singles-a-MA6',
+						at: '2026-10-25T06:13:08.147Z',
+						type: 'result',
+						divisionId: 'mens-singles-a',
+						divisionLabel: "Men's Singles: A",
+						matchId: 'MA6',
+						headline: 'Jason Cheng def Larry Prince Jr.',
+						detail: '15-10, 15-8',
+						bracketHref: '/events/port-st-lucie-open/divisions/mens-singles-a',
+					},
+				],
+			},
+			{
+				id: '2026-10-24T18:10:00.000Z-mens-singles-a-MA6',
+				at: '2026-10-24T18:10:00.000Z',
+				type: 'result',
+				divisionId: 'mens-singles-a',
+				divisionLabel: "Men's Singles: A",
+				matchId: 'MA6',
+				headline: 'Jason Cheng def Larry Prince Jr.',
+				detail: '15-10, 15-8',
+				bracketHref: '/events/port-st-lucie-open/divisions/mens-singles-a',
+			},
+		);
+		assert.equal(restamped.events.find((e) => e.matchId === 'MA6')?.at, '2026-10-24T18:10:00.000Z');
+
+		const correction = reconcileActivityEvent(
+			{
+				id: 'plain',
+				at: '2026-10-24T16:17:40.251Z',
+				type: 'result',
+				divisionId: 'mens-age-60',
+				divisionLabel: "Men's Age Singles: 60+",
+				matchId: 'M60+6',
+				headline: 'Dirk Huck def Steve Disalvo',
+				detail: '15-13, 15-10',
+				bracketHref: '/events/port-st-lucie-open/divisions/mens-age-60',
+			},
+			{
+				id: 'corr',
+				at: '2026-10-24T14:50:00.000Z',
+				type: 'result',
+				divisionId: 'mens-age-60',
+				divisionLabel: "Men's Age Singles: 60+",
+				matchId: 'M60+6',
+				headline: 'Correction: Dirk Huck def Steve Disalvo',
+				detail: '15-13, 15-10',
+				bracketHref: '/events/port-st-lucie-open/divisions/mens-age-60',
+				correction: true,
+			},
+		);
+		assert.equal(correction.at, '2026-10-24T14:50:00.000Z');
+		assert.match(correction.headline, /^Correction: Dirk Huck def Steve Disalvo/);
+		assert.equal(correction.correction, true);
+
+		const united = unionActivityFeeds(
+			{
+				lastUpdated: '2026-10-25T06:13:08.147Z',
+				eventSlug: 'port-st-lucie-open',
+				events: [
+					{
+						id: 'late-me7',
+						at: '2026-10-24T21:24:00.000Z',
+						type: 'result',
+						divisionId: 'mens-singles-elite',
+						divisionLabel: "Men's Singles: Elite",
+						matchId: 'ME7',
+						headline: 'Chris Dermody def Chris Steinheiser',
+						detail: '15-9, 15-10',
+						bracketHref: '/events/port-st-lucie-open/divisions/mens-singles-elite',
+					},
+				],
+			},
+			{
+				lastUpdated: '2026-10-25T02:05:00.000Z',
+				eventSlug: 'port-st-lucie-open',
+				events: [
+					{
+						id: 'real-me7',
+						at: '2026-10-24T20:55:00.000Z',
+						type: 'result',
+						divisionId: 'mens-singles-elite',
+						divisionLabel: "Men's Singles: Elite",
+						matchId: 'ME7',
+						headline: 'Chris Dermody def Chris Steinheiser',
+						detail: '15-9, 15-10',
+						bracketHref: '/events/port-st-lucie-open/divisions/mens-singles-elite',
+					},
+				],
+			},
+		);
+		assert.equal(united.events.find((e) => e.matchId === 'ME7')?.at, '2026-10-24T20:55:00.000Z');
+	});
+
+	it('backfill restores pre-06:13Z stamps and the M60+6 Correction prefix', () => {
+		const filled = applyActivityBackfills('port-st-lucie-open', {
+			lastUpdated: '2026-10-25T06:13:08.147Z',
+			eventSlug: 'port-st-lucie-open',
+			events: [
+				{
+					id: '2026-10-25T06:13:08.147Z-mens-singles-a-MA6',
+					at: '2026-10-25T06:13:08.147Z',
+					type: 'result',
+					divisionId: 'mens-singles-a',
+					divisionLabel: "Men's Singles: A",
+					matchId: 'MA6',
+					headline: 'Jason Cheng def Larry Prince Jr.',
+					detail: '15-10, 15-8',
+					bracketHref: '/events/port-st-lucie-open/divisions/mens-singles-a',
+				},
+				{
+					id: '2026-10-24T16:17:40.251Z-mens-age-60-M60+6',
+					at: '2026-10-24T16:17:40.251Z',
+					type: 'result',
+					divisionId: 'mens-age-60',
+					divisionLabel: "Men's Age Singles: 60+",
+					matchId: 'M60+6',
+					headline: 'Dirk Huck def Steve Disalvo',
+					detail: '15-13, 15-10',
+					bracketHref: '/events/port-st-lucie-open/divisions/mens-age-60',
+				},
+			],
+		});
+		assert.equal(filled.events.find((e) => e.matchId === 'MA6')?.at, '2026-10-24T18:10:00.000Z');
+		assert.ok(filled.events.find((e) => e.matchId === 'MA6')?.at !== '2026-10-25T06:13:08.147Z');
+		const m606 = filled.events.find((e) => e.matchId === 'M60+6');
+		assert.match(m606?.headline ?? '', /^Correction:/);
+		assert.equal(m606?.at, '2026-10-24T14:50:00.000Z');
 	});
 
 	it('insertActivityEvent keeps newest-first order', () => {

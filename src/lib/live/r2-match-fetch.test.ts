@@ -383,6 +383,52 @@ describe('MAD5 court reconcile (stored Court 3, R2 Court 4)', () => {
 		assert.equal(merged.score, 'WBF - No Show');
 	});
 
+	it('does not let an unresolved snapshot court overwrite a stored final court', () => {
+		const merged = mergeOneMatch(
+			{
+				player1: 'Ben Mordkovich',
+				player2: 'Matt Kern',
+				winner: 2,
+				score: '15-5, 15-8',
+				court: 'Court 1',
+				scheduledTime: 'Saturday · 1:00 PM',
+			},
+			{
+				player1: 'Ben Mordkovich',
+				player2: 'Matt Kern',
+				winner: 2,
+				score: '15-5, 15-8',
+				court: 'Court 3',
+				scheduledTime: 'Saturday · 1:00 PM',
+			},
+			{ quarantined: false, resolved: false },
+		);
+		assert.equal(merged.court, 'Court 1');
+	});
+
+	it('prefers a resolved R2 match-page court over the stored final court', () => {
+		const merged = mergeOneMatch(
+			{
+				player1: 'Ben Mordkovich',
+				player2: 'Matt Kern',
+				winner: 2,
+				score: '15-5, 15-8',
+				court: 'Court 3',
+				scheduledTime: 'Saturday · 1:00 PM',
+			},
+			{
+				player1: 'Ben Mordkovich',
+				player2: 'Matt Kern',
+				winner: 2,
+				score: '15-5, 15-8',
+				court: 'Court 1',
+				scheduledTime: 'Saturday · 1:00 PM',
+			},
+			{ quarantined: false, resolved: true },
+		);
+		assert.equal(merged.court, 'Court 1');
+	});
+
 	it('never wipes a stored court when the incoming R2 court is blank', () => {
 		const merged = mergeOneMatch(
 			mad5StoredCourt3,

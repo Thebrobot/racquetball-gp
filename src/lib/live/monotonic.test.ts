@@ -234,7 +234,102 @@ describe('restored PSL 06:13Z finals', () => {
 		const mo2 = feed.events.find((e) => e.matchId === 'MO2');
 		const med6 = feed.events.find((e) => e.matchId === 'MED6' || e.matchId === 'MO4');
 		assert.ok(mo2 && med6);
-		assert.ok(mo2.at > '2026-10-24T21:14:00.000Z');
+		assert.equal(mo2.at, '2026-10-24T21:05:00.000Z');
 		assert.ok(mo2.at < '2026-10-25T06:13:08.147Z');
+		assert.equal(bundled.divisions['mens-singles-b']?.MB7?.court, 'Court 1');
+		assert.equal(bundled.divisions['mens-age-3040']?.M30405?.court, 'Court 2');
+		assert.equal(bundled.divisions['mens-doubles-b']?.MBD1?.court, 'Court 2');
+		assert.equal(bundled.divisions['mens-doubles-centurion']?.MCSD6?.court, 'Court 4');
+	});
+
+	it('union keeps a stored final court over an older snapshot court or blank', () => {
+		const snapshot: LiveResultsFile = {
+			lastUpdated: '2026-10-25T06:13:08.147Z',
+			divisions: {
+				'mens-singles-b': {
+					MB7: {
+						player1: 'Ben Mordkovich',
+						player2: 'Matt Kern',
+						winner: 2,
+						score: '15-5, 15-8',
+						court: 'Court 3',
+					},
+				},
+				'mens-age-3040': {
+					M30405: {
+						player1: 'Jason Cheng',
+						player2: 'Trevor Morgan',
+						winner: 2,
+						score: '15-7, 15-4',
+						court: 'Court 3',
+					},
+				},
+				'mens-doubles-b': {
+					MBD1: {
+						player1: 'Ryan Appleby / Matt Kern',
+						player2: 'Paul Sotolongo / Mark Manzano',
+						winner: 1,
+						score: '15-3, 15-7',
+					},
+				},
+				'mens-doubles-centurion': {
+					MCSD6: {
+						player1: 'Dirk Huck / John Joseph',
+						player2: 'John Wuchte / Yelandi Rivero',
+						winner: 1,
+						score: '15-7, 15-13',
+					},
+				},
+			},
+		};
+		const stored: LiveResultsFile = {
+			lastUpdated: '2026-10-25T02:05:00.000Z',
+			divisions: {
+				'mens-singles-b': {
+					MB7: {
+						player1: 'Ben Mordkovich',
+						player2: 'Matt Kern',
+						winner: 2,
+						score: '15-5, 15-8',
+						court: 'Court 1',
+					},
+				},
+				'mens-age-3040': {
+					M30405: {
+						player1: 'Jason Cheng',
+						player2: 'Trevor Morgan',
+						winner: 2,
+						score: '15-7, 15-4',
+						court: 'Court 2',
+					},
+				},
+				'mens-doubles-b': {
+					MBD1: {
+						player1: 'Ryan Appleby / Matt Kern',
+						player2: 'Paul Sotolongo / Mark Manzano',
+						winner: 1,
+						score: '15-3, 15-7',
+						court: 'Court 2',
+					},
+				},
+				'mens-doubles-centurion': {
+					MCSD6: {
+						player1: 'Dirk Huck / John Joseph',
+						player2: 'John Wuchte / Yelandi Rivero',
+						winner: 1,
+						score: '15-7, 15-13',
+						court: 'Court 4',
+					},
+				},
+			},
+		};
+		const united = unionResultsFiles(stored, snapshot);
+		assert.equal(united.divisions['mens-singles-b']?.MB7?.court, 'Court 1');
+		assert.equal(united.divisions['mens-age-3040']?.M30405?.court, 'Court 2');
+		assert.equal(united.divisions['mens-doubles-b']?.MBD1?.court, 'Court 2');
+		assert.equal(united.divisions['mens-doubles-centurion']?.MCSD6?.court, 'Court 4');
+		const flipped = unionResultsFiles(snapshot, stored);
+		assert.equal(flipped.divisions['mens-doubles-b']?.MBD1?.court, 'Court 2');
+		assert.equal(flipped.divisions['mens-doubles-centurion']?.MCSD6?.court, 'Court 4');
 	});
 });

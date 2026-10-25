@@ -11,6 +11,22 @@ export function isFinalWinner(record?: MatchRecord | null): boolean {
 	return record?.winner === 1 || record?.winner === 2;
 }
 
+/** Finals: never take blank over a stored court; keep a court when the other snapshot dropped it. */
+export function preferFinalCourt(primary?: MatchRecord | null, secondary?: MatchRecord | null): string | undefined {
+	const primaryCourt = primary?.court;
+	const secondaryCourt = secondary?.court;
+	if (primaryCourt && secondaryCourt) {
+		if (primaryCourt === secondaryCourt) return primaryCourt;
+		const primaryFinal = isFinalWinner(primary);
+		const secondaryFinal = isFinalWinner(secondary);
+		// Newer stored court wins over an older snapshot court for finals.
+		if (primaryFinal && secondaryFinal) return primaryCourt;
+		if (secondaryFinal && !primaryFinal) return secondaryCourt;
+		return primaryCourt;
+	}
+	return primaryCourt || secondaryCourt;
+}
+
 export function countFinals(divisions: Record<string, MatchMap> | undefined): number {
 	return Object.values(divisions ?? {}).reduce(
 		(n, div) => n + Object.values(div).filter((m) => isFinalWinner(m)).length,
@@ -36,8 +52,8 @@ export function unionMatchRecords(primary?: MatchRecord, secondary?: MatchRecord
 	if (winnerSrc.score) next.score = winnerSrc.score;
 	else if (primary.score) next.score = primary.score;
 	else if (secondary.score) next.score = secondary.score;
-	if (primary.court) next.court = primary.court;
-	else if (secondary.court) next.court = secondary.court;
+	const court = preferFinalCourt(primary, secondary);
+	if (court) next.court = court;
 	if (primary.scheduledTime) next.scheduledTime = primary.scheduledTime;
 	else if (secondary.scheduledTime) next.scheduledTime = secondary.scheduledTime;
 	return next;
