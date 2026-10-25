@@ -45,6 +45,8 @@
       "MO1": {
         "player1": "Annie Sanchez",
         "player2": "Naomi Ros",
+        "winner": 1,
+        "score": "15-10, 15-13",
         "court": "Court 1",
         "scheduledTime": "Sunday · 1:00 PM"
       }

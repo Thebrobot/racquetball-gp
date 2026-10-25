@@ -36,6 +36,17 @@
       "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-open"
     },
     {
+      "id": "2026-10-25T17:10:00.000Z-mens-singles-open-MO1",
+      "at": "2026-10-25T17:10:00.000Z",
+      "type": "result",
+      "divisionId": "mens-singles-open",
+      "divisionLabel": "Men's Singles: Open",
+      "matchId": "MO1",
+      "headline": "Annie Sanchez def Naomi Ros",
+      "detail": "15-10, 15-13",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-open"
+    },
+    {
       "id": "2026-10-25T16:40:00.000Z-mens-doubles-elite-MED4",
       "at": "2026-10-25T16:40:00.000Z",
       "type": "result",
