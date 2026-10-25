@@ -381,6 +381,14 @@ describe('match-result-overrides still win', () => {
 		assert.equal(divisions['mens-singles-b']?.MB4?.winner, undefined);
 		assert.equal(divisions['mens-singles-b']?.MB4?.court, 'Court 2');
 		assert.equal(divisions['mens-singles-b']?.MB4?.scheduledTime, 'Sunday · 8:00 AM');
+		assert.equal(divisions['mens-singles-b']?.MB3?.winner, 2);
+		assert.equal(divisions['mens-singles-b']?.MB3?.score, '15-7, 15-11');
+		assert.equal(divisions['mens-singles-b']?.MB1?.player1, 'Matt Kern');
+		assert.equal(divisions['mens-singles-b']?.MB1?.player2, 'Elijah Saunders');
+		assert.equal(divisions['mens-doubles-centurion']?.MCSD3?.winner, 2);
+		assert.equal(divisions['mens-doubles-centurion']?.MCSD3?.score, '15-5, 15-3');
+		assert.equal(divisions['mens-doubles-centurion']?.MCSD4?.winner, 2);
+		assert.equal(divisions['mens-doubles-centurion']?.MCSD4?.score, '15-1, 15-7');
 	});
 });
 
@@ -901,5 +909,68 @@ describe('finished matches keep court and time from the R2 match page', () => {
 		assert.equal(find('mens-doubles-b', 'MBD5')?.court, 'Court 4');
 		assert.equal(find('mens-age-60', 'M60+9')?.scheduledTime, 'Friday · 5:30 PM');
 		assert.equal(find('mens-doubles-elite', 'MED10')?.scheduledTime, 'Friday · 4:30 PM');
+	});
+});
+
+describe('Sunday draw: blue winner border, not green loser line', () => {
+	const sundayMcsd = extractSingleElimFromHtml(read('psl-mcsd-draw-sunday.html'));
+	const sundayMb = extractSingleElimFromHtml(read('psl-mb-draw-sunday.html'));
+	const mcsd3Page = parseMatchPage(read('psl-mcsd3-match.html'));
+	const mcsd4Page = parseMatchPage(read('psl-mcsd4-match.html'));
+	const mb3Page = parseMatchPage(read('psl-mb3-match.html'));
+
+	it('MCSD4 draw names Bock/Money (blue), not Gutierrez/Fry (green leftover)', () => {
+		const draw = sundayMcsd.matches.MCSD4;
+		assert.ok(draw);
+		assert.match(draw.player1 ?? '', /Gutierrez/);
+		assert.match(draw.player2 ?? '', /Bock/);
+		assert.equal(draw.drawWinner, 2);
+		assert.match(draw.drawWinnerName ?? '', /Bock/);
+		assert.equal(draw.drawWinnerSource, 'box-border');
+	});
+
+	it('MCSD3 draw names the Pecos, not Huck/Joseph leftover green', () => {
+		const draw = sundayMcsd.matches.MCSD3;
+		assert.ok(draw);
+		assert.match(draw.player1 ?? '', /Huck/);
+		assert.match(draw.player2 ?? '', /Peco/);
+		assert.equal(draw.drawWinner, 2);
+		assert.match(draw.drawWinnerName ?? '', /Peco/);
+	});
+
+	it('resolves MCSD4/MCSD3 from the match page without quarantining', () => {
+		const mcsd4 = resolveCode(sundayMcsd, 'MCSD4', mcsd4Page);
+		assert.equal(mcsd4.quarantine, undefined);
+		assert.equal(mcsd4.record.winner, 2);
+		assert.equal(mcsd4.record.score, '15-1, 15-7');
+		assert.equal(mcsd4.record.court, 'Court 2');
+		const mcsd3 = resolveCode(sundayMcsd, 'MCSD3', mcsd3Page);
+		assert.equal(mcsd3.quarantine, undefined);
+		assert.equal(mcsd3.record.winner, 2);
+		assert.equal(mcsd3.record.score, '15-5, 15-3');
+		assert.equal(mcsd3.record.court, 'Court 1');
+	});
+
+	it('keeps later-round MB names from the parent box, not the nested match-link table', () => {
+		const mb3 = sundayMb.matches.MB3;
+		assert.ok(mb3);
+		assert.match(mb3.player1 ?? '', /Artman/);
+		assert.match(mb3.player2 ?? '', /Kern/);
+		assert.equal(mb3.drawWinner, 2);
+		assert.match(mb3.drawWinnerName ?? '', /Kern/);
+		const mb1 = sundayMb.matches.MB1;
+		assert.ok(mb1);
+		assert.match(mb1.player1 ?? '', /Saunders/);
+		assert.match(mb1.player2 ?? '', /Kern/);
+		assert.equal(mb1.drawWinner, undefined);
+	});
+
+	it('resolves MB3 Kern from the match page', () => {
+		const { record, quarantine } = resolveCode(sundayMb, 'MB3', mb3Page);
+		assert.equal(quarantine, undefined);
+		assert.equal(record.winner, 2);
+		assert.equal(record.score, '15-7, 15-11');
+		assert.equal(record.court, 'Court 3');
+		assert.match(record.player2 ?? '', /Kern/);
 	});
 });
