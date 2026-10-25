@@ -129,7 +129,7 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(me3?.player1, 'Scott Haacke');
 		assert.equal(me3?.player2, 'Chris Dermody');
 		assert.equal(me3?.winner, 1);
-		assert.equal(me3?.score, '7-15, 15-9, 15-3');
+		assert.equal(me3?.score, '7-15, 15-9, 11-3');
 		assert.equal(me3?.court, 'Court 1');
 		assert.equal(me3?.scheduledTime, 'Sunday · 10:00 AM');
 		const me1 = bundled.divisions['mens-singles-elite']?.ME1;
@@ -271,7 +271,7 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(me3 && 'player1' in me3 ? me3.player1 : undefined, 'Scott Haacke');
 		assert.equal(me3 && 'player2' in me3 ? me3.player2 : undefined, 'Chris Dermody');
 		assert.equal(me3?.winner, 1);
-		assert.equal(me3?.score, '7-15, 15-9, 15-3');
+		assert.equal(me3?.score, '7-15, 15-9, 11-3');
 		assert.equal(me3?.court, 'Court 1');
 		const me1 = findPslMatch('ME1');
 		assert.equal(me1 && 'player1' in me1 ? me1.player1 : undefined, 'Isaac Taylor');
@@ -523,7 +523,7 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		);
 		assert.equal(changed, true);
 		assert.equal(results.divisions['mens-singles-elite']?.ME3?.winner, 1);
-		assert.equal(results.divisions['mens-singles-elite']?.ME3?.score, '7-15, 15-9, 15-3');
+		assert.equal(results.divisions['mens-singles-elite']?.ME3?.score, '7-15, 15-9, 11-3');
 		assert.equal(results.divisions['mens-singles-elite']?.ME3?.court, 'Court 1');
 		assert.equal(results.divisions['mens-singles-elite']?.ME1?.player1, 'Isaac Taylor');
 		assert.equal(results.divisions['mens-singles-elite']?.ME1?.player2, 'Scott Haacke');
@@ -854,7 +854,7 @@ describe('overrides yield to a later confirmed R2 fetch', () => {
 					player1: 'Scott Haacke',
 					player2: 'Chris Dermody',
 					winner: 1,
-					score: '7-15, 15-9, 15-3',
+					score: '7-15, 15-9, 11-3',
 					court: 'Court 1',
 				},
 			},
