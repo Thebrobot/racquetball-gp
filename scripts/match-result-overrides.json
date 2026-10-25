@@ -107,11 +107,21 @@
         "winner": 2,
         "score": "15-10, 15-2"
       },
+      "MED4": {
+        "player1": "Samuel Schulze / Brendan Anthony",
+        "player2": "Wade Stubanas / Brian Grantham",
+        "court": "Court 4",
+        "scheduledTime": "Sunday · 12:00 PM"
+      },
       "MED3": {
         "player1": "Mike Bock / Terry Money",
         "player2": "Scott Haacke / Bryon Haacke",
         "court": "Court 3",
         "scheduledTime": "Sunday · 12:00 PM"
+      },
+      "MED1": {
+        "court": "Court 3",
+        "scheduledTime": "Sunday · 3:00 PM"
       }
     },
     "mens-singles-open": {
