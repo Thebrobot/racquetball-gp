@@ -362,6 +362,12 @@ describe('match-result-overrides still win', () => {
 		assert.equal(divisions['mens-age-50']?.['M50+4']?.score, '15-4, 15-1');
 		assert.equal(divisions['mens-age-50']?.['M50+4']?.court, 'Court 1');
 		assert.equal(divisions['mens-age-50']?.['M50+4']?.scheduledTime, 'Saturday · 2:00 PM');
+		assert.equal(divisions['mens-age-50']?.['M50+1']?.player1, 'Tyson Peco');
+		assert.equal(divisions['mens-age-50']?.['M50+1']?.player2, 'Timothy Schnellenberger');
+		assert.equal(divisions['mens-age-50']?.['M50+1']?.winner, 1);
+		assert.equal(divisions['mens-age-50']?.['M50+1']?.score, '15-1, 15-4');
+		assert.equal(divisions['mens-age-50']?.['M50+1']?.court, 'Court 1');
+		assert.equal(divisions['mens-age-50']?.['M50+1']?.scheduledTime, 'Sunday · 4:00 PM');
 		assert.equal(divisions['mens-doubles-b']?.MBD3?.court, 'Court 2');
 		assert.equal(divisions['mens-doubles-b']?.MBD3?.winner, 2);
 		assert.equal(divisions['mens-doubles-b']?.MBD3?.score, '15-1, 15-12');
@@ -428,6 +434,12 @@ describe('match-result-overrides still win', () => {
 		assert.equal(divisions['mens-age-60']?.['M60+1']?.score, '15-2, 15-1');
 		assert.equal(divisions['mens-age-60']?.['M60+1']?.court, 'Court 3');
 		assert.equal(divisions['mens-age-60']?.['M60+1']?.scheduledTime, 'Sunday · 4:00 PM');
+		assert.equal(divisions['mens-age-50']?.['M50+1']?.player1, 'Tyson Peco');
+		assert.equal(divisions['mens-age-50']?.['M50+1']?.player2, 'Timothy Schnellenberger');
+		assert.equal(divisions['mens-age-50']?.['M50+1']?.winner, 1);
+		assert.equal(divisions['mens-age-50']?.['M50+1']?.score, '15-1, 15-4');
+		assert.equal(divisions['mens-age-50']?.['M50+1']?.court, 'Court 1');
+		assert.equal(divisions['mens-age-50']?.['M50+1']?.scheduledTime, 'Sunday · 4:00 PM');
 		assert.equal(divisions['mens-singles-open']?.MO1?.winner, 1);
 		assert.equal(divisions['mens-singles-open']?.MO1?.score, '15-10, 15-13');
 		assert.equal(divisions['mens-singles-open']?.MO1?.court, 'Court 1');
@@ -1282,6 +1294,31 @@ describe('Sunday 60+ M60+1 final', () => {
 		assert.equal(record.winner, 1);
 		assert.equal(record.score, '15-2, 15-1');
 		assert.equal(record.court, 'Court 3');
+		assert.equal(record.scheduledTime, 'Sunday · 4:00 PM');
+	});
+});
+
+describe('Sunday 50+ M50+1 final', () => {
+	const m501Page = parseMatchPage(read('psl-m501-match.html'));
+
+	it('reads M50+1 Peco over Schnellenberger 15-1, 15-4 on Court 1', () => {
+		assert.equal(m501Page.winnerName, 'Tyson Peco');
+		assert.equal(m501Page.score, '15-1, 15-4');
+		assert.equal(m501Page.court, 'Court 1');
+		const { record, quarantine } = resolveMatchResult({
+			matchId: 'M50+1',
+			draw: {
+				player1: 'Tyson Peco',
+				player2: 'Timothy Schnellenberger',
+				court: 'Court 1',
+				scheduledTime: 'Sunday · 4:00 PM',
+			},
+			page: m501Page,
+		});
+		assert.equal(quarantine, undefined);
+		assert.equal(record.winner, 1);
+		assert.equal(record.score, '15-1, 15-4');
+		assert.equal(record.court, 'Court 1');
 		assert.equal(record.scheduledTime, 'Sunday · 4:00 PM');
 	});
 });

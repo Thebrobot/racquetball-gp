@@ -106,8 +106,12 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(bundled.divisions['mens-age-60']?.['M60+1']?.score, '15-2, 15-1');
 		assert.equal(bundled.divisions['mens-age-60']?.['M60+1']?.court, 'Court 3');
 		assert.equal(bundled.divisions['mens-age-60']?.['M60+1']?.scheduledTime, 'Sunday · 4:00 PM');
-		assert.equal(bundled.divisions['mens-age-50']?.['M50+1']?.winner, undefined);
+		assert.equal(bundled.divisions['mens-age-50']?.['M50+1']?.player1, 'Tyson Peco');
+		assert.equal(bundled.divisions['mens-age-50']?.['M50+1']?.player2, 'Timothy Schnellenberger');
+		assert.equal(bundled.divisions['mens-age-50']?.['M50+1']?.winner, 1);
+		assert.equal(bundled.divisions['mens-age-50']?.['M50+1']?.score, '15-1, 15-4');
 		assert.equal(bundled.divisions['mens-age-50']?.['M50+1']?.court, 'Court 1');
+		assert.equal(bundled.divisions['mens-age-50']?.['M50+1']?.scheduledTime, 'Sunday · 4:00 PM');
 
 		const mb3 = bundled.divisions['mens-singles-b']?.MB3;
 		assert.equal(mb3?.player1, 'Kyle Artman');
@@ -275,6 +279,13 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(m601?.score, '15-2, 15-1');
 		assert.equal(m601?.court, 'Court 3');
 		assert.equal(m601?.scheduledTime, 'Sunday · 4:00 PM');
+		const m501 = findPslMatch('M50+1');
+		assert.equal(m501 && 'player1' in m501 ? m501.player1 : undefined, 'Tyson Peco');
+		assert.equal(m501 && 'player2' in m501 ? m501.player2 : undefined, 'Timothy Schnellenberger');
+		assert.equal(m501?.winner, 1);
+		assert.equal(m501?.score, '15-1, 15-4');
+		assert.equal(m501?.court, 'Court 1');
+		assert.equal(m501?.scheduledTime, 'Sunday · 4:00 PM');
 
 		const mb3 = findPslMatch('MB3');
 		assert.equal(mb3 && 'player1' in mb3 ? mb3.player1 : undefined, 'Kyle Artman');
@@ -803,6 +814,33 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(results.divisions['mens-doubles-a']?.MAD1?.scheduledTime, 'Sunday · 4:00 PM');
 	});
 
+	it('publishes M50+1 Peco onto last-good blob data', () => {
+		const { results, changed } = overlayOverridesOnFile(
+			'port-st-lucie-open',
+			{
+				lastUpdated: '2026-10-25T20:20:00.000Z',
+				divisions: {
+					'mens-age-50': {
+						'M50+1': {
+							player1: 'Tyson Peco',
+							player2: 'Timothy Schnellenberger',
+							court: 'Court 1',
+							scheduledTime: 'Sunday · 4:00 PM',
+						},
+					},
+				},
+			},
+			'2026-10-25T20:50:00.000Z',
+		);
+		assert.equal(changed, true);
+		assert.equal(results.divisions['mens-age-50']?.['M50+1']?.winner, 1);
+		assert.equal(results.divisions['mens-age-50']?.['M50+1']?.score, '15-1, 15-4');
+		assert.equal(results.divisions['mens-age-50']?.['M50+1']?.court, 'Court 1');
+		assert.equal(results.divisions['mens-age-50']?.['M50+1']?.player1, 'Tyson Peco');
+		assert.equal(results.divisions['mens-age-50']?.['M50+1']?.player2, 'Timothy Schnellenberger');
+		assert.equal(results.divisions['mens-age-50']?.['M50+1']?.scheduledTime, 'Sunday · 4:00 PM');
+	});
+
 	it('Open RR standings become Sanchez 3-0, Linnell 2-1, Ros 1-2, Steinheiser 0-3', () => {
 		const event = applyResultsToEvent(
 			PORT_ST_LUCIE_EVENT,
@@ -1199,6 +1237,22 @@ describe('overrides yield to a later confirmed R2 fetch', () => {
 		});
 		assert.equal(keys.includes('mens-age-60:M60+1'), false);
 		assert.equal(keys.includes('mens-doubles-a:MAD1'), false);
+	});
+
+	it('keeps the M50+1 override when a confirmed r2-push matches it', () => {
+		const keys = collectSupersededOverrides('port-st-lucie-open', {
+			'mens-age-50': {
+				'M50+1': {
+					player1: 'Tyson Peco',
+					player2: 'Timothy Schnellenberger',
+					winner: 1,
+					score: '15-1, 15-4',
+					court: 'Court 1',
+					scheduledTime: 'Sunday · 4:00 PM',
+				},
+			},
+		});
+		assert.equal(keys.includes('mens-age-50:M50+1'), false);
 	});
 
 	it('yields MB8 once a confirmed r2-push names a different winner or score', () => {

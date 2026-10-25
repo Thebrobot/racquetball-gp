@@ -263,6 +263,10 @@ describe('bundled activity and results include MBD1', () => {
 		);
 		assert.equal(feed.events.find((e) => e.matchId === 'MAD1')?.detail, '15-3, 15-12');
 		assert.equal(feed.events.find((e) => e.matchId === 'MAD1')?.at, '2026-10-25T20:16:00.000Z');
+		assert.ok(feedHasMatch(feed, 'M50+1'));
+		assert.equal(feed.events.find((e) => e.matchId === 'M50+1')?.headline, 'Tyson Peco def Timothy Schnellenberger');
+		assert.equal(feed.events.find((e) => e.matchId === 'M50+1')?.detail, '15-1, 15-4');
+		assert.equal(feed.events.find((e) => e.matchId === 'M50+1')?.at, '2026-10-25T20:50:00.000Z');
 		const row = getBundledResults('port-st-lucie-open').divisions['mens-doubles-b']?.MBD1;
 		assert.equal(row?.winner, 1);
 		assert.equal(row?.score, '15-3, 15-7');
