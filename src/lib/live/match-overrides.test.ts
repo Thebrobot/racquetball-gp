@@ -151,6 +151,9 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(med1?.scheduledTime, 'Sunday · 3:00 PM');
 		assert.equal(med1?.winner, undefined);
 		assert.equal(bundled.divisions['mens-doubles-elite']?.MED3?.winner, undefined);
+		assert.equal(bundled.divisions['mens-doubles-elite']?.MED3?.court, 'Court 2');
+		assert.equal(bundled.divisions['mens-doubles-elite']?.MED3?.player1, 'Mike Bock / Terry Money');
+		assert.equal(bundled.divisions['mens-doubles-elite']?.MED3?.player2, 'Scott Haacke / Bryon Haacke');
 
 		const mad4 = bundled.divisions['mens-doubles-a']?.MAD4;
 		assert.equal(mad4?.player1, 'Tony Gutierrez / Gene Fry');
@@ -277,6 +280,7 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(med1?.scheduledTime, 'Sunday · 3:00 PM');
 		assert.equal(med1?.winner, undefined);
 		assert.equal(findPslMatch('MED3')?.winner, undefined);
+		assert.equal(findPslMatch('MED3')?.court, 'Court 2');
 
 		const mad4 = findPslMatch('MAD4');
 		assert.equal(mad4 && 'player1' in mad4 ? mad4.player1 : undefined, 'Tony Gutierrez / Gene Fry');
@@ -540,6 +544,34 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.scheduledTime, 'Sunday · 3:00 PM');
 		assert.equal(results.divisions['mens-doubles-elite']?.MED1?.winner, undefined);
 		assert.equal(results.divisions['mens-doubles-elite']?.MED3?.winner, undefined);
+		assert.equal(results.divisions['mens-doubles-elite']?.MED3?.court, 'Court 2');
+	});
+
+	it('publishes the MED3 Court 2 move onto last-good blob data without a result', () => {
+		const { results, changed } = overlayOverridesOnFile(
+			'port-st-lucie-open',
+			{
+				lastUpdated: '2026-10-25T16:45:00.000Z',
+				divisions: {
+					'mens-doubles-elite': {
+						MED3: {
+							player1: 'Mike Bock / Terry Money',
+							player2: 'Scott Haacke / Bryon Haacke',
+							court: 'Court 3',
+							scheduledTime: 'Sunday · 12:00 PM',
+						},
+					},
+				},
+			},
+			'2026-10-25T17:05:00.000Z',
+		);
+		assert.equal(changed, true);
+		assert.equal(results.divisions['mens-doubles-elite']?.MED3?.court, 'Court 2');
+		assert.equal(results.divisions['mens-doubles-elite']?.MED3?.player1, 'Mike Bock / Terry Money');
+		assert.equal(results.divisions['mens-doubles-elite']?.MED3?.player2, 'Scott Haacke / Bryon Haacke');
+		assert.equal(results.divisions['mens-doubles-elite']?.MED3?.winner, undefined);
+		assert.equal(results.divisions['mens-doubles-elite']?.MED3?.score, undefined);
+		assert.equal(results.divisions['mens-doubles-elite']?.MED3?.scheduledTime, 'Sunday · 12:00 PM');
 	});
 
 	it('publishes MAD4 Gutierrez/Fry and the MAD1 pairing onto last-good blob data', () => {
@@ -771,6 +803,20 @@ describe('overrides yield to a later confirmed R2 fetch', () => {
 			},
 		});
 		assert.equal(keys.includes('mens-doubles-elite:MED4'), false);
+	});
+
+	it('keeps the MED3 Court 2 override when a confirmed r2-push matches it', () => {
+		const keys = collectSupersededOverrides('port-st-lucie-open', {
+			'mens-doubles-elite': {
+				MED3: {
+					player1: 'Mike Bock / Terry Money',
+					player2: 'Scott Haacke / Bryon Haacke',
+					court: 'Court 2',
+					scheduledTime: 'Sunday · 12:00 PM',
+				},
+			},
+		});
+		assert.equal(keys.includes('mens-doubles-elite:MED3'), false);
 	});
 
 	it('yields MB8 once a confirmed r2-push names a different winner or score', () => {
