@@ -151,10 +151,12 @@ describe('already-final results still backfill a missing feed row', () => {
 	it('read/build overlay inserts MBD1 after MED6 without inventing a later stamp', () => {
 		const filled = applyActivityBackfills('port-st-lucie-open', emptyFeed());
 		assert.ok(feedHasMatch(filled, 'MBD1'));
-		assert.equal(filled.events[0]?.matchId, 'MBD1');
-		assert.equal(filled.events[0]?.at, '2026-10-24T20:45:00.000Z');
-		assert.equal(filled.events[1]?.matchId, 'MED6');
-		assert.equal(filled.lastUpdated, '2026-10-24T20:45:00.000Z');
+		const mbd1 = filled.events.find((e) => e.matchId === 'MBD1');
+		const med6 = filled.events.find((e) => e.matchId === 'MED6');
+		assert.equal(mbd1?.at, '2026-10-24T20:45:00.000Z');
+		assert.ok(med6);
+		assert.ok(mbd1 && mbd1.at > med6.at);
+		assert.ok((filled.lastUpdated ?? '') >= '2026-10-24T20:45:00.000Z');
 	});
 
 	it('does not duplicate MBD1 when the feed already has it', () => {

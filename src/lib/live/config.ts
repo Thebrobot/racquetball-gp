@@ -189,8 +189,26 @@ export const LIVE_EVENT_BY_SLUG = Object.fromEntries(
 	Object.values(LIVE_EVENTS).map((event) => [event.slug, event]),
 ) as Record<string, LiveEventConfig>;
 
+export function viewBracketUrl(event: LiveEventConfig, divID: number, combinedID: number): string {
+	return `https://www.r2sports.com/tourney/drawsOut/view-bracket.asp?TID=${event.tid}&divID=${divID}&combinedID=${combinedID}`;
+}
+
+export function roundRobinUrl(event: LiveEventConfig, divID: number, combinedID: number): string {
+	return `https://www.r2sports.com/tourney/drawsOut/roundRobin.asp?TID=${event.tid}&divID=${divID}&combinedID=${combinedID}`;
+}
+
+/** Legacy path — R2 now 404s / redirects this to view-bracket or roundRobin. */
 export function drawOutUrl(event: LiveEventConfig, divID: number, combinedID: number): string {
-	return `https://www.r2sports.com/tourney/drawsOut/drawOut.asp?TID=${event.tid}&divID=${divID}&combinedID=${combinedID}`;
+	return viewBracketUrl(event, divID, combinedID);
+}
+
+/** Try the live R2 draw pages in order; drawOut.asp is last because it 404s. */
+export function drawPageUrls(event: LiveEventConfig, divID: number, combinedID: number): string[] {
+	return [
+		viewBracketUrl(event, divID, combinedID),
+		roundRobinUrl(event, divID, combinedID),
+		`https://www.r2sports.com/tourney/drawsOut/drawOut.asp?TID=${event.tid}&divID=${divID}&combinedID=${combinedID}`,
+	];
 }
 
 export function eventsInWindow(now = new Date(), force = false): LiveEventConfig[] {

@@ -363,13 +363,13 @@ describe('match-result-overrides still win', () => {
 		assert.equal(divisions['mens-age-50']?.['M50+4']?.court, 'Court 1');
 		assert.equal(divisions['mens-age-50']?.['M50+4']?.scheduledTime, 'Saturday · 2:00 PM');
 		assert.equal(divisions['mens-doubles-b']?.MBD3?.court, 'Court 2');
-		assert.equal(divisions['mens-doubles-b']?.MBD3?.winner, undefined);
+		assert.equal(divisions['mens-doubles-b']?.MBD3?.winner, 2);
+		assert.equal(divisions['mens-doubles-b']?.MBD3?.score, '15-1, 15-12');
 		assert.equal(divisions['mens-doubles-b']?.MBD1?.winner, 1);
 		assert.equal(divisions['mens-doubles-b']?.MBD1?.score, '15-3, 15-7');
 		assert.equal(divisions['mens-doubles-b']?.MBD1?.scheduledTime, 'Saturday · 3:00 PM');
-		assert.equal(divisions['mens-doubles-centurion']?.MCSD6?.score, 'WBF - No Show');
-		assert.equal(divisions['mens-doubles-centurion']?.MCSD6?.winner, undefined);
-		assert.equal(divisions['mens-doubles-centurion']?.MCSD6?.court, undefined);
+		assert.equal(divisions['mens-doubles-centurion']?.MCSD6?.score, '15-7, 15-13');
+		assert.equal(divisions['mens-doubles-centurion']?.MCSD6?.winner, 1);
 		assert.equal(divisions['mens-singles-b']?.MB8?.player1, 'Scott Gill');
 		assert.equal(divisions['mens-singles-b']?.MB8?.player2, 'Elijah Saunders');
 		assert.equal(divisions['mens-singles-b']?.MB8?.winner, 2);
@@ -385,13 +385,13 @@ describe('match-result-overrides still win', () => {
 });
 
 describe('merge keeps an unpublished score-without-winner undecided', () => {
-	it('resolved match page without a winner does not inherit a previous winner', () => {
+	it('keeps a published final when a later resolved page has score text but no winner', () => {
 		const merged = mergeOneMatch(
 			{ player1: 'Huck / Joseph', player2: 'McDonald / Rivero', winner: 1, score: 'WBF - No Show' },
 			{ player1: 'Huck / Joseph', player2: 'McDonald / Rivero', score: 'WBF - No Show' },
 			{ quarantined: false, resolved: true },
 		);
-		assert.equal(merged.winner, undefined);
+		assert.equal(merged.winner, 1);
 		assert.equal(merged.score, 'WBF - No Show');
 	});
 

@@ -47,8 +47,12 @@ async function notifyFreshResults(feed: { lastUpdated: string | null; eventSlug:
 	}
 }
 
-async function syncOne(event: LiveEventConfig, at: string): Promise<EventSyncStatus & { notified?: unknown }> {
-	const scraped = await scrapeEvent(event);
+async function syncOne(
+	event: LiveEventConfig,
+	at: string,
+	opts?: { allDivisions?: boolean },
+): Promise<EventSyncStatus & { notified?: unknown }> {
+	const scraped = await scrapeEvent(event, new Date(at), { allDivisions: opts?.allDivisions });
 	const { results, activity, changed, newActivity, quarantined } = await buildMergedResults(event, scraped, at);
 	await writeLiveResults(event.slug, results);
 	if (changed || activity.eventSlug === event.slug) {
@@ -187,7 +191,7 @@ export const GET: APIRoute = async ({ request, url }) => {
 
 	for (const event of targets) {
 		try {
-			const report = await syncOne(event, at);
+			const report = await syncOne(event, at, { allDivisions: force });
 			events[event.slug] = report;
 			reports.push(report);
 			if (report.lastError) runErrors.push(`${event.slug}: ${report.lastError}`);

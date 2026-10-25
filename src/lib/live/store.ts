@@ -5,6 +5,7 @@ import sarasotaResults from '../../data/sarasota-results.json';
 import bundledActivity from '../../../public/data/live-activity.json';
 import { applyActivityBackfills } from './activity-feed';
 import { applyMatchOverrides } from './match-overrides';
+import { pickRicherActivity, pickRicherResults, unionActivityFeeds, unionResultsFiles } from './monotonic';
 import type { LiveActivityFeed, LiveResultsFile, SyncStatus } from './types';
 
 const RESULTS_PREFIX = 'live/results/';
@@ -107,19 +108,6 @@ function newer(a: string | null | undefined, b: string | null | undefined): bool
 	return a > b;
 }
 
-/**
- * The cron's Blob copy is the source of truth. The repo copy (GitHub fallback
- * sync) only wins when Blob has fallen more than 30 minutes behind it, which
- * means the cron has stalled. Otherwise two scrapers would take turns and the
- * feed would appear to lose history.
- */
-const FALLBACK_GRACE_MS = 30 * 60 * 1000;
-function preferLive(liveStamp: string | null | undefined, bundledStamp: string | null | undefined): boolean {
-	if (!liveStamp) return false;
-	if (!bundledStamp) return true;
-	return Date.parse(bundledStamp) - Date.parse(liveStamp) < FALLBACK_GRACE_MS;
-}
-
 export function withMatchOverrides(slug: string, file: LiveResultsFile): LiveResultsFile {
 	return {
 		...file,
@@ -134,7 +122,9 @@ export function getBundledResults(slug: string): LiveResultsFile {
 export async function readLiveResults(slug: string, opts?: BlobReadOptions): Promise<LiveResultsFile> {
 	const bundled = BUNDLED_RESULTS[slug] ?? emptyResults();
 	const live = await readBlobJson<LiveResultsFile>(resultsPath(slug), opts);
-	const raw = live?.divisions && preferLive(live.lastUpdated, bundled.lastUpdated) ? live : bundled;
+	const richer = pickRicherResults(live, bundled);
+	const other = richer === live ? bundled : live;
+	const raw = unionResultsFiles(richer, other);
 	if (opts?.applyOverrides === false) return raw;
 	return withMatchOverrides(slug, raw);
 }
@@ -154,8 +144,9 @@ export function getBundledActivity(): LiveActivityFeed {
 export async function readLiveActivity(opts?: BlobReadOptions): Promise<LiveActivityFeed> {
 	const bundled = (bundledActivity as LiveActivityFeed) ?? emptyActivity();
 	const live = await readBlobJson<LiveActivityFeed>(ACTIVITY_PATH, opts);
-	const raw = live?.events && preferLive(live.lastUpdated, bundled.lastUpdated) ? live : bundled;
-	return withActivityBackfill(raw);
+	const richer = pickRicherActivity(live, bundled);
+	const other = richer === live ? bundled : live;
+	return withActivityBackfill(unionActivityFeeds(richer, other));
 }
 
 export async function writeLiveActivity(feed: LiveActivityFeed): Promise<void> {
