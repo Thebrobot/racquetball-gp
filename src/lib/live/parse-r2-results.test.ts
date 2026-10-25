@@ -392,6 +392,14 @@ describe('match-result-overrides still win', () => {
 		assert.equal(divisions['mens-doubles-elite']?.MED4?.court, 'Court 4');
 		assert.equal(divisions['mens-doubles-elite']?.MED1?.court, 'Court 3');
 		assert.equal(divisions['mens-doubles-elite']?.MED1?.scheduledTime, 'Sunday · 3:00 PM');
+		assert.equal(divisions['mens-doubles-a']?.MAD4?.winner, 1);
+		assert.equal(divisions['mens-doubles-a']?.MAD4?.score, '13-15, 15-4, 11-3');
+		assert.equal(divisions['mens-doubles-a']?.MAD4?.court, 'Court 3');
+		assert.equal(divisions['mens-doubles-a']?.MAD1?.player1, 'Tony Gutierrez / Gene Fry');
+		assert.equal(divisions['mens-doubles-a']?.MAD1?.player2, 'Troy Ayers / Greg Caruso');
+		assert.equal(divisions['mens-doubles-a']?.MAD1?.court, 'Court 3');
+		assert.equal(divisions['mens-doubles-a']?.MAD1?.scheduledTime, 'Sunday · 4:00 PM');
+		assert.equal(divisions['mens-doubles-a']?.MAD1?.winner, undefined);
 	});
 });
 
@@ -1056,5 +1064,46 @@ describe('Sunday Elite doubles MED4 / MED1', () => {
 		assert.equal(medDraw.matches.MED1?.court, 'Court 3');
 		assert.equal(medDraw.matches.MED1?.scheduledTime, 'Sunday · 3:00 PM');
 		assert.equal(medDraw.matches.MED8, undefined);
+	});
+});
+
+describe('Sunday A doubles MAD4 / MAD1', () => {
+	const sundayMad = extractSingleElimFromHtml(read('psl-mad-draw-sunday.html'));
+	const mad4Page = parseMatchPage(read('psl-mad4-match.html'));
+	const mad1Page = parseMatchPage(read('psl-mad1-match.html'));
+
+	it('reads MAD4 Gutierrez/Fry over Sotolongo/Artman 13-15, 15-4, 11-3 on Court 3', () => {
+		const draw = sundayMad.matches.MAD4;
+		assert.ok(draw);
+		assert.match(draw.player1 ?? '', /Gutierrez/);
+		assert.match(draw.player2 ?? '', /Sotolongo|Artman/);
+		assert.equal(draw.drawWinner, 1);
+		assert.match(draw.drawWinnerName ?? '', /Gutierrez|Fry/);
+		assert.equal(mad4Page.winnerName, 'Tony Gutierrez / Gene Fry');
+		assert.equal(mad4Page.score, '13-15, 15-4, 11-3');
+		assert.equal(mad4Page.court, 'Court 3');
+		const { record, quarantine } = resolveCode(sundayMad, 'MAD4', mad4Page);
+		assert.equal(quarantine, undefined);
+		assert.equal(record.winner, 1);
+		assert.equal(record.score, '13-15, 15-4, 11-3');
+		assert.equal(record.court, 'Court 3');
+		assert.equal(record.scheduledTime, 'Sunday · 11:00 AM');
+	});
+
+	it('reads MAD1 as Gutierrez/Fry vs Ayers/Caruso, Sunday 4:00 PM Court 3, not final', () => {
+		const draw = sundayMad.matches.MAD1;
+		assert.ok(draw);
+		assert.match(draw.player1 ?? '', /Gutierrez|Fry/);
+		assert.match(draw.player2 ?? '', /Ayers|Caruso/);
+		assert.equal(draw.drawWinner, undefined);
+		assert.equal(draw.court, 'Court 3');
+		assert.equal(draw.scheduledTime, 'Sunday · 4:00 PM');
+		const { record, quarantine } = resolveCode(sundayMad, 'MAD1', mad1Page);
+		assert.equal(quarantine, undefined);
+		assert.equal(record.winner, undefined);
+		assert.match(record.player1 ?? '', /Gutierrez/);
+		assert.match(record.player2 ?? '', /Ayers|Caruso/);
+		assert.equal(record.court, 'Court 3');
+		assert.equal(mad1Page.winnerName, null);
 	});
 });
