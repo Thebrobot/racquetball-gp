@@ -147,6 +147,16 @@
         "scheduledTime": "Sunday · 1:00 PM"
       }
     },
+    "mens-singles-a": {
+      "MA1": {
+        "player1": "Brendan Anthony",
+        "player2": "Brian Grantham",
+        "winner": 1,
+        "score": "14-15, 15-5, 11-4",
+        "court": "Court 1",
+        "scheduledTime": "Sunday · 2:00 PM"
+      }
+    },
     "mens-singles-elite": {
       "ME5": {
         "player1": "Shane De Witt",

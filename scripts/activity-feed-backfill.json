@@ -1,6 +1,17 @@
 {
   "port-st-lucie-open": [
     {
+      "id": "2026-10-25T18:45:00.000Z-mens-singles-a-MA1",
+      "at": "2026-10-25T18:45:00.000Z",
+      "type": "result",
+      "divisionId": "mens-singles-a",
+      "divisionLabel": "Men's Singles: A",
+      "matchId": "MA1",
+      "headline": "Brendan Anthony def Brian Grantham",
+      "detail": "14-15, 15-5, 11-4",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-a"
+    },
+    {
       "id": "2026-10-25T18:20:00.000Z-mens-doubles-elite-MED3",
       "at": "2026-10-25T18:20:00.000Z",
       "type": "result",
