@@ -194,6 +194,25 @@
       }
     },
     "mens-age-60": {
+      "M60+4": {
+        "player1": "Val Peco",
+        "player2": "Mike Boyar",
+        "winner": 1,
+        "score": "15-6, 15-2",
+        "court": "Court 4",
+        "scheduledTime": "Sunday · 10:00 AM"
+      },
+      "M60+3": {
+        "player1": "Dirk Huck",
+        "player2": "Charles Cole",
+        "court": "Court 4",
+        "scheduledTime": "Sunday · 11:00 AM"
+      },
+      "M60+1": {
+        "player1": "Val Peco",
+        "court": "Court 2",
+        "scheduledTime": "Sunday · 4:00 PM"
+      },
       "M60+8": {
         "winner": 1,
         "score": "15-1, 15-2",
