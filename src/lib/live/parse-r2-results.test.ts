@@ -368,6 +368,12 @@ describe('match-result-overrides still win', () => {
 		assert.equal(divisions['mens-doubles-b']?.MBD1?.winner, 1);
 		assert.equal(divisions['mens-doubles-b']?.MBD1?.score, '15-3, 15-7');
 		assert.equal(divisions['mens-doubles-b']?.MBD1?.scheduledTime, 'Saturday · 3:00 PM');
+		assert.equal(divisions['mens-doubles-b']?.MBD2?.player1, 'Jonathan Estepan / Daniel Bray');
+		assert.equal(divisions['mens-doubles-b']?.MBD2?.player2, 'Steve Disalvo / Kyle Artman');
+		assert.equal(divisions['mens-doubles-b']?.MBD2?.winner, 2);
+		assert.equal(divisions['mens-doubles-b']?.MBD2?.score, '6-15, 15-10, 15-8');
+		assert.equal(divisions['mens-doubles-b']?.MBD2?.court, 'Court 3');
+		assert.equal(divisions['mens-doubles-b']?.MBD2?.scheduledTime, 'Sunday · 2:00 PM');
 		assert.equal(divisions['mens-doubles-centurion']?.MCSD6?.score, '15-7, 15-13');
 		assert.equal(divisions['mens-doubles-centurion']?.MCSD6?.winner, 1);
 		assert.equal(divisions['mens-singles-b']?.MB8?.player1, 'Scott Gill');
@@ -1200,5 +1206,23 @@ describe('Sunday A singles MA1', () => {
 		assert.equal(record.score, '14-15, 15-5, 11-4');
 		assert.equal(record.court, 'Court 1');
 		assert.equal(record.scheduledTime, 'Sunday · 2:00 PM');
+	});
+});
+
+describe('Sunday B doubles MBD2', () => {
+	const mbd2Page = parseMatchPage(read('psl-mbd2-match.html'));
+
+	it('reads MBD2 Disalvo/Artman over Estepan/Bray 6-15, 15-10, 15-8 on Court 3', () => {
+		assert.equal(mbd2Page.winnerName, 'Steve Disalvo / Kyle Artman');
+		assert.equal(mbd2Page.score, '6-15, 15-10, 15-8');
+		assert.equal(mbd2Page.court, 'Court 3');
+		const { record, quarantine } = resolveCode(mbdDraw, 'MBD2', mbd2Page);
+		assert.equal(quarantine, undefined);
+		assert.equal(record.winner, 2);
+		assert.equal(record.score, '6-15, 15-10, 15-8');
+		assert.equal(record.court, 'Court 3');
+		assert.equal(record.scheduledTime, 'Sunday · 2:00 PM');
+		assert.match(record.player1 ?? '', /Estepan/);
+		assert.match(record.player2 ?? '', /Disalvo/);
 	});
 });

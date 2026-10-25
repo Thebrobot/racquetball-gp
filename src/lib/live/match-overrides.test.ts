@@ -9,6 +9,7 @@ import {
 	overlayOverridesOnFile,
 	overrideYieldsToR2,
 } from './match-overrides';
+import { namesAlign } from './r2-names';
 import { mergeScrapedResults } from './scrape';
 import { getBundledResults } from './store';
 
@@ -77,6 +78,13 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(mbd1?.winner, 1);
 		assert.equal(mbd1?.score, '15-3, 15-7');
 		assert.equal(mbd1?.court, 'Court 2');
+		const mbd2 = bundled.divisions['mens-doubles-b']?.MBD2;
+		assert.equal(mbd2?.player1, 'Jonathan Estepan / Daniel Bray');
+		assert.equal(mbd2?.player2, 'Steve Disalvo / Kyle Artman');
+		assert.equal(mbd2?.winner, 2);
+		assert.equal(mbd2?.score, '6-15, 15-10, 15-8');
+		assert.equal(mbd2?.court, 'Court 3');
+		assert.equal(mbd2?.scheduledTime, 'Sunday · 2:00 PM');
 		assert.equal(bundled.divisions['mens-singles-b']?.MB7?.court, 'Court 1');
 		assert.equal(bundled.divisions['mens-age-3040']?.M30405?.court, 'Court 2');
 		assert.equal(bundled.divisions['mens-doubles-centurion']?.MCSD6?.court, 'Court 4');
@@ -236,6 +244,14 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.ok(mbd1);
 		assert.equal(mbd1.winner, 1);
 		assert.equal(mbd1.score, '15-3, 15-7');
+		const mbd2 = findPslMatch('MBD2');
+		assert.ok(mbd2);
+		assert.match(mbd2 && 'team1' in mbd2 ? mbd2.team1 : '', /Estepan/);
+		assert.match(mbd2 && 'team2' in mbd2 ? mbd2.team2 : '', /Disalvo/);
+		assert.equal(mbd2?.winner, 2);
+		assert.equal(mbd2?.score, '6-15, 15-10, 15-8');
+		assert.equal(mbd2?.court, 'Court 3');
+		assert.equal(mbd2?.scheduledTime, 'Sunday · 2:00 PM');
 
 		const m604 = findPslMatch('M60+4');
 		assert.equal(m604 && 'player1' in m604 ? m604.player1 : undefined, 'Val Peco');
@@ -678,6 +694,33 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(results.divisions['mens-singles-a']?.MA1?.scheduledTime, 'Sunday · 2:00 PM');
 	});
 
+	it('publishes MBD2 Disalvo/Artman onto last-good blob data', () => {
+		const { results, changed } = overlayOverridesOnFile(
+			'port-st-lucie-open',
+			{
+				lastUpdated: '2026-10-25T18:50:00.000Z',
+				divisions: {
+					'mens-doubles-b': {
+						MBD2: {
+							player1: 'Jonathan Estepan / Daniel Bray',
+							player2: 'Steve Disalvo / Kyle Artman',
+							court: 'Court 3',
+							scheduledTime: 'Sunday · 2:00 PM',
+						},
+					},
+				},
+			},
+			'2026-10-25T19:40:00.000Z',
+		);
+		assert.equal(changed, true);
+		assert.equal(results.divisions['mens-doubles-b']?.MBD2?.winner, 2);
+		assert.equal(results.divisions['mens-doubles-b']?.MBD2?.score, '6-15, 15-10, 15-8');
+		assert.equal(results.divisions['mens-doubles-b']?.MBD2?.court, 'Court 3');
+		assert.equal(results.divisions['mens-doubles-b']?.MBD2?.player1, 'Jonathan Estepan / Daniel Bray');
+		assert.equal(results.divisions['mens-doubles-b']?.MBD2?.player2, 'Steve Disalvo / Kyle Artman');
+		assert.equal(results.divisions['mens-doubles-b']?.MBD2?.scheduledTime, 'Sunday · 2:00 PM');
+	});
+
 	it('Open RR standings become Sanchez 3-0, Linnell 2-1, Ros 1-2, Steinheiser 0-3', () => {
 		const event = applyResultsToEvent(
 			PORT_ST_LUCIE_EVENT,
@@ -701,6 +744,40 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.deepEqual(
 			ranked.map((r) => `${r.name} ${r.w}-${r.l}`),
 			['Annie Sanchez 3-0', 'Joe Linnell 2-1', 'Naomi Ros 1-2', 'Chris Steinheiser 0-3'],
+		);
+	});
+
+	it('B doubles RR standings become Appleby/Kern 3-0, Disalvo/Artman 2-1, Estepan/Bray 1-2, Sotolongo/Manzano 0-3', () => {
+		const event = applyResultsToEvent(
+			PORT_ST_LUCIE_EVENT,
+			getBundledResults('port-st-lucie-open').divisions,
+		);
+		const div = event.divisionDetails.find((d) => d.id === 'mens-doubles-b');
+		assert.ok(div?.roundRobinMatches);
+		assert.ok(div.roundRobinMatches.every((m) => m.winner === 1 || m.winner === 2));
+		const standings = new Map(
+			(div.roundRobinPlayers ?? []).map((name) => [name, { name, w: 0, l: 0 }]),
+		);
+		const rowFor = (name: string) => {
+			const exact = standings.get(name);
+			if (exact) return exact;
+			for (const [key, row] of standings) {
+				if (namesAlign(key, name)) return row;
+			}
+		};
+		for (const m of div.roundRobinMatches) {
+			if (m.winner !== 1 && m.winner !== 2) continue;
+			const winner = m.winner === 1 ? m.team1 : m.team2;
+			const loser = m.winner === 1 ? m.team2 : m.team1;
+			const ws = rowFor(winner);
+			const ls = rowFor(loser);
+			if (ws) ws.w++;
+			if (ls) ls.l++;
+		}
+		const ranked = [...standings.values()].sort((a, b) => b.w - a.w || a.l - b.l);
+		assert.deepEqual(
+			ranked.map((r) => `${r.name} ${r.w}-${r.l}`),
+			['Appleby / Kern 3-0', 'Disalvo / Artman 2-1', 'Estepan / Bray 1-2', 'Sotolongo / Manzano 0-3'],
 		);
 	});
 
@@ -980,6 +1057,22 @@ describe('overrides yield to a later confirmed R2 fetch', () => {
 			},
 		});
 		assert.equal(keys.includes('mens-singles-a:MA1'), false);
+	});
+
+	it('keeps the MBD2 override when a confirmed r2-push matches it', () => {
+		const keys = collectSupersededOverrides('port-st-lucie-open', {
+			'mens-doubles-b': {
+				MBD2: {
+					player1: 'Jonathan Estepan / Daniel Bray',
+					player2: 'Steve Disalvo / Kyle Artman',
+					winner: 2,
+					score: '6-15, 15-10, 15-8',
+					court: 'Court 3',
+					scheduledTime: 'Sunday · 2:00 PM',
+				},
+			},
+		});
+		assert.equal(keys.includes('mens-doubles-b:MBD2'), false);
 	});
 
 	it('yields MB8 once a confirmed r2-push names a different winner or score', () => {
