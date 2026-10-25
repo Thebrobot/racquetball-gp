@@ -4,15 +4,21 @@ import { LIVE_EVENTS } from './config';
 import type { ParsedDrawMatch } from './parse-r2';
 import { ownDrawFinal, resolveMatchResult } from './resolve-results';
 import {
+	CRON_INTERVAL_MS,
 	DRAW_ROTATION_PER_RUN,
 	MATCH_PAGE_GAP_MS,
+	MORNING_FETCH_WINDOW_AHEAD_MS,
+	MORNING_FETCH_WINDOW_PAST_MS,
 	R2_BLOCK_SKIP_RUNS,
+	backoffFields,
 	describeR2Block,
 	drawBoxChanged,
 	htmlLooksLikeR2Block,
 	isMatchInFetchWindow,
 	isMatchInProgress,
+	isMorningHours,
 	isR2BlockedReason,
+	nextScrapeAttemptAt,
 	nextSkipRunsRemaining,
 	r2BlockSummary,
 	selectDivisionCodesToScrape,
@@ -621,19 +627,74 @@ describe('non-final court mirrors the R2 match page (MB8)', () => {
 const now1410 = new Date('2026-10-24T18:10:00.000Z'); // 2:10 PM EDT Saturday — the blocked run
 
 describe('fetch window, draw rotation, and multi-run backoff', () => {
-	it('spaces match-page fetches by 1000ms and skips the next two runs after a block', () => {
-		assert.equal(MATCH_PAGE_GAP_MS, 1_000);
-		assert.equal(R2_BLOCK_SKIP_RUNS, 2);
+	it('spaces match-page fetches by 2000ms and skips the next five runs after a block', () => {
+		assert.equal(MATCH_PAGE_GAP_MS, 2_000);
+		assert.equal(R2_BLOCK_SKIP_RUNS, 5);
+		assert.equal(CRON_INTERVAL_MS, 5 * 60 * 1000);
 		assert.equal(DRAW_ROTATION_PER_RUN, 2);
-		assert.equal(shouldSkipBlockedRun(2), true);
+		assert.equal(shouldSkipBlockedRun(5), true);
 		assert.equal(shouldSkipBlockedRun(1), true);
 		assert.equal(shouldSkipBlockedRun(0), false);
-		assert.equal(shouldSkipBlockedRun(2, true), false);
-		assert.equal(nextSkipRunsRemaining(0, true), 2);
-		assert.equal(nextSkipRunsRemaining(2, false), 1);
+		assert.equal(shouldSkipBlockedRun(5, true), false);
+		assert.equal(nextSkipRunsRemaining(0, true), 5);
+		assert.equal(nextSkipRunsRemaining(5, false), 4);
 		assert.equal(nextSkipRunsRemaining(1, false), 0);
-		assert.equal(nextSkipRunsRemaining(2, false, true), 0);
-		assert.equal(nextSkipRunsRemaining(2, true, true), 2);
+		assert.equal(nextSkipRunsRemaining(5, false, true), 0);
+		assert.equal(nextSkipRunsRemaining(5, true, true), 5);
+	});
+
+	it('reports backoffRemaining and the next scrape attempt after remaining skipped runs', () => {
+		const blockedAt = '2026-10-25T11:10:00.000Z'; // 7:10 AM EDT
+		assert.equal(nextScrapeAttemptAt(blockedAt, 5), '2026-10-25T11:40:00.000Z');
+		const fields = backoffFields(blockedAt, 5);
+		assert.equal(fields.backoffRemaining, 5);
+		assert.equal(fields.nextScrapeAttemptAt, '2026-10-25T11:40:00.000Z');
+		assert.equal(nextScrapeAttemptAt('2026-10-25T11:15:00.000Z', 4), '2026-10-25T11:40:00.000Z');
+		assert.equal(nextScrapeAttemptAt('2026-10-25T11:35:00.000Z', 0), '2026-10-25T11:40:00.000Z');
+	});
+
+	it('treats 7:10 AM EDT as morning and 2:10 PM as afternoon', () => {
+		assert.equal(isMorningHours(new Date('2026-10-25T11:10:00.000Z')), true);
+		assert.equal(isMorningHours(now1010), true);
+		assert.equal(isMorningHours(now1410), false);
+		assert.equal(MORNING_FETCH_WINDOW_PAST_MS, 60 * 60 * 1000);
+		assert.equal(MORNING_FETCH_WINDOW_AHEAD_MS, 60 * 60 * 1000);
+	});
+
+	it('narrows the morning fetch window so 9 AM is not pulled at 7:10', () => {
+		const sun710 = new Date('2026-10-25T11:10:00.000Z'); // 7:10 AM EDT Sunday
+		assert.equal(isMatchInFetchWindow('Sunday · 8:00 AM', sun710), true);
+		assert.equal(isMatchInFetchWindow('Sunday · 9:00 AM', sun710), false);
+		assert.equal(isMatchInFetchWindow('Sunday · 10:00 AM', sun710), false);
+		assert.equal(MORNING_FETCH_WINDOW_PAST_MS, 60 * 60 * 1000);
+		assert.equal(MORNING_FETCH_WINDOW_AHEAD_MS, 60 * 60 * 1000);
+	});
+
+	it('does not fetch an unchanged not-final match page during morning hours', () => {
+		const sun8: ParsedDrawMatch = {
+			player1: 'Scott Haacke',
+			player2: 'Chris Dermody',
+			r2MatchId: '4972810',
+			scheduledTime: 'Sunday · 8:00 AM',
+			court: 'Court 2',
+		};
+		const stored = {
+			player1: 'Scott Haacke',
+			player2: 'Chris Dermody',
+			scheduledTime: 'Sunday · 8:00 AM',
+			court: 'Court 2',
+		};
+		const sun710 = new Date('2026-10-25T11:10:00.000Z');
+		assert.equal(shouldFetchMatchPage(sun8, stored, sun710), false);
+		assert.equal(shouldFetchMatchPage(sun8, stored, sun710, { force: true }), true);
+		assert.equal(
+			shouldFetchMatchPage(
+				{ ...sun8, drawWinner: 1, drawScore: '15-8, 15-9' },
+				stored,
+				sun710,
+			),
+			true,
+		);
 	});
 
 	it('treats Saturday 2:00 PM as in the 60min-past / 90min-ahead window at 2:10 PM EDT', () => {
@@ -643,7 +704,7 @@ describe('fetch window, draw rotation, and multi-run backoff', () => {
 		assert.equal(isMatchInFetchWindow('Sunday · 2:00 PM', now1410), false);
 	});
 
-	it('fetches an unchanged not-final match only while it sits in the current window', () => {
+	it('fetches an unchanged not-final match only while it sits in the afternoon window', () => {
 		const sat2: ParsedDrawMatch = {
 			player1: 'Val Peco',
 			player2: 'John Wuchte',

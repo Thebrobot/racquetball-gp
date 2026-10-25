@@ -5,11 +5,16 @@
 import type { MatchRecord, ParsedDrawMatch } from './parse-r2';
 import { scoresEqual } from './r2-names';
 
-export const MATCH_PAGE_GAP_MS = 1_000;
+export const MATCH_PAGE_GAP_MS = 2_000;
 export const R2_BLOCK_BACKOFF_MS = 5_000;
-export const R2_BLOCK_SKIP_RUNS = 2;
+/** Skip the next 5 crons (~25 min) after an IP block; scrape on the following run (~30 min). */
+export const R2_BLOCK_SKIP_RUNS = 5;
+export const CRON_INTERVAL_MS = 5 * 60 * 1000;
 export const FETCH_WINDOW_PAST_MS = 60 * 60 * 1000;
 export const FETCH_WINDOW_AHEAD_MS = 90 * 60 * 1000;
+/** Morning: still look 60 min before start; drop the 90 min after-start tail. */
+export const MORNING_FETCH_WINDOW_PAST_MS = 60 * 60 * 1000;
+export const MORNING_FETCH_WINDOW_AHEAD_MS = 60 * 60 * 1000;
 export const DRAW_ROTATION_PER_RUN = 2;
 
 const GHOST = /^(tbd|bye)$/i;
@@ -131,12 +136,37 @@ export function isMatchInProgress(scheduledTime: string | undefined, now = new D
 	return t >= slot - before && t <= slot + after;
 }
 
-/** Match start sits between 60 minutes ago and 90 minutes ahead. */
+/** Local hour 0–23 in America/New_York. */
+export function easternHour(now = new Date()): number {
+	const raw = new Intl.DateTimeFormat('en-US', {
+		timeZone: 'America/New_York',
+		hour: 'numeric',
+		hourCycle: 'h23',
+	})
+		.formatToParts(now)
+		.find((p) => p.type === 'hour')?.value;
+	return Number(raw);
+}
+
+/** Before noon Eastern — Sunday morning play is the high-volume / easy-to-flag window. */
+export function isMorningHours(now = new Date()): boolean {
+	return easternHour(now) < 12;
+}
+
+export function fetchWindowMs(now = new Date()): { past: number; ahead: number } {
+	if (isMorningHours(now)) {
+		return { past: MORNING_FETCH_WINDOW_PAST_MS, ahead: MORNING_FETCH_WINDOW_AHEAD_MS };
+	}
+	return { past: FETCH_WINDOW_PAST_MS, ahead: FETCH_WINDOW_AHEAD_MS };
+}
+
+/** Match start sits in the current fetch window (narrower before noon Eastern). */
 export function isMatchInFetchWindow(scheduledTime: string | undefined, now = new Date()): boolean {
 	const slot = scheduledSlotMs(scheduledTime, now);
 	if (slot == null) return false;
 	const t = now.getTime();
-	return t >= slot - FETCH_WINDOW_PAST_MS && t <= slot + FETCH_WINDOW_AHEAD_MS;
+	const { past, ahead } = fetchWindowMs(now);
+	return t >= slot - past && t <= slot + ahead;
 }
 
 export function divisionHasWindowMatch(times: Array<string | undefined>, now = new Date()): boolean {
@@ -162,16 +192,17 @@ export function selectDivisionCodesToScrape(
 }
 
 /**
- * Fetch a match page when: newly final, not-final draw box changed, a stored
- * final's court disagrees with a non-empty draw court, or the match is in the
- * current 60min-past / 90min-ahead window and not yet a stored final.
- * Never refetch an unchanged finished match. A blank draw court is not a
- * reason to refetch a final.
+ * Fetch a match page when: newly final, not-final draw box changed, or a stored
+ * final's court disagrees with a non-empty draw court.
+ * Afternoon / force=1: also fetch not-yet-final matches in the current window.
+ * Morning: draw-only until the draw looks newly final — no speculative r2-push.
+ * Never refetch an unchanged finished match.
  */
 export function shouldFetchMatchPage(
 	draw: ParsedDrawMatch,
 	existing?: MatchRecord | null,
 	now = new Date(),
+	opts?: { force?: boolean },
 ): boolean {
 	if (!draw.r2MatchId) return false;
 	const storedFinal = storeHasFinal(existing);
@@ -179,12 +210,14 @@ export function shouldFetchMatchPage(
 	const newlyFinal = drawLooksFinished(draw) && !storedFinal;
 	const slotTime = draw.scheduledTime ?? existing?.scheduledTime;
 	const inWindow = isMatchInFetchWindow(slotTime, now);
+	const speculative = Boolean(opts?.force) || !isMorningHours(now);
 
 	// #45: finished + stored court ≠ draw court → one r2-push to reconcile.
 	if (drawLooksFinished(draw) && storedCourtDisagreesWithDraw(draw, existing)) return true;
 	if (storedFinal && !changed) return false;
 	if (newlyFinal) return true;
 	if (changed) return true;
+	if (!speculative) return false;
 	if (!storedFinal && named(draw.player1) && named(draw.player2) && inWindow) return true;
 	// #47: not-final stored court vs blank draw — only while in the window.
 	if (
@@ -212,6 +245,28 @@ export function nextSkipRunsRemaining(
 	if (blockedThisRun) return R2_BLOCK_SKIP_RUNS;
 	if (force) return 0;
 	return Math.max(0, (prevRemaining ?? 0) - 1);
+}
+
+/** When the next cron will actually scrape (after remaining skipped runs). */
+export function nextScrapeAttemptAt(
+	lastRunAt: string | null | undefined,
+	remaining = 0,
+	now = new Date(),
+): string {
+	const parsed = lastRunAt ? Date.parse(lastRunAt) : NaN;
+	const base = Number.isFinite(parsed) ? parsed : now.getTime();
+	return new Date(base + (Math.max(0, remaining) + 1) * CRON_INTERVAL_MS).toISOString();
+}
+
+export function backoffFields(
+	lastRunAt: string | null | undefined,
+	remaining = 0,
+	now = new Date(),
+): { backoffRemaining: number; nextScrapeAttemptAt: string } {
+	return {
+		backoffRemaining: Math.max(0, remaining),
+		nextScrapeAttemptAt: nextScrapeAttemptAt(lastRunAt, remaining, now),
+	};
 }
 
 export function r2BlockSummary(scraped: {

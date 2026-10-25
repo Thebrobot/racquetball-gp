@@ -296,8 +296,9 @@ export async function scrapeEvent(
 				}
 
 				const storedDiv = existing.divisions?.[divId] ?? {};
+				const fetchOpts = { force: Boolean(opts?.allDivisions) };
 				const fetchList = Object.entries(draw.matches)
-					.filter(([matchId, parsed]) => shouldFetchMatchPage(parsed, storedDiv[matchId], now))
+					.filter(([matchId, parsed]) => shouldFetchMatchPage(parsed, storedDiv[matchId], now, fetchOpts))
 					.map(([, parsed]) => parsed);
 
 				const pageByR2 = await fetchMatchPages(event.tid, fetchList, finalUrl);
@@ -310,7 +311,7 @@ export async function scrapeEvent(
 				for (const [matchId, parsed] of Object.entries(draw.matches)) {
 					const prev = storedDiv[matchId];
 					if (
-						!shouldFetchMatchPage(parsed, prev, now) &&
+						!shouldFetchMatchPage(parsed, prev, now, fetchOpts) &&
 						storeHasFinal(prev) &&
 						prev &&
 						!storedCourtDisagreesWithDraw(parsed, prev)

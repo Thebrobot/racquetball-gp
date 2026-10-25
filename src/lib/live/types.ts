@@ -57,5 +57,9 @@ export type SyncStatus = {
 	r2BlockedCount?: number;
 	/** Remaining cron runs to skip after an R2 IP block. */
 	r2SkipRunsRemaining?: number;
+	/** Same as r2SkipRunsRemaining — remaining skipped crons before the next scrape. */
+	backoffRemaining?: number;
+	/** ISO time the next cron will hit R2 (after remaining skipped runs). */
+	nextScrapeAttemptAt?: string | null;
 	events: Record<string, EventSyncStatus>;
 };
