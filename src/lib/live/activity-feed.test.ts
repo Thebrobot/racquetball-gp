@@ -205,6 +205,10 @@ describe('bundled activity and results include MBD1', () => {
 			feed.events.find((e) => e.matchId === 'MCSD4')?.headline,
 			'Mike Bock / Terry Money def Tony Gutierrez / Gene Fry',
 		);
+		assert.ok(feedHasMatch(feed, 'ME3'));
+		assert.equal(feed.events.find((e) => e.matchId === 'ME3')?.headline, 'Scott Haacke def Chris Dermody');
+		assert.equal(feed.events.find((e) => e.matchId === 'ME3')?.detail, '7-15, 15-9, 15-3');
+		assert.equal(feed.events.find((e) => e.matchId === 'ME3')?.at, '2026-10-25T14:50:00.000Z');
 		const row = getBundledResults('port-st-lucie-open').divisions['mens-doubles-b']?.MBD1;
 		assert.equal(row?.winner, 1);
 		assert.equal(row?.score, '15-3, 15-7');

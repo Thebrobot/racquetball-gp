@@ -974,3 +974,46 @@ describe('Sunday draw: blue winner border, not green loser line', () => {
 		assert.match(record.player2 ?? '', /Kern/);
 	});
 });
+
+describe('Sunday Elite ME3 / ME1', () => {
+	const sundayMe = extractSingleElimFromHtml(read('psl-me-draw-sunday.html'));
+	const me3Page = parseMatchPage(read('psl-me3-match.html'));
+	const me1Page = parseMatchPage(read('psl-me1-match.html'));
+
+	it('keeps later-round ME3 names and the blue Haacke winner, not the nested link table', () => {
+		const draw = sundayMe.matches.ME3;
+		assert.ok(draw);
+		assert.equal(draw.player1, 'Scott Haacke');
+		assert.equal(draw.player2, 'Chris Dermody');
+		assert.equal(draw.drawWinner, 1);
+		assert.equal(draw.drawWinnerName, 'Scott Haacke');
+	});
+
+	it('does not treat a 3-game dropped-first-game score as a disagreement', () => {
+		assert.equal(me3Page.winnerName, 'Scott Haacke');
+		assert.equal(me3Page.score, '7-15, 15-9, 15-3');
+		const { record, quarantine } = resolveCode(sundayMe, 'ME3', me3Page);
+		assert.equal(quarantine, undefined);
+		assert.equal(record.winner, 1);
+		assert.equal(record.score, '7-15, 15-9, 15-3');
+		assert.equal(record.court, 'Court 1');
+		assert.equal(record.scheduledTime, 'Sunday · 10:00 AM');
+	});
+
+	it('reads ME1 as Taylor vs Haacke, Sunday 3:00 PM Court 1, not final', () => {
+		const draw = sundayMe.matches.ME1;
+		assert.ok(draw);
+		assert.equal(draw.player1, 'Isaac Taylor');
+		assert.equal(draw.player2, 'Scott Haacke');
+		assert.equal(draw.drawWinner, undefined);
+		assert.equal(draw.court, 'Court 1');
+		assert.equal(draw.scheduledTime, 'Sunday · 3:00 PM');
+		const { record, quarantine } = resolveCode(sundayMe, 'ME1', me1Page);
+		assert.equal(quarantine, undefined);
+		assert.equal(record.winner, undefined);
+		assert.equal(record.player1, 'Isaac Taylor');
+		assert.equal(record.player2, 'Scott Haacke');
+		assert.equal(record.court, 'Court 1');
+		assert.equal(me1Page.winnerName, null);
+	});
+});
