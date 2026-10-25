@@ -6,6 +6,7 @@ import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { LIVE_EVENTS, type EventKey } from '../src/lib/live/config';
+import { isActivityRegression, isResultsRegression } from '../src/lib/live/monotonic';
 import { mergeScrapedResults, scrapeEvent } from '../src/lib/live/scrape';
 import type { LiveActivityFeed, LiveResultsFile } from '../src/lib/live/types';
 
@@ -18,6 +19,7 @@ const RESULTS_PATHS: Record<string, string> = {
 const ACTIVITY_PATH = resolve(__dirname, '../public/data/live-activity.json');
 
 const eventKey = (process.argv[2] ?? 'psl') as EventKey;
+const allDivisions = process.argv.includes('--all') || process.env.SYNC_ALL === '1';
 const event = LIVE_EVENTS[eventKey];
 if (!event) {
 	console.error(`Unknown event "${eventKey}". Valid: ${Object.keys(LIVE_EVENTS).join(', ')}`);
@@ -33,7 +35,7 @@ function readJson<T>(path: string, fallback: T): T {
 	}
 }
 
-const scraped = await scrapeEvent(event);
+const scraped = await scrapeEvent(event, new Date(), { allDivisions });
 const existing = readJson<LiveResultsFile>(RESULTS_PATHS[event.slug]!, { lastUpdated: null, divisions: {} });
 const prevActivity = readJson<LiveActivityFeed>(ACTIVITY_PATH, { lastUpdated: null, eventSlug: event.slug, events: [] });
 const at = new Date().toISOString();
@@ -48,6 +50,11 @@ const { results, activity, changed, newActivity, quarantined } = mergeScrapedRes
 if (scraped.r2Blocked) {
 	console.error(`R2 blocked this IP (${scraped.r2BlockedCount ?? 0} request(s))`);
 }
+if (isResultsRegression(existing, results) || isActivityRegression(prevActivity, activity)) {
+	console.error('Refusing to write a thinner snapshot than the files on disk (monotonic guard).');
+	process.exit(0);
+}
+
 if (!changed) {
 	console.log(`No changes — ${RESULTS_PATHS[event.slug]!.split('/').pop()} is already up to date.`);
 	if (quarantined.length) {

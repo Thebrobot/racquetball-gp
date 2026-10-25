@@ -39,13 +39,16 @@ describe('nextCallCourt', () => {
 
 	it('shows TBD for Appleby/Kern MBD1 (Sat 3:00 PM, no court on R2)', () => {
 		const divisions = structuredClone(pslResults.divisions) as Parameters<typeof applyResultsToEvent>[1];
-		// MBD6 is earlier and still open in the committed file; close it so the
-		// next ticket is MBD1, matching the live board the user reported.
+		// Isolate the court-TBD case: MBD6 done, MBD1 still open with no court.
 		divisions['mens-doubles-b']!.MBD6 = {
 			...divisions['mens-doubles-b']!.MBD6,
 			winner: 1,
 			score: '15-8, 15-10',
 		};
+		const mbd1 = { ...divisions['mens-doubles-b']!.MBD1 };
+		delete mbd1.winner;
+		delete mbd1.score;
+		divisions['mens-doubles-b']!.MBD1 = mbd1;
 		const event = applyResultsToEvent(PORT_ST_LUCIE_EVENT, divisions);
 		const profile = event.profiles.find(
 			(p) => p.name === 'Ryan Appleby' && p.division === "Men's Doubles: B",

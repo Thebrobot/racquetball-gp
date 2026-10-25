@@ -254,8 +254,26 @@ export function extractRoundRobinFromHtml(html: string): DrawPageParse {
 	return { matches, advancements: [] };
 }
 
+export function htmlLooksLikeRoundRobin(html: string): boolean {
+	const t = String(html ?? '');
+	if (!/viewAppMatch\s*\(/i.test(t)) return false;
+	if (/round\s*robin/i.test(t) && /-\s*W\s+/i.test(t)) return true;
+	return /vs\.?\s+/i.test(t) && /-\s*W\s+/i.test(t) && /Round\s+\d/i.test(t);
+}
+
+export function htmlLooksLikeDrawPage(html: string): boolean {
+	const t = String(html ?? '');
+	if (!t || t.length < 200) return false;
+	if (/this ip has been blocked|object moved|404\.0 - not found/i.test(t) && !/viewAppMatch/i.test(t)) {
+		return false;
+	}
+	return /viewAppMatch\s*\(/i.test(t);
+}
+
 export function parseBracketPage(html: string, finalUrl: string): DrawPageParse {
-	if (/roundRobin\.asp/i.test(finalUrl)) return extractRoundRobinFromHtml(html);
+	if (/roundRobin\.asp/i.test(finalUrl) || htmlLooksLikeRoundRobin(html)) {
+		return extractRoundRobinFromHtml(html);
+	}
 	return extractSingleElimFromHtml(html);
 }
 

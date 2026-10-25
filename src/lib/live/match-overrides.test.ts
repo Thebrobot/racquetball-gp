@@ -47,13 +47,13 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 
 		const mbd3 = bundled.divisions['mens-doubles-b']?.MBD3;
 		assert.equal(mbd3?.court, 'Court 2');
-		assert.equal(mbd3?.winner, undefined);
+		assert.equal(mbd3?.winner, 2);
+		assert.equal(mbd3?.score, '15-1, 15-12');
 		assert.equal(mbd3?.scheduledTime, 'Saturday · 2:00 PM');
 
 		const mcsd6 = bundled.divisions['mens-doubles-centurion']?.MCSD6;
-		assert.equal(mcsd6?.score, 'WBF - No Show');
-		assert.equal(mcsd6?.winner, undefined);
-		assert.equal(mcsd6?.court, undefined);
+		assert.equal(mcsd6?.score, '15-7, 15-13');
+		assert.equal(mcsd6?.winner, 1);
 
 		const mb8 = bundled.divisions['mens-singles-b']?.MB8;
 		assert.equal(mb8?.player1, 'Scott Gill');
@@ -96,12 +96,12 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 
 		const mbd3 = findPslMatch('MBD3');
 		assert.equal(mbd3?.court, 'Court 2');
-		assert.equal(mbd3?.winner, undefined);
+		assert.equal(mbd3?.winner, 2);
+		assert.equal(mbd3?.score, '15-1, 15-12');
 
 		const mcsd6 = findPslMatch('MCSD6');
-		assert.equal(mcsd6?.score, 'WBF - No Show');
-		assert.equal(mcsd6?.winner, undefined);
-		assert.equal(mcsd6?.court, undefined);
+		assert.equal(mcsd6?.score, '15-7, 15-13');
+		assert.equal(mcsd6?.winner, 1);
 
 		const mb8 = findPslMatch('MB8');
 		assert.equal(mb8 && 'player1' in mb8 ? mb8.player1 : undefined, 'Scott Gill');
@@ -164,10 +164,10 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(results.divisions['mens-age-50']?.['M50+4']?.winner, 1);
 		assert.equal(results.divisions['mens-age-50']?.['M50+4']?.player2, 'Ben Kniesly');
 		assert.equal(results.divisions['mens-doubles-b']?.MBD3?.court, 'Court 2');
-		assert.equal(results.divisions['mens-doubles-b']?.MBD3?.winner, undefined);
-		assert.equal(results.divisions['mens-doubles-centurion']?.MCSD6?.score, 'WBF - No Show');
-		assert.equal(results.divisions['mens-doubles-centurion']?.MCSD6?.winner, undefined);
-		assert.equal(results.divisions['mens-doubles-centurion']?.MCSD6?.court, undefined);
+		assert.equal(results.divisions['mens-doubles-b']?.MBD3?.winner, 2);
+		assert.equal(results.divisions['mens-doubles-b']?.MBD3?.score, '15-1, 15-12');
+		assert.equal(results.divisions['mens-doubles-centurion']?.MCSD6?.score, '15-7, 15-13');
+		assert.equal(results.divisions['mens-doubles-centurion']?.MCSD6?.winner, 1);
 	});
 
 	it('publishes MB8 Saunders and MB4 pairing onto last-good blob data while blocked', () => {

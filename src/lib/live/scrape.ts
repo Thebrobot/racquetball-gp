@@ -1,6 +1,12 @@
 import { EVENTS } from '../../data/events';
 import { ensureActivityForFinals, makeResultActivityEvent } from './activity-feed';
-import { drawOutUrl, type LiveEventConfig } from './config';
+import { drawPageUrls, type LiveEventConfig } from './config';
+import {
+	isActivityRegression,
+	isResultsRegression,
+	unionActivityFeeds,
+	unionResultsFiles,
+} from './monotonic';
 import {
 	applyMatchOverrides,
 	collectSupersededOverrides,
@@ -16,6 +22,7 @@ import {
 	type ParsedMatchPage,
 } from './parse-match-page';
 import {
+	htmlLooksLikeDrawPage,
 	parseBracketPage,
 	resolveDivCodeFromHtml,
 	type DrawPageParse,
@@ -141,11 +148,24 @@ async function scrapeDivision(
 	html: string;
 	finalUrl: string;
 }> {
-	const { html, finalUrl } = await fetchHtml(drawOutUrl(event, divID, combinedID));
+	let last: { html: string; finalUrl: string } | null = null;
+	for (const url of drawPageUrls(event, divID, combinedID)) {
+		const hit = await fetchHtml(url);
+		last = hit;
+		if (!htmlLooksLikeDrawPage(hit.html)) continue;
+		const divCode = resolveDivCodeFromHtml(hit.html);
+		const divId = divCode ? event.codeIdMap[divCode] ?? null : null;
+		if (!divId) continue;
+		const draw = parseBracketPage(hit.html, hit.finalUrl);
+		if (Object.keys(draw.matches).length) {
+			return { divCode, divId, draw, html: hit.html, finalUrl: hit.finalUrl };
+		}
+	}
+	const html = last?.html ?? '';
+	const finalUrl = last?.finalUrl ?? drawPageUrls(event, divID, combinedID)[0]!;
 	const divCode = resolveDivCodeFromHtml(html);
 	const divId = divCode ? event.codeIdMap[divCode] ?? null : null;
-	if (!divId) return { divCode, divId: null, draw: { matches: {}, advancements: [] }, html, finalUrl };
-	return { divCode, divId, draw: parseBracketPage(html, finalUrl), html, finalUrl };
+	return { divCode, divId, draw: { matches: {}, advancements: [] }, html, finalUrl };
 }
 
 function scheduledTimesForDivision(event: LiveEventConfig, divId: string, stored: MatchMap): string[] {
@@ -182,7 +202,11 @@ function keepStoredFinal(existing: MatchRecord, draw: ParsedDrawMatch): MatchRec
 	return next;
 }
 
-export async function scrapeEvent(event: LiveEventConfig, now = new Date()): Promise<EventScrapeResult> {
+export async function scrapeEvent(
+	event: LiveEventConfig,
+	now = new Date(),
+	opts?: { allDivisions?: boolean },
+): Promise<EventScrapeResult> {
 	const existing = await readLiveResults(event.slug, {
 		timeoutMs: BLOB_READ_FRESH_TIMEOUT_MS,
 		useCache: false,
@@ -208,11 +232,13 @@ export async function scrapeEvent(event: LiveEventConfig, now = new Date()): Pro
 		if (divisionHasWindowMatch(times, now)) inWindowCodes.add(code);
 	}
 	const scrapeCodes = new Set(
-		selectDivisionCodesToScrape(
-			event.divisionUrls.map((d) => d.code),
-			inWindowCodes,
-			now,
-		),
+		opts?.allDivisions
+			? event.divisionUrls.map((d) => d.code)
+			: selectDivisionCodesToScrape(
+					event.divisionUrls.map((d) => d.code),
+					inWindowCodes,
+					now,
+				),
 	);
 
 	for (const { code, divID, combinedID } of event.divisionUrls) {
@@ -523,6 +549,13 @@ export function mergeOneMatch(
 	if (incoming.score) next.score = incoming.score;
 	else if (existing?.score) next.score = existing.score;
 
+	if (isFinalWinner(existing)) {
+		next.winner = existing.winner;
+		if (existing.score) next.score = existing.score;
+		else if (incoming.score) next.score = incoming.score;
+		return next;
+	}
+
 	if (opts.resolved) {
 		return next;
 	}
@@ -579,7 +612,10 @@ export function applyActivityUpdates(
 ): LiveActivityFeed {
 	const retract = new Set(retractMatchIds);
 	const prevEvents = prev.eventSlug === eventSlug ? (prev.events ?? []) : [];
-	const kept = prevEvents.filter((ev) => !retract.has(ev.matchId));
+	const incomingIds = new Set(incoming.map((ev) => ev.matchId));
+	// Never drop a feed row unless this run replaces that matchId (correction).
+	void retract;
+	const kept = prevEvents.filter((ev) => !incomingIds.has(ev.matchId));
 	return {
 		lastUpdated: stamp ?? prev.lastUpdated,
 		eventSlug,
@@ -661,7 +697,19 @@ export function mergeScrapedResults(
 		{ at, resultStamp: existing.lastUpdated ?? stamp, prevDivisions: existing.divisions ?? {} },
 	);
 
-	return { results, activity, changed, newActivity: newActivity.length, quarantined };
+	const held = unionResultsFiles(results, existing);
+	const heldActivity = unionActivityFeeds(activity, prevActivity);
+	const nextResults = isResultsRegression(existing, held) ? existing : held;
+	const nextActivity = isActivityRegression(prevActivity, heldActivity) ? prevActivity : heldActivity;
+	const nextChanged = JSON.stringify(nextResults.divisions) !== JSON.stringify(existing.divisions ?? {});
+
+	return {
+		results: nextResults,
+		activity: nextActivity,
+		changed: nextChanged,
+		newActivity: newActivity.length,
+		quarantined,
+	};
 }
 
 /** Last-good overlay: apply unread overrides and emit feed rows for new finals. */
@@ -689,7 +737,12 @@ export function overlayLastGoodWithActivity(
 		applyActivityUpdates(prevActivity, event.slug, events, retractMatchIds, changed ? at : prevActivity.lastUpdated),
 		{ at, resultStamp: existing.lastUpdated ?? results.lastUpdated, prevDivisions: existing.divisions ?? {} },
 	);
-	return { results, changed, activity, newActivity: events.length };
+	const held = unionResultsFiles(results, existing);
+	const heldActivity = unionActivityFeeds(activity, prevActivity);
+	const nextResults = isResultsRegression(existing, held) ? existing : held;
+	const nextActivity = isActivityRegression(prevActivity, heldActivity) ? prevActivity : heldActivity;
+	const nextChanged = JSON.stringify(nextResults.divisions) !== JSON.stringify(existing.divisions ?? {});
+	return { results: nextResults, changed: nextChanged, activity: nextActivity, newActivity: events.length };
 }
 
 export async function buildMergedResults(
