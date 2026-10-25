@@ -516,7 +516,9 @@
       "MED1": {
         "player1": "Wade Stubanas / Brian Grantham",
         "player2": "Mike Bock / Terry Money",
-        "court": "Court 3",
+        "winner": 1,
+        "score": "10-15, 15-7, 11-6",
+        "court": "Court 2",
         "scheduledTime": "Sunday · 3:00 PM"
       }
     },
@@ -652,7 +654,6 @@
     }
   },
   "supersededOverrides": [
-    "mens-doubles-elite:MED1",
     "mens-singles-elite:ME1",
     "mens-singles-b:MB4",
     "mens-singles-b:MB1"
