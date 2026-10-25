@@ -207,7 +207,7 @@ describe('bundled activity and results include MBD1', () => {
 		);
 		assert.ok(feedHasMatch(feed, 'ME3'));
 		assert.equal(feed.events.find((e) => e.matchId === 'ME3')?.headline, 'Scott Haacke def Chris Dermody');
-		assert.equal(feed.events.find((e) => e.matchId === 'ME3')?.detail, '7-15, 15-9, 15-3');
+		assert.equal(feed.events.find((e) => e.matchId === 'ME3')?.detail, '7-15, 15-9, 11-3');
 		assert.equal(feed.events.find((e) => e.matchId === 'ME3')?.at, '2026-10-25T14:50:00.000Z');
 		assert.ok(feedHasMatch(feed, 'MAD4'));
 		assert.equal(

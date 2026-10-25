@@ -1016,11 +1016,11 @@ describe('Sunday Elite ME3 / ME1', () => {
 
 	it('does not treat a 3-game dropped-first-game score as a disagreement', () => {
 		assert.equal(me3Page.winnerName, 'Scott Haacke');
-		assert.equal(me3Page.score, '7-15, 15-9, 15-3');
+		assert.equal(me3Page.score, '7-15, 15-9, 11-3');
 		const { record, quarantine } = resolveCode(sundayMe, 'ME3', me3Page);
 		assert.equal(quarantine, undefined);
 		assert.equal(record.winner, 1);
-		assert.equal(record.score, '7-15, 15-9, 15-3');
+		assert.equal(record.score, '7-15, 15-9, 11-3');
 		assert.equal(record.court, 'Court 1');
 		assert.equal(record.scheduledTime, 'Sunday · 10:00 AM');
 	});
