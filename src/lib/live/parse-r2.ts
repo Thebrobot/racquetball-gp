@@ -200,6 +200,33 @@ export function extractSingleElimFromHtml(html: string): DrawPageParse {
 		matches[matchId] = keepRicherBox(matches[matchId], entry);
 	}
 
+	// R2 leaves later-round finals as a match-code label with no viewAppMatch
+	// until both feeders are set (MED1 today). Still publish court/time/names.
+	for (const box of allTables) {
+		if (box.querySelectorAll('a[href*="viewAppMatch"]').length !== 0) continue;
+		const codes = new Set<string>();
+		for (const el of Array.from(box.querySelectorAll('font, a'))) {
+			const t = textOf(el);
+			if (MATCH_CODE_RE.test(t)) codes.add(t);
+		}
+		if (codes.size !== 1) continue;
+		const matchId = [...codes][0]!;
+		if (matches[matchId]) continue;
+
+		const names = Array.from(box.querySelectorAll('strong, b'))
+			.map((el) => cleanPlayerName(el.textContent ?? ''))
+			.filter(isPlayerName);
+		// One leftover feeder name is a QF box, not a scheduled final.
+		if (names.length === 1) continue;
+		const entry: ParsedDrawMatch = {
+			player1: names[0] ?? null,
+			player2: names[1] ?? null,
+		};
+		applySchedule(entry, textOf(box));
+		if (!entry.court && !entry.scheduledTime) continue;
+		matches[matchId] = entry;
+	}
+
 	const pageNames = Array.from(document.querySelectorAll('strong, b'))
 		.map((el) => cleanPlayerName(el.textContent ?? ''))
 		.filter(isPlayerName);

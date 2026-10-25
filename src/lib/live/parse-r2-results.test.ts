@@ -389,6 +389,9 @@ describe('match-result-overrides still win', () => {
 		assert.equal(divisions['mens-doubles-centurion']?.MCSD3?.score, '15-5, 15-3');
 		assert.equal(divisions['mens-doubles-centurion']?.MCSD4?.winner, 2);
 		assert.equal(divisions['mens-doubles-centurion']?.MCSD4?.score, '15-1, 15-7');
+		assert.equal(divisions['mens-doubles-elite']?.MED4?.court, 'Court 4');
+		assert.equal(divisions['mens-doubles-elite']?.MED1?.court, 'Court 3');
+		assert.equal(divisions['mens-doubles-elite']?.MED1?.scheduledTime, 'Sunday · 3:00 PM');
 	});
 });
 
@@ -1015,5 +1018,43 @@ describe('Sunday Elite ME3 / ME1', () => {
 		assert.equal(record.player2, 'Scott Haacke');
 		assert.equal(record.court, 'Court 1');
 		assert.equal(me1Page.winnerName, null);
+	});
+});
+
+describe('Sunday Elite doubles MED4 / MED1', () => {
+	const sundayMed = extractSingleElimFromHtml(read('psl-med-draw-sunday.html'));
+	const med4Page = parseMatchPage(read('psl-med4-match.html'));
+
+	it('reads MED4 Schulze/Anthony vs Stubanas/Grantham on Court 4', () => {
+		const draw = sundayMed.matches.MED4;
+		assert.ok(draw);
+		assert.match(draw.player1 ?? '', /Schulze/);
+		assert.match(draw.player2 ?? '', /Stubanas/);
+		assert.equal(draw.court, 'Court 4');
+		assert.equal(draw.scheduledTime, 'Sunday · 12:00 PM');
+		assert.equal(draw.drawWinner, undefined);
+		assert.equal(med4Page.winnerName, null);
+		assert.equal(med4Page.court, 'Court 4');
+		const { record, quarantine } = resolveCode(sundayMed, 'MED4', med4Page);
+		assert.equal(quarantine, undefined);
+		assert.equal(record.winner, undefined);
+		assert.equal(record.court, 'Court 4');
+	});
+
+	it('keeps a scheduled MED1 final even when R2 has not assigned viewAppMatch', () => {
+		const draw = sundayMed.matches.MED1;
+		assert.ok(draw);
+		assert.equal(draw.r2MatchId, undefined);
+		assert.equal(draw.player1, null);
+		assert.equal(draw.player2, null);
+		assert.equal(draw.court, 'Court 3');
+		assert.equal(draw.scheduledTime, 'Sunday · 3:00 PM');
+		assert.equal(draw.drawWinner, undefined);
+	});
+
+	it('also recovers MED1 from the older Saturday MED fixture', () => {
+		assert.equal(medDraw.matches.MED1?.court, 'Court 3');
+		assert.equal(medDraw.matches.MED1?.scheduledTime, 'Sunday · 3:00 PM');
+		assert.equal(medDraw.matches.MED8, undefined);
 	});
 });
