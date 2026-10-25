@@ -486,10 +486,13 @@
       "MED4": {
         "player1": "Samuel Schulze / Brendan Anthony",
         "player2": "Wade Stubanas / Brian Grantham",
+        "winner": 2,
+        "score": "15-7, 15-14",
         "court": "Court 4",
         "scheduledTime": "Sunday · 12:00 PM"
       },
       "MED1": {
+        "player1": "Wade Stubanas / Brian Grantham",
         "court": "Court 3",
         "scheduledTime": "Sunday · 3:00 PM"
       }

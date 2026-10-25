@@ -216,8 +216,10 @@ export function extractSingleElimFromHtml(html: string): DrawPageParse {
 		const names = Array.from(box.querySelectorAll('strong, b'))
 			.map((el) => cleanPlayerName(el.textContent ?? ''))
 			.filter(isPlayerName);
-		// One leftover feeder name is a QF box, not a scheduled final.
-		if (names.length === 1) continue;
+		const matchNum = Number(/(\d+)$/.exec(matchId)?.[1] ?? 0);
+		// One leftover feeder name is a QF box (MED8), not a scheduled final —
+		// unless this is the championship slot waiting on the other semi.
+		if (names.length === 1 && matchNum !== 1) continue;
 		const entry: ParsedDrawMatch = {
 			player1: names[0] ?? null,
 			player2: names[1] ?? null,
