@@ -1,7 +1,18 @@
 {
-  "lastUpdated": "2026-10-25T18:45:00.000Z",
+  "lastUpdated": "2026-10-25T19:35:00.000Z",
   "eventSlug": "port-st-lucie-open",
   "events": [
+    {
+      "id": "2026-10-25T19:35:00.000Z-mens-doubles-b-MBD2",
+      "at": "2026-10-25T19:35:00.000Z",
+      "type": "result",
+      "divisionId": "mens-doubles-b",
+      "divisionLabel": "Men's Doubles: B",
+      "matchId": "MBD2",
+      "headline": "Steve Disalvo / Kyle Artman def Jonathan Estepan / Daniel Bray",
+      "detail": "6-15, 15-10, 15-8",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-b"
+    },
     {
       "id": "2026-10-25T18:45:00.000Z-mens-singles-a-MA1",
       "at": "2026-10-25T18:45:00.000Z",

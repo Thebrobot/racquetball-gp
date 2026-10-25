@@ -5,6 +5,7 @@ import OfficialBallChip from '../../../../components/grand-prix/OfficialBallChip
 import { getEventStatus } from '../../../../data/events';
 import { getAllPlayers, getPlayerSlug } from '../../../../data/players';
 import { resolveTeamMembers } from '../../../../lib/resolve-team-members';
+import { namesAlign } from '../../../../lib/live/r2-names';
 import { applyLiveCacheHeaders, resolveLiveEvent } from '../../../../lib/live/event';
 
 export const prerender = false;
@@ -34,12 +35,19 @@ const standingsMap = new Map<string, StandingRow>();
 for (const p of players) {
 	standingsMap.set(p, { name: p, w: 0, l: 0, played: 0 });
 }
+const standingRow = (name: string) => {
+	const exact = standingsMap.get(name);
+	if (exact) return exact;
+	for (const [key, row] of standingsMap) {
+		if (namesAlign(key, name)) return row;
+	}
+};
 for (const m of rrMatches) {
 	if (!m.winner) continue;
 	const winner = m.winner === 1 ? m.team1 : m.team2;
 	const loser  = m.winner === 1 ? m.team2 : m.team1;
-	const ws = standingsMap.get(winner);
-	const ls = standingsMap.get(loser);
+	const ws = standingRow(winner);
+	const ls = standingRow(loser);
 	if (ws) { ws.w++; ws.played++; }
 	if (ls) { ls.l++; ls.played++; }
 }
