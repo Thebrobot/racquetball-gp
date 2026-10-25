@@ -118,11 +118,14 @@
       "MED3": {
         "player1": "Mike Bock / Terry Money",
         "player2": "Scott Haacke / Bryon Haacke",
+        "winner": 1,
+        "score": "14-15, 15-4, 11-6",
         "court": "Court 2",
         "scheduledTime": "Sunday · 12:00 PM"
       },
       "MED1": {
         "player1": "Wade Stubanas / Brian Grantham",
+        "player2": "Mike Bock / Terry Money",
         "court": "Court 3",
         "scheduledTime": "Sunday · 3:00 PM"
       }

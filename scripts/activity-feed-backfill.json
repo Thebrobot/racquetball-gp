@@ -1,6 +1,17 @@
 {
   "port-st-lucie-open": [
     {
+      "id": "2026-10-25T18:20:00.000Z-mens-doubles-elite-MED3",
+      "at": "2026-10-25T18:20:00.000Z",
+      "type": "result",
+      "divisionId": "mens-doubles-elite",
+      "divisionLabel": "Men's Doubles: Elite",
+      "matchId": "MED3",
+      "headline": "Mike Bock / Terry Money def Scott Haacke / Bryon Haacke",
+      "detail": "14-15, 15-4, 11-6",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-elite"
+    },
+    {
       "id": "2026-10-25T17:10:00.000Z-mens-singles-open-MO1",
       "at": "2026-10-25T17:10:00.000Z",
       "type": "result",
