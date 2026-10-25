@@ -180,6 +180,14 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(mo1?.score, '15-10, 15-13');
 		assert.equal(mo1?.court, 'Court 1');
 		assert.equal(mo1?.scheduledTime, 'Sunday · 1:00 PM');
+
+		const ma1 = bundled.divisions['mens-singles-a']?.MA1;
+		assert.equal(ma1?.player1, 'Brendan Anthony');
+		assert.equal(ma1?.player2, 'Brian Grantham');
+		assert.equal(ma1?.winner, 1);
+		assert.equal(ma1?.score, '14-15, 15-5, 11-4');
+		assert.equal(ma1?.court, 'Court 1');
+		assert.equal(ma1?.scheduledTime, 'Sunday · 2:00 PM');
 	});
 
 	it('build/deploy EVENTS overlay shows the same results without a successful sync', () => {
@@ -319,6 +327,14 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(mo1?.score, '15-10, 15-13');
 		assert.equal(mo1?.court, 'Court 1');
 		assert.equal(mo1?.scheduledTime, 'Sunday · 1:00 PM');
+
+		const ma1 = findPslMatch('MA1');
+		assert.equal(ma1 && 'player1' in ma1 ? ma1.player1 : undefined, 'Brendan Anthony');
+		assert.equal(ma1 && 'player2' in ma1 ? ma1.player2 : undefined, 'Brian Grantham');
+		assert.equal(ma1?.winner, 1);
+		assert.equal(ma1?.score, '14-15, 15-5, 11-4');
+		assert.equal(ma1?.court, 'Court 1');
+		assert.equal(ma1?.scheduledTime, 'Sunday · 2:00 PM');
 	});
 
 	it('applies unread overrides onto last-good blob data when the cron is skipped', () => {
@@ -635,6 +651,33 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(results.divisions['mens-singles-open']?.MO1?.player2, 'Naomi Ros');
 	});
 
+	it('publishes MA1 Anthony onto last-good blob data', () => {
+		const { results, changed } = overlayOverridesOnFile(
+			'port-st-lucie-open',
+			{
+				lastUpdated: '2026-10-25T18:20:00.000Z',
+				divisions: {
+					'mens-singles-a': {
+						MA1: {
+							player1: 'Brendan Anthony',
+							player2: 'Brian Grantham',
+							court: 'Court 1',
+							scheduledTime: 'Sunday · 2:00 PM',
+						},
+					},
+				},
+			},
+			'2026-10-25T18:50:00.000Z',
+		);
+		assert.equal(changed, true);
+		assert.equal(results.divisions['mens-singles-a']?.MA1?.winner, 1);
+		assert.equal(results.divisions['mens-singles-a']?.MA1?.score, '14-15, 15-5, 11-4');
+		assert.equal(results.divisions['mens-singles-a']?.MA1?.court, 'Court 1');
+		assert.equal(results.divisions['mens-singles-a']?.MA1?.player1, 'Brendan Anthony');
+		assert.equal(results.divisions['mens-singles-a']?.MA1?.player2, 'Brian Grantham');
+		assert.equal(results.divisions['mens-singles-a']?.MA1?.scheduledTime, 'Sunday · 2:00 PM');
+	});
+
 	it('Open RR standings become Sanchez 3-0, Linnell 2-1, Ros 1-2, Steinheiser 0-3', () => {
 		const event = applyResultsToEvent(
 			PORT_ST_LUCIE_EVENT,
@@ -921,6 +964,22 @@ describe('overrides yield to a later confirmed R2 fetch', () => {
 			},
 		});
 		assert.equal(keys.includes('mens-singles-open:MO1'), false);
+	});
+
+	it('keeps the MA1 override when a confirmed r2-push matches it', () => {
+		const keys = collectSupersededOverrides('port-st-lucie-open', {
+			'mens-singles-a': {
+				MA1: {
+					player1: 'Brendan Anthony',
+					player2: 'Brian Grantham',
+					winner: 1,
+					score: '14-15, 15-5, 11-4',
+					court: 'Court 1',
+					scheduledTime: 'Sunday · 2:00 PM',
+				},
+			},
+		});
+		assert.equal(keys.includes('mens-singles-a:MA1'), false);
 	});
 
 	it('yields MB8 once a confirmed r2-push names a different winner or score', () => {

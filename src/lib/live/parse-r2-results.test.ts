@@ -401,6 +401,12 @@ describe('match-result-overrides still win', () => {
 		assert.equal(divisions['mens-doubles-elite']?.MED3?.winner, 1);
 		assert.equal(divisions['mens-doubles-elite']?.MED3?.score, '14-15, 15-4, 11-6');
 		assert.equal(divisions['mens-doubles-elite']?.MED3?.court, 'Court 2');
+		assert.equal(divisions['mens-singles-a']?.MA1?.player1, 'Brendan Anthony');
+		assert.equal(divisions['mens-singles-a']?.MA1?.player2, 'Brian Grantham');
+		assert.equal(divisions['mens-singles-a']?.MA1?.winner, 1);
+		assert.equal(divisions['mens-singles-a']?.MA1?.score, '14-15, 15-5, 11-4');
+		assert.equal(divisions['mens-singles-a']?.MA1?.court, 'Court 1');
+		assert.equal(divisions['mens-singles-a']?.MA1?.scheduledTime, 'Sunday · 2:00 PM');
 		assert.equal(divisions['mens-doubles-a']?.MAD4?.winner, 1);
 		assert.equal(divisions['mens-doubles-a']?.MAD4?.score, '13-15, 15-4, 11-3');
 		assert.equal(divisions['mens-doubles-a']?.MAD4?.court, 'Court 3');
@@ -1168,5 +1174,31 @@ describe('Sunday Open MO1', () => {
 		assert.equal(record.score, '15-10, 15-13');
 		assert.equal(record.court, 'Court 1');
 		assert.equal(record.scheduledTime, 'Sunday · 1:00 PM');
+	});
+});
+
+describe('Sunday A singles MA1', () => {
+	const ma1Page = parseMatchPage(read('psl-ma1-match.html'));
+
+	it('reads MA1 Anthony over Grantham 14-15, 15-5, 11-4 on Court 1', () => {
+		assert.equal(ma1Page.winnerName, 'Brendan Anthony');
+		assert.equal(ma1Page.score, '14-15, 15-5, 11-4');
+		assert.equal(ma1Page.court, 'Court 1');
+		assert.equal(ma1Page.scheduledTime, 'Sunday · 2:00 PM');
+		const { record, quarantine } = resolveMatchResult({
+			matchId: 'MA1',
+			draw: {
+				player1: 'Brendan Anthony',
+				player2: 'Brian Grantham',
+				court: 'Court 1',
+				scheduledTime: 'Sunday · 2:00 PM',
+			},
+			page: ma1Page,
+		});
+		assert.equal(quarantine, undefined);
+		assert.equal(record.winner, 1);
+		assert.equal(record.score, '14-15, 15-5, 11-4');
+		assert.equal(record.court, 'Court 1');
+		assert.equal(record.scheduledTime, 'Sunday · 2:00 PM');
 	});
 });
