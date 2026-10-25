@@ -122,6 +122,20 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(mcsd4?.score, '15-1, 15-7');
 		assert.equal(mcsd4?.court, 'Court 2');
 		assert.equal(mcsd4?.scheduledTime, 'Sunday · 9:00 AM');
+
+		const me3 = bundled.divisions['mens-singles-elite']?.ME3;
+		assert.equal(me3?.player1, 'Scott Haacke');
+		assert.equal(me3?.player2, 'Chris Dermody');
+		assert.equal(me3?.winner, 1);
+		assert.equal(me3?.score, '7-15, 15-9, 15-3');
+		assert.equal(me3?.court, 'Court 1');
+		assert.equal(me3?.scheduledTime, 'Sunday · 10:00 AM');
+		const me1 = bundled.divisions['mens-singles-elite']?.ME1;
+		assert.equal(me1?.player1, 'Isaac Taylor');
+		assert.equal(me1?.player2, 'Scott Haacke');
+		assert.equal(me1?.winner, undefined);
+		assert.equal(me1?.court, 'Court 1');
+		assert.equal(me1?.scheduledTime, 'Sunday · 3:00 PM');
 	});
 
 	it('build/deploy EVENTS overlay shows the same results without a successful sync', () => {
@@ -206,6 +220,19 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(mcsd4?.winner, 2);
 		assert.equal(mcsd4?.score, '15-1, 15-7');
 		assert.equal(mcsd4?.court, 'Court 2');
+
+		const me3 = findPslMatch('ME3');
+		assert.equal(me3 && 'player1' in me3 ? me3.player1 : undefined, 'Scott Haacke');
+		assert.equal(me3 && 'player2' in me3 ? me3.player2 : undefined, 'Chris Dermody');
+		assert.equal(me3?.winner, 1);
+		assert.equal(me3?.score, '7-15, 15-9, 15-3');
+		assert.equal(me3?.court, 'Court 1');
+		const me1 = findPslMatch('ME1');
+		assert.equal(me1 && 'player1' in me1 ? me1.player1 : undefined, 'Isaac Taylor');
+		assert.equal(me1 && 'player2' in me1 ? me1.player2 : undefined, 'Scott Haacke');
+		assert.equal(me1?.court, 'Court 1');
+		assert.equal(me1?.scheduledTime, 'Sunday · 3:00 PM');
+		assert.equal(me1?.winner, undefined);
 	});
 
 	it('applies unread overrides onto last-good blob data when the cron is skipped', () => {
@@ -381,6 +408,43 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(results.divisions['mens-doubles-centurion']?.MCSD4?.player2, 'Mike Bock / Terry Money');
 		assert.equal(results.divisions['mens-doubles-centurion']?.MCSD4?.court, 'Court 2');
 	});
+
+	it('publishes ME3 Haacke and the ME1 pairing onto last-good blob data', () => {
+		const { results, changed } = overlayOverridesOnFile(
+			'port-st-lucie-open',
+			{
+				lastUpdated: '2026-10-25T15:40:00.000Z',
+				divisions: {
+					'mens-singles-elite': {
+						ME3: {
+							player1: 'Scott Haacke',
+							player2: 'Chris Dermody',
+							court: 'Court 1',
+							scheduledTime: 'Sunday · 10:00 AM',
+						},
+						ME4: {
+							player1: 'Trevor Morgan',
+							player2: 'Isaac Taylor',
+							winner: 2,
+							score: '15-9, 15-10',
+							court: 'Court 1',
+							scheduledTime: 'Sunday · 9:00 AM',
+						},
+					},
+				},
+			},
+			'2026-10-25T15:50:00.000Z',
+		);
+		assert.equal(changed, true);
+		assert.equal(results.divisions['mens-singles-elite']?.ME3?.winner, 1);
+		assert.equal(results.divisions['mens-singles-elite']?.ME3?.score, '7-15, 15-9, 15-3');
+		assert.equal(results.divisions['mens-singles-elite']?.ME3?.court, 'Court 1');
+		assert.equal(results.divisions['mens-singles-elite']?.ME1?.player1, 'Isaac Taylor');
+		assert.equal(results.divisions['mens-singles-elite']?.ME1?.player2, 'Scott Haacke');
+		assert.equal(results.divisions['mens-singles-elite']?.ME1?.court, 'Court 1');
+		assert.equal(results.divisions['mens-singles-elite']?.ME1?.scheduledTime, 'Sunday · 3:00 PM');
+		assert.equal(results.divisions['mens-singles-elite']?.ME1?.winner, undefined);
+	});
 });
 
 describe('overrides yield to a later confirmed R2 fetch', () => {
@@ -527,6 +591,21 @@ describe('overrides yield to a later confirmed R2 fetch', () => {
 		assert.equal(keys.includes('mens-singles-b:MB3'), false);
 		assert.equal(keys.includes('mens-doubles-centurion:MCSD3'), false);
 		assert.equal(keys.includes('mens-doubles-centurion:MCSD4'), false);
+	});
+
+	it('keeps the ME3 override when a confirmed r2-push matches it', () => {
+		const keys = collectSupersededOverrides('port-st-lucie-open', {
+			'mens-singles-elite': {
+				ME3: {
+					player1: 'Scott Haacke',
+					player2: 'Chris Dermody',
+					winner: 1,
+					score: '7-15, 15-9, 15-3',
+					court: 'Court 1',
+				},
+			},
+		});
+		assert.equal(keys.includes('mens-singles-elite:ME3'), false);
 	});
 
 	it('yields MB8 once a confirmed r2-push names a different winner or score', () => {

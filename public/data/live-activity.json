@@ -36,6 +36,17 @@
       "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-open"
     },
     {
+      "id": "2026-10-25T14:50:00.000Z-mens-singles-elite-ME3",
+      "at": "2026-10-25T14:50:00.000Z",
+      "type": "result",
+      "divisionId": "mens-singles-elite",
+      "divisionLabel": "Men's Singles: Elite",
+      "matchId": "ME3",
+      "headline": "Scott Haacke def Chris Dermody",
+      "detail": "7-15, 15-9, 15-3",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-elite"
+    },
+    {
       "id": "2026-10-25T14:20:00.000Z-mens-age-60-M60+4",
       "at": "2026-10-25T14:20:00.000Z",
       "type": "result",
