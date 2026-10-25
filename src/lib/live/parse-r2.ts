@@ -88,7 +88,30 @@ export function extractScore(text: string): string | null {
 	return m ? formatScore(m[0]) : null;
 }
 
-const isWinnerBorder = (style: string | null) => /3\.0?pt solid (?!black)/.test(style ?? '');
+/**
+ * R2 paints this-match winners `3.0pt solid #0284c7`. The losing side keeps a
+ * leftover `3.0pt solid #16a34a` line from the previous round — that is not a
+ * winner badge. Treating any non-black 3pt as a win made MCSD4/MCSD3
+ * quarantine ("draw box winner disagrees") when both the draw and match page
+ * named Bock/Money and the Pecos.
+ */
+const isWinnerBorder = (style: string | null) => /3\.0?pt solid #0284c7/i.test(style ?? '');
+
+function namedPlayerCount(entry: ParsedDrawMatch): number {
+	return [entry.player1, entry.player2].filter((n): n is string => Boolean(n && isPlayerName(n))).length;
+}
+
+/** Later-round boxes nest the match link in a tiny inner table; keep the named parent. */
+function keepRicherBox(prev: ParsedDrawMatch | undefined, next: ParsedDrawMatch): ParsedDrawMatch {
+	if (!prev) return next;
+	const prevN = namedPlayerCount(prev);
+	const nextN = namedPlayerCount(next);
+	if (nextN < prevN) return prev;
+	if (nextN > prevN) return next;
+	if (prev.drawWinner != null && next.drawWinner == null) return prev;
+	if (next.drawWinner != null && prev.drawWinner == null) return next;
+	return next;
+}
 
 function r2IdFromHref(href: string | null): string | undefined {
 	const m = (href ?? '').match(VIEW_MATCH_RE);
@@ -174,7 +197,7 @@ export function extractSingleElimFromHtml(html: string): DrawPageParse {
 			feederScores.push(...pairs);
 		}
 
-		matches[matchId] = entry;
+		matches[matchId] = keepRicherBox(matches[matchId], entry);
 	}
 
 	const pageNames = Array.from(document.querySelectorAll('strong, b'))
