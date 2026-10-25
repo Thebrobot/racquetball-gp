@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { createAdminClient, env, json } from '../../../lib/accounts/supabase';
 import { eventsInWindow, isAnyEventInWindow, type LiveEventConfig } from '../../../lib/live/config';
 import {
+	backoffFields,
 	nextSkipRunsRemaining,
 	r2BlockSummary,
 	shouldSkipBlockedRun,
@@ -145,6 +146,7 @@ export const GET: APIRoute = async ({ request, url }) => {
 
 	if (shouldSkipBlockedRun(prev.r2SkipRunsRemaining, force)) {
 		const remaining = nextSkipRunsRemaining(prev.r2SkipRunsRemaining, false, force);
+		const backoff = backoffFields(at, remaining, now);
 		const events: Record<string, EventSyncStatus> = { ...prev.events };
 		const reports: EventSyncStatus[] = [];
 		for (const event of targets) {
@@ -175,10 +177,11 @@ export const GET: APIRoute = async ({ request, url }) => {
 			lastSuccessAt: prev.lastSuccessAt,
 			lastError: prev.lastError ?? 'backing off after R2 IP block',
 			inWindow: inWindow || force,
-			skipped: `backing off after R2 IP block (${remaining} run${remaining === 1 ? '' : 's'} left)`,
+			skipped: `backing off after R2 IP block (${remaining} run${remaining === 1 ? '' : 's'} left; next scrape ${backoff.nextScrapeAttemptAt})`,
 			r2Blocked: true,
 			r2BlockedCount: prev.r2BlockedCount ?? 0,
 			r2SkipRunsRemaining: remaining,
+			...backoff,
 			events,
 		};
 		await writeSyncStatus(status);
@@ -217,6 +220,7 @@ export const GET: APIRoute = async ({ request, url }) => {
 	if (r2Blocked) {
 		runErrors.push(`R2 blocked this IP (${r2BlockedCount} request${r2BlockedCount === 1 ? '' : 's'})`);
 	}
+	const remaining = nextSkipRunsRemaining(prev.r2SkipRunsRemaining, r2Blocked, force);
 	const status: SyncStatus = {
 		ok: runErrors.length === 0 && !r2Blocked,
 		lastRunAt: at,
@@ -226,7 +230,8 @@ export const GET: APIRoute = async ({ request, url }) => {
 		quarantined,
 		r2Blocked,
 		r2BlockedCount,
-		r2SkipRunsRemaining: nextSkipRunsRemaining(prev.r2SkipRunsRemaining, r2Blocked, force),
+		r2SkipRunsRemaining: remaining,
+		...backoffFields(at, remaining, now),
 		events,
 	};
 	await writeSyncStatus(status);
