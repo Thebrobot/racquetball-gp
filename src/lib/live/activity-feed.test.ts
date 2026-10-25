@@ -252,6 +252,17 @@ describe('bundled activity and results include MBD1', () => {
 		);
 		assert.equal(feed.events.find((e) => e.matchId === 'MED1')?.detail, '10-15, 15-7, 11-6');
 		assert.equal(feed.events.find((e) => e.matchId === 'MED1')?.at, '2026-10-25T19:45:00.000Z');
+		assert.ok(feedHasMatch(feed, 'M60+1'));
+		assert.equal(feed.events.find((e) => e.matchId === 'M60+1')?.headline, 'Val Peco def Dirk Huck');
+		assert.equal(feed.events.find((e) => e.matchId === 'M60+1')?.detail, '15-2, 15-1');
+		assert.equal(feed.events.find((e) => e.matchId === 'M60+1')?.at, '2026-10-25T20:15:00.000Z');
+		assert.ok(feedHasMatch(feed, 'MAD1'));
+		assert.equal(
+			feed.events.find((e) => e.matchId === 'MAD1')?.headline,
+			'Troy Ayers / Greg Caruso def Tony Gutierrez / Gene Fry',
+		);
+		assert.equal(feed.events.find((e) => e.matchId === 'MAD1')?.detail, '15-3, 15-12');
+		assert.equal(feed.events.find((e) => e.matchId === 'MAD1')?.at, '2026-10-25T20:16:00.000Z');
 		const row = getBundledResults('port-st-lucie-open').divisions['mens-doubles-b']?.MBD1;
 		assert.equal(row?.winner, 1);
 		assert.equal(row?.score, '15-3, 15-7');
