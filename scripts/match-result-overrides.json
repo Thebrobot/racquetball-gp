@@ -88,7 +88,8 @@
         "player1": "Ryan Appleby / Matt Kern",
         "player2": "Paul Sotolongo / Mark Manzano",
         "winner": 1,
-        "score": "15-3, 15-7"
+        "score": "15-3, 15-7",
+        "court": "Court 2"
       }
     },
     "mens-doubles-elite": {
@@ -150,6 +151,9 @@
       }
     },
     "mens-singles-b": {
+      "MB7": {
+        "court": "Court 1"
+      },
       "MB8": {
         "player1": "Scott Gill",
         "player2": "Elijah Saunders",
@@ -167,6 +171,11 @@
     "mens-doubles-a": {
       "MAD5": {
         "court": "Court 4"
+      }
+    },
+    "mens-age-3040": {
+      "M30405": {
+        "court": "Court 2"
       }
     },
     "mens-age-50": {
@@ -212,7 +221,8 @@
         "player1": "Dirk Huck / John Joseph",
         "player2": "John Wuchte / Yelandi Rivero",
         "winner": 1,
-        "score": "15-7, 15-13"
+        "score": "15-7, 15-13",
+        "court": "Court 4"
       },
       "MCSD5": {
         "player1": "Mike Bock / Terry Money",

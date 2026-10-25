@@ -1,106 +1,7 @@
 {
-  "lastUpdated": "2026-10-25T06:13:08.147Z",
+  "lastUpdated": "2026-10-24T21:14:48.489Z",
   "eventSlug": "port-st-lucie-open",
   "events": [
-    {
-      "id": "2026-10-25T06:13:08.147Z-mens-singles-a-MA6",
-      "at": "2026-10-25T06:13:08.147Z",
-      "type": "result",
-      "divisionId": "mens-singles-a",
-      "divisionLabel": "Men's Singles: A",
-      "matchId": "MA6",
-      "headline": "Jason Cheng def Larry Prince Jr.",
-      "detail": "15-10, 15-8",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-a"
-    },
-    {
-      "id": "2026-10-25T06:13:08.147Z-mens-singles-a-MA8",
-      "at": "2026-10-25T06:13:08.147Z",
-      "type": "result",
-      "divisionId": "mens-singles-a",
-      "divisionLabel": "Men's Singles: A",
-      "matchId": "MA8",
-      "headline": "Brendan Anthony def Elijah Saunders",
-      "detail": "15-8, 15-5",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-a"
-    },
-    {
-      "id": "2026-10-24T21:26:00.000Z-mens-singles-open-MO2",
-      "at": "2026-10-24T21:26:00.000Z",
-      "type": "result",
-      "divisionId": "mens-singles-open",
-      "divisionLabel": "Men's Singles: Open",
-      "matchId": "MO2",
-      "headline": "Joe Linnell def Chris Steinheiser",
-      "detail": "15-8, 15-9",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-open"
-    },
-    {
-      "id": "2026-10-24T21:25:00.000Z-mens-doubles-elite-MED7",
-      "at": "2026-10-24T21:25:00.000Z",
-      "type": "result",
-      "divisionId": "mens-doubles-elite",
-      "divisionLabel": "Men's Doubles: Elite",
-      "matchId": "MED7",
-      "headline": "Scott Haacke / Bryon Haacke def Dirk Huck / John Joseph",
-      "detail": "15-10, 15-2",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-elite"
-    },
-    {
-      "id": "2026-10-24T21:24:00.000Z-mens-singles-elite-ME7",
-      "at": "2026-10-24T21:24:00.000Z",
-      "type": "result",
-      "divisionId": "mens-singles-elite",
-      "divisionLabel": "Men's Singles: Elite",
-      "matchId": "ME7",
-      "headline": "Chris Dermody def Chris Steinheiser",
-      "detail": "15-9, 15-10",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-elite"
-    },
-    {
-      "id": "2026-10-24T21:23:00.000Z-mens-doubles-centurion-MCSD6",
-      "at": "2026-10-24T21:23:00.000Z",
-      "type": "result",
-      "divisionId": "mens-doubles-centurion",
-      "divisionLabel": "Men's Doubles: Centurion/Super",
-      "matchId": "MCSD6",
-      "headline": "Dirk Huck / John Joseph def John Wuchte / Yelandi Rivero",
-      "detail": "15-7, 15-13",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-centurion"
-    },
-    {
-      "id": "2026-10-24T21:22:00.000Z-mens-doubles-b-MBD3",
-      "at": "2026-10-24T21:22:00.000Z",
-      "type": "result",
-      "divisionId": "mens-doubles-b",
-      "divisionLabel": "Men's Doubles: B",
-      "matchId": "MBD3",
-      "headline": "Steve Disalvo / Kyle Artman def Paul Sotolongo / Mark Manzano",
-      "detail": "15-1, 15-12",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-b"
-    },
-    {
-      "id": "2026-10-24T21:21:00.000Z-mens-singles-elite-ME5",
-      "at": "2026-10-24T21:21:00.000Z",
-      "type": "result",
-      "divisionId": "mens-singles-elite",
-      "divisionLabel": "Men's Singles: Elite",
-      "matchId": "ME5",
-      "headline": "Isaac Taylor def Shane De Witt",
-      "detail": "15-9, 15-12",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-elite"
-    },
-    {
-      "id": "2026-10-24T21:20:00.000Z-mens-doubles-centurion-MCSD5",
-      "at": "2026-10-24T21:20:00.000Z",
-      "type": "result",
-      "divisionId": "mens-doubles-centurion",
-      "divisionLabel": "Men's Doubles: Centurion/Super",
-      "matchId": "MCSD5",
-      "headline": "Mike Bock / Terry Money def Timothy Burke / Troy Ayers",
-      "detail": "8-15, 15-2, 15-10",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-centurion"
-    },
     {
       "id": "2026-10-24T21:14:48.489Z-mens-singles-open-MO4",
       "at": "2026-10-24T21:14:48.489Z",
@@ -157,6 +58,39 @@
       "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-elite"
     },
     {
+      "id": "2026-10-24T21:05:00.000Z-mens-singles-open-MO2",
+      "at": "2026-10-24T21:05:00.000Z",
+      "type": "result",
+      "divisionId": "mens-singles-open",
+      "divisionLabel": "Men's Singles: Open",
+      "matchId": "MO2",
+      "headline": "Joe Linnell def Chris Steinheiser",
+      "detail": "15-8, 15-9",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-open"
+    },
+    {
+      "id": "2026-10-24T20:55:00.000Z-mens-singles-elite-ME7",
+      "at": "2026-10-24T20:55:00.000Z",
+      "type": "result",
+      "divisionId": "mens-singles-elite",
+      "divisionLabel": "Men's Singles: Elite",
+      "matchId": "ME7",
+      "headline": "Chris Dermody def Chris Steinheiser",
+      "detail": "15-9, 15-10",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-elite"
+    },
+    {
+      "id": "2026-10-24T20:50:00.000Z-mens-doubles-elite-MED7",
+      "at": "2026-10-24T20:50:00.000Z",
+      "type": "result",
+      "divisionId": "mens-doubles-elite",
+      "divisionLabel": "Men's Doubles: Elite",
+      "matchId": "MED7",
+      "headline": "Scott Haacke / Bryon Haacke def Dirk Huck / John Joseph",
+      "detail": "15-10, 15-2",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-elite"
+    },
+    {
       "id": "2026-10-24T20:45:00.000Z-mens-doubles-b-MBD1",
       "at": "2026-10-24T20:45:00.000Z",
       "type": "result",
@@ -166,6 +100,39 @@
       "headline": "Ryan Appleby / Matt Kern def Paul Sotolongo / Mark Manzano",
       "detail": "15-3, 15-7",
       "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-b"
+    },
+    {
+      "id": "2026-10-24T19:40:00.000Z-mens-doubles-b-MBD3",
+      "at": "2026-10-24T19:40:00.000Z",
+      "type": "result",
+      "divisionId": "mens-doubles-b",
+      "divisionLabel": "Men's Doubles: B",
+      "matchId": "MBD3",
+      "headline": "Steve Disalvo / Kyle Artman def Paul Sotolongo / Mark Manzano",
+      "detail": "15-1, 15-12",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-b"
+    },
+    {
+      "id": "2026-10-24T19:30:00.000Z-mens-doubles-centurion-MCSD6",
+      "at": "2026-10-24T19:30:00.000Z",
+      "type": "result",
+      "divisionId": "mens-doubles-centurion",
+      "divisionLabel": "Men's Doubles: Centurion/Super",
+      "matchId": "MCSD6",
+      "headline": "Dirk Huck / John Joseph def John Wuchte / Yelandi Rivero",
+      "detail": "15-7, 15-13",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-centurion"
+    },
+    {
+      "id": "2026-10-24T19:20:00.000Z-mens-singles-elite-ME5",
+      "at": "2026-10-24T19:20:00.000Z",
+      "type": "result",
+      "divisionId": "mens-singles-elite",
+      "divisionLabel": "Men's Singles: Elite",
+      "matchId": "ME5",
+      "headline": "Isaac Taylor def Shane De Witt",
+      "detail": "15-9, 15-12",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-elite"
     },
     {
       "id": "2026-10-24T18:50:21.588Z-mens-singles-elite-ME8",
@@ -289,63 +256,41 @@
       "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-b"
     },
     {
-      "id": "2026-10-24T16:17:40.251Z-mens-singles-open-MO6",
-      "at": "2026-10-24T16:17:40.251Z",
-      "type": "result",
-      "divisionId": "mens-singles-open",
-      "divisionLabel": "Men's Singles: Open",
-      "matchId": "MO6",
-      "headline": "Annie Sanchez def Chris Steinheiser",
-      "detail": "15-4, 15-4",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-open"
-    },
-    {
-      "id": "2026-10-24T16:17:40.251Z-mens-singles-open-MO5",
-      "at": "2026-10-24T16:17:40.251Z",
-      "type": "result",
-      "divisionId": "mens-singles-open",
-      "divisionLabel": "Men's Singles: Open",
-      "matchId": "MO5",
-      "headline": "Joe Linnell def Naomi Ros",
-      "detail": "15-14, 15-6",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-open"
-    },
-    {
-      "id": "2026-10-24T16:17:40.251Z-mens-singles-elite-ME10",
-      "at": "2026-10-24T16:17:40.251Z",
-      "type": "result",
-      "divisionId": "mens-singles-elite",
-      "divisionLabel": "Men's Singles: Elite",
-      "matchId": "ME10",
-      "headline": "Chris Dermody def Wade Stubanas",
-      "detail": "15-13, 15-7",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-elite"
-    },
-    {
-      "id": "2026-10-24T16:17:40.251Z-mens-singles-a-MA5",
-      "at": "2026-10-24T16:17:40.251Z",
+      "id": "2026-10-24T18:10:00.000Z-mens-singles-a-MA6",
+      "at": "2026-10-24T18:10:00.000Z",
       "type": "result",
       "divisionId": "mens-singles-a",
       "divisionLabel": "Men's Singles: A",
-      "matchId": "MA5",
-      "headline": "Bryon Haacke def Ben Kniesly",
-      "detail": "15-10, 9-15, 11-5",
+      "matchId": "MA6",
+      "headline": "Jason Cheng def Larry Prince Jr.",
+      "detail": "15-10, 15-8",
       "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-a"
     },
     {
-      "id": "2026-10-24T16:17:40.251Z-mens-singles-a-MA7",
-      "at": "2026-10-24T16:17:40.251Z",
+      "id": "2026-10-24T18:10:00.000Z-mens-singles-a-MA8",
+      "at": "2026-10-24T18:10:00.000Z",
       "type": "result",
       "divisionId": "mens-singles-a",
       "divisionLabel": "Men's Singles: A",
-      "matchId": "MA7",
-      "headline": "Brian Grantham def John Wuchte",
-      "detail": "12-15, 15-12, 11-2",
+      "matchId": "MA8",
+      "headline": "Brendan Anthony def Elijah Saunders",
+      "detail": "15-8, 15-5",
       "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-a"
     },
     {
-      "id": "2026-10-24T16:17:40.251Z-mens-singles-b-MB5",
-      "at": "2026-10-24T16:17:40.251Z",
+      "id": "2026-10-24T16:30:00.000Z-mens-doubles-centurion-MCSD5",
+      "at": "2026-10-24T16:30:00.000Z",
+      "type": "result",
+      "divisionId": "mens-doubles-centurion",
+      "divisionLabel": "Men's Doubles: Centurion/Super",
+      "matchId": "MCSD5",
+      "headline": "Mike Bock / Terry Money def Timothy Burke / Troy Ayers",
+      "detail": "8-15, 15-2, 15-10",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-centurion"
+    },
+    {
+      "id": "2026-10-24T16:15:00.000Z-mens-singles-b-MB5",
+      "at": "2026-10-24T16:15:00.000Z",
       "type": "result",
       "divisionId": "mens-singles-b",
       "divisionLabel": "Men's Singles: B",
@@ -355,30 +300,8 @@
       "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-b"
     },
     {
-      "id": "2026-10-24T16:17:40.251Z-mens-age-3040-M30406",
-      "at": "2026-10-24T16:17:40.251Z",
-      "type": "result",
-      "divisionId": "mens-age-3040",
-      "divisionLabel": "Men's Age Singles: 24/30/40",
-      "matchId": "M30406",
-      "headline": "Scott Haacke def Alex Bartolome",
-      "detail": "WBF - No Show",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-age-3040"
-    },
-    {
-      "id": "2026-10-24T16:17:40.251Z-mens-age-3040-M30405",
-      "at": "2026-10-24T16:17:40.251Z",
-      "type": "result",
-      "divisionId": "mens-age-3040",
-      "divisionLabel": "Men's Age Singles: 24/30/40",
-      "matchId": "M30405",
-      "headline": "Trevor Morgan def Jason Cheng",
-      "detail": "15-7, 15-4",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-age-3040"
-    },
-    {
-      "id": "2026-10-24T16:17:40.251Z-mens-age-3040-M30403",
-      "at": "2026-10-24T16:17:40.251Z",
+      "id": "2026-10-24T16:10:00.000Z-mens-age-3040-M30403",
+      "at": "2026-10-24T16:10:00.000Z",
       "type": "result",
       "divisionId": "mens-age-3040",
       "divisionLabel": "Men's Age Singles: 24/30/40",
@@ -388,41 +311,30 @@
       "bracketHref": "/events/port-st-lucie-open/divisions/mens-age-3040"
     },
     {
-      "id": "2026-10-24T16:17:40.251Z-mens-age-50-M50+3",
-      "at": "2026-10-24T16:17:40.251Z",
+      "id": "2026-10-24T15:50:00.000Z-mens-singles-open-MO5",
+      "at": "2026-10-24T15:50:00.000Z",
       "type": "result",
-      "divisionId": "mens-age-50",
-      "divisionLabel": "Men's Age Singles: 50+",
-      "matchId": "M50+3",
-      "headline": "Timothy Schnellenberger def John Johnston",
-      "detail": "11-15, 15-8, 11-7",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-age-50"
+      "divisionId": "mens-singles-open",
+      "divisionLabel": "Men's Singles: Open",
+      "matchId": "MO5",
+      "headline": "Joe Linnell def Naomi Ros",
+      "detail": "15-14, 15-6",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-open"
     },
     {
-      "id": "2026-10-24T16:17:40.251Z-mens-age-60-M60+6",
-      "at": "2026-10-24T16:17:40.251Z",
+      "id": "2026-10-24T15:20:00.000Z-mens-age-3040-M30406",
+      "at": "2026-10-24T15:20:00.000Z",
       "type": "result",
-      "divisionId": "mens-age-60",
-      "divisionLabel": "Men's Age Singles: 60+",
-      "matchId": "M60+6",
-      "headline": "Dirk Huck def Steve Disalvo",
-      "detail": "15-13, 15-10",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-age-60"
+      "divisionId": "mens-age-3040",
+      "divisionLabel": "Men's Age Singles: 24/30/40",
+      "matchId": "M30406",
+      "headline": "Scott Haacke def Alex Bartolome",
+      "detail": "WBF - No Show",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-age-3040"
     },
     {
-      "id": "2026-10-24T16:17:40.251Z-mens-doubles-open-MOD3",
-      "at": "2026-10-24T16:17:40.251Z",
-      "type": "result",
-      "divisionId": "mens-doubles-open",
-      "divisionLabel": "Men's Doubles: Open",
-      "matchId": "MOD3",
-      "headline": "Tyson Peco / Naomi Ros def Jack McDonald / Yelandi Rivero",
-      "detail": "15-4, 15-6",
-      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-open"
-    },
-    {
-      "id": "2026-10-24T16:17:40.251Z-mens-doubles-elite-MED9",
-      "at": "2026-10-24T16:17:40.251Z",
+      "id": "2026-10-24T14:55:00.000Z-mens-doubles-elite-MED9",
+      "at": "2026-10-24T14:55:00.000Z",
       "type": "result",
       "divisionId": "mens-doubles-elite",
       "divisionLabel": "Men's Doubles: Elite",
@@ -432,8 +344,53 @@
       "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-elite"
     },
     {
-      "id": "2026-10-24T16:17:40.251Z-mens-doubles-a-MAD5",
-      "at": "2026-10-24T16:17:40.251Z",
+      "id": "2026-10-24T14:50:00.000Z-mens-age-60-M60+6",
+      "at": "2026-10-24T14:50:00.000Z",
+      "type": "result",
+      "divisionId": "mens-age-60",
+      "divisionLabel": "Men's Age Singles: 60+",
+      "matchId": "M60+6",
+      "headline": "Correction: Dirk Huck def Steve Disalvo",
+      "detail": "15-13, 15-10",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-age-60",
+      "correction": true
+    },
+    {
+      "id": "2026-10-24T14:45:00.000Z-mens-age-3040-M30405",
+      "at": "2026-10-24T14:45:00.000Z",
+      "type": "result",
+      "divisionId": "mens-age-3040",
+      "divisionLabel": "Men's Age Singles: 24/30/40",
+      "matchId": "M30405",
+      "headline": "Trevor Morgan def Jason Cheng",
+      "detail": "15-7, 15-4",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-age-3040"
+    },
+    {
+      "id": "2026-10-24T14:40:00.000Z-mens-singles-open-MO6",
+      "at": "2026-10-24T14:40:00.000Z",
+      "type": "result",
+      "divisionId": "mens-singles-open",
+      "divisionLabel": "Men's Singles: Open",
+      "matchId": "MO6",
+      "headline": "Annie Sanchez def Chris Steinheiser",
+      "detail": "15-4, 15-4",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-open"
+    },
+    {
+      "id": "2026-10-24T14:25:00.000Z-mens-singles-a-MA7",
+      "at": "2026-10-24T14:25:00.000Z",
+      "type": "result",
+      "divisionId": "mens-singles-a",
+      "divisionLabel": "Men's Singles: A",
+      "matchId": "MA7",
+      "headline": "Brian Grantham def John Wuchte",
+      "detail": "12-15, 15-12, 11-2",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-a"
+    },
+    {
+      "id": "2026-10-24T14:22:00.000Z-mens-doubles-a-MAD5",
+      "at": "2026-10-24T14:22:00.000Z",
       "type": "result",
       "divisionId": "mens-doubles-a",
       "divisionLabel": "Men's Doubles: A",
@@ -443,8 +400,30 @@
       "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-a"
     },
     {
-      "id": "2026-10-24T16:17:40.251Z-mens-doubles-a-MAD6",
-      "at": "2026-10-24T16:17:40.251Z",
+      "id": "2026-10-24T14:20:00.000Z-mens-singles-a-MA5",
+      "at": "2026-10-24T14:20:00.000Z",
+      "type": "result",
+      "divisionId": "mens-singles-a",
+      "divisionLabel": "Men's Singles: A",
+      "matchId": "MA5",
+      "headline": "Bryon Haacke def Ben Kniesly",
+      "detail": "15-10, 9-15, 11-5",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-a"
+    },
+    {
+      "id": "2026-10-24T14:15:00.000Z-mens-age-50-M50+3",
+      "at": "2026-10-24T14:15:00.000Z",
+      "type": "result",
+      "divisionId": "mens-age-50",
+      "divisionLabel": "Men's Age Singles: 50+",
+      "matchId": "M50+3",
+      "headline": "Timothy Schnellenberger def John Johnston",
+      "detail": "11-15, 15-8, 11-7",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-age-50"
+    },
+    {
+      "id": "2026-10-24T13:45:00.000Z-mens-doubles-a-MAD6",
+      "at": "2026-10-24T13:45:00.000Z",
       "type": "result",
       "divisionId": "mens-doubles-a",
       "divisionLabel": "Men's Doubles: A",
@@ -454,8 +433,30 @@
       "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-a"
     },
     {
-      "id": "2026-10-24T12:50:19.825Z-mens-singles-a-MA9",
-      "at": "2026-10-24T12:50:19.825Z",
+      "id": "2026-10-24T13:40:00.000Z-mens-doubles-open-MOD3",
+      "at": "2026-10-24T13:40:00.000Z",
+      "type": "result",
+      "divisionId": "mens-doubles-open",
+      "divisionLabel": "Men's Doubles: Open",
+      "matchId": "MOD3",
+      "headline": "Tyson Peco / Naomi Ros def Jack McDonald / Yelandi Rivero",
+      "detail": "15-4, 15-6",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-doubles-open"
+    },
+    {
+      "id": "2026-10-24T12:50:00.000Z-mens-singles-elite-ME10",
+      "at": "2026-10-24T12:50:00.000Z",
+      "type": "result",
+      "divisionId": "mens-singles-elite",
+      "divisionLabel": "Men's Singles: Elite",
+      "matchId": "ME10",
+      "headline": "Chris Dermody def Wade Stubanas",
+      "detail": "15-13, 15-7",
+      "bracketHref": "/events/port-st-lucie-open/divisions/mens-singles-elite"
+    },
+    {
+      "id": "2026-10-24T12:20:00.000Z-mens-singles-a-MA9",
+      "at": "2026-10-24T12:20:00.000Z",
       "type": "result",
       "divisionId": "mens-singles-a",
       "divisionLabel": "Men's Singles: A",

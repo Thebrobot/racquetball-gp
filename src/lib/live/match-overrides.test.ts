@@ -75,6 +75,10 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(mbd1?.player2, 'Paul Sotolongo / Mark Manzano');
 		assert.equal(mbd1?.winner, 1);
 		assert.equal(mbd1?.score, '15-3, 15-7');
+		assert.equal(mbd1?.court, 'Court 2');
+		assert.equal(bundled.divisions['mens-singles-b']?.MB7?.court, 'Court 1');
+		assert.equal(bundled.divisions['mens-age-3040']?.M30405?.court, 'Court 2');
+		assert.equal(bundled.divisions['mens-doubles-centurion']?.MCSD6?.court, 'Court 4');
 	});
 
 	it('build/deploy EVENTS overlay shows the same results without a successful sync', () => {
