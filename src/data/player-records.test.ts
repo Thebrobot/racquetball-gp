@@ -69,8 +69,8 @@ describe('PSL player records include every match the player appears in', () => {
 		assert.ok(hist.some((m) => m.divisionId === 'mens-doubles-elite' && m.result === 'loss'));
 	});
 
-	it('links Caruso to Doubles Elite and has no missing PSL division links among 53 players', () => {
-		assert.equal(new Set(psl!.profiles.map((p) => p.name)).size, 53);
+	it('links Caruso to Doubles Elite and has no missing PSL division links among 52 players', () => {
+		assert.equal(new Set(psl!.profiles.map((p) => p.name)).size, 52);
 		assert.ok(psl!.profiles.some((p) => p.name === 'Greg Caruso' && p.division === "Men's Doubles: Elite"));
 		assert.deepEqual(missingEventDivisionLinks(psl!), []);
 	});
