@@ -294,12 +294,21 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(mb3?.score, '15-7, 15-11');
 		assert.equal(mb3?.court, 'Court 3');
 		const mb1 = findPslMatch('MB1');
-		assert.equal(mb1 && 'player1' in mb1 ? mb1.player1 : undefined, 'Matt Kern');
-		assert.equal(mb1 && 'player2' in mb1 ? mb1.player2 : undefined, 'Elijah Saunders');
-		assert.equal(mb1?.court, 'Court 2');
+		assert.equal(mb1 && 'player1' in mb1 ? mb1.player1 : undefined, 'Elijah Saunders');
+		assert.equal(mb1 && 'player2' in mb1 ? mb1.player2 : undefined, 'Matt Kern');
+		assert.equal(mb1?.court, 'Court 4');
 		assert.equal(mb1?.scheduledTime, 'Sunday · 3:00 PM');
 		assert.equal(mb1?.winner, 1);
 		assert.equal(mb1?.score, '15-13, 12-15, 11-4');
+		const mod1 = findPslMatch('MOD1');
+		assert.equal(mod1 && 'team2' in mod1 ? mod1.team2 : undefined, 'Tyson Peco / Naomi Ros');
+		assert.equal(mod1?.winner, 2);
+		assert.equal(mod1?.score, '15-6, 15-8');
+		assert.equal(mod1?.court, 'Court 4');
+		const mod3 = findPslMatch('MOD3');
+		assert.equal(mod3 && 'team1' in mod3 ? mod3.team1 : undefined, 'Tyson Peco / Naomi Ros');
+		assert.equal(mod3?.winner, 1);
+		assert.equal(mod3?.score, '15-4, 15-6');
 		const mcsd3 = findPslMatch('MCSD3');
 		assert.equal(mcsd3?.winner, 2);
 		assert.equal(mcsd3?.score, '15-5, 15-3');
@@ -538,9 +547,11 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(results.divisions['mens-singles-b']?.MB3?.winner, 2);
 		assert.equal(results.divisions['mens-singles-b']?.MB3?.score, '15-7, 15-11');
 		assert.equal(results.divisions['mens-singles-b']?.MB3?.player2, 'Matt Kern');
-		assert.equal(results.divisions['mens-singles-b']?.MB1?.player1, 'Matt Kern');
-		assert.equal(results.divisions['mens-singles-b']?.MB1?.player2, 'Elijah Saunders');
-		assert.equal(results.divisions['mens-singles-b']?.MB1?.court, 'Court 2');
+		assert.equal(results.divisions['mens-singles-b']?.MB1?.player1, 'Elijah Saunders');
+		assert.equal(results.divisions['mens-singles-b']?.MB1?.player2, 'Matt Kern');
+		assert.equal(results.divisions['mens-singles-b']?.MB1?.winner, 1);
+		assert.equal(results.divisions['mens-singles-b']?.MB1?.score, '15-13, 12-15, 11-4');
+		assert.equal(results.divisions['mens-singles-b']?.MB1?.court, 'Court 4');
 		assert.equal(results.divisions['mens-singles-b']?.MB1?.scheduledTime, 'Sunday · 3:00 PM');
 		assert.equal(results.divisions['mens-doubles-centurion']?.MCSD3?.winner, 2);
 		assert.equal(results.divisions['mens-doubles-centurion']?.MCSD3?.score, '15-5, 15-3');
@@ -839,6 +850,92 @@ describe('PSL Saturday overrides apply on read / deploy while R2 is blocked', ()
 		assert.equal(results.divisions['mens-age-50']?.['M50+1']?.player1, 'Tyson Peco');
 		assert.equal(results.divisions['mens-age-50']?.['M50+1']?.player2, 'Timothy Schnellenberger');
 		assert.equal(results.divisions['mens-age-50']?.['M50+1']?.scheduledTime, 'Sunday · 4:00 PM');
+	});
+
+	it('publishes MB1 Saunders and MOD Peco/Ros onto last-good blob data', () => {
+		const { results, changed } = overlayOverridesOnFile(
+			'port-st-lucie-open',
+			{
+				lastUpdated: '2026-10-25T20:20:00.000Z',
+				divisions: {
+					'mens-singles-b': {
+						MB1: {
+							player1: 'Matt Kern',
+							player2: 'Elijah Saunders',
+							winner: 1,
+							score: '15-13, 12-15, 11-4',
+							court: 'Court 2',
+							scheduledTime: 'Sunday · 3:00 PM',
+						},
+					},
+					'mens-doubles-open': {
+						MOD3: {
+							player1: 'Naomi Ros / Mike Kinkin',
+							player2: 'Jack McDonald / Yelandi Rivero',
+							winner: 1,
+							score: '15-4, 15-6',
+						},
+						MOD1: {
+							player1: 'Annie Sanchez / Samuel Schulze',
+							player2: 'Naomi Ros / Mike Kinkin',
+							winner: 2,
+							score: '15-6, 15-8',
+						},
+					},
+				},
+			},
+			'2026-10-26T00:10:00.000Z',
+		);
+		assert.equal(changed, true);
+		assert.equal(results.divisions['mens-singles-b']?.MB1?.player1, 'Elijah Saunders');
+		assert.equal(results.divisions['mens-singles-b']?.MB1?.player2, 'Matt Kern');
+		assert.equal(results.divisions['mens-singles-b']?.MB1?.winner, 1);
+		assert.equal(results.divisions['mens-singles-b']?.MB1?.score, '15-13, 12-15, 11-4');
+		assert.equal(results.divisions['mens-singles-b']?.MB1?.court, 'Court 4');
+		assert.equal(results.divisions['mens-doubles-open']?.MOD3?.player1, 'Tyson Peco / Naomi Ros');
+		assert.equal(results.divisions['mens-doubles-open']?.MOD1?.player2, 'Tyson Peco / Naomi Ros');
+		assert.equal(results.divisions['mens-doubles-open']?.MOD1?.winner, 2);
+	});
+
+	it('Open doubles RR standings become Peco/Ros 2-0, Sanchez/Schulze 1-1, McDonald/Rivero 0-2', () => {
+		const event = applyResultsToEvent(
+			PORT_ST_LUCIE_EVENT,
+			getBundledResults('port-st-lucie-open').divisions,
+		);
+		const div = event.divisionDetails.find((d) => d.id === 'mens-doubles-open');
+		assert.ok(div?.roundRobinMatches);
+		assert.ok(div.roundRobinMatches.every((m) => m.winner === 1 || m.winner === 2));
+		assert.equal(
+			div.roundRobinPlayers?.some((name) => /kinkin/i.test(name)),
+			false,
+		);
+		const standings = new Map(
+			(div.roundRobinPlayers ?? []).map((name) => [name, { name, w: 0, l: 0 }]),
+		);
+		const rowFor = (name: string) => {
+			const exact = standings.get(name);
+			if (exact) return exact;
+			for (const [key, row] of standings) {
+				if (namesAlign(key, name)) return row;
+			}
+		};
+		for (const m of div.roundRobinMatches) {
+			if (m.winner !== 1 && m.winner !== 2) continue;
+			const winner = m.winner === 1 ? m.team1 : m.team2;
+			const loser = m.winner === 1 ? m.team2 : m.team1;
+			assert.match(winner, /Peco|Sanchez|McDonald/);
+			assert.doesNotMatch(winner, /Kinkin/);
+			assert.doesNotMatch(loser, /Kinkin/);
+			const ws = rowFor(winner);
+			const ls = rowFor(loser);
+			if (ws) ws.w++;
+			if (ls) ls.l++;
+		}
+		const ranked = [...standings.values()].sort((a, b) => b.w - a.w || a.l - b.l);
+		assert.deepEqual(
+			ranked.map((r) => `${r.name} ${r.w}-${r.l}`),
+			['Tyson Peco / Naomi Ros 2-0', 'Sanchez / Schulze 1-1', 'McDonald / Rivero 0-2'],
+		);
 	});
 
 	it('Open RR standings become Sanchez 3-0, Linnell 2-1, Ros 1-2, Steinheiser 0-3', () => {
@@ -1253,6 +1350,33 @@ describe('overrides yield to a later confirmed R2 fetch', () => {
 			},
 		});
 		assert.equal(keys.includes('mens-age-50:M50+1'), false);
+	});
+
+	it('keeps the MB1 and MOD overrides when a confirmed r2-push matches them', () => {
+		const keys = collectSupersededOverrides('port-st-lucie-open', {
+			'mens-singles-b': {
+				MB1: {
+					player1: 'Elijah Saunders',
+					player2: 'Matt Kern',
+					winner: 1,
+					score: '15-13, 12-15, 11-4',
+					court: 'Court 4',
+					scheduledTime: 'Sunday · 3:00 PM',
+				},
+			},
+			'mens-doubles-open': {
+				MOD1: {
+					player1: 'Annie Sanchez / Samuel Schulze',
+					player2: 'Tyson Peco / Naomi Ros',
+					winner: 2,
+					score: '15-6, 15-8',
+					court: 'Court 4',
+					scheduledTime: 'Sunday · 2:00 PM',
+				},
+			},
+		});
+		assert.equal(keys.includes('mens-singles-b:MB1'), false);
+		assert.equal(keys.includes('mens-doubles-open:MOD1'), false);
 	});
 
 	it('yields MB8 once a confirmed r2-push names a different winner or score', () => {

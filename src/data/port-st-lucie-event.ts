@@ -259,13 +259,13 @@ export const PORT_ST_LUCIE_EVENT: EventData = {
 			format: 'roundrobin',
 			roundRobinPlayers: [
 				'Sanchez / Schulze',
-				'Ros / Kinkin',
+				'Tyson Peco / Naomi Ros',
 				'McDonald / Rivero',
 			],
 			roundRobinMatches: [
-				{ round: 'Round 1', team1: 'Ros / Kinkin', team2: 'McDonald / Rivero', scheduledTime: 'Saturday · 9:00 AM', matchId: 'MOD3' },
+				{ round: 'Round 1', team1: 'Tyson Peco / Naomi Ros', team2: 'McDonald / Rivero', scheduledTime: 'Saturday · 9:00 AM', matchId: 'MOD3' },
 				{ round: 'Round 2', team1: 'Sanchez / Schulze', team2: 'McDonald / Rivero', scheduledTime: 'Saturday · 12:00 PM', court: 'Court 1', matchId: 'MOD2' },
-				{ round: 'Round 3', team1: 'Sanchez / Schulze', team2: 'Ros / Kinkin', scheduledTime: 'Sunday · 2:00 PM', court: 'Court 3', matchId: 'MOD1' },
+				{ round: 'Round 3', team1: 'Sanchez / Schulze', team2: 'Tyson Peco / Naomi Ros', scheduledTime: 'Sunday · 2:00 PM', court: 'Court 3', matchId: 'MOD1' },
 			],
 		},
 		{
@@ -452,7 +452,6 @@ export const PORT_ST_LUCIE_EVENT: EventData = {
 		{ name: 'John Joseph', division: "Men's Doubles: Centurion/Super", time: 'Saturday · 2:00 PM', note: 'Court 4' },
 		{ name: 'Matt Kern', division: "Men's Doubles: B", time: 'Friday · 4:30 PM', note: 'Court 3' },
 		{ name: 'Matt Kern', division: "Men's Singles: B", time: 'Saturday · 1:00 PM', note: 'Court 3' },
-		{ name: 'Mike Kinkin', division: "Men's Doubles: Open", time: 'Saturday · 9:00 AM' },
 		{ name: 'Ben Kniesly', division: "Men's Singles: A", time: 'Saturday · 9:00 AM', note: 'Court 4' },
 		{ name: 'Ben Kniesly', division: "Men's Age Singles: 50+", time: 'Saturday · 11:00 AM', note: 'Court 3' },
 		{ name: 'Joe Linnell', division: "Men's Singles: Open", time: 'Saturday · 11:00 AM', note: 'Court 1' },
@@ -466,6 +465,7 @@ export const PORT_ST_LUCIE_EVENT: EventData = {
 		{ name: 'Ben Mordkovich', division: "Men's Singles: B", time: 'Friday · 4:30 PM', note: 'Court 2' },
 		{ name: 'Trevor Morgan', division: "Men's Singles: Elite", time: 'Friday · 6:30 PM', note: 'Court 2' },
 		{ name: 'Trevor Morgan', division: "Men's Age Singles: 24/30/40", time: 'Saturday · 10:00 AM', note: 'Court 3' },
+		{ name: 'Tyson Peco', division: "Men's Doubles: Open", time: 'Saturday · 9:00 AM' },
 		{ name: 'Tyson Peco', division: "Men's Doubles: Centurion/Super", time: 'Sunday · 8:00 AM', note: 'Court 4' },
 		{ name: 'Tyson Peco', division: "Men's Age Singles: 50+", time: 'Saturday · 2:00 PM', note: 'Court 2' },
 		{ name: 'Val Peco', division: "Men's Age Singles: 60+", time: 'Saturday · 2:00 PM' },

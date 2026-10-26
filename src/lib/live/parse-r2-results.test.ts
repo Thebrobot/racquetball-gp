@@ -395,8 +395,17 @@ describe('match-result-overrides still win', () => {
 		assert.equal(divisions['mens-singles-b']?.MB4?.scheduledTime, 'Sunday · 8:00 AM');
 		assert.equal(divisions['mens-singles-b']?.MB3?.winner, 2);
 		assert.equal(divisions['mens-singles-b']?.MB3?.score, '15-7, 15-11');
-		assert.equal(divisions['mens-singles-b']?.MB1?.player1, 'Matt Kern');
-		assert.equal(divisions['mens-singles-b']?.MB1?.player2, 'Elijah Saunders');
+		assert.equal(divisions['mens-singles-b']?.MB1?.player1, 'Elijah Saunders');
+		assert.equal(divisions['mens-singles-b']?.MB1?.player2, 'Matt Kern');
+		assert.equal(divisions['mens-singles-b']?.MB1?.winner, 1);
+		assert.equal(divisions['mens-singles-b']?.MB1?.score, '15-13, 12-15, 11-4');
+		assert.equal(divisions['mens-singles-b']?.MB1?.court, 'Court 4');
+		assert.equal(divisions['mens-doubles-open']?.MOD3?.player1, 'Tyson Peco / Naomi Ros');
+		assert.equal(divisions['mens-doubles-open']?.MOD3?.winner, 1);
+		assert.equal(divisions['mens-doubles-open']?.MOD3?.score, '15-4, 15-6');
+		assert.equal(divisions['mens-doubles-open']?.MOD1?.player2, 'Tyson Peco / Naomi Ros');
+		assert.equal(divisions['mens-doubles-open']?.MOD1?.winner, 2);
+		assert.equal(divisions['mens-doubles-open']?.MOD1?.score, '15-6, 15-8');
 		assert.equal(divisions['mens-doubles-centurion']?.MCSD3?.winner, 2);
 		assert.equal(divisions['mens-doubles-centurion']?.MCSD3?.score, '15-5, 15-3');
 		assert.equal(divisions['mens-doubles-centurion']?.MCSD4?.winner, 2);
@@ -445,6 +454,14 @@ describe('match-result-overrides still win', () => {
 		assert.equal(divisions['mens-singles-open']?.MO1?.court, 'Court 1');
 		assert.equal(divisions['mens-singles-open']?.MO1?.player1, 'Annie Sanchez');
 		assert.equal(divisions['mens-singles-open']?.MO1?.player2, 'Naomi Ros');
+		assert.equal(divisions['mens-singles-b']?.MB1?.player1, 'Elijah Saunders');
+		assert.equal(divisions['mens-singles-b']?.MB1?.player2, 'Matt Kern');
+		assert.equal(divisions['mens-singles-b']?.MB1?.winner, 1);
+		assert.equal(divisions['mens-singles-b']?.MB1?.score, '15-13, 12-15, 11-4');
+		assert.equal(divisions['mens-singles-b']?.MB1?.court, 'Court 4');
+		assert.equal(divisions['mens-doubles-open']?.MOD1?.player2, 'Tyson Peco / Naomi Ros');
+		assert.equal(divisions['mens-doubles-open']?.MOD1?.winner, 2);
+		assert.equal(divisions['mens-doubles-open']?.MOD1?.score, '15-6, 15-8');
 	});
 });
 
@@ -1322,3 +1339,48 @@ describe('Sunday 50+ M50+1 final', () => {
 		assert.equal(record.scheduledTime, 'Sunday · 4:00 PM');
 	});
 });
+
+describe('Sunday B final MB1', () => {
+	const mb1Page = parseMatchPage(read('psl-mb1-match.html'));
+
+	it('reads MB1 Saunders over Kern 15-13, 12-15, 11-4 on Court 4', () => {
+		assert.equal(mb1Page.winnerName, 'Elijah Saunders');
+		assert.equal(mb1Page.score, '15-13, 12-15, 11-4');
+		assert.equal(mb1Page.court, 'Court 4');
+		const { record, quarantine } = resolveMatchResult({
+			matchId: 'MB1',
+			draw: {
+				player1: 'Elijah Saunders',
+				player2: 'Matt Kern',
+				court: 'Court 2',
+				scheduledTime: 'Sunday · 3:00 PM',
+			},
+			page: mb1Page,
+		});
+		assert.equal(quarantine, undefined);
+		assert.equal(record.winner, 1);
+		assert.equal(record.score, '15-13, 12-15, 11-4');
+		assert.equal(record.court, 'Court 4');
+		assert.equal(record.scheduledTime, 'Sunday · 3:00 PM');
+	});
+});
+
+describe('Open doubles MOD pool', () => {
+	const modRr = extractRoundRobinFromHtml(read('psl-mod-rr.html'));
+	const mod1Page = parseMatchPage(read('psl-mod1-match.html'));
+
+	it('reads Peco/Ros as the MOD pool winner and has no Kinkin', () => {
+		assert.equal(modRr.matches.MOD3?.player1, 'Tyson Peco / Naomi Ros');
+		assert.equal(modRr.matches.MOD3?.player2, 'Jack McDonald / Yelandi Rivero');
+		assert.equal(modRr.matches.MOD3?.drawWinner, 1);
+		assert.equal(modRr.matches.MOD3?.drawScore, '15-4, 15-6');
+		assert.equal(modRr.matches.MOD1?.player2, 'Tyson Peco / Naomi Ros');
+		assert.equal(modRr.matches.MOD1?.drawWinner, 2);
+		assert.equal(modRr.matches.MOD1?.drawScore, '15-6, 15-8');
+		assert.equal(mod1Page.winnerName, 'Tyson Peco / Naomi Ros');
+		assert.equal(mod1Page.score, '15-6, 15-8');
+		assert.equal(mod1Page.court, 'Court 4');
+		assert.equal(read('psl-mod-rr.html').includes('Kinkin'), false);
+	});
+});
+

@@ -157,6 +157,31 @@
         "scheduledTime": "Sunday · 1:00 PM"
       }
     },
+    "mens-doubles-open": {
+      "MOD3": {
+        "player1": "Tyson Peco / Naomi Ros",
+        "player2": "Jack McDonald / Yelandi Rivero",
+        "winner": 1,
+        "score": "15-4, 15-6",
+        "scheduledTime": "Saturday · 9:00 AM"
+      },
+      "MOD2": {
+        "player1": "Annie Sanchez / Samuel Schulze",
+        "player2": "Jack McDonald / Yelandi Rivero",
+        "winner": 1,
+        "score": "15-4, 15-8",
+        "court": "Court 3",
+        "scheduledTime": "Saturday · 12:00 PM"
+      },
+      "MOD1": {
+        "player1": "Annie Sanchez / Samuel Schulze",
+        "player2": "Tyson Peco / Naomi Ros",
+        "winner": 2,
+        "score": "15-6, 15-8",
+        "court": "Court 4",
+        "scheduledTime": "Sunday · 2:00 PM"
+      }
+    },
     "mens-singles-a": {
       "MA1": {
         "player1": "Brendan Anthony",
@@ -228,9 +253,11 @@
         "scheduledTime": "Sunday · 9:00 AM"
       },
       "MB1": {
-        "player1": "Matt Kern",
-        "player2": "Elijah Saunders",
-        "court": "Court 2",
+        "player1": "Elijah Saunders",
+        "player2": "Matt Kern",
+        "winner": 1,
+        "score": "15-13, 12-15, 11-4",
+        "court": "Court 4",
         "scheduledTime": "Sunday · 3:00 PM"
       }
     },
